@@ -23,7 +23,7 @@ public static class ThingStatisticsWindowModel
             {
                 counts.TryGetValue(info.Index, out int count);
                 if (!hideUnused || count != 0)
-                    rows.Add(new ThingStatisticsRow(info.Index, info.Title, string.IsNullOrEmpty(info.ClassName) ? "-" : info.ClassName, count));
+                    rows.Add(new ThingStatisticsRow(info.Index, info.Title, info.ClassName, count));
                 counts.Remove(info.Index);
             }
         }

@@ -1141,7 +1141,7 @@ public class MapSearchTests
             {
                 new ThingStatisticsRow(9, "Unknown thing", "-", 1),
                 new ThingStatisticsRow(3001, "Imp", "DoomImp", 2),
-                new ThingStatisticsRow(3002, "Demon", "-", 0),
+                new ThingStatisticsRow(3002, "Demon", "", 0),
             },
             allRows);
         Assert.Equal(new[] { 9, 3001 }, usedRows.Select(row => row.Type).ToArray());
