@@ -80,6 +80,8 @@ public readonly record struct ThingTypeStatistic(int Type, int Count);
 public static class MapSearch
 {
     private const int ClassicTextureNameLength = 8;
+    private const int ClassicMinThingType = short.MinValue;
+    private const int ClassicMaxThingType = short.MaxValue;
 
     public static IReadOnlyList<FindCategoryDescriptor> CategoryDescriptors { get; } =
     [
@@ -493,7 +495,7 @@ public static class MapSearch
         Func<int, int, bool>? sectorEffectMatcher,
         bool withinSelection,
         bool mixTexturesFlats)
-        => Replace(map, cat, find, replace, tagOptions, linedefActionMatcher, sectorEffectMatcher, withinSelection, mixTexturesFlats, ClassicTextureNameLength);
+        => Replace(map, cat, find, replace, tagOptions, linedefActionMatcher, sectorEffectMatcher, withinSelection, mixTexturesFlats, ClassicTextureNameLength, ClassicMinThingType, ClassicMaxThingType);
 
     public static int Replace(
         MapSet map,
@@ -506,6 +508,21 @@ public static class MapSearch
         bool withinSelection,
         bool mixTexturesFlats,
         int maxTextureNameLength)
+        => Replace(map, cat, find, replace, tagOptions, linedefActionMatcher, sectorEffectMatcher, withinSelection, mixTexturesFlats, maxTextureNameLength, ClassicMinThingType, ClassicMaxThingType);
+
+    public static int Replace(
+        MapSet map,
+        FindCategory cat,
+        string find,
+        string replace,
+        TagSearchOptions tagOptions,
+        Func<int, int, bool>? linedefActionMatcher,
+        Func<int, int, bool>? sectorEffectMatcher,
+        bool withinSelection,
+        bool mixTexturesFlats,
+        int maxTextureNameLength,
+        int minThingType,
+        int maxThingType)
     {
         if (!CanReplace(cat, mixTexturesFlats)) return 0;
 
@@ -577,6 +594,9 @@ public static class MapSearch
         if (cat == FindCategory.ThingType)
         {
             if (!TryParseIntList(find, out var findTypes) || !TryParseIntList(replace, out var replaceTypes)) return 0;
+            foreach (int type in replaceTypes)
+                if (type < minThingType || type > maxThingType) return 0;
+
             foreach (var t in lists.Things)
             {
                 if (!findTypes.Contains(t.Type)) continue;

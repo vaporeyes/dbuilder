@@ -105,6 +105,19 @@ public class ConfiguredMapSearchTests
     }
 
     [Fact]
+    public void ReplaceThingTypeHonorsUdmfThingTypeRange()
+    {
+        var config = GameConfiguration.FromText("formatinterface = \"UniversalMapSetIO\";");
+        var map = BuildMap();
+        map.AddThing(new Vector2D(16, 16), 3001);
+
+        int changed = ConfiguredMapSearch.Replace(map, FindCategory.ThingType, "3001", "32768", config);
+
+        Assert.Equal(1, changed);
+        Assert.Equal(32768, map.Things[0].Type);
+    }
+
+    [Fact]
     public void FindLinedefActionMatchesGeneralizedActionsWithSharedBits()
     {
         var config = GameConfiguration.FromText(Cfg);

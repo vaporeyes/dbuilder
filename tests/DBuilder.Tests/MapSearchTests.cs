@@ -84,6 +84,17 @@ public class MapSearchTests
     }
 
     [Fact]
+    public void ReplaceThingTypeRejectsClassicOutOfRangeReplacementValues()
+    {
+        var map = Build();
+
+        int changed = MapSearch.Replace(map, FindCategory.ThingType, "3001", "32768");
+
+        Assert.Equal(0, changed);
+        Assert.Equal(2, map.Things.Count(thing => thing.Type == 3001));
+    }
+
+    [Fact]
     public void CategoryDescriptorsExposeFindReplaceDialogOrderAndLabels()
     {
         IReadOnlyList<FindCategoryDescriptor> descriptors = MapSearch.CategoryDescriptors;

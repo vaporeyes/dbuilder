@@ -16,10 +16,21 @@ public static class ConfiguredMapSearch
         => MapSearch.Find(map, category, value, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), withinSelection);
 
     public static int Replace(MapSet map, FindCategory category, string find, string replace, GameConfiguration? config)
-        => MapSearch.Replace(map, category, find, replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), false, config?.MixTexturesFlats == true, config?.MaxTextureNameLength ?? 8);
+    {
+        var (minThingType, maxThingType) = ThingTypeRange(config);
+        return MapSearch.Replace(map, category, find, replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), false, config?.MixTexturesFlats == true, config?.MaxTextureNameLength ?? 8, minThingType, maxThingType);
+    }
 
     public static int Replace(MapSet map, FindCategory category, string find, string replace, GameConfiguration? config, bool withinSelection)
-        => MapSearch.Replace(map, category, find, replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), withinSelection, config?.MixTexturesFlats == true, config?.MaxTextureNameLength ?? 8);
+    {
+        var (minThingType, maxThingType) = ThingTypeRange(config);
+        return MapSearch.Replace(map, category, find, replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), withinSelection, config?.MixTexturesFlats == true, config?.MaxTextureNameLength ?? 8, minThingType, maxThingType);
+    }
+
+    private static (int Min, int Max) ThingTypeRange(GameConfiguration? config)
+        => config?.MapFormat == MapFormat.Udmf
+            ? (int.MinValue, int.MaxValue)
+            : (short.MinValue, short.MaxValue);
 
     private static Func<int, int, bool>? LinedefActionMatcher(GameConfiguration? config)
         => config?.GeneralizedActions == true && config.GeneralizedLinedefs.Count > 0
