@@ -12,8 +12,33 @@ public sealed record BlockmapExplorerRow(
     int SharedCount,
     bool Questionable);
 
+public sealed record BlockmapExplorerModeDescriptor(
+    string DisplayName,
+    string SwitchAction,
+    string ButtonImage,
+    int ButtonOrder,
+    string ButtonGroup,
+    IReadOnlyList<string> SupportedMapFormats,
+    bool UseByDefault,
+    bool Volatile,
+    string HelpPath);
+
 public static class BlockmapExplorerModel
 {
+    public const string DoomMapSetIo = "DoomMapSetIO";
+    public const string HexenMapSetIo = "HexenMapSetIO";
+
+    public static BlockmapExplorerModeDescriptor ModeDescriptor { get; } = new(
+        "Blockmap Explorer Mode",
+        "blockmapexplorermode",
+        "blockmap.png",
+        int.MinValue + 504,
+        "000_editing",
+        [DoomMapSetIo, HexenMapSetIo],
+        UseByDefault: true,
+        Volatile: true,
+        "/gzdb/features/classic_modes/mode_blockmapexplorer.html");
+
     public static IReadOnlyList<BlockmapExplorerRow> BuildRows(BlockmapLumpData blockmap, bool questionableOnly = false)
     {
         var rows = new List<BlockmapExplorerRow>();

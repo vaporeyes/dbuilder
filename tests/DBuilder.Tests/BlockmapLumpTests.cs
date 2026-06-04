@@ -175,6 +175,22 @@ public class BlockmapLumpTests
         Assert.Equal("(1, 0) offset 24: 1 line, shared by 1 block", BlockmapExplorerModel.FormatRow(rows[1]));
     }
 
+    [Fact]
+    public void ExplorerModeDescriptorMatchesUdbEditModeMetadata()
+    {
+        BlockmapExplorerModeDescriptor mode = BlockmapExplorerModel.ModeDescriptor;
+
+        Assert.Equal("Blockmap Explorer Mode", mode.DisplayName);
+        Assert.Equal("blockmapexplorermode", mode.SwitchAction);
+        Assert.Equal("blockmap.png", mode.ButtonImage);
+        Assert.Equal(int.MinValue + 504, mode.ButtonOrder);
+        Assert.Equal("000_editing", mode.ButtonGroup);
+        Assert.Equal([BlockmapExplorerModel.DoomMapSetIo, BlockmapExplorerModel.HexenMapSetIo], mode.SupportedMapFormats);
+        Assert.True(mode.UseByDefault);
+        Assert.True(mode.Volatile);
+        Assert.Equal("/gzdb/features/classic_modes/mode_blockmapexplorer.html", mode.HelpPath);
+    }
+
     private static byte[] BuildBlockmap(int originX, int originY, short columns, short rows, ushort[] offsetsInShorts, byte[][] lists)
     {
         int size = BlockmapLump.HeaderSize + offsetsInShorts.Length * sizeof(ushort);

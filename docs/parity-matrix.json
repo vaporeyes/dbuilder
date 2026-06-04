@@ -153,7 +153,7 @@
       "udbPlugin": "BlockmapExplorer",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor, DBuilder.Map, DBuilder.IO",
-      "notes": "Blockmap construction, queries, editor overlay toggles, raw BLOCKMAP lump parsing, shared block-list queries, questionable offset helpers, missing-line counts, malformed lump diagnostics, parsed BLOCKMAP highlighted-block/shared-list/questionable-offset overlays, UDB-style action metadata, window command dispatch, and a non-modal Blockmap Explorer summary/block-list window exist. Full mode workflow and docked workflow remain incomplete."
+      "notes": "Blockmap construction, queries, editor overlay toggles, raw BLOCKMAP lump parsing, shared block-list queries, questionable offset helpers, missing-line counts, malformed lump diagnostics, UDB-style Blockmap Explorer edit-mode metadata, parsed BLOCKMAP highlighted-block/shared-list/questionable-offset overlays, UDB-style action metadata, window command dispatch, and a non-modal Blockmap Explorer summary/block-list window exist. Full mode workflow and docked workflow remain incomplete."
     },
     {
       "udbPlugin": "BuilderEffects",

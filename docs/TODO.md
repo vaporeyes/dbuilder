@@ -1548,6 +1548,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor Automap Mode toolbar options with persisted show-hidden-lines, show-secret-sectors, show-locks, show-textures, and color-preset settings.
 - [ ] Port `BlockmapExplorer`.
   - [x] Add UDB-style BLOCKMAP lump parser, shared block-list model, and malformed lump diagnostics.
+  - [x] Add UDB-style Blockmap Explorer edit-mode metadata.
   - [x] Add editor Blockmap Explorer window for totals, diagnostics, questionable offsets, and block navigation.
   - [x] Render parsed BLOCKMAP highlighted-block, shared-block-list, and questionable-offset overlays.
 - [ ] Port `ColorPicker`.
@@ -2257,6 +2258,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor Automap Mode hover highlighting and click toggles for highlighted line and sector automap flags.
   - [x] Add editor Automap Mode toolbar options with persisted show-hidden-lines, show-secret-sectors, show-locks, show-textures, and color-preset settings.
 - [ ] Port blockmap explorer UI and data model.
+  - [x] Add UDB-style Blockmap Explorer edit-mode metadata.
   - [x] Add UDB-style Blockmap Explorer action metadata and window command dispatch.
   - [x] Add UDB-style BLOCKMAP lump parser, shared block-list model, questionable offset helpers, and line coverage counts.
   - [x] Add non-modal Blockmap Explorer summary and block-list window.
