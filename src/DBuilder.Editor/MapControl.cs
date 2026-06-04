@@ -3030,6 +3030,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         int textures = 0;
         int things = 0;
         bool begun = false;
+        string deleteStatus = string.Empty;
         var seenSectors = new HashSet<(Sector Sector, VisualHitKind Kind)>();
         var seenParts = new HashSet<(Sidedef Side, SidedefPart Part)>();
         var seenThings = new HashSet<Thing>();
@@ -3041,12 +3042,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 if (!begun) { EditBegun?.Invoke("Delete visual target"); begun = true; }
                 floor.SetFloorTexture("-");
                 textures++;
+                deleteStatus = VisualDelete3DStatusText(VisualHitKind.Floor);
             }
             else if (hit.Kind == VisualHitKind.Ceiling && hit.Sector is { } ceiling && seenSectors.Add((ceiling, hit.Kind)))
             {
                 if (!begun) { EditBegun?.Invoke("Delete visual target"); begun = true; }
                 ceiling.SetCeilTexture("-");
                 textures++;
+                deleteStatus = VisualDelete3DStatusText(VisualHitKind.Ceiling);
             }
             else if (hit.Kind == VisualHitKind.Wall && hit.Line != null)
             {
@@ -3055,12 +3058,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 if (!begun) { EditBegun?.Invoke("Delete visual target"); begun = true; }
                 side.SetTexture(hit.Part, "-");
                 textures++;
+                deleteStatus = VisualDelete3DStatusText(VisualHitKind.Wall);
             }
             else if (hit.Kind == VisualHitKind.Thing && hit.Thing is { } thing && seenThings.Add(thing))
             {
                 if (!begun) { EditBegun?.Invoke("Delete visual target"); begun = true; }
                 _map.RemoveThing(thing);
                 things++;
+                deleteStatus = VisualDelete3DStatusText(VisualHitKind.Thing);
             }
         }
 
@@ -3076,12 +3081,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Changed?.Invoke();
         RequestNextFrameRendering();
         ClearSelection3D();
-        Target3DChanged?.Invoke(things == 0
-            ? $"deleted {CountLabel(textures, "texture")}"
-            : textures == 0
-                ? $"deleted {CountLabel(things, "thing")}"
-                : $"deleted {CountLabel(textures, "texture")} and {CountLabel(things, "thing")}");
+        Target3DChanged?.Invoke(deleteStatus);
     }
+
+    public static string VisualDelete3DStatusText(VisualHitKind kind)
+        => kind == VisualHitKind.Thing ? "Deleted a thing." : "Deleted a texture.";
 
     // Auto-aligns textures along the targeted wall's run, undoable.
     private void AutoAlignSide3D(Sidedef side, bool alignX, bool alignY, string editName, string statusScope)

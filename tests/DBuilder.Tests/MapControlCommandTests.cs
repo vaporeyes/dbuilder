@@ -82,6 +82,14 @@ public sealed class MapControlCommandTests
         => Assert.Equal(expected, MapControl.VisualUnpegged3DStatusText(upper, set));
 
     [Theory]
+    [InlineData(VisualHitKind.Floor, "Deleted a texture.")]
+    [InlineData(VisualHitKind.Ceiling, "Deleted a texture.")]
+    [InlineData(VisualHitKind.Wall, "Deleted a texture.")]
+    [InlineData(VisualHitKind.Thing, "Deleted a thing.")]
+    public void VisualDelete3DStatusTextMatchesUdbTargetKind(VisualHitKind kind, string expected)
+        => Assert.Equal(expected, MapControl.VisualDelete3DStatusText(kind));
+
+    [Theory]
     [InlineData(1, "1 surface selected")]
     [InlineData(2, "2 surfaces selected")]
     public void SurfaceSelection3DStatusTextFormatsSingularAndPluralSurfaceCounts(int surfaceCount, string expected)
@@ -618,6 +626,7 @@ public sealed class MapControlCommandTests
         int ceilingIndex = body.IndexOf("ceiling.SetCeilTexture(\"-\");", methodIndex, StringComparison.Ordinal);
         int wallIndex = body.IndexOf("side.SetTexture(hit.Part, \"-\");", methodIndex, StringComparison.Ordinal);
         int thingIndex = body.IndexOf("_map.RemoveThing(thing);", methodIndex, StringComparison.Ordinal);
+        int statusIndex = body.IndexOf("Target3DChanged?.Invoke(deleteStatus);", thingIndex, StringComparison.Ordinal);
         int dispatchIndex = body.IndexOf("case \"map3d.delete-target\":", StringComparison.Ordinal);
         int handlerIndex = body.IndexOf("DeleteVisualTargets3D();", dispatchIndex, StringComparison.Ordinal);
 
@@ -627,8 +636,10 @@ public sealed class MapControlCommandTests
         Assert.True(ceilingIndex > targetsIndex);
         Assert.True(wallIndex > targetsIndex);
         Assert.True(thingIndex > targetsIndex);
+        Assert.True(statusIndex > thingIndex);
         Assert.True(dispatchIndex >= 0);
         Assert.True(handlerIndex > dispatchIndex);
+        Assert.DoesNotContain("deleted {CountLabel", body, StringComparison.Ordinal);
     }
 
     [Fact]
