@@ -89,6 +89,17 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void ApplyCameraRotation3DUsesUdbEmptySelectionWarning()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private bool ApplyCameraRotationToSelectedThings3D()", StringComparison.Ordinal);
+        int warningIndex = body.IndexOf("Can't apply camera rotation to things: no things selected.", methodIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(warningIndex > methodIndex);
+    }
+
+    [Fact]
     public void VisualTextureOffset3DCommandsUseFlatOffsetTargets()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));

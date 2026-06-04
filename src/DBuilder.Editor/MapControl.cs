@@ -3525,7 +3525,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var things = SelectedThings3D();
         if (things.Count == 0)
         {
-            Target3DChanged?.Invoke("no selected things");
+            Target3DChanged?.Invoke("Can't apply camera rotation to things: no things selected.");
             return false;
         }
 
