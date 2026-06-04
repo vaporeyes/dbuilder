@@ -7569,6 +7569,37 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return status;
     }
 
+    public string MoveSelectionByGridSize(int gridX, int gridY)
+    {
+        if (_map == null) return "No map loaded.";
+
+        HashSet<Vertex> vertices = _map.SelectedGeometryVertices();
+        int thingCount = _map.SelectedThingsCount;
+        if (vertices.Count == 0 && thingCount == 0)
+        {
+            const string message = "Select elements to move first.";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        var delta = new Vec2D(gridX * _grid.GridSizeF, gridY * _grid.GridSizeF);
+        EditBegun?.Invoke("Move selection");
+        foreach (Vertex vertex in vertices)
+            vertex.Position += delta;
+        int movedThings = _map.MoveSelectedThingsBy(delta);
+        _map.BuildIndexes();
+        MarkGeometryDirty();
+        Changed?.Invoke();
+
+        string status = movedThings == 0
+            ? $"Moved {vertices.Count} {(vertices.Count == 1 ? "vertex" : "vertices")}."
+            : vertices.Count == 0
+                ? $"Moved {movedThings} {(movedThings == 1 ? "thing" : "things")}."
+                : $"Moved {vertices.Count} {(vertices.Count == 1 ? "vertex" : "vertices")} and {movedThings} {(movedThings == 1 ? "thing" : "things")}.";
+        Picked?.Invoke(status);
+        return status;
+    }
+
     public string CurveSelectedLinedefs()
     {
         if (_map == null) return "No map loaded.";

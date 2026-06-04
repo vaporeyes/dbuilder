@@ -1525,6 +1525,10 @@ public partial class MainWindow : Window
             case "window.rotateclockwise": OnRotateCW(this, new RoutedEventArgs()); return true;
             case "window.rotate-selection-ccw": OnRotateCCW(this, new RoutedEventArgs()); return true;
             case "window.rotatecounterclockwise": OnRotateCCW(this, new RoutedEventArgs()); return true;
+            case "window.moveselectionup": OnMoveSelectionUp(this, new RoutedEventArgs()); return true;
+            case "window.moveselectiondown": OnMoveSelectionDown(this, new RoutedEventArgs()); return true;
+            case "window.moveselectionleft": OnMoveSelectionLeft(this, new RoutedEventArgs()); return true;
+            case "window.moveselectionright": OnMoveSelectionRight(this, new RoutedEventArgs()); return true;
             case "window.scale-selection-up": OnScaleUp(this, new RoutedEventArgs()); return true;
             case "window.scale-selection-down": OnScaleDown(this, new RoutedEventArgs()); return true;
             case "window.align-floor-to-front": OnAlignFloorToFront(this, new RoutedEventArgs()); return true;
@@ -2601,6 +2605,10 @@ public partial class MainWindow : Window
     private void OnFlipV(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.FlipVertical, "Flip vertical");
     private void OnRotateCW(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.RotateCW, "Rotate 90 CW");
     private void OnRotateCCW(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.RotateCCW, "Rotate 90 CCW");
+    private void OnMoveSelectionUp(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.MoveSelectionByGridSize(0, 1));
+    private void OnMoveSelectionDown(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.MoveSelectionByGridSize(0, -1));
+    private void OnMoveSelectionLeft(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.MoveSelectionByGridSize(-1, 0));
+    private void OnMoveSelectionRight(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.MoveSelectionByGridSize(1, 0));
     private void OnScaleUp(object? sender, RoutedEventArgs e) => ScaleSelection(2.0, "Scale up");
     private void OnScaleDown(object? sender, RoutedEventArgs e) => ScaleSelection(0.5, "Scale down");
     private void OnSelectSingleSidedLinedefs(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.KeepSelectedLinedefsBySidedness(doubleSided: false));

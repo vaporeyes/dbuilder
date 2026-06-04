@@ -725,6 +725,10 @@ public class EditorCommandCatalogTests
     [InlineData("window.rotateclockwise", "Rotate 90 CW")]
     [InlineData("window.rotate-selection-ccw", "Rotate 90 CCW")]
     [InlineData("window.rotatecounterclockwise", "Rotate 90 CCW")]
+    [InlineData("window.moveselectionup", "Move Selection Up by Grid Size")]
+    [InlineData("window.moveselectiondown", "Move Selection Down by Grid Size")]
+    [InlineData("window.moveselectionleft", "Move Selection Left by Grid Size")]
+    [InlineData("window.moveselectionright", "Move Selection Right by Grid Size")]
     [InlineData("window.scale-selection-up", "Scale Up")]
     [InlineData("window.scale-selection-down", "Scale Down")]
     public void WindowTransformSelectionCommandsMatchUdbActionSurface(string commandId, string title)
@@ -737,7 +741,7 @@ public class EditorCommandCatalogTests
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
-        Assert.False(command.AllowScroll);
+        Assert.Equal(commandId.StartsWith("window.moveselection", StringComparison.Ordinal), command.AllowScroll);
     }
 
     [Theory]
@@ -2544,6 +2548,10 @@ public class EditorCommandCatalogTests
         Assert.True(EditorCommandCatalog.IsRepeatable("map3d.move-texture-left-grid"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map3d.lower-brightness-8"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map3d.nudge-offset-left"));
+        Assert.True(EditorCommandCatalog.IsRepeatable("window.moveselectionup"));
+        Assert.True(EditorCommandCatalog.IsRepeatable("window.moveselectiondown"));
+        Assert.True(EditorCommandCatalog.IsRepeatable("window.moveselectionleft"));
+        Assert.True(EditorCommandCatalog.IsRepeatable("window.moveselectionright"));
 
         Assert.False(EditorCommandCatalog.IsRepeatable("map2d.toggle-3d"));
         Assert.False(EditorCommandCatalog.IsRepeatable("map2d.draw-sector"));
