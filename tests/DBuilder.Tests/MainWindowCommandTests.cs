@@ -156,8 +156,9 @@ public sealed class MainWindowCommandTests
         string code = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
 
         Assert.Contains("var checkerSelection = _settings.MapErrorCheckerSelection();", code, StringComparison.Ordinal);
-        Assert.Contains("MapAnalysis.Check(_map, BuildCheckContext(), checkerSelection.EnabledDescriptors())", code, StringComparison.Ordinal);
-        Assert.Contains("var win = new MapCheckWindow(issues, checkerSelection);", code, StringComparison.Ordinal);
+        Assert.Contains("MapAnalysis.Check(map, BuildCheckContext(), checkerSelection.EnabledDescriptors())", code, StringComparison.Ordinal);
+        Assert.Contains("var win = new MapCheckWindow(issues, checkerSelection, enabled => MapAnalysis.Check(map, BuildCheckContext(), enabled));", code, StringComparison.Ordinal);
+        Assert.Contains("win.IssuesChanged += count => SetStatus(MapIssueListModel.AnalysisStatusText(count));", code, StringComparison.Ordinal);
         Assert.Contains("_settings.ApplyMapErrorCheckerSelection(checkerSelection);", code, StringComparison.Ordinal);
         Assert.Contains("SaveSettings();", code, StringComparison.Ordinal);
     }
@@ -168,9 +169,12 @@ public sealed class MainWindowCommandTests
         string code = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapCheckWindow.cs"));
 
         Assert.Contains("MapErrorCheckerSelectionModel? checkerSelection = null", code, StringComparison.Ordinal);
-        Assert.Contains("CheckerSelectionPanel(checkerSelection)", code, StringComparison.Ordinal);
+        Assert.Contains("Func<IReadOnlyList<MapErrorCheckerDescriptor>, IReadOnlyList<MapIssue>>? runChecks = null", code, StringComparison.Ordinal);
+        Assert.Contains("CheckerSelectionPanel(checkerSelection, runChecks)", code, StringComparison.Ordinal);
         Assert.Contains("new Expander", code, StringComparison.Ordinal);
         Assert.Contains("new CheckBox", code, StringComparison.Ordinal);
+        Assert.Contains("Content = \"Run Checks\"", code, StringComparison.Ordinal);
+        Assert.Contains("_model.ReplaceIssues(issues);", code, StringComparison.Ordinal);
         Assert.Contains("selection.SetChecked(row.SettingsKey, check.IsChecked == true)", code, StringComparison.Ordinal);
     }
 

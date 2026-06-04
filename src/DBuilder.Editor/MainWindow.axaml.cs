@@ -4536,15 +4536,17 @@ public partial class MainWindow : Window
     // Runs the map health checker and opens a non-modal results window; selecting an issue locates it.
     private void OnCheckMap(object? sender, RoutedEventArgs e)
     {
-        if (_map is null) { SetStatus("No map loaded."); return; }
+        var map = _map;
+        if (map is null) { SetStatus("No map loaded."); return; }
         var checkerSelection = _settings.MapErrorCheckerSelection();
-        var issues = MapAnalysis.Check(_map, BuildCheckContext(), checkerSelection.EnabledDescriptors());
-        var win = new MapCheckWindow(issues, checkerSelection);
+        var issues = MapAnalysis.Check(map, BuildCheckContext(), checkerSelection.EnabledDescriptors());
+        var win = new MapCheckWindow(issues, checkerSelection, enabled => MapAnalysis.Check(map, BuildCheckContext(), enabled));
         win.IssueActivated += iss =>
         {
             MapView.NavigateTo(iss.Target, iss.Focus);
             UpdateInfo();
         };
+        win.IssuesChanged += count => SetStatus(MapIssueListModel.AnalysisStatusText(count));
         win.Closed += (_, _) =>
         {
             _settings.ApplyMapErrorCheckerSelection(checkerSelection);

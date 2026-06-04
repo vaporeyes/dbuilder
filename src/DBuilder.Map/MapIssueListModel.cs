@@ -19,6 +19,15 @@ public sealed class MapIssueListModel
 
     public IReadOnlyList<MapIssue> VisibleIssues => visibleIssues;
 
+    public void ReplaceIssues(IEnumerable<MapIssue> issues)
+    {
+        allIssues.Clear();
+        allIssues.AddRange(issues);
+        hiddenKinds.Clear();
+        visibleIssues.Clear();
+        visibleIssues.AddRange(allIssues);
+    }
+
     public int HideSelected(IEnumerable<MapIssue> selected)
     {
         int hidden = 0;

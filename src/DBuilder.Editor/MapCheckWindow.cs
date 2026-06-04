@@ -22,7 +22,12 @@ public sealed class MapCheckWindow : Window
     /// <summary>Raised when the user selects an issue row, carrying the issue so the host can navigate to it.</summary>
     public event Action<MapIssue>? IssueActivated;
 
-    public MapCheckWindow(IReadOnlyList<MapIssue> issues, MapErrorCheckerSelectionModel? checkerSelection = null)
+    public event Action<int>? IssuesChanged;
+
+    public MapCheckWindow(
+        IReadOnlyList<MapIssue> issues,
+        MapErrorCheckerSelectionModel? checkerSelection = null,
+        Func<IReadOnlyList<MapErrorCheckerDescriptor>, IReadOnlyList<MapIssue>>? runChecks = null)
     {
         _model = new MapIssueListModel(issues);
 
@@ -86,7 +91,7 @@ public sealed class MapCheckWindow : Window
         var header = new StackPanel();
         header.Children.Add(_header);
         if (checkerSelection is not null)
-            header.Children.Add(CheckerSelectionPanel(checkerSelection));
+            header.Children.Add(CheckerSelectionPanel(checkerSelection, runChecks));
         header.Children.Add(new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -170,9 +175,16 @@ public sealed class MapCheckWindow : Window
     private static bool HasCopyModifier(KeyModifiers modifiers) =>
         modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta);
 
-    private static Control CheckerSelectionPanel(MapErrorCheckerSelectionModel selection)
+    private Control CheckerSelectionPanel(
+        MapErrorCheckerSelectionModel selection,
+        Func<IReadOnlyList<MapErrorCheckerDescriptor>, IReadOnlyList<MapIssue>>? runChecks)
     {
         var rows = new StackPanel { Spacing = 2, Margin = new Avalonia.Thickness(8, 4) };
+        var expander = new Expander
+        {
+            IsExpanded = false,
+            Margin = new Avalonia.Thickness(10, 0, 10, 8),
+        };
         foreach (var row in selection.Rows)
         {
             var check = new CheckBox
@@ -184,23 +196,52 @@ public sealed class MapCheckWindow : Window
             check.PropertyChanged += (_, e) =>
             {
                 if (e.Property == CheckBox.IsCheckedProperty)
+                {
                     selection.SetChecked(row.SettingsKey, check.IsChecked == true);
+                    UpdateCheckerHeader(expander, selection);
+                }
             };
             rows.Children.Add(check);
         }
 
-        int enabledCount = selection.EnabledDescriptors().Count;
-        return new Expander
+        var content = new StackPanel();
+        if (runChecks is not null)
         {
-            Header = $"Checks ({enabledCount}/{selection.Rows.Count})",
-            IsExpanded = false,
-            Margin = new Avalonia.Thickness(10, 0, 10, 8),
-            Content = new ScrollViewer
+            var runButton = new Button
             {
-                MaxHeight = 150,
-                Content = rows,
-            },
-        };
+                Content = "Run Checks",
+                Margin = new Avalonia.Thickness(8, 6, 8, 2),
+                HorizontalAlignment = HorizontalAlignment.Left,
+            };
+            runButton.Click += (_, _) => RunChecks(selection, runChecks);
+            content.Children.Add(runButton);
+        }
+
+        content.Children.Add(new ScrollViewer
+        {
+            MaxHeight = 150,
+            Content = rows,
+        });
+
+        expander.Content = content;
+        UpdateCheckerHeader(expander, selection);
+        return expander;
+    }
+
+    private void RunChecks(
+        MapErrorCheckerSelectionModel selection,
+        Func<IReadOnlyList<MapErrorCheckerDescriptor>, IReadOnlyList<MapIssue>> runChecks)
+    {
+        var issues = runChecks(selection.EnabledDescriptors());
+        _model.ReplaceIssues(issues);
+        RefreshRows();
+        IssuesChanged?.Invoke(_model.VisibleIssues.Count);
+    }
+
+    private static void UpdateCheckerHeader(Expander expander, MapErrorCheckerSelectionModel selection)
+    {
+        int enabledCount = selection.EnabledDescriptors().Count;
+        expander.Header = $"Checks ({enabledCount}/{selection.Rows.Count})";
     }
 
     private void RefreshRows()

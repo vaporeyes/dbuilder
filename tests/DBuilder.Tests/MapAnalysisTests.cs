@@ -649,6 +649,21 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void MapIssueListModelReplaceIssuesClearsHiddenKinds()
+    {
+        var unused = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedVertex, "unused");
+        var shortLine = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ShortLinedef, "short");
+        var missingTexture = new MapIssue(MapIssueSeverity.Error, MapIssueKind.MissingTexture, "missing");
+        var model = new MapIssueListModel(new[] { unused, shortLine });
+
+        model.HideSelectedKinds(new[] { unused });
+        model.ReplaceIssues(new[] { missingTexture, unused });
+
+        Assert.Equal(new[] { missingTexture, unused }, model.AllIssues);
+        Assert.Equal(new[] { missingTexture, unused }, model.VisibleIssues);
+    }
+
+    [Fact]
     public void MapIssueListModelFindsVisibleIssuesWithSelectedKinds()
     {
         var unused = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedVertex, "unused");
