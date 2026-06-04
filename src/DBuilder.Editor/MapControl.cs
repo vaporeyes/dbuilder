@@ -5963,12 +5963,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 RunBridgeCommand();
                 return true;
             case "map2d.3dfloor.select-control-sector":
+            case "map2d.select3dfloorcontrolsector":
                 SelectThreeDFloorControlSectors();
                 return true;
             case "map2d.3dfloor.relocate-control-sectors":
+            case "map2d.relocate3dfloorcontrolsectors":
                 RelocateThreeDFloorControlSectors();
                 return true;
             case "map2d.3dfloor.duplicate-geometry":
+            case "map2d.duplicate3dfloorgeometry":
                 DuplicateThreeDFloorGeometry();
                 return true;
             case "map2d.mode-vertices":

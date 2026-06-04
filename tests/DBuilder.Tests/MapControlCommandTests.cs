@@ -521,8 +521,11 @@ public sealed class MapControlCommandTests
     [InlineData("map2d.split-linedefs", "SplitLinedefs")]
     [InlineData("map2d.fit-selected-textures", "FitSelectedTextures")]
     [InlineData("map2d.3dfloor.select-control-sector", "SelectThreeDFloorControlSectors")]
+    [InlineData("map2d.select3dfloorcontrolsector", "SelectThreeDFloorControlSectors")]
     [InlineData("map2d.3dfloor.relocate-control-sectors", "RelocateThreeDFloorControlSectors")]
+    [InlineData("map2d.relocate3dfloorcontrolsectors", "RelocateThreeDFloorControlSectors")]
     [InlineData("map2d.3dfloor.duplicate-geometry", "DuplicateThreeDFloorGeometry")]
+    [InlineData("map2d.duplicate3dfloorgeometry", "DuplicateThreeDFloorGeometry")]
     [InlineData("map2d.select-sectors-outline", "SelectSectorsOutline")]
     public void MapCommandsAreRoutedThroughMapCommandDispatch(string commandId, string handlerName)
     {

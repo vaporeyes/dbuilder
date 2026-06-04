@@ -1427,22 +1427,31 @@ public class EditorCommandCatalogTests
     public void ThreeDFloorModeCommandsMatchUdbActionSurface()
     {
         var floor = EditorCommandCatalog.Find("map2d.mode-3d-floor");
+        var floorAlias = EditorCommandCatalog.Find("map2d.threedfloorhelpermode");
         var slope = EditorCommandCatalog.Find("map2d.mode-3d-slope");
+        var slopeAlias = EditorCommandCatalog.Find("map2d.threedslopemode");
         var drawSlopes = EditorCommandCatalog.Find("map2d.mode-draw-slopes");
+        var drawSlopesAlias = EditorCommandCatalog.Find("map2d.drawslopesmode");
 
         Assert.NotNull(floor);
         Assert.Equal("3D Floor Mode", floor.Title);
         Assert.Equal(EditorCommandScope.Map2D, floor.Scope);
         Assert.True(floor.AllowScroll);
         Assert.Equal("threedfloorhelpermode", ThreeDFloors.ModeDescriptor.SwitchAction);
+        Assert.NotNull(floorAlias);
+        Assert.Equal("3D floor editing mode", floorAlias.Title);
 
         Assert.NotNull(slope);
         Assert.Equal("Slope Mode", slope.Title);
         Assert.Equal("threedslopemode", ThreeDFloors.SlopeModeDescriptor.SwitchAction);
+        Assert.NotNull(slopeAlias);
+        Assert.Equal("Slope mode", slopeAlias.Title);
 
         Assert.NotNull(drawSlopes);
         Assert.Equal("Draw Slopes Mode", drawSlopes.Title);
         Assert.Equal("drawslopesmode", ThreeDFloors.DrawSlopesModeDescriptor.SwitchAction);
+        Assert.NotNull(drawSlopesAlias);
+        Assert.Equal("Draw slope mode", drawSlopesAlias.Title);
     }
 
     [Fact]
@@ -1451,16 +1460,27 @@ public class EditorCommandCatalogTests
         var expected = new Dictionary<string, string>
         {
             ["map2d.3dfloor.draw-slope-point"] = "drawslopepoint",
+            ["map2d.drawslopepoint"] = "drawslopepoint",
             ["map2d.3dfloor.draw-floor-slope"] = "drawfloorslope",
+            ["map2d.drawfloorslope"] = "drawfloorslope",
             ["map2d.3dfloor.draw-ceiling-slope"] = "drawceilingslope",
+            ["map2d.drawceilingslope"] = "drawceilingslope",
             ["map2d.3dfloor.draw-floor-and-ceiling-slope"] = "drawfloorandceilingslope",
+            ["map2d.drawfloorandceilingslope"] = "drawfloorandceilingslope",
             ["map2d.3dfloor.finish-slope-draw"] = "finishslopedraw",
+            ["map2d.finishslopedraw"] = "finishslopedraw",
             ["map2d.3dfloor.flip-slope"] = "threedflipslope",
+            ["map2d.threedflipslope"] = "threedflipslope",
             ["map2d.3dfloor.cycle-highlight-up"] = "cyclehighlighted3dfloorup",
+            ["map2d.cyclehighlighted3dfloorup"] = "cyclehighlighted3dfloorup",
             ["map2d.3dfloor.cycle-highlight-down"] = "cyclehighlighted3dfloordown",
+            ["map2d.cyclehighlighted3dfloordown"] = "cyclehighlighted3dfloordown",
             ["map2d.3dfloor.relocate-control-sectors"] = "relocate3dfloorcontrolsectors",
+            ["map2d.relocate3dfloorcontrolsectors"] = "relocate3dfloorcontrolsectors",
             ["map2d.3dfloor.select-control-sector"] = "select3dfloorcontrolsector",
+            ["map2d.select3dfloorcontrolsector"] = "select3dfloorcontrolsector",
             ["map2d.3dfloor.duplicate-geometry"] = "duplicate3dfloorgeometry",
+            ["map2d.duplicate3dfloorgeometry"] = "duplicate3dfloorgeometry",
         };
 
         foreach ((string commandId, string udbActionId) in expected)
