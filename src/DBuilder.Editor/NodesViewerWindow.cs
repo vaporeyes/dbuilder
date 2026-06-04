@@ -15,7 +15,7 @@ public sealed class NodesViewerWindow : Window
     private readonly ListBox _subsectors = new();
     private readonly ListBox _vertices = new();
 
-    public NodesViewerWindow(ClassicNodesStructure structure)
+    public NodesViewerWindow(ClassicNodesStructure structure, ZNodesPayload? zNodesPayload = null)
     {
         Title = "Nodes Viewer";
         Width = 760;
@@ -25,6 +25,8 @@ public sealed class NodesViewerWindow : Window
         var root = new DockPanel { Margin = new Avalonia.Thickness(10) };
         var header = new StackPanel { Spacing = 4 };
         header.Children.Add(new TextBlock { Text = NodesViewerModel.StatusText(structure), FontWeight = Avalonia.Media.FontWeight.Bold });
+        if (NodesViewerModel.ZNodesStatusText(zNodesPayload) is string zNodesStatus)
+            header.Children.Add(new TextBlock { Text = zNodesStatus });
         if (structure.IsValid)
             header.Children.Add(new TextBlock { Text = NodesViewerModel.CountsText(structure) });
         DockPanel.SetDock(header, Dock.Top);

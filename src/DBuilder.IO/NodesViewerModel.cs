@@ -26,6 +26,19 @@ public static class NodesViewerModel
             ? $"Nodes Viewer: {CountLabel(structure.Nodes.Count, "node")}, {CountLabel(structure.Segs.Count, "seg")}, {CountLabel(structure.Subsectors.Count, "subsector")}."
             : $"Nodes Viewer: {structure.Status}.";
 
+    public static string ViewerStatusText(ClassicNodesStructure structure, ZNodesPayload? zNodesPayload)
+        => zNodesPayload is { IsValid: true }
+            ? $"Nodes Viewer: {zNodesPayload.Format} payload, {CountLabel(zNodesPayload.Data.Length, "byte")}."
+            : ViewerStatusText(structure);
+
+    public static string? ZNodesStatusText(ZNodesPayload? payload)
+    {
+        if (payload == null) return null;
+        return payload.IsValid
+            ? $"ZNODES: {payload.Format}, {CountLabel(payload.Data.Length, "payload byte")}."
+            : $"ZNODES: {payload.Status}" + (string.IsNullOrWhiteSpace(payload.Format) ? "." : $" ({payload.Format}).");
+    }
+
     public static string OverlayStatusText(int splitCount, int subsectorPolygonCount)
         => $"Nodes overlay on: {CountLabel(splitCount, "BSP split")}, {CountLabel(subsectorPolygonCount, "subsector polygon")}.";
 

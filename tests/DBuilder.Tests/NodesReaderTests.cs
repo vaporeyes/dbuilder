@@ -198,6 +198,20 @@ public class NodesReaderTests
     }
 
     [Fact]
+    public void NodesViewerModelFormatsZNodesPayloadStatus()
+    {
+        var structure = ClassicNodesStructure.Failure(ClassicNodesStatus.UnsupportedCompressedNodes);
+        var payload = new ZNodesPayload(ZNodesPayloadStatus.Ok, "XGL3", new byte[] { 1, 2, 3 }, null);
+        var failed = ZNodesPayload.Failure(ZNodesPayloadStatus.DecompressionFailed, "ZNOD", "bad data");
+
+        Assert.Equal("ZNODES: XGL3, 3 payload bytes.", NodesViewerModel.ZNodesStatusText(payload));
+        Assert.Equal("Nodes Viewer: XGL3 payload, 3 bytes.", NodesViewerModel.ViewerStatusText(structure, payload));
+        Assert.Equal("ZNODES: DecompressionFailed (ZNOD).", NodesViewerModel.ZNodesStatusText(failed));
+        Assert.Equal("Nodes Viewer: UnsupportedCompressedNodes.", NodesViewerModel.ViewerStatusText(structure, failed));
+        Assert.Null(NodesViewerModel.ZNodesStatusText(null));
+    }
+
+    [Fact]
     public void NodesViewerModelFormatsPluralCounts()
     {
         var nodes = NodeRecord(0, 0, 64, 0, 0x8000, 0x8001)

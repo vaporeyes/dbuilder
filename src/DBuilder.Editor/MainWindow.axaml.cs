@@ -3560,10 +3560,10 @@ public partial class MainWindow : Window
         if (_map is null) { SetStatus("No map loaded."); return; }
         if (_wadPath is null || _mapMarker is null) { SetStatus("Nodes Viewer needs the source WAD."); return; }
 
-        ClassicNodesStructure structure = ReadClassicNodesStructure();
-        var win = new NodesViewerWindow(structure);
+        ClassicNodesStructure structure = ReadClassicNodesStructure(out ZNodesPayload? zNodesPayload);
+        var win = new NodesViewerWindow(structure, zNodesPayload);
         win.Show(this);
-        SetStatus(NodesViewerModel.ViewerStatusText(structure));
+        SetStatus(NodesViewerModel.ViewerStatusText(structure, zNodesPayload));
     }
 
     private void OnVisplaneExplorerMode(object? sender, RoutedEventArgs e)
@@ -3597,7 +3597,11 @@ public partial class MainWindow : Window
     }
 
     private ClassicNodesStructure ReadClassicNodesStructure()
+        => ReadClassicNodesStructure(out _);
+
+    private ClassicNodesStructure ReadClassicNodesStructure(out ZNodesPayload? zNodesPayload)
     {
+        zNodesPayload = null;
         if (_wadPath is null || _mapMarker is null)
             return ClassicNodesStructure.Failure(ClassicNodesStatus.MissingOrTooShortNodes);
 
@@ -3612,6 +3616,9 @@ public partial class MainWindow : Window
             vertices = WadMaps.ReadMapLump(wad, _mapMarker, "VERTEXES");
             subsectors = WadMaps.ReadMapLump(wad, _mapMarker, "SSECTORS");
         }
+
+        if (nodes != null && NodesReader.HasSupportedZNodesHeader(nodes))
+            zNodesPayload = NodesReader.ExtractZNodesPayload(nodes);
 
         return NodesReader.ParseClassicStructures(
             nodes ?? Array.Empty<byte>(),
