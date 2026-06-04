@@ -71,7 +71,7 @@ public static class ThingWallAlignment
                 "This action only works for models or things with FLATSPRITE/WALLSPRITE flags!");
         }
 
-        return new ThingWallAlignmentResult(things.Count, eligible, aligned, failures.Count, failures, Message(aligned, failures.Count));
+        return new ThingWallAlignmentResult(things.Count, eligible, aligned, failures.Count, failures, Message(things.Count));
     }
 
     public static bool IsAlignable(ThingRenderMode renderMode)
@@ -127,11 +127,6 @@ public static class ThingWallAlignment
         return closest;
     }
 
-    private static string Message(int aligned, int failed)
-    {
-        if (failed > 0)
-            return $"Aligned {aligned} thing{(aligned == 1 ? "" : "s")}; {failed} could not be aligned.";
-
-        return aligned == 1 ? "Aligned a thing." : $"Aligned {aligned} things.";
-    }
+    private static string Message(int selected)
+        => selected == 1 ? "Aligned a thing." : $"Aligned {selected} things.";
 }

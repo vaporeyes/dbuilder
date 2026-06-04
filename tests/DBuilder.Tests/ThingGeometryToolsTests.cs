@@ -31,7 +31,7 @@ public class ThingGeometryToolsTests
         Assert.Equal(270, alignable.Angle);
         Assert.Equal(new Vector2D(96, -16), normal.Position);
         Assert.Equal(0, normal.Angle);
-        Assert.Equal("Aligned a thing.", result.Message);
+        Assert.Equal("Aligned 2 things.", result.Message);
         Assert.Same(line, map.NearestLinedef(alignable.Position));
     }
 
@@ -66,6 +66,26 @@ public class ThingGeometryToolsTests
         Assert.Equal(new Vector2D(64, 15), thing.Position);
         Assert.Equal(270, thing.Angle);
         Assert.Same(far, map.NearestLinedef(thing.Position));
+    }
+
+    [Fact]
+    public void AlignSelectedThingsToNearestWallsKeepsUdbStatusWhenThingCannotAlign()
+    {
+        GameConfiguration config = ThingConfig();
+        var (map, _, front) = OneSidedLine(0, 8);
+        var thing = map.AddThing(new Vector2D(64, -16), 31009);
+        thing.Height = 32;
+        thing.Selected = true;
+        thing.Sector = front;
+
+        ThingWallAlignmentResult result = ThingWallAlignment.AlignSelectedToNearestWalls(map, config);
+
+        Assert.Equal(1, result.SelectedCount);
+        Assert.Equal(1, result.EligibleCount);
+        Assert.Equal(0, result.AlignedCount);
+        Assert.Equal(1, result.FailedCount);
+        Assert.Equal("Aligned a thing.", result.Message);
+        Assert.Equal(new Vector2D(64, -16), thing.Position);
     }
 
     [Fact]
