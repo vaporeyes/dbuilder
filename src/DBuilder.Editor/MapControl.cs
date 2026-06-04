@@ -2982,6 +2982,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var done = new System.Collections.Generic.HashSet<Sector>();
         foreach (var h in EditTargets3D())
         {
+            if (h.Kind is not (VisualHitKind.Floor or VisualHitKind.Ceiling)) continue;
             if (h.Sector is not { } s || !done.Add(s)) continue; // each sector once
             if (done.Count == 1) EditBegun?.Invoke("Change brightness");
             s.Brightness = Math.Clamp(s.Brightness + delta, 0, 255);

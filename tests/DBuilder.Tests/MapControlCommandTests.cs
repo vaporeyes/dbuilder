@@ -129,4 +129,17 @@ public sealed class MapControlCommandTests
         Assert.True(resetIndex > methodIndex);
         Assert.Contains("VisualTextureReset.ResetSidedefForCommand(side, hit.Part, local: true, isUdmf: _mapFormat == MapFormat.Udmf)", body, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void VisualBrightnessStep3DOnlyChangesFlatSurfaces()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private void AdjustTargetBrightness3D(int delta)", StringComparison.Ordinal);
+        int filterIndex = body.IndexOf("if (h.Kind is not (VisualHitKind.Floor or VisualHitKind.Ceiling)) continue;", methodIndex, StringComparison.Ordinal);
+        int sectorWriteIndex = body.IndexOf("s.Brightness = Math.Clamp(s.Brightness + delta, 0, 255);", methodIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(filterIndex > methodIndex);
+        Assert.True(sectorWriteIndex > filterIndex);
+    }
 }
