@@ -165,4 +165,40 @@ map MAP01 "Entryway"
             File.Delete(pk3);
         }
     }
+
+    [Fact]
+    public void WadX11RgbUsesLastMatchingLumpLikeUdb()
+    {
+        string wad = TestArtifacts.BuildPwadFile(
+            ("X11R6RGB", Encoding.ASCII.GetBytes("1 2 3 old color\n")),
+            ("X11R6RGB", Encoding.ASCII.GetBytes("4 5 6 new color\n")),
+            ("MAPINFO", Encoding.ASCII.GetBytes("""
+map MAP01 "Old"
+{
+    fade = "old color"
+    fogdensity = 64
+}
+map MAP02 "New"
+{
+    fade = "new color"
+    fogdensity = 64
+}
+""")));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(wad);
+
+            var oldMap = resources.GetMapInfo().GetMap("MAP01")!;
+            var newMap = resources.GetMapInfo().GetMap("MAP02")!;
+            Assert.False(oldMap.HasFadeColor);
+            Assert.Equal(((byte)4, (byte)5, (byte)6), newMap.FadeColor);
+            Assert.True(newMap.HasFadeColor);
+        }
+        finally
+        {
+            File.Delete(wad);
+        }
+    }
 }

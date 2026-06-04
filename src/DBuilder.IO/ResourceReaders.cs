@@ -31,6 +31,8 @@ internal interface IResourceReader : IDisposable
     IEnumerable<string> GetMapInfoLumps();
     /// <summary>GLDEFS texts selected with UDB's base-game and nested-resource ordering.</summary>
     IEnumerable<string> GetGldefsLumps(string baseGame);
+    /// <summary>X11R6RGB texts selected with UDB's singular text-resource rules.</summary>
+    IEnumerable<string> GetX11RgbLumps();
     /// <summary>The text of a named lump or exact PK3/directory path if this resource has one, else null.</summary>
     string? GetTextResource(string name);
     /// <summary>The raw bytes of a named lump (e.g. ANIMATED, PLAYPAL) if this resource has one, else null.</summary>
@@ -449,6 +451,12 @@ internal sealed class WadResourceReader : IResourceReader
             _ => null,
         };
 
+    public IEnumerable<string> GetX11RgbLumps()
+    {
+        int index = wad.FindLastLumpIndex("X11R6RGB");
+        if (index >= 0) yield return System.Text.Encoding.ASCII.GetString(wad.Lumps[index].Stream.ReadAllBytes());
+    }
+
     public byte[]? GetLumpBytes(string name) => wad.FindLump(name)?.Stream.ReadAllBytes();
 
     public DoomPatchNames? GetPatchNames() => DoomPatchNames.FromWad(wad);
@@ -751,6 +759,16 @@ internal abstract class FolderResourceReader : IResourceReader
 
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
             foreach (string text in nestedReaders[i].GetGldefsLumps(baseGame))
+                yield return text;
+    }
+
+    public virtual IEnumerable<string> GetX11RgbLumps()
+    {
+        foreach (string text in LocalTextLumps("X11R6RGB", partialTitleMatch: false).Take(1))
+            yield return text;
+
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
+            foreach (string text in nestedReaders[i].GetX11RgbLumps())
                 yield return text;
     }
 

@@ -492,6 +492,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Resolve named WAD text-resource includes from the last matching lump like UDB.
   - [x] Load only the last WAD `ZMAPINFO`, or last `MAPINFO` when `ZMAPINFO` is absent, like UDB.
   - [x] Load WAD base-game GLDEFS lumps before generic `GLDEFS` like UDB.
+  - [x] Load only the last WAD `X11R6RGB` lump for singular text-resource color tables like UDB.
 - [ ] Port PK3 reader resource behavior.
   - [x] Load only root-level WAD entries from PK3 resources like UDB.
 - [ ] Port structured PK3 reader behavior.

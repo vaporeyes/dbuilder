@@ -529,7 +529,7 @@ public sealed class ResourceManager : IDisposable
         var knownColors = new Dictionary<string, X11Color>(StringComparer.OrdinalIgnoreCase);
         foreach (var reader in readers)
         {
-            foreach (string text in reader.GetTextLumps("X11R6RGB", partialTitleMatch: false))
+            foreach (string text in reader.GetX11RgbLumps())
             {
                 foreach (var color in X11RgbParser.Parse(text).Colors)
                     knownColors[color.Key] = color.Value;
