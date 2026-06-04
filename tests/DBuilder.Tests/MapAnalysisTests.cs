@@ -79,6 +79,44 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void CheckerSelectionModelAppliesDefaultsAndSavedSettings()
+    {
+        var savedChecks = new Dictionary<string, bool>(StringComparer.Ordinal)
+        {
+            ["errorchecks.checktexturealignment"] = true,
+            ["errorchecks.checkstuckthings"] = false,
+        };
+
+        var model = new MapErrorCheckerSelectionModel(MapAnalysis.CheckerDescriptors, savedChecks);
+
+        Assert.Equal(MapAnalysis.CheckerDescriptors.Count, model.Rows.Count);
+        Assert.Equal(model.Rows.Select(row => row.DisplayName).Order(StringComparer.OrdinalIgnoreCase), model.Rows.Select(row => row.DisplayName));
+        Assert.True(model.Rows.Single(row => row.SettingsKey == "errorchecks.checktexturealignment").IsChecked);
+        Assert.False(model.Rows.Single(row => row.SettingsKey == "errorchecks.checkstuckthings").IsChecked);
+        Assert.True(model.Rows.Single(row => row.SettingsKey == "errorchecks.checkmissingtextures").IsChecked);
+        Assert.Contains(model.EnabledDescriptors(), descriptor => descriptor.SettingsKey == "errorchecks.checktexturealignment");
+        Assert.DoesNotContain(model.EnabledDescriptors(), descriptor => descriptor.SettingsKey == "errorchecks.checkstuckthings");
+    }
+
+    [Fact]
+    public void CheckerSelectionModelExportsAllSettingsAfterToggle()
+    {
+        var model = new MapErrorCheckerSelectionModel(MapAnalysis.CheckerDescriptors);
+
+        model.SetChecked("errorchecks.checkshortlinedefs", true);
+        model.SetChecked("errorchecks.checkmissingtextures", false);
+        model.SetChecked("errorchecks.unknown", true);
+
+        IReadOnlyDictionary<string, bool> settings = model.ToSettings();
+
+        Assert.Equal(MapAnalysis.CheckerDescriptors.Count, settings.Count);
+        Assert.True(settings["errorchecks.checkshortlinedefs"]);
+        Assert.False(settings["errorchecks.checkmissingtextures"]);
+        Assert.DoesNotContain(model.EnabledDescriptors(), descriptor => descriptor.SettingsKey == "errorchecks.checkmissingtextures");
+        Assert.Contains(model.EnabledDescriptors(), descriptor => descriptor.SettingsKey == "errorchecks.checkshortlinedefs");
+    }
+
+    [Fact]
     public void FilterIssuesForCheckersAppliesUdbDefaultCheckedState()
     {
         var missingTexture = new MapIssue(MapIssueSeverity.Error, MapIssueKind.MissingTexture, "missing");

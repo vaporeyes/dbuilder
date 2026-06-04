@@ -1684,6 +1684,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style checker-selected map analysis filtering.
   - [x] Persist UDB-style map error checker selections in editor settings.
   - [x] Apply persisted UDB map error checker selections in editor map analysis.
+  - [x] Add UI-independent UDB map error checker selection row model.
   - [x] Add UDB-style per-element ignored error-check suppression for single and multi-element results.
   - [x] Add map-check window support for ignoring selected results.
   - [x] Add map-check window support for restoring ignored results.

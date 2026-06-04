@@ -93,6 +93,51 @@ public sealed record MapErrorCheckerDescriptor(
     public override string ToString() => DisplayName;
 }
 
+public sealed record MapErrorCheckerSelectionRow(MapErrorCheckerDescriptor Descriptor, bool IsChecked)
+{
+    public string DisplayName => Descriptor.DisplayName;
+    public string SettingsKey => Descriptor.SettingsKey;
+}
+
+public sealed class MapErrorCheckerSelectionModel
+{
+    private readonly List<MapErrorCheckerSelectionRow> rows;
+
+    public MapErrorCheckerSelectionModel(
+        IEnumerable<MapErrorCheckerDescriptor> descriptors,
+        IReadOnlyDictionary<string, bool>? savedChecks = null)
+    {
+        savedChecks ??= new Dictionary<string, bool>(StringComparer.Ordinal);
+        rows = descriptors
+            .OrderBy(descriptor => descriptor.DisplayName, StringComparer.OrdinalIgnoreCase)
+            .Select(descriptor => new MapErrorCheckerSelectionRow(
+                descriptor,
+                savedChecks.TryGetValue(descriptor.SettingsKey, out bool isChecked) ? isChecked : descriptor.DefaultChecked))
+            .ToList();
+    }
+
+    public IReadOnlyList<MapErrorCheckerSelectionRow> Rows => rows;
+
+    public IReadOnlyList<MapErrorCheckerDescriptor> EnabledDescriptors() =>
+        rows.Where(row => row.IsChecked).Select(row => row.Descriptor).ToArray();
+
+    public void SetChecked(string settingsKey, bool isChecked)
+    {
+        for (int i = 0; i < rows.Count; i++)
+        {
+            var row = rows[i];
+            if (string.Equals(row.SettingsKey, settingsKey, StringComparison.Ordinal))
+            {
+                rows[i] = row with { IsChecked = isChecked };
+                return;
+            }
+        }
+    }
+
+    public IReadOnlyDictionary<string, bool> ToSettings() =>
+        rows.ToDictionary(row => row.SettingsKey, row => row.IsChecked, StringComparer.Ordinal);
+}
+
 /// <summary>
 /// Optional lookups that enable the resource/config-aware checks. Delegates are injected by the host (so this
 /// project stays decoupled from resource/config code); a null delegate disables its check.
