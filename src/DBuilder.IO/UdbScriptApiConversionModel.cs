@@ -3664,6 +3664,7 @@ public sealed class UdbScriptMapWrapper
         Vector3D point = UdbScriptApiConversionModel.GetVector3DFromObject(pos);
         Thing thing = map.AddThing(new Vector2D(point.x, point.y), type);
         thing.Height = point.z;
+        ApplyCleanThingSettings(thing);
         thing.DetermineSector(map);
         return new UdbScriptThingWrapper(thing, map, grid, highlightedObject, mapFormat);
     }
@@ -3708,6 +3709,21 @@ public sealed class UdbScriptMapWrapper
     {
         ThrowIfDisposed("snapAllToAccuracy");
         map.SnapAllToAccuracy(vertexDecimals, usePrecisePosition);
+    }
+
+    private void ApplyCleanThingSettings(Thing thing)
+    {
+        if (config == null) return;
+
+        thing.UdmfFlags.Clear();
+        foreach (string flag in config.DefaultThingFlags)
+            thing.SetFlag(flag, true);
+
+        ThingTypeInfo? info = config.GetThing(thing.Type);
+        if (info == null) return;
+
+        for (int i = 0; i < thing.Args.Length && i < info.Args.Length; i++)
+            thing.Args[i] = Convert.ToInt32(info.Args[i].DefaultValue, CultureInfo.InvariantCulture);
     }
 
     private void ThrowIfDisposed(string member)

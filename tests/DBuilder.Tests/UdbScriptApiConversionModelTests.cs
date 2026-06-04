@@ -1628,6 +1628,47 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapWrapperCreateThingAppliesConfiguredCleanThingSettingsLikeUdbScript()
+    {
+        var config = GameConfiguration.FromText("""
+            thingflags
+            {
+                skill1 = "Skill 1";
+                ambush = "Ambush";
+            }
+            defaultthingflags
+            {
+                skill1;
+                ambush;
+            }
+            thingtypes
+            {
+                monsters
+                {
+                    title = "Monsters";
+                    3001
+                    {
+                        title = "Imp";
+                        arg0 { default = 7; }
+                        arg2 { default = 12; }
+                    }
+                }
+            }
+            """);
+        var map = new MapSet();
+        var wrapper = new UdbScriptMapWrapper(map, config: config);
+
+        UdbScriptThingWrapper thing = wrapper.createThing(new UdbScriptVector3DWrapper(64, 96, 12), type: 3001);
+
+        Assert.Equal(3001, thing.Thing.Type);
+        Assert.Equal(new Vector2D(64, 96), thing.Thing.Position);
+        Assert.Equal(12, thing.Thing.Height);
+        Assert.True(thing.Thing.IsFlagSet("skill1"));
+        Assert.True(thing.Thing.IsFlagSet("ambush"));
+        Assert.Equal(new[] { 7, 0, 12, 0, 0 }, thing.Thing.Args);
+    }
+
+    [Fact]
     public void MapOwnedThingWrappersDeleteThings()
     {
         var map = new MapSet();
