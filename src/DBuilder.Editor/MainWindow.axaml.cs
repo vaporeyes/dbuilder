@@ -4866,7 +4866,7 @@ public partial class MainWindow : Window
         int selected = TagRangeModel.SelectedInitialTags(_map, target).Count;
         if (selected == 0)
         {
-            SetStatus("Select one or more sectors, linedefs, or things first.");
+            SetStatus(TagRangeModel.NoSelectionWarning);
             return;
         }
 
@@ -6066,6 +6066,8 @@ public partial class MainWindow : Window
         bool canEditSectorColor = ColorPickerModel.CanEditSectorColors(_mapFormat == MapFormat.Udmf) && hasSelectedSector;
         bool hasMultipleSelectedSectors = _map?.SelectedSectorsCount >= 2;
         bool hasSelectedUdmfLinedef = _mapFormat == MapFormat.Udmf && hasSelectedLinedef;
+        bool hasTagRangeSelection = TagRangeModel.HasSelection(
+            (_map?.SelectedSectorsCount ?? 0) + (_map?.SelectedLinedefsCount ?? 0) + (_map?.SelectedThingsCount ?? 0));
         bool hasGradientSectors = _map?.SelectedSectorsCount >= SectorGradient.MinimumSectorCount;
         bool hasGradientLinedefs = _mapFormat == MapFormat.Udmf && _map?.SelectedLinedefsCount >= LinedefGradient.MinimumLinedefCount;
         bool hasGradientTarget = hasGradientSectors || hasGradientLinedefs;
@@ -6149,6 +6151,7 @@ public partial class MainWindow : Window
         SetEnabled(hasSelectedThing, AlignThingsToWallMenuItem, FilterSelectedThingsMenuItem);
         SetEnabled(canEditSectorColor, SectorColorMenuItem, SectorColorButton);
         SetEnabled(hasSelectedInternalDynamicLight, DynamicLightColorMenuItem, DynamicLightColorButton);
+        SetEnabled(hasTagRangeSelection, TagRangeMenuItem, TagRangeButton);
         SetEnabled(hasSelectedUdmfLinedef,
             AlignFloorToFrontMenuItem, AlignFloorToBackMenuItem, AlignCeilingToFrontMenuItem, AlignCeilingToBackMenuItem);
         SetEnabled(hasSelectedAutomapTarget, AutomapMenuItem);

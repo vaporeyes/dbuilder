@@ -151,6 +151,17 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void TagRangeCommandAvailabilityReflectsTaggableSelection()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("bool hasTagRangeSelection = TagRangeModel.HasSelection(", body, StringComparison.Ordinal);
+        Assert.Contains("(_map?.SelectedSectorsCount ?? 0) + (_map?.SelectedLinedefsCount ?? 0) + (_map?.SelectedThingsCount ?? 0));", body, StringComparison.Ordinal);
+        Assert.Contains("SetEnabled(hasTagRangeSelection, TagRangeMenuItem, TagRangeButton);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(TagRangeModel.NoSelectionWarning);", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ViewCommandAvailabilityReflectsMapResourcesAndConfigState()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));

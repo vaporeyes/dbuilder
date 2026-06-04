@@ -172,6 +172,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Gate the Browsers parent menu by child browser availability.
   - [x] Gate the Automap parent menu by child automap flag availability.
   - [x] Gate sector color command availability by UDMF map format and selected sectors.
+  - [x] Gate Tag Range command availability by taggable selected elements.
   - [x] Add stable UDB action ids for Select All, Invert Selection, and Select None.
   - [x] Add stable UDB action ids for Flags, Custom Fields, and Tags dialogs.
   - [x] Add stable UDB action ids for Stitch Geometry, Join Sectors, and Merge Sectors.
@@ -2164,6 +2165,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style in-session step and relative-mode defaults.
   - [x] Add UDB-style form title, end-tag preview, OK enabled, duplicate warning, and skip-used visibility state.
   - [x] Add UDB-style toolbar availability and no-selection action warning behavior.
+  - [x] Gate editor Tag Range command availability by selected sectors, linedefs, and things.
   - [x] Wire Tag Range end-tag preview and duplicate/out-of-range warnings into the editor dialog.
 - [ ] Port USDF tools.
   - [x] Add typed USDF model for includes, conversations, pages, inventory conditions, choices, costs, specials, and navigation fields.
