@@ -2173,6 +2173,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor WadAuthor linedef popup actions for properties, delete, split, and flip.
   - [x] Add editor WadAuthor linedef curve popup execution with UDB default curve settings.
   - [x] Add testable WadAuthor hover status formatting model.
+  - [x] Route editor WadAuthor mode toggle status through the testable model.
 - [ ] Port color picker controls and dialogs.
   - [x] Add UDB-style RGB/HSV conversion, display formatting, and sector light/fade color field behavior.
   - [x] Add UDB-style HEX and float typed color input parsing.

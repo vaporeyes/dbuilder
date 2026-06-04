@@ -2329,9 +2329,7 @@ public partial class MainWindow : Window
     {
         bool enabled = MapView.ToggleWadAuthorMode();
         MapView.Focus();
-        SetStatus(enabled
-            ? "Mode: WadAuthor. Hover highlights vertices, things, linedefs, and sectors using WadAuthor priority."
-            : $"Mode: {MapView.CurrentEditMode}");
+        SetStatus(WadAuthorModeModel.ModeToggleStatusText(enabled, MapView.CurrentEditMode.ToString()));
         UpdateStatusDetails();
         UpdateCommandAvailability();
     }

@@ -60,6 +60,15 @@ public class WadAuthorModeModelTests
     }
 
     [Fact]
+    public void ModeToggleStatusFormatsEnabledAndRestoredMode()
+    {
+        Assert.Equal(
+            "Mode: WadAuthor. Hover highlights vertices, things, linedefs, and sectors using WadAuthor priority.",
+            WadAuthorModeModel.ModeToggleStatusText(true, "Vertices"));
+        Assert.Equal("Mode: Linedefs", WadAuthorModeModel.ModeToggleStatusText(false, "Linedefs"));
+    }
+
+    [Fact]
     public void LinedefPopupExecutableStateMatchesPortedEditorActions()
     {
         Assert.True(WadAuthorModeModel.CanExecuteLinedefPopupAction(WadAuthorLinedefPopupAction.Properties));

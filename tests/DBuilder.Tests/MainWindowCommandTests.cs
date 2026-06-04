@@ -107,6 +107,15 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void WadAuthorModeReportsModelToggleStatus()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("MapView.ToggleWadAuthorMode()", body, StringComparison.Ordinal);
+        Assert.Contains("WadAuthorModeModel.ModeToggleStatusText(enabled, MapView.CurrentEditMode.ToString())", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SaveCommandAvailabilityReflectsWritableSourceArchive()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));

@@ -103,6 +103,11 @@ public static class WadAuthorModeModel
     public static bool CanExecuteLinedefPopupAction(WadAuthorLinedefPopupAction action)
         => true;
 
+    public static string ModeToggleStatusText(bool enabled, string currentModeName)
+        => enabled
+            ? "Mode: WadAuthor. Hover highlights vertices, things, linedefs, and sectors using WadAuthor priority."
+            : $"Mode: {currentModeName}";
+
     public static WadAuthorLinedefPopupResult ExecuteLinedefPopupAction(
         MapSet map,
         Linedef line,
