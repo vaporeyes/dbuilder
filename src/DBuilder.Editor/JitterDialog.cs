@@ -18,6 +18,10 @@ public sealed class JitterDialog : PropertyDialog
     private readonly TextBox _thingHeightAmount;
     private readonly TextBox _thingPitchAmount;
     private readonly TextBox _thingRollAmount;
+    private readonly CheckBox _relativeThingPitch;
+    private readonly CheckBox _relativeThingRoll;
+    private readonly CheckBox _allowNegativeThingPitch;
+    private readonly CheckBox _allowNegativeThingRoll;
     private readonly TextBox _thingScaleMinX;
     private readonly TextBox _thingScaleMaxX;
     private readonly TextBox _thingScaleMinY;
@@ -36,6 +40,10 @@ public sealed class JitterDialog : PropertyDialog
     public int ResultThingHeightAmount { get; private set; } = 16;
     public int ResultThingPitchAmount { get; private set; }
     public int ResultThingRollAmount { get; private set; }
+    public bool ResultRelativeThingPitch { get; private set; }
+    public bool ResultRelativeThingRoll { get; private set; }
+    public bool ResultAllowNegativeThingPitch { get; private set; }
+    public bool ResultAllowNegativeThingRoll { get; private set; }
     public double ResultThingScaleMinX { get; private set; } = 1.0;
     public double ResultThingScaleMaxX { get; private set; } = 1.0;
     public double ResultThingScaleMinY { get; private set; } = 1.0;
@@ -57,6 +65,10 @@ public sealed class JitterDialog : PropertyDialog
         _thingHeightAmount = AddField("Thing height amount", ResultThingHeightAmount.ToString(CultureInfo.InvariantCulture));
         _thingPitchAmount = AddField("Thing pitch amount", ResultThingPitchAmount.ToString(CultureInfo.InvariantCulture));
         _thingRollAmount = AddField("Thing roll amount", ResultThingRollAmount.ToString(CultureInfo.InvariantCulture));
+        _relativeThingPitch = AddCheckBox("Relative thing pitch", ResultRelativeThingPitch);
+        _relativeThingRoll = AddCheckBox("Relative thing roll", ResultRelativeThingRoll);
+        _allowNegativeThingPitch = AddCheckBox("Use negative pitch", ResultAllowNegativeThingPitch);
+        _allowNegativeThingRoll = AddCheckBox("Use negative roll", ResultAllowNegativeThingRoll);
         _thingScaleMinX = AddField("Thing scale X min", ResultThingScaleMinX.ToString(CultureInfo.InvariantCulture));
         _thingScaleMaxX = AddField("Thing scale X max", ResultThingScaleMaxX.ToString(CultureInfo.InvariantCulture));
         _thingScaleMinY = AddField("Thing scale Y min", ResultThingScaleMinY.ToString(CultureInfo.InvariantCulture));
@@ -78,6 +90,10 @@ public sealed class JitterDialog : PropertyDialog
         ResultThingHeightAmount = Math.Max(0, ParseInt(_thingHeightAmount, ResultThingHeightAmount));
         ResultThingPitchAmount = Math.Max(0, ParseInt(_thingPitchAmount, ResultThingPitchAmount));
         ResultThingRollAmount = Math.Max(0, ParseInt(_thingRollAmount, ResultThingRollAmount));
+        ResultRelativeThingPitch = _relativeThingPitch.IsChecked == true;
+        ResultRelativeThingRoll = _relativeThingRoll.IsChecked == true;
+        ResultAllowNegativeThingPitch = _allowNegativeThingPitch.IsChecked == true;
+        ResultAllowNegativeThingRoll = _allowNegativeThingRoll.IsChecked == true;
         ResultThingScaleMinX = ParseDouble(_thingScaleMinX, ResultThingScaleMinX);
         ResultThingScaleMaxX = ParseDouble(_thingScaleMaxX, ResultThingScaleMaxX);
         ResultThingScaleMinY = ParseDouble(_thingScaleMinY, ResultThingScaleMinY);

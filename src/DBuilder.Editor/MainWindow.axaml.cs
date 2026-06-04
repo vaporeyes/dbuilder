@@ -5322,8 +5322,8 @@ public partial class MainWindow : Window
                 thing.ScaleY,
                 OffsetAngle: RandomAngle(),
                 RotationFactor: RandomFactor(),
-                PitchFactor: RandomPositiveFactor(),
-                RollFactor: RandomPositiveFactor(),
+                PitchFactor: RandomScaleFactor(dialog.ResultAllowNegativeThingPitch),
+                RollFactor: RandomScaleFactor(dialog.ResultAllowNegativeThingRoll),
                 HeightFactor: RandomFactor(),
                 ScaleXFactor: RandomScaleFactor(dialog.ResultAllowNegativeThingScaleX),
                 ScaleYFactor: RandomScaleFactor(dialog.ResultAllowNegativeThingScaleY),
@@ -5338,8 +5338,8 @@ public partial class MainWindow : Window
                 changed += BuilderEffects.ApplyThingHeight(thingJitter, dialog.ResultThingHeightAmount);
             if (_mapFormat == MapFormat.Udmf)
             {
-                changed += BuilderEffects.ApplyThingPitch(thingJitter, dialog.ResultThingPitchAmount, relative: false);
-                changed += BuilderEffects.ApplyThingRoll(thingJitter, dialog.ResultThingRollAmount, relative: false);
+                changed += BuilderEffects.ApplyThingPitch(thingJitter, dialog.ResultThingPitchAmount, dialog.ResultRelativeThingPitch);
+                changed += BuilderEffects.ApplyThingRoll(thingJitter, dialog.ResultThingRollAmount, dialog.ResultRelativeThingRoll);
                 changed += BuilderEffects.ApplyThingScale(
                     thingJitter,
                     dialog.ResultThingScaleMinX,

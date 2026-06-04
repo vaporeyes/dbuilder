@@ -233,12 +233,12 @@ public sealed class MainWindowCommandTests
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
         int methodIndex = body.IndexOf("private async void OnApplyJitter", StringComparison.Ordinal);
-        int pitchFactorIndex = body.IndexOf("PitchFactor: RandomPositiveFactor()", methodIndex, StringComparison.Ordinal);
-        int rollFactorIndex = body.IndexOf("RollFactor: RandomPositiveFactor()", pitchFactorIndex, StringComparison.Ordinal);
+        int pitchFactorIndex = body.IndexOf("PitchFactor: RandomScaleFactor(dialog.ResultAllowNegativeThingPitch)", methodIndex, StringComparison.Ordinal);
+        int rollFactorIndex = body.IndexOf("RollFactor: RandomScaleFactor(dialog.ResultAllowNegativeThingRoll)", pitchFactorIndex, StringComparison.Ordinal);
         int guardIndex = body.IndexOf("if (_mapFormat == MapFormat.Udmf)", rollFactorIndex, StringComparison.Ordinal);
-        int pitchIndex = body.IndexOf("BuilderEffects.ApplyThingPitch(thingJitter, dialog.ResultThingPitchAmount, relative: false)", guardIndex, StringComparison.Ordinal);
-        int rollIndex = body.IndexOf("BuilderEffects.ApplyThingRoll(thingJitter, dialog.ResultThingRollAmount, relative: false)", pitchIndex, StringComparison.Ordinal);
-        int factorMethodIndex = body.IndexOf("private static double RandomPositiveFactor()", rollIndex, StringComparison.Ordinal);
+        int pitchIndex = body.IndexOf("BuilderEffects.ApplyThingPitch(thingJitter, dialog.ResultThingPitchAmount, dialog.ResultRelativeThingPitch)", guardIndex, StringComparison.Ordinal);
+        int rollIndex = body.IndexOf("BuilderEffects.ApplyThingRoll(thingJitter, dialog.ResultThingRollAmount, dialog.ResultRelativeThingRoll)", pitchIndex, StringComparison.Ordinal);
+        int factorMethodIndex = body.IndexOf("private static double RandomScaleFactor(bool allowNegative)", rollIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);
         Assert.True(pitchFactorIndex > methodIndex);
@@ -305,10 +305,22 @@ public sealed class MainWindowCommandTests
 
         Assert.Contains("public int ResultThingPitchAmount { get; private set; }", body, StringComparison.Ordinal);
         Assert.Contains("public int ResultThingRollAmount { get; private set; }", body, StringComparison.Ordinal);
+        Assert.Contains("public bool ResultRelativeThingPitch { get; private set; }", body, StringComparison.Ordinal);
+        Assert.Contains("public bool ResultRelativeThingRoll { get; private set; }", body, StringComparison.Ordinal);
+        Assert.Contains("public bool ResultAllowNegativeThingPitch { get; private set; }", body, StringComparison.Ordinal);
+        Assert.Contains("public bool ResultAllowNegativeThingRoll { get; private set; }", body, StringComparison.Ordinal);
         Assert.Contains("AddField(\"Thing pitch amount\", ResultThingPitchAmount.ToString(CultureInfo.InvariantCulture))", body, StringComparison.Ordinal);
         Assert.Contains("AddField(\"Thing roll amount\", ResultThingRollAmount.ToString(CultureInfo.InvariantCulture))", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Relative thing pitch\", ResultRelativeThingPitch)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Relative thing roll\", ResultRelativeThingRoll)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Use negative pitch\", ResultAllowNegativeThingPitch)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Use negative roll\", ResultAllowNegativeThingRoll)", body, StringComparison.Ordinal);
         Assert.Contains("ResultThingPitchAmount = Math.Max(0, ParseInt(_thingPitchAmount, ResultThingPitchAmount));", body, StringComparison.Ordinal);
         Assert.Contains("ResultThingRollAmount = Math.Max(0, ParseInt(_thingRollAmount, ResultThingRollAmount));", body, StringComparison.Ordinal);
+        Assert.Contains("ResultRelativeThingPitch = _relativeThingPitch.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("ResultRelativeThingRoll = _relativeThingRoll.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("ResultAllowNegativeThingPitch = _allowNegativeThingPitch.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("ResultAllowNegativeThingRoll = _allowNegativeThingRoll.IsChecked == true;", body, StringComparison.Ordinal);
     }
 
     [Fact]
