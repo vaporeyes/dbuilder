@@ -78,7 +78,7 @@ public sealed class MapIssueListModel
 
     public static string FormatIssueDescriptions(IEnumerable<MapIssue> issues)
     {
-        var lines = issues.Select(issue => issue.Message).ToArray();
+        var lines = issues.Select(issue => issue.Description).ToArray();
         if (lines.Length == 0) return string.Empty;
 
         return string.Join(Environment.NewLine, lines) + Environment.NewLine;

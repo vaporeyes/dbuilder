@@ -743,6 +743,7 @@ public class MapAnalysisTests
         var issue = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedVertex, "unused");
 
         Assert.Equal(100.0, issue.FocusPadding);
+        Assert.Equal("unused", issue.Description);
     }
 
     [Fact]
@@ -762,11 +763,16 @@ public class MapAnalysisTests
     public void MapIssueListModelFormatsDescriptionsForClipboard()
     {
         var unused = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedVertex, "unused");
-        var shortLine = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ShortLinedef, "short");
+        var shortLine = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ShortLinedef, "short")
+        {
+            Description = "This linedef is shorter than 1 map unit. This can potentially cause nodebuilding errors.",
+        };
 
         string text = MapIssueListModel.FormatIssueDescriptions(new[] { unused, shortLine });
 
-        Assert.Equal($"unused{Environment.NewLine}short{Environment.NewLine}", text);
+        Assert.Equal(
+            $"unused{Environment.NewLine}This linedef is shorter than 1 map unit. This can potentially cause nodebuilding errors.{Environment.NewLine}",
+            text);
         Assert.Equal(string.Empty, MapIssueListModel.FormatIssueDescriptions(Array.Empty<MapIssue>()));
     }
 
@@ -2451,6 +2457,9 @@ public class MapAnalysisTests
         var issue = Assert.Single(MapAnalysis.Check(map, new MapCheckContext()), i => i.Kind == MapIssueKind.OverlappingLinedefs);
 
         Assert.Equal("Linedefs 4 and 0 are overlapping and reference different sectors", issue.Message);
+        Assert.Equal(
+            "These linedefs are overlapping and they do not reference the same sector on all sides. Overlapping lines is only allowed when they reference the same sector on all sides.",
+            issue.Description);
     }
 
     [Fact]
@@ -2468,6 +2477,9 @@ public class MapAnalysisTests
         var issue = Assert.Single(MapAnalysis.Check(map, new MapCheckContext()), i => i.Kind == MapIssueKind.OverlappingLinedefs);
 
         Assert.Equal("Linedefs 1 and 0 are overlapping and reference different sectors", issue.Message);
+        Assert.Equal(
+            "These linedefs are overlapping and they do not reference the same sector on all sides. Overlapping lines is only allowed when they reference the same sector on all sides.",
+            issue.Description);
     }
 
     [Fact]
@@ -2500,6 +2512,7 @@ public class MapAnalysisTests
         map.BuildIndexes();
         var issue = Assert.Single(MapAnalysis.Check(map, new MapCheckContext()), i => i.Kind == MapIssueKind.ShortLinedef);
         Assert.Equal("Linedef 0 is shorter than 1 mu.", issue.Message);
+        Assert.Equal("This linedef is shorter than 1 map unit. This can potentially cause nodebuilding errors.", issue.Description);
         Assert.Equal(3.0, issue.FocusPadding);
     }
 

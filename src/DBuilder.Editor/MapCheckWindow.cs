@@ -257,7 +257,7 @@ public sealed class MapCheckWindow : Window
             string fixes = issue.Fixes.Count == 0
                 ? ""
                 : " Fixes: " + string.Join(", ", issue.Fixes.Take(3).Select(fix => fix.Label)) + ".";
-            _selectionInfo.Text = issue.Message + fixes;
+            _selectionInfo.Text = issue.Description + fixes;
             return;
         }
 

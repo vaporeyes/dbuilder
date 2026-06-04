@@ -285,6 +285,9 @@ public sealed class MapCheckContext
 /// <summary>A single detected map problem with a human-readable message and optional navigation hints.</summary>
 public sealed record MapIssue(MapIssueSeverity Severity, MapIssueKind Kind, string Message)
 {
+    /// <summary>Detailed text shown in selected-result panels and copied descriptions.</summary>
+    public string Description { get; init; } = Message;
+
     /// <summary>The offending element, so the editor can select it (null when the issue has no single element).</summary>
     public ISelectable? Target { get; init; }
 
@@ -1494,7 +1497,12 @@ public static class MapAnalysis
             if (seen.TryGetValue(key, out var matchingLine))
                 issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.OverlappingLinedefs,
                     $"Linedefs {i} and {map.IndexOfLinedef(matchingLine)} are overlapping and reference different sectors")
-                    { Target = l, RelatedTargets = new[] { matchingLine }, Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5) });
+                    {
+                        Description = "These linedefs are overlapping and they do not reference the same sector on all sides. Overlapping lines is only allowed when they reference the same sector on all sides.",
+                        Target = l,
+                        RelatedTargets = new[] { matchingLine },
+                        Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5),
+                    });
             else
                 seen[key] = l;
 
@@ -1507,7 +1515,12 @@ public static class MapAnalysis
 
                 issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.OverlappingLinedefs,
                     $"Linedefs {i} and {j} are overlapping and reference different sectors")
-                    { Target = l, RelatedTargets = new[] { other }, Focus = l.Line.GetCoordinatesAt(uLine) });
+                    {
+                        Description = "These linedefs are overlapping and they do not reference the same sector on all sides. Overlapping lines is only allowed when they reference the same sector on all sides.",
+                        Target = l,
+                        RelatedTargets = new[] { other },
+                        Focus = l.Line.GetCoordinatesAt(uLine),
+                    });
                 break;
             }
         }
@@ -1537,7 +1550,12 @@ public static class MapAnalysis
             if (len < ctx.ShortLinedefLength)
                 issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ShortLinedef,
                     $"Linedef {i} is shorter than {ctx.ShortLinedefLength:0.##} mu.")
-                    { Target = l, Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5), FocusPadding = 3.0 });
+                    {
+                        Description = "This linedef is shorter than 1 map unit. This can potentially cause nodebuilding errors.",
+                        Target = l,
+                        Focus = new Vector2D((l.Start.Position.x + l.End.Position.x) * 0.5, (l.Start.Position.y + l.End.Position.y) * 0.5),
+                        FocusPadding = 3.0,
+                    });
         }
     }
 
