@@ -2524,6 +2524,22 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void ParseOverrideTextReadsShiftedUdbStylePunctuationKeys()
+    {
+        var overrides = EditorCommandCatalog.ParseOverrideText(
+            "window.tags=Shift+\"; window.status-history=Shift+|; map3d.brightness-up=Shift+}; map3d.brightness-down=Shift+{; map2d.zoom-out=Shift+_; map2d.fit=Shift+<; map2d.grid-up=Shift+>; map3d.select-texture=Shift+/");
+
+        Assert.Contains(overrides, b => b.CommandId == "window.tags" && b.Key == "OemQuotes" && b.Shift);
+        Assert.Contains(overrides, b => b.CommandId == "window.status-history" && b.Key == "OemBackslash" && b.Shift);
+        Assert.Contains(overrides, b => b.CommandId == "map3d.brightness-up" && b.Key == "OemCloseBrackets" && b.Shift);
+        Assert.Contains(overrides, b => b.CommandId == "map3d.brightness-down" && b.Key == "OemOpenBrackets" && b.Shift);
+        Assert.Contains(overrides, b => b.CommandId == "map2d.zoom-out" && b.Key == "OemMinus" && b.Shift);
+        Assert.Contains(overrides, b => b.CommandId == "map2d.fit" && b.Key == "OemComma" && b.Shift);
+        Assert.Contains(overrides, b => b.CommandId == "map2d.grid-up" && b.Key == "OemPeriod" && b.Shift);
+        Assert.Contains(overrides, b => b.CommandId == "map3d.select-texture" && b.Key == "OemQuestion" && b.Shift);
+    }
+
+    [Fact]
     public void ParseOverrideTextReadsAllTopRowDigitKeys()
     {
         var overrides = EditorCommandCatalog.ParseOverrideText(
