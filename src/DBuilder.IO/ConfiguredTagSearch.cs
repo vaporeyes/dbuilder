@@ -135,14 +135,17 @@ public static class ConfiguredTagSearch
         if (!int.TryParse(replace, NumberStyles.Integer, CultureInfo.InvariantCulture, out int to)) return 0;
 
         int changed = 0;
+        bool canReplaceFormatTag = CanReplaceFormatTag(to, config);
+        bool canReplaceThingTag = CanReplaceThingTag(to);
+        bool canReplaceActionArgTag = CanReplaceActionArgTag(to);
         foreach (var sector in withinSelection ? map.GetSelectedSectors() : map.Sectors)
-            if (MapElementTags.ReplaceTag(sector, from, to)) changed++;
+            if (canReplaceFormatTag && MapElementTags.ReplaceTag(sector, from, to)) changed++;
 
         foreach (var thing in withinSelection ? map.GetSelectedThings() : map.Things)
         {
             bool hit = false;
-            if (config?.HasThingTag ?? true) hit |= MapElementTags.ReplaceTag(thing, from, to);
-            if ((config?.HasThingAction ?? true) && (config?.HasActionArgs ?? true))
+            if (canReplaceThingTag && (config?.HasThingTag ?? true)) hit |= MapElementTags.ReplaceTag(thing, from, to);
+            if (canReplaceActionArgTag && (config?.HasThingAction ?? true) && (config?.HasActionArgs ?? true))
                 hit |= ReplaceActionArgs(thing.Action, thing.Args, from, to, config);
             if (hit) changed++;
         }
@@ -150,8 +153,8 @@ public static class ConfiguredTagSearch
         foreach (var line in withinSelection ? map.GetSelectedLinedefs() : map.Linedefs)
         {
             bool hit = false;
-            if (config?.HasLinedefTag ?? true) hit |= MapElementTags.ReplaceTag(line, from, to);
-            if (config?.HasActionArgs ?? true) hit |= ReplaceActionArgs(line.Action, line.Args, from, to, config);
+            if (canReplaceFormatTag && (config?.HasLinedefTag ?? true)) hit |= MapElementTags.ReplaceTag(line, from, to);
+            if (canReplaceActionArgTag && (config?.HasActionArgs ?? true)) hit |= ReplaceActionArgs(line.Action, line.Args, from, to, config);
             if (hit) changed++;
         }
 
@@ -452,6 +455,19 @@ public static class ConfiguredTagSearch
         if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out reference)) return false;
         return !requireByteRange || reference is >= 0 and <= 255;
     }
+
+    private static bool CanReplaceActionArgTag(int tag)
+        => tag is >= 0 and <= 255;
+
+    private static bool CanReplaceThingTag(int tag)
+        => tag is >= 0 and <= short.MaxValue;
+
+    private static bool CanReplaceFormatTag(int tag, GameConfiguration? config)
+        => GameConfiguration.MapFormatFromInterface(config?.FormatInterface) switch
+        {
+            MapFormat.Udmf => true,
+            _ => tag is >= ushort.MinValue and <= ushort.MaxValue,
+        };
 
     private static Vector2D Mid(Linedef line)
         => new((line.Start.Position.x + line.End.Position.x) * 0.5, (line.Start.Position.y + line.End.Position.y) * 0.5);

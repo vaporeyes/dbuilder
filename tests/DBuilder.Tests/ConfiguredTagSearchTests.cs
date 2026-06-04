@@ -75,6 +75,25 @@ public class ConfiguredTagSearchTests
     }
 
     [Fact]
+    public void ReplaceHonorsUdbTagReplacementRangesPerOwner()
+    {
+        var config = GameConfiguration.FromText(Cfg);
+        var map = BuildMap();
+        map.Sectors[0].Tag = 17;
+        map.Linedefs[0].Tag = 17;
+        map.Things[0].Tag = 17;
+
+        int changed = ConfiguredTagSearch.Replace(map, "17", "-1", config);
+
+        Assert.Equal(2, changed);
+        Assert.Equal(-1, map.Sectors[0].Tag);
+        Assert.Equal(-1, map.Linedefs[0].Tag);
+        Assert.Equal(17, map.Linedefs[0].Args[0]);
+        Assert.Equal(17, map.Things[0].Tag);
+        Assert.Equal(17, map.Things[0].Args[1]);
+    }
+
+    [Fact]
     public void FindWithinSelectionLimitsConfiguredTagOwners()
     {
         var config = GameConfiguration.FromText(Cfg);
