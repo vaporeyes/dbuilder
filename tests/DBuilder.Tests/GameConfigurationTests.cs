@@ -793,6 +793,33 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void InlineUniversalFieldEnumPreservesConfiguredOrderLikeUdb()
+    {
+        const string cfg = """
+            universalfields
+            {
+                thing
+                {
+                    mood
+                    {
+                        type = 11;
+                        enum
+                        {
+                            2 = "Alert";
+                            0 = "Idle";
+                        }
+                    }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var items = gc.GetFieldEnumList(gc.UniversalFields["thing"]["mood"])!.Items;
+        Assert.Equal(new[] { "2", "0" }, items.Select(item => item.Value).ToArray());
+    }
+
+    [Fact]
     public void ParsesThingsFilterMetadata()
     {
         const string cfg = """

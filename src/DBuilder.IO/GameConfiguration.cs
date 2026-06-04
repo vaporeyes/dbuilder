@@ -2220,7 +2220,6 @@ public sealed class GameConfiguration
             string value = e.Key.ToString() ?? "";
             if (value.Length > 0) items.Add(new EnumItemInfo(value, e.Value?.ToString() ?? value));
         }
-        items.Sort();
         return items;
     }
 

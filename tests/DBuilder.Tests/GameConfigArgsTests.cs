@@ -195,6 +195,36 @@ thingtypes
     }
 
     [Fact]
+    public void InlineArgEnumPreservesConfiguredOrderLikeUdb()
+    {
+        const string cfg = """
+            linedeftypes
+            {
+                test
+                {
+                    1
+                    {
+                        arg0
+                        {
+                            type = 11;
+                            enum
+                            {
+                                2 = "Two";
+                                0 = "Zero";
+                            }
+                        }
+                    }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var items = gc.GetArgEnumList(gc.GetLinedefAction(1)!.Args[0])!.Items;
+        Assert.Equal(new[] { "2", "0" }, items.Select(item => item.Value).ToArray());
+    }
+
+    [Fact]
     public void ParsesThingArgs()
     {
         var gc = GameConfiguration.FromText(Cfg);
