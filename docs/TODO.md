@@ -833,6 +833,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Cancel replacement actor recategorization when a later replacement omits `$Category`.
   - [x] Ignore non-positive DECORATE editor numbers during actor merging.
   - [x] Apply actor `SpawnID` properties to the `spawnthing` enum.
+  - [x] Use UDB default thing category radius and height values.
   - [x] Apply MAPINFO `SpawnNums` overrides to the `spawnthing` enum.
 - [ ] Add parser fixtures from real-world mod patterns.
 

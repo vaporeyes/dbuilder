@@ -713,6 +713,35 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ThingCategoriesUseUdbDefaultSize()
+    {
+        const string cfg = """
+            thingtypes
+            {
+                misc
+                {
+                    title = "Misc";
+                    31006
+                    {
+                        title = "Default Size Thing";
+                    }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var category = gc.ThingCategories["misc"];
+        Assert.Equal(10, category.Width);
+        Assert.Equal(20, category.Height);
+
+        var thing = gc.GetThing(31006);
+        Assert.NotNull(thing);
+        Assert.Equal(10, thing!.Width);
+        Assert.Equal(20, thing.Height);
+    }
+
+    [Fact]
     public void ParsesThingCategoriesAndNestedCategoryDefaults()
     {
         const string cfg = """
