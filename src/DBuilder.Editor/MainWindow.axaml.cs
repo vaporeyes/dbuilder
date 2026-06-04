@@ -5305,8 +5305,8 @@ public partial class MainWindow : Window
                 RandomFactor(),
                 RandomFactor(),
                 SafeDistance: Math.Max(dialog.ResultFloorAmount, dialog.ResultCeilingAmount))).ToList();
-            changed += BuilderEffects.ApplySectorFloorHeight(sectorJitter, dialog.ResultFloorAmount);
-            changed += BuilderEffects.ApplySectorCeilingHeight(sectorJitter, dialog.ResultCeilingAmount);
+            changed += BuilderEffects.ApplySectorFloorHeight(sectorJitter, dialog.ResultFloorAmount, dialog.ResultFloorOffsetMode);
+            changed += BuilderEffects.ApplySectorCeilingHeight(sectorJitter, dialog.ResultCeilingAmount, dialog.ResultCeilingOffsetMode);
         }
 
         if (things.Count > 0)

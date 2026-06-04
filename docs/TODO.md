@@ -1516,6 +1516,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor command for importing Wavefront OBJ terrain into the current map.
   - [x] Add UDB-style visual-mode Randomize selection routing for selected things, flats, and walls.
   - [x] Add UDB-style visual-mode Apply Directional Shading routing for selected floors and walls.
+  - [x] Expose UDB-style Randomize sector floor and ceiling offset modes in the editor dialog.
 - [ ] Port `3DFloorMode`.
   - [x] Add UDB-style multi-tag 3D floor resolution, managed UDMF control-sector filtering, selected-sector floor queries, and shared-only filtering.
 - [ ] Port `AutomapMode`.

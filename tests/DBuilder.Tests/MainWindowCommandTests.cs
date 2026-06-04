@@ -182,6 +182,33 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void JitterActionAppliesSelectedSectorOffsetModes()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        int methodIndex = body.IndexOf("private async void OnApplyJitter", StringComparison.Ordinal);
+        int floorIndex = body.IndexOf("BuilderEffects.ApplySectorFloorHeight(sectorJitter, dialog.ResultFloorAmount, dialog.ResultFloorOffsetMode)", methodIndex, StringComparison.Ordinal);
+        int ceilingIndex = body.IndexOf("BuilderEffects.ApplySectorCeilingHeight(sectorJitter, dialog.ResultCeilingAmount, dialog.ResultCeilingOffsetMode)", floorIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(floorIndex > methodIndex);
+        Assert.True(ceilingIndex > floorIndex);
+    }
+
+    [Fact]
+    public void JitterDialogExposesUdbSectorOffsetModes()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/JitterDialog.cs"));
+
+        Assert.Contains("AddCombo(\"Floor offset mode\", FloorOffsetModeItems(), (int)ResultFloorOffsetMode)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCombo(\"Ceiling offset mode\", CeilingOffsetModeItems(), (int)ResultCeilingOffsetMode)", body, StringComparison.Ordinal);
+        Assert.Contains("new CatalogItem((int)JitterOffsetMode.RaiseAndLower, \"Raise and lower\")", body, StringComparison.Ordinal);
+        Assert.Contains("new CatalogItem((int)JitterOffsetMode.RaiseOnly, \"Raise only\")", body, StringComparison.Ordinal);
+        Assert.Contains("new CatalogItem((int)JitterOffsetMode.LowerOnly, \"Lower only\")", body, StringComparison.Ordinal);
+        Assert.Contains("new CatalogItem((int)JitterOffsetMode.RaiseOnly, \"Lower only\")", body, StringComparison.Ordinal);
+        Assert.Contains("new CatalogItem((int)JitterOffsetMode.LowerOnly, \"Raise only\")", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void DirectionalShadingActionUsesVisualFloorAndWallSelectionsIn3DMode()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
