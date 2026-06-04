@@ -523,7 +523,8 @@ public static class WadMaps
     {
         "THINGS" or "LINEDEFS" or "SIDEDEFS" or "VERTEXES" or "SECTORS"
             or "SEGS" or "SSECTORS" or "NODES" or "REJECT" or "BLOCKMAP"
-            or "BEHAVIOR" or "SCRIPTS" or "TEXTMAP" or "ENDMAP" or "DIALOGUE" or "ZNODES" or "GL_VERT" => true,
+            or "BEHAVIOR" or "SCRIPTS" or "TEXTMAP" or "ENDMAP" or "DIALOGUE"
+            or "ZNODES" or "GL_NODES" or "GL_VERT" or "GL_SEGS" or "GL_SSECT" => true,
         _ => false,
     };
 }

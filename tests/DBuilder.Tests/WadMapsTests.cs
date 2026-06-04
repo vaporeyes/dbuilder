@@ -334,6 +334,24 @@ maplumpnames
     }
 
     [Fact]
+    public void ReadMapLumpScansThroughBuiltInGlNodebuilderLumps()
+    {
+        using var wad = new WAD(new MemoryStream());
+        WriteLump(wad, "MAP01", new byte[0], 0);
+        WriteLump(wad, "THINGS", new byte[] { 1 }, 1);
+        WriteLump(wad, "GL_NODES", new byte[] { 2 }, 2);
+        WriteLump(wad, "GL_SEGS", new byte[] { 3 }, 3);
+        WriteLump(wad, "GL_SSECT", new byte[] { 4 }, 4);
+        WriteLump(wad, "LINEDEFS", new byte[] { 5 }, 5);
+        wad.WriteHeaders();
+
+        Assert.Equal(new byte[] { 2 }, WadMaps.ReadMapLump(wad, "MAP01", "GL_NODES"));
+        Assert.Equal(new byte[] { 3 }, WadMaps.ReadMapLump(wad, "MAP01", "GL_SEGS"));
+        Assert.Equal(new byte[] { 4 }, WadMaps.ReadMapLump(wad, "MAP01", "GL_SSECT"));
+        Assert.Equal(new byte[] { 5 }, WadMaps.ReadMapLump(wad, "MAP01", "LINEDEFS"));
+    }
+
+    [Fact]
     public void ReadMapLumpOrGlobalLumpFallsBackToGlobalLump()
     {
         using var wad = new WAD(new MemoryStream());
