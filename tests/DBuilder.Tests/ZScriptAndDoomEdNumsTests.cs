@@ -1854,6 +1854,19 @@ class IncludedBase : Actor
     }
 
     [Fact]
+    public void HashlessZScriptIncludeRejectsContainingFileLikeUdb()
+    {
+        const string root = @"
+include ""zscript/base.zs""
+class AfterHashlessInclude : Actor { Default { Radius 8; } }";
+        const string included = "class HashlessIncluded : Actor { Default { Radius 16; } }";
+
+        var actors = ZScriptParser.Parse(root, path => path == "zscript/base.zs" ? included : null);
+
+        Assert.Empty(actors);
+    }
+
+    [Fact]
     public void ParsesZScriptIncludesAfterContainingFile()
     {
         const string root = @"

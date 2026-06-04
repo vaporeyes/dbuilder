@@ -625,6 +625,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse ZScript hex and octal integer size defaults like UDB.
   - [x] Clamp overflowing ZScript integer size defaults like UDB.
   - [x] Parse separated signed ZScript integer size defaults like UDB.
+  - [x] Reject hashless top-level ZScript `include` directives like UDB.
 - [x] Complete MAPINFO and ZMAPINFO parser behavior.
   - [x] Stop MAPINFO numbered actor parsing on malformed entries like UDB.
   - [x] Stop MAPINFO parsing on malformed `gameinfo` blocks like UDB.

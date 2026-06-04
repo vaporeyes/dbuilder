@@ -911,12 +911,8 @@ public static class DecorateParser
         includePath = "";
         string trimmed = line.TrimStart();
         int offset;
-        if (trimmed.StartsWith("#include", StringComparison.OrdinalIgnoreCase))
-            offset = "#include".Length;
-        else if (trimmed.StartsWith("include", StringComparison.OrdinalIgnoreCase))
-            offset = "include".Length;
-        else
-            return false;
+        if (!trimmed.StartsWith("#include", StringComparison.OrdinalIgnoreCase)) return false;
+        offset = "#include".Length;
 
         if (trimmed.Length > offset && !char.IsWhiteSpace(trimmed[offset])) return false;
         string rest = trimmed.Substring(offset).TrimStart();
