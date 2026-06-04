@@ -726,6 +726,10 @@ public static class EditorCommandCatalog
         if (key.Equals("NumPad.", StringComparison.OrdinalIgnoreCase)) return "Decimal";
         if (key.Equals("NumPad*", StringComparison.OrdinalIgnoreCase)) return "Multiply";
         if (key.Equals("NumPad/", StringComparison.OrdinalIgnoreCase)) return "Divide";
+        if (key.Length == 4
+            && key.StartsWith("Num", StringComparison.OrdinalIgnoreCase)
+            && char.IsDigit(key[3]))
+            return "NumPad" + key[3];
         if (key.Equals("LButton", StringComparison.OrdinalIgnoreCase)) return EditorPointerInput.LeftButton;
         if (key.Equals("MButton", StringComparison.OrdinalIgnoreCase)) return EditorPointerInput.MiddleButton;
         if (key.Equals("RButton", StringComparison.OrdinalIgnoreCase)) return EditorPointerInput.RightButton;

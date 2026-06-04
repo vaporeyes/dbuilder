@@ -1537,6 +1537,7 @@ public class EditorCommandCatalogTests
         Assert.Equal("map2d.decrease-bevel", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollDown, accelerator: true, shift: true));
         Assert.Equal("map2d.remove-first-draw-point", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Back", accelerator: true));
         Assert.Equal("map2d.mode-vertices", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "NumPad1"));
+        Assert.Equal("map2d.mode-vertices", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Num1"));
         Assert.Equal("map2d.select", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.LeftButton));
         Assert.Equal("map2d.split-line", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.RightButton));
         Assert.Equal("map2d.zoom-in", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Add"));
@@ -2551,6 +2552,17 @@ public class EditorCommandCatalogTests
         Assert.Contains(overrides, b => b.CommandId == "window.clear-group-10" && b.Key == "D0");
         Assert.Contains(overrides, b => b.CommandId == "window.clear-group-5" && b.Key == "D5");
         Assert.Contains(overrides, b => b.CommandId == "window.clear-group-9" && b.Key == "D9");
+    }
+
+    [Fact]
+    public void ParseOverrideTextReadsUdbStyleNumpadDigitAliases()
+    {
+        var overrides = EditorCommandCatalog.ParseOverrideText(
+            "map2d.mode-vertices=Num1; map3d.scale-down-y=Num5; map3d.scale-up=Num9");
+
+        Assert.Contains(overrides, b => b.CommandId == "map2d.mode-vertices" && b.Key == "NumPad1");
+        Assert.Contains(overrides, b => b.CommandId == "map3d.scale-down-y" && b.Key == "NumPad5");
+        Assert.Contains(overrides, b => b.CommandId == "map3d.scale-up" && b.Key == "NumPad9");
     }
 
     [Fact]
