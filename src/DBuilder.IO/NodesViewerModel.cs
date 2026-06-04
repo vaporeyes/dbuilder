@@ -10,8 +10,28 @@ public sealed record NodesViewerTabRows(string Title, IReadOnlyList<string> Rows
     public string Header => $"{Title} ({Rows.Count})";
 }
 
+public sealed record NodesViewerModeDescriptor(
+    string DisplayName,
+    string SwitchAction,
+    string ButtonImage,
+    int ButtonOrder,
+    string ButtonGroup,
+    bool UseByDefault,
+    bool Volatile,
+    bool AllowCopyPaste);
+
 public static class NodesViewerModel
 {
+    public static NodesViewerModeDescriptor ModeDescriptor { get; } = new(
+        "Nodes Viewer Mode",
+        "nodesviewermode",
+        "NodesView.png",
+        350,
+        "002_tools",
+        UseByDefault: true,
+        Volatile: true,
+        AllowCopyPaste: false);
+
     public static string StatusText(ClassicNodesStructure structure)
         => structure.IsValid ? "Classic nodes: OK" : $"Classic nodes: {structure.Status}";
 

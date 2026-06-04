@@ -1573,6 +1573,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add Comments panel search filtering for comment text and object group.
 - [ ] Port `NodesViewer`.
   - [x] Add UDB-style classic NODES, SEGS, VERTEXES, and SSECTORS data parser.
+  - [x] Add UDB-style Nodes Viewer edit-mode metadata.
   - [x] Add UDB-style Nodes Viewer action metadata and window command dispatch.
   - [x] Add editor Nodes Viewer window for parsed classic nodes, segs, and subsectors.
   - [x] Add UDB-style supported ZNODES header detection and payload extraction.
@@ -2280,6 +2281,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style singular and plural labels to Comments panel edit status text.
 - [ ] Port nodes viewer visualization.
   - [x] Add classic NodesViewer data model for nodes, segs, vertices, subsectors, and seg-to-subsector links.
+  - [x] Add UDB-style Nodes Viewer edit-mode metadata.
   - [x] Add UDB-style Nodes Viewer action metadata and window command dispatch.
   - [x] Add non-modal Nodes Viewer for classic node structure summaries.
   - [x] Add UDB-style supported ZNODES header detection and payload extraction.

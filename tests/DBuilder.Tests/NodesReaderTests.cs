@@ -261,6 +261,21 @@ public class NodesReaderTests
     }
 
     [Fact]
+    public void NodesViewerModeDescriptorMatchesUdbEditModeMetadata()
+    {
+        NodesViewerModeDescriptor mode = NodesViewerModel.ModeDescriptor;
+
+        Assert.Equal("Nodes Viewer Mode", mode.DisplayName);
+        Assert.Equal("nodesviewermode", mode.SwitchAction);
+        Assert.Equal("NodesView.png", mode.ButtonImage);
+        Assert.Equal(350, mode.ButtonOrder);
+        Assert.Equal("002_tools", mode.ButtonGroup);
+        Assert.True(mode.UseByDefault);
+        Assert.True(mode.Volatile);
+        Assert.False(mode.AllowCopyPaste);
+    }
+
+    [Fact]
     public void ClassicStructuresRejectUnsupportedCompressedHeaders()
     {
         byte[] nodes = Encoding.ASCII.GetBytes("ZNOD");
