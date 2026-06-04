@@ -5961,6 +5961,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.splitlinedefs":
                 SplitLinedefs();
                 return true;
+            case "map2d.dissolveitem":
+                DissolveItem();
+                return true;
             case "map2d.join-sectors":
             case "map2d.joinsectors":
                 JoinOrMergeSelectedSectors(merge: false);
@@ -7631,6 +7634,49 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         string status = result.CurvedLinedefs == 1
             ? "Curved a linedef."
             : "Curved " + result.CurvedLinedefs + " linedefs.";
+        Picked?.Invoke(status);
+        return status;
+    }
+
+    public string DissolveItem()
+    {
+        if (_map == null) return "No map loaded.";
+
+        int targetCount = _editMode switch
+        {
+            EditMode.Vertices => _map.GetSelectedVertices().Count,
+            EditMode.Linedefs => _map.GetSelectedLinedefs().Count,
+            EditMode.Sectors => _map.GetSelectedSectors().Count,
+            _ => 0,
+        };
+
+        if (targetCount == 0)
+        {
+            const string message = "This action requires a selection!";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        string target = _editMode switch
+        {
+            EditMode.Vertices => targetCount == 1 ? "vertex" : "vertices",
+            EditMode.Linedefs => targetCount == 1 ? "linedef" : "linedefs",
+            EditMode.Sectors => targetCount == 1 ? "sector" : "sectors",
+            _ => targetCount == 1 ? "item" : "items",
+        };
+
+        EditBegun?.Invoke(targetCount == 1 ? "Dissolve " + target : "Dissolve " + targetCount + " " + target);
+        int dissolved = _editMode switch
+        {
+            EditMode.Vertices => _map.DissolveSelectedVertices(),
+            EditMode.Linedefs => _map.DissolveSelectedLinedefs(),
+            EditMode.Sectors => _map.DissolveSelectedSectors(),
+            _ => 0,
+        };
+        _map.BuildIndexes();
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        string status = dissolved == 1 ? "Dissolved a " + target + "." : "Dissolved " + dissolved + " " + target + ".";
         Picked?.Invoke(status);
         return status;
     }

@@ -1913,6 +1913,73 @@ public class MapSet : IDisposable
         return n;
     }
 
+    public int DissolveSelectedVertices()
+    {
+        var selected = Vertices.Where(vertex => vertex.Selected).ToList();
+        int dissolved = 0;
+
+        foreach (Vertex vertex in selected)
+        {
+            if (!Vertices.Contains(vertex)) continue;
+
+            var lines = Linedefs
+                .Where(line => ReferenceEquals(line.Start, vertex) || ReferenceEquals(line.End, vertex))
+                .ToList();
+
+            if (lines.Count == 2)
+            {
+                Vertex otherA = OtherVertex(lines[0], vertex);
+                Vertex otherB = OtherVertex(lines[1], vertex);
+                bool outerLineExists = Linedefs.Any(line =>
+                    !ReferenceEquals(line, lines[0]) &&
+                    !ReferenceEquals(line, lines[1]) &&
+                    ((ReferenceEquals(line.Start, otherA) && ReferenceEquals(line.End, otherB)) ||
+                     (ReferenceEquals(line.Start, otherB) && ReferenceEquals(line.End, otherA))));
+
+                if (!outerLineExists)
+                {
+                    if (ReferenceEquals(lines[0].Start, vertex)) lines[0].SetStartVertex(otherB);
+                    else lines[0].SetEndVertex(otherB);
+                    RemoveLinedef(lines[1]);
+                    if (Vertices.Remove(vertex)) DisposeElement(vertex);
+                    dissolved++;
+                    continue;
+                }
+            }
+
+            RemoveVertex(vertex);
+            dissolved++;
+        }
+
+        return dissolved;
+    }
+
+    public int DissolveSelectedLinedefs()
+    {
+        var selected = Linedefs.Where(line => line.Selected).ToList();
+        int dissolved = 0;
+
+        foreach (Linedef line in selected)
+        {
+            if (!Linedefs.Contains(line)) continue;
+
+            if (line.Front?.Sector != null && line.Back?.Sector != null && !ReferenceEquals(line.Front.Sector, line.Back.Sector))
+                JoinSectors(new[] { line.Front.Sector, line.Back.Sector });
+
+            RemoveLinedef(line);
+            dissolved++;
+        }
+
+        RemoveUnusedVertices();
+        return dissolved;
+    }
+
+    public int DissolveSelectedSectors()
+        => DeleteSelection();
+
+    private static Vertex OtherVertex(Linedef line, Vertex vertex)
+        => ReferenceEquals(line.Start, vertex) ? line.End : line.Start;
+
     public SnapSelectionResult SnapSelectedMapElementsToGrid(Func<Vector2D, Vector2D> snap)
     {
         ArgumentNullException.ThrowIfNull(snap);

@@ -1685,6 +1685,21 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowScroll);
     }
 
+    [Fact]
+    public void DissolveItemCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.dissolveitem");
+
+        Assert.NotNull(command);
+        Assert.Equal("Dissolve Item", command.Title);
+        Assert.Equal("Backspace", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.Equal("map2d.dissolveitem", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Back"));
+    }
+
     [Theory]
     [InlineData("map2d.draw-rectangle", "Start Rectangle Drawing", "Ctrl/Cmd+Shift+D")]
     [InlineData("map2d.draw-ellipse", "Start Ellipse Drawing", "Alt+Shift+D")]

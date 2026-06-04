@@ -560,6 +560,7 @@ public sealed class MapControlCommandTests
     [InlineData("map2d.selectdoublesided", "KeepSelectedLinedefsBySidedness(doubleSided: true)")]
     [InlineData("map2d.alignlinedefs", "AlignLinedefs()")]
     [InlineData("map2d.splitlinedefs", "SplitLinedefs()")]
+    [InlineData("map2d.dissolveitem", "DissolveItem()")]
     [InlineData("map2d.joinsectors", "JoinOrMergeSelectedSectors(merge: false)")]
     [InlineData("map2d.mergesectors", "JoinOrMergeSelectedSectors(merge: true)")]
     [InlineData("map2d.lowerfloor8", "AdjustSectorHeights(SectorHeightPart.Floor, -8)")]

@@ -150,6 +150,44 @@ public class SelectionEditTests
     }
 
     [Fact]
+    public void DissolveSelectedVerticesMergesTwoLineChain()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(64, 0));
+        var c = map.AddVertex(new Vector2D(128, 0));
+        map.AddLinedef(a, b);
+        map.AddLinedef(b, c);
+        map.BuildIndexes();
+
+        b.Selected = true;
+        int dissolved = map.DissolveSelectedVertices();
+        map.BuildIndexes();
+
+        Assert.Equal(1, dissolved);
+        Assert.DoesNotContain(b, map.Vertices);
+        Linedef line = Assert.Single(map.Linedefs);
+        Assert.Same(a, line.Start);
+        Assert.Same(c, line.End);
+    }
+
+    [Fact]
+    public void DissolveSelectedLinedefsJoinsAdjacentSectorsAndRemovesDivider()
+    {
+        var map = BuildTwoRooms();
+        Linedef divider = map.Linedefs[1];
+        divider.Selected = true;
+
+        int dissolved = map.DissolveSelectedLinedefs();
+        map.BuildIndexes();
+
+        Assert.Equal(1, dissolved);
+        Assert.DoesNotContain(divider, map.Linedefs);
+        Assert.Single(map.Sectors);
+        Assert.DoesNotContain(map.Sidedefs, side => ReferenceEquals(side.Sector, null));
+    }
+
+    [Fact]
     public void MoveIsUndoable()
     {
         var map = BuildTwoRooms();
