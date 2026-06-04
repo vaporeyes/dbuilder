@@ -9,6 +9,8 @@ namespace DBuilder.Editor;
 
 public sealed class DirectionalShadingDialog : PropertyDialog
 {
+    private static DirectionalShadingOptions s_options = new();
+
     private readonly TextBox _sunAngle;
     private readonly TextBox _lightAmount;
     private readonly TextBox _lightColor;
@@ -20,6 +22,7 @@ public sealed class DirectionalShadingDialog : PropertyDialog
     public DirectionalShadingDialog()
         : base("Apply Directional Shading")
     {
+        ResultOptions = s_options;
         DirectionalShadingOptions defaults = ResultOptions;
         _sunAngle = AddField("Sun angle", defaults.SunAngleDegrees.ToString(CultureInfo.InvariantCulture));
         _lightAmount = AddField("Light amount", defaults.LightAmount.ToString(CultureInfo.InvariantCulture));
@@ -37,6 +40,7 @@ public sealed class DirectionalShadingDialog : PropertyDialog
             LightColor: ParseColor(_lightColor, defaults.LightColor),
             ShadeAmount: ParseInt(_shadeAmount, defaults.ShadeAmount),
             ShadeColor: ParseColor(_shadeColor, defaults.ShadeColor));
+        s_options = ResultOptions;
     }
 
     private static int ParseColor(TextBox box, int fallback)

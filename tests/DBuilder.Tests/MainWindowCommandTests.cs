@@ -433,6 +433,36 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void JitterDialogRemembersUdbCheckboxAndOffsetSettings()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/JitterDialog.cs"));
+
+        Assert.Contains("private static JitterOffsetMode s_floorOffsetMode = JitterOffsetMode.RaiseAndLower;", body, StringComparison.Ordinal);
+        Assert.Contains("private static JitterOffsetMode s_ceilingOffsetMode = JitterOffsetMode.RaiseAndLower;", body, StringComparison.Ordinal);
+        Assert.Contains("private static bool s_relativeThingPitch;", body, StringComparison.Ordinal);
+        Assert.Contains("private static bool s_allowNegativeThingScaleY;", body, StringComparison.Ordinal);
+        Assert.Contains("ResultFloorOffsetMode = s_floorOffsetMode;", body, StringComparison.Ordinal);
+        Assert.Contains("ResultCeilingOffsetMode = s_ceilingOffsetMode;", body, StringComparison.Ordinal);
+        Assert.Contains("ResultRelativeThingPitch = s_relativeThingPitch;", body, StringComparison.Ordinal);
+        Assert.Contains("ResultAllowNegativeThingScaleY = s_allowNegativeThingScaleY;", body, StringComparison.Ordinal);
+        Assert.Contains("s_floorOffsetMode = ResultFloorOffsetMode;", body, StringComparison.Ordinal);
+        Assert.Contains("s_ceilingOffsetMode = ResultCeilingOffsetMode;", body, StringComparison.Ordinal);
+        Assert.Contains("s_relativeThingPitch = ResultRelativeThingPitch;", body, StringComparison.Ordinal);
+        Assert.Contains("s_allowNegativeThingScaleY = ResultAllowNegativeThingScaleY;", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void DirectionalShadingDialogRemembersUdbSettings()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/DirectionalShadingDialog.cs"));
+
+        Assert.Contains("private static DirectionalShadingOptions s_options = new();", body, StringComparison.Ordinal);
+        Assert.Contains("ResultOptions = s_options;", body, StringComparison.Ordinal);
+        Assert.Contains("DirectionalShadingOptions defaults = ResultOptions;", body, StringComparison.Ordinal);
+        Assert.Contains("s_options = ResultOptions;", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ObjTerrainImportDialogExposesUdbSettings()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/ObjTerrainImportDialog.cs"));

@@ -9,6 +9,17 @@ namespace DBuilder.Editor;
 
 public sealed class JitterDialog : PropertyDialog
 {
+    private static JitterOffsetMode s_floorOffsetMode = JitterOffsetMode.RaiseAndLower;
+    private static JitterOffsetMode s_ceilingOffsetMode = JitterOffsetMode.RaiseAndLower;
+    private static bool s_relativeThingPitch;
+    private static bool s_relativeThingRoll;
+    private static bool s_allowNegativeThingPitch;
+    private static bool s_allowNegativeThingRoll;
+    private static bool s_relativeThingScale;
+    private static bool s_uniformThingScale;
+    private static bool s_allowNegativeThingScaleX;
+    private static bool s_allowNegativeThingScaleY;
+
     private readonly TextBox _positionAmount;
     private readonly TextBox _floorAmount;
     private readonly ComboBox _floorOffsetMode;
@@ -56,6 +67,17 @@ public sealed class JitterDialog : PropertyDialog
     public JitterDialog(string title)
         : base(title)
     {
+        ResultFloorOffsetMode = s_floorOffsetMode;
+        ResultCeilingOffsetMode = s_ceilingOffsetMode;
+        ResultRelativeThingPitch = s_relativeThingPitch;
+        ResultRelativeThingRoll = s_relativeThingRoll;
+        ResultAllowNegativeThingPitch = s_allowNegativeThingPitch;
+        ResultAllowNegativeThingRoll = s_allowNegativeThingRoll;
+        ResultRelativeThingScale = s_relativeThingScale;
+        ResultUniformThingScale = s_uniformThingScale;
+        ResultAllowNegativeThingScaleX = s_allowNegativeThingScaleX;
+        ResultAllowNegativeThingScaleY = s_allowNegativeThingScaleY;
+
         _positionAmount = AddField("Position amount", ResultPositionAmount.ToString(CultureInfo.InvariantCulture));
         _floorAmount = AddField("Floor amount", ResultFloorAmount.ToString(CultureInfo.InvariantCulture));
         _floorOffsetMode = AddCombo("Floor offset mode", FloorOffsetModeItems(), (int)ResultFloorOffsetMode);
@@ -102,6 +124,17 @@ public sealed class JitterDialog : PropertyDialog
         ResultUniformThingScale = _uniformThingScale.IsChecked == true;
         ResultAllowNegativeThingScaleX = _allowNegativeThingScaleX.IsChecked == true;
         ResultAllowNegativeThingScaleY = _allowNegativeThingScaleY.IsChecked == true;
+
+        s_floorOffsetMode = ResultFloorOffsetMode;
+        s_ceilingOffsetMode = ResultCeilingOffsetMode;
+        s_relativeThingPitch = ResultRelativeThingPitch;
+        s_relativeThingRoll = ResultRelativeThingRoll;
+        s_allowNegativeThingPitch = ResultAllowNegativeThingPitch;
+        s_allowNegativeThingRoll = ResultAllowNegativeThingRoll;
+        s_relativeThingScale = ResultRelativeThingScale;
+        s_uniformThingScale = ResultUniformThingScale;
+        s_allowNegativeThingScaleX = ResultAllowNegativeThingScaleX;
+        s_allowNegativeThingScaleY = ResultAllowNegativeThingScaleY;
     }
 
     private static IEnumerable<CatalogItem> FloorOffsetModeItems()
