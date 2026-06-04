@@ -439,6 +439,8 @@ public partial class MainWindow : Window
         SetShortcutToolTip(GradientInterpolationEaseInOutSineMenuItem, "Gradient Interpolation Ease In/Out Sine", "window.gradient-interpolation-ease-in-out-sine");
         SetShortcutToolTip(GradientInterpolationEaseInSineMenuItem, "Gradient Interpolation Ease In Sine", "window.gradient-interpolation-ease-in-sine");
         SetShortcutToolTip(GradientInterpolationEaseOutSineMenuItem, "Gradient Interpolation Ease Out Sine", "window.gradient-interpolation-ease-out-sine");
+        SetShortcutToolTip(ApplyJitterMenuItem, "Randomize", "window.applyjitter");
+        SetShortcutToolTip(ApplyDirectionalShadingMenuItem, "Apply Directional Shading", "window.applydirectionalshading");
         SetShortcutToolTip(ApplySlopeArchMenuItem, "Apply Slope Arch", "window.apply-slope-arch");
         SetShortcutToolTip(ApplySlopesMenuItem, "Apply Slopes", "window.apply-slopes");
         SetShortcutToolTip(UsdfConversationsMenuItem, "Dialog Editor", "window.usdf-dialog-editor");
@@ -488,6 +490,8 @@ public partial class MainWindow : Window
         SetShortcutToolTip(BuildBridgeButton, "Build Bridge", "window.build-bridge");
         SetShortcutToolTip(MakeDoorButton, "Make Door", "window.make-door");
         SetShortcutToolTip(BuildStairsButton, "Build Stairs", "window.build-stairs");
+        SetShortcutToolTip(ApplyJitterButton, "Randomize", "window.applyjitter");
+        SetShortcutToolTip(ApplyDirectionalShadingButton, "Apply Directional Shading", "window.applydirectionalshading");
         SetShortcutToolTip(ApplySlopeArchButton, "Apply Slope Arch", "window.apply-slope-arch");
         SetShortcutToolTip(ApplySlopesButton, "Apply Slopes", "window.apply-slopes");
         SetShortcutToolTip(SectorColorButton, "Sector Color", "window.sector-color");

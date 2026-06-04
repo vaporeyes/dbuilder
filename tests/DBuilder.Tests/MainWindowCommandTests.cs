@@ -470,6 +470,8 @@ public sealed class MainWindowCommandTests
         Assert.Contains("SetShortcutToolTip(SaveButton, \"Save WAD\", \"window.save\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(OpenMapButton, \"Open Map\", \"window.open-map-in-current-wad\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(VerticesModeButton, \"Vertices Mode\", \"map2d.mode-vertices\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ApplyJitterButton, \"Randomize\", \"window.applyjitter\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ApplyDirectionalShadingButton, \"Apply Directional Shading\", \"window.applydirectionalshading\");", body, StringComparison.Ordinal);
         Assert.Contains("EditorCommandCatalog.CommandToolTip(label, commandId, _shortcutBindings)", body, StringComparison.Ordinal);
     }
 
@@ -577,16 +579,21 @@ public sealed class MainWindowCommandTests
     [Fact]
     public void ToolsMenuTooltipsRefreshFromEffectiveShortcutBindings()
     {
-        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        string code = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        string xaml = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml"));
 
-        Assert.Contains("SetShortcutToolTip(UdbScriptDockerMenuItem, \"Scripts\", \"window.udbscripts\");", body, StringComparison.Ordinal);
-        Assert.Contains("SetShortcutToolTip(SoundPropagationMenuItem, \"Sound Propagation\", \"window.sound-propagation-mode\");", body, StringComparison.Ordinal);
-        Assert.Contains("SetShortcutToolTip(GradientFloorHeightsMenuItem, \"Gradient Floor Heights\", \"window.gradient-floor-heights\");", body, StringComparison.Ordinal);
-        Assert.Contains("SetShortcutToolTip(ToggleAutomapSecretLineMenuItem, \"Toggle Selected Line Secret\", \"window.toggle-automap-secret-line\");", body, StringComparison.Ordinal);
-        Assert.Contains("SetShortcutToolTip(ExportObjectMenuItem, \"Export Object OBJ\", \"window.export-object\");", body, StringComparison.Ordinal);
-        Assert.Contains("SetShortcutToolTip(ExportImageMenuItem, \"Export Image PNG\", \"window.export-image\");", body, StringComparison.Ordinal);
-        Assert.Contains("SetShortcutToolTip(ExportWavefrontMenuItem, \"Export Wavefront OBJ\", \"window.export-wavefront\");", body, StringComparison.Ordinal);
-        Assert.Contains("SetShortcutToolTip(ExportIdStudioMenuItem, \"Export idStudio\", \"window.export-idstudio\");", body, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"ApplyJitterMenuItem\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"ApplyDirectionalShadingMenuItem\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(UdbScriptDockerMenuItem, \"Scripts\", \"window.udbscripts\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(SoundPropagationMenuItem, \"Sound Propagation\", \"window.sound-propagation-mode\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(GradientFloorHeightsMenuItem, \"Gradient Floor Heights\", \"window.gradient-floor-heights\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ApplyJitterMenuItem, \"Randomize\", \"window.applyjitter\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ApplyDirectionalShadingMenuItem, \"Apply Directional Shading\", \"window.applydirectionalshading\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ToggleAutomapSecretLineMenuItem, \"Toggle Selected Line Secret\", \"window.toggle-automap-secret-line\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ExportObjectMenuItem, \"Export Object OBJ\", \"window.export-object\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ExportImageMenuItem, \"Export Image PNG\", \"window.export-image\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ExportWavefrontMenuItem, \"Export Wavefront OBJ\", \"window.export-wavefront\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ExportIdStudioMenuItem, \"Export idStudio\", \"window.export-idstudio\");", code, StringComparison.Ordinal);
     }
 
     [Fact]

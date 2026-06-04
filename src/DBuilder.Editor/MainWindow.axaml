@@ -264,6 +264,8 @@
                     <MenuItem Header="Ease _In Sine" x:Name="GradientInterpolationEaseInSineMenuItem" ToggleType="CheckBox" Click="OnGradientInterpolationEaseInSine" />
                     <MenuItem Header="Ease _Out Sine" x:Name="GradientInterpolationEaseOutSineMenuItem" ToggleType="CheckBox" Click="OnGradientInterpolationEaseOutSine" />
                 </MenuItem>
+                <MenuItem Header="_Randomize..." x:Name="ApplyJitterMenuItem" Click="OnApplyJitter" />
+                <MenuItem Header="Apply _Directional Shading..." x:Name="ApplyDirectionalShadingMenuItem" Click="OnApplyDirectionalShading" />
                 <MenuItem Header="Apply Slope _Arch" x:Name="ApplySlopeArchMenuItem" Click="OnApplySlopeArch" />
                 <MenuItem Header="Apply S_lopes (specials)" x:Name="ApplySlopesMenuItem" Click="OnApplySlopes" />
                 <MenuItem Header="USDF _Dialog Editor..." x:Name="UsdfConversationsMenuItem" Click="OnUsdfConversations" />
@@ -406,6 +408,12 @@
                 </Button>
                 <Button Classes="toolbarButton" ToolTip.Tip="Build Stairs" x:Name="BuildStairsButton" Click="OnBuildStairs">
                     <PathIcon Data="M4,18 L8,18 L8,14 L12,14 L12,10 L16,10 L16,6 L20,6 L20,20 L4,20 Z" />
+                </Button>
+                <Button Classes="toolbarButton" ToolTip.Tip="Randomize" x:Name="ApplyJitterButton" Click="OnApplyJitter">
+                    <PathIcon Data="M5,7 L9,7 L9,9 L5,9 Z M14,7 L18,7 L18,9 L14,9 Z M8,13 L12,13 L12,15 L8,15 Z M15,15 L19,15 L19,17 L15,17 Z M5,18 L9,18 L9,20 L5,20 Z M7,8 L16,16 M17,8 L8,19" />
+                </Button>
+                <Button Classes="toolbarButton" ToolTip.Tip="Apply Directional Shading" x:Name="ApplyDirectionalShadingButton" Click="OnApplyDirectionalShading">
+                    <PathIcon Data="M5,18 L19,18 L19,8 L5,14 Z M7,15 L17,11 L17,16 L7,16 Z M13,4 L16,7 M18,5 L17,9 M9,5 L11,8" />
                 </Button>
                 <Button Classes="toolbarButton" ToolTip.Tip="Apply Slope Arch" x:Name="ApplySlopeArchButton" Click="OnApplySlopeArch">
                     <PathIcon Data="M4,18 C8,6 16,6 20,18 L18,18 C15,11 9,11 6,18 Z M5,20 L20,20" />
