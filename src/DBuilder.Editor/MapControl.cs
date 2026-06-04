@@ -3899,8 +3899,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return false;
         }
 
+        EditBegun?.Invoke(VisualCameraRotationEditName());
         VisualThingRotation.ApplyCameraRotation(things, _yaw, _pitch, _mapFormat == MapFormat.Udmf);
-        EditBegun?.Invoke(things.Count == 1 ? "Apply camera rotation to thing" : "Apply camera rotation to things");
         _geo3DDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();
@@ -3908,6 +3908,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Target3DChanged?.Invoke($"Applied camera rotation and pitch to {things.Count} thing{(things.Count == 1 ? "" : "s")}.");
         return true;
     }
+
+    public static string VisualCameraRotationEditName()
+        => "Apply camera rotation to things";
 
     private bool LookThroughSelectedThing3D()
     {

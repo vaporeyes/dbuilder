@@ -508,11 +508,20 @@ public sealed class MapControlCommandTests
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
         int methodIndex = body.IndexOf("private bool ApplyCameraRotationToSelectedThings3D()", StringComparison.Ordinal);
-        int statusIndex = body.IndexOf("Applied camera rotation and pitch to {things.Count} thing", methodIndex, StringComparison.Ordinal);
+        int editIndex = body.IndexOf("EditBegun?.Invoke(VisualCameraRotationEditName());", methodIndex, StringComparison.Ordinal);
+        int rotateIndex = body.IndexOf("VisualThingRotation.ApplyCameraRotation", editIndex, StringComparison.Ordinal);
+        int statusIndex = body.IndexOf("Applied camera rotation and pitch to {things.Count} thing", rotateIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);
-        Assert.True(statusIndex > methodIndex);
+        Assert.True(editIndex > methodIndex);
+        Assert.True(rotateIndex > editIndex);
+        Assert.True(statusIndex > rotateIndex);
+        Assert.DoesNotContain("things.Count == 1 ? \"Apply camera rotation to thing\"", body, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void VisualCameraRotationEditNameMatchesUdb()
+        => Assert.Equal("Apply camera rotation to things", MapControl.VisualCameraRotationEditName());
 
     [Fact]
     public void PlaceThingAtCursor3DUsesUdbInvalidHitWarning()
