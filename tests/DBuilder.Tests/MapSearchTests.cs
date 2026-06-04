@@ -296,6 +296,34 @@ public class MapSearchTests
         Assert.Equal(97, map.Linedefs[0].Action);
     }
 
+    [Fact]
+    public void FindLinedefActionMinusOneSelectsAnyNonzeroAction()
+    {
+        var map = Build();
+        map.Linedefs[0].Action = 11;
+        map.Linedefs[1].Action = 0;
+
+        SearchResult result = MapSearch.Find(map, FindCategory.LinedefAction, "-1");
+
+        Assert.Equal(1, result.Count);
+        Assert.True(map.Linedefs[0].Selected);
+        Assert.False(map.Linedefs[1].Selected);
+    }
+
+    [Fact]
+    public void ReplaceLinedefActionMinusOneChangesAnyNonzeroAction()
+    {
+        var map = Build();
+        map.Linedefs[0].Action = 11;
+        map.Linedefs[1].Action = 0;
+
+        int changed = MapSearch.Replace(map, FindCategory.LinedefAction, "-1", "97");
+
+        Assert.Equal(1, changed);
+        Assert.Equal(97, map.Linedefs[0].Action);
+        Assert.Equal(0, map.Linedefs[1].Action);
+    }
+
     [Theory]
     [InlineData("-1")]
     [InlineData("32768")]

@@ -264,7 +264,9 @@ public static class MapSearch
                 }
                 break;
             case FindCategory.LinedefAction:
-                if (numOk) foreach (var l in lists.Linedefs) if (NumberMatches(l.Action, num, linedefActionMatcher)) { l.Selected = true; count++; focus ??= Mid(l); }
+                if (numOk)
+                    foreach (var l in lists.Linedefs)
+                        if (num == -1 ? l.Action > 0 : NumberMatches(l.Action, num, linedefActionMatcher)) { l.Selected = true; count++; focus ??= Mid(l); }
                 break;
             case FindCategory.LinedefActionArguments:
                 if (TryParseActionQuery(value, out var lineActionQuery))
@@ -625,7 +627,8 @@ public static class MapSearch
                 foreach (var t in lists.Things) if (t.Angle == from) { t.Angle = normalizedAngle; changed++; }
                 break;
             case FindCategory.LinedefAction:
-                foreach (var l in lists.Linedefs) if (NumberMatches(l.Action, from, linedefActionMatcher)) { l.Action = to; changed++; }
+                foreach (var l in lists.Linedefs)
+                    if (from == -1 ? l.Action > 0 : NumberMatches(l.Action, from, linedefActionMatcher)) { l.Action = to; changed++; }
                 break;
             case FindCategory.SectorEffect:
                 foreach (var s in lists.Sectors)
