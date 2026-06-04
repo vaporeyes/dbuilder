@@ -2394,14 +2394,19 @@ public sealed class GameConfiguration
 
     private void ParseSectorTypes(IDictionary sectortypes)
     {
+        var parsed = new List<SectorEffectInfo>();
         foreach (DictionaryEntry e in sectortypes)
         {
             string key = e.Key.ToString() ?? "";
             if (!int.TryParse(key, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number)) continue;
             string? title = Convert.ToString(e.Value, CultureInfo.InvariantCulture);
             if (title != null)
-                sectorEffects[number] = new SectorEffectInfo { Index = number, Title = title };
+                parsed.Add(new SectorEffectInfo { Index = number, Title = title });
         }
+
+        parsed.Sort((left, right) => left.Index.CompareTo(right.Index));
+        foreach (var effect in parsed)
+            sectorEffects[effect.Index] = effect;
     }
 
     private static StaticLimitsInfo ParseStaticLimits(IDictionary block)

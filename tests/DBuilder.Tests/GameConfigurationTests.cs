@@ -1347,6 +1347,23 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void SectorEffectsEnumerateSortedByIndexLikeUdb()
+    {
+        const string cfg = """
+            sectortypes
+            {
+                11 = "Damage";
+                0 = "None";
+                9 = "Secret";
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal([0, 9, 11], gc.SectorEffects.Values.Select(effect => effect.Index));
+    }
+
+    [Fact]
     public void ParsesFlagDefinitions()
     {
         var gc = GameConfiguration.FromText(SampleCfg);
