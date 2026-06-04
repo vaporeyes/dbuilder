@@ -408,6 +408,32 @@ public class ThingsFilterEvaluatorTests
     }
 
     [Fact]
+    public void CollectionDraftFindsActiveFilterByStableKeyAfterRename()
+    {
+        var config = GameConfiguration.FromText("""
+            thingsfilters
+            {
+                active
+                {
+                    name = "Before";
+                    type = 3001;
+                }
+            }
+            """);
+
+        var collection = ThingsFilterCollectionDraft.FromFilters(config.ThingsFilters);
+        ThingsFilterDraftEntry entry = Assert.Single(collection.Filters);
+        entry.Draft.Name = "After";
+
+        ThingsFilterInfo? active = collection.FindByKey("active");
+
+        Assert.NotNull(active);
+        Assert.Equal("After", active.Name);
+        Assert.Equal(3001, active.ThingType);
+        Assert.Null(collection.FindByKey("missing"));
+    }
+
+    [Fact]
     public void CollectionDraftReplacesThingsFiltersConfigurationBlock()
     {
         var configuration = new Configuration(sorted: true);

@@ -45,6 +45,14 @@ public sealed class ThingsFilterCollectionDraft
         return null;
     }
 
+    public ThingsFilterInfo? FindByKey(string? key)
+    {
+        if (string.IsNullOrEmpty(key)) return null;
+        foreach (var entry in filters)
+            if (string.Equals(entry.Key, key, StringComparison.Ordinal)) return entry.Draft.ToInfo(entry.Key);
+        return null;
+    }
+
     public void WriteSettings(Configuration configuration, string path = "thingsfilters")
     {
         configuration.DeleteSetting(path);
