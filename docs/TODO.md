@@ -81,6 +81,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Expose alpha-based texture highlighting in the Settings dialog.
   - [x] Expose map highlight toggling in the Settings dialog.
   - [x] Expose visual vertex visibility in the Settings dialog.
+  - [x] Expose adjacent visual vertex slope handle selection in the Settings dialog.
 - [ ] Port pre-command and post-command support.
   - [x] Execute configured before/after Test Map commands.
   - [x] Execute configured before/after Reload Resources commands.

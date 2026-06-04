@@ -59,4 +59,18 @@ public class SettingsWindowTests
         Assert.Contains("_settings.ShowVisualVertices = dlg.ShowVisualVertices;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.SetShowVisualVertices(_settings.ShowVisualVertices);", mainWindow, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void SettingsWindowExposesAdjacentVisualVertexSlopeHandlePreference()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("SelectAdjacentVisualVertexSlopeHandles", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCheckBox(\"Select adjacent visual vertex slope handles\", s.SelectAdjacentVisualVertexSlopeHandles)", body, StringComparison.Ordinal);
+        Assert.Contains("SelectAdjacentVisualVertexSlopeHandles = _selectAdjacentVisualVertexSlopeHandles.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.SelectAdjacentVisualVertexSlopeHandles = dlg.SelectAdjacentVisualVertexSlopeHandles;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.SetSelectAdjacentVisualVertexSlopeHandles(_settings.SelectAdjacentVisualVertexSlopeHandles);", mainWindow, StringComparison.Ordinal);
+    }
 }

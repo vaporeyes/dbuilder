@@ -1306,6 +1306,7 @@ public partial class MainWindow : Window
         _settings.UseHighlight = dlg.UseHighlight;
         _settings.AlphaBasedTextureHighlighting = dlg.AlphaBasedTextureHighlighting;
         _settings.ShowVisualVertices = dlg.ShowVisualVertices;
+        _settings.SelectAdjacentVisualVertexSlopeHandles = dlg.SelectAdjacentVisualVertexSlopeHandles;
         _settings.DefaultViewMode = dlg.DefaultViewMode;
         _settings.StatusHistoryLimit = dlg.StatusHistoryLimit;
         _settings.ShortcutOverrides = dlg.ShortcutOverrides;
@@ -1315,6 +1316,7 @@ public partial class MainWindow : Window
         MapView.SetUseHighlight(_settings.UseHighlight);
         MapView.SetAlphaBasedTextureHighlighting(_settings.AlphaBasedTextureHighlighting);
         MapView.SetShowVisualVertices(_settings.ShowVisualVertices);
+        MapView.SetSelectAdjacentVisualVertexSlopeHandles(_settings.SelectAdjacentVisualVertexSlopeHandles);
         MapView.SetViewMode2D((MapControl.ClassicViewMode)_settings.NormalizedDefaultViewMode);
         ApplyShortcutBindings();
         _statusHistory.SetCapacity(_settings.NormalizedStatusHistoryLimit);
