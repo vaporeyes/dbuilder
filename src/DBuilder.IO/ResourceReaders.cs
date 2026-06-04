@@ -170,10 +170,7 @@ internal sealed class WadResourceReader : IResourceReader
 
         if (strictPatches) return null;
 
-        var flatRanges = ConfiguredFlatRanges();
-        if (flatRanges.Count == 0) return wad.FindLump(name);
-
-        var flatRangeIndices = ResolveRanges(flatRanges);
+        var flatRangeIndices = ResolveFlatRanges();
         var outsideFlatRanges = FindOutsideRanges(name, flatRangeIndices);
         if (outsideFlatRanges != null) return outsideFlatRanges;
 
@@ -237,6 +234,31 @@ internal sealed class WadResourceReader : IResourceReader
             }
         }
 
+        return result;
+    }
+
+    private List<(int Start, int End)> ResolveMarkerRanges(IReadOnlyList<(string Start, string End)> ranges)
+    {
+        var result = new List<(int Start, int End)>();
+        foreach (var (startName, endName) in ranges)
+        {
+            int start = wad.FindLumpIndex(startName);
+            while (start >= 0)
+            {
+                int end = wad.FindLumpIndex(endName, start + 1);
+                if (end < 0) break;
+                result.Add((start, end));
+                start = wad.FindLumpIndex(startName, end + 1);
+            }
+        }
+
+        return result;
+    }
+
+    private List<(int Start, int End)> ResolveFlatRanges()
+    {
+        var result = ResolveMarkerRanges(FlatRanges);
+        result.AddRange(ResolveRanges(ConfiguredFlatRanges()));
         return result;
     }
 

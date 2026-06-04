@@ -534,6 +534,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Reuse nested-WAD `PNAMES` for folder-resource classic texture definitions.
   - [x] Resolve WAD patches from configured patch ranges before broad fallback.
   - [x] Prefer WAD patch fallback outside configured flat ranges before flat-range fallback.
+  - [x] Prefer WAD patch fallback outside built-in flat ranges before flat-range fallback.
 - [ ] Port wall texture composition fully.
   - [x] Compose root PK3 classic `TEXTURE1` and `TEXTURE2` wall textures from patch resources.
   - [x] Skip the reserved first WAD `TEXTURE1` entry like UDB.
