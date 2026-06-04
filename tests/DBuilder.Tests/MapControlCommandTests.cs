@@ -110,6 +110,12 @@ public sealed class MapControlCommandTests
         => Assert.Equal(expected, MapControl.VisualAutoAlign3DStatusText(alignX, alignY, selected));
 
     [Theory]
+    [InlineData(true, "Alpha-based textures highlighting is ENABLED")]
+    [InlineData(false, "Alpha-based textures highlighting is DISABLED")]
+    public void AlphaBasedTextureHighlightingStatusTextMatchesUdb(bool enabled, string expected)
+        => Assert.Equal(expected, MapControl.AlphaBasedTextureHighlightingStatusText(enabled));
+
+    [Theory]
     [InlineData(VisualHitKind.Floor, 0, "Changed sector brightness to 0.")]
     [InlineData(VisualHitKind.Floor, 168, "Changed sector brightness to 168.")]
     [InlineData(VisualHitKind.Ceiling, 255, "Changed ceiling brightness to 255.")]
@@ -889,6 +895,17 @@ public sealed class MapControlCommandTests
         Assert.DoesNotContain("aligned {n} sidedef", visual3DBody, StringComparison.Ordinal);
         Assert.DoesNotContain("aligned {changed} flat", visual3DBody, StringComparison.Ordinal);
         Assert.DoesNotContain("aligned {aligned} sidedef", visual3DBody, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AlphaBasedTextureHighlightingToggleUsesUdbStatusText()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("public bool ToggleAlphaBasedTextureHighlighting()", StringComparison.Ordinal);
+        int statusIndex = body.IndexOf("Target3DChanged?.Invoke(AlphaBasedTextureHighlightingStatusText(_alphaBasedTextureHighlighting));", methodIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(statusIndex > methodIndex);
     }
 
     [Fact]

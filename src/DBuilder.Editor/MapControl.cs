@@ -475,9 +475,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool ToggleAlphaBasedTextureHighlighting()
     {
         SetAlphaBasedTextureHighlighting(!_alphaBasedTextureHighlighting);
-        Target3DChanged?.Invoke($"Alpha-based texture highlighting is {(_alphaBasedTextureHighlighting ? "ENABLED" : "DISABLED")}");
+        Target3DChanged?.Invoke(AlphaBasedTextureHighlightingStatusText(_alphaBasedTextureHighlighting));
         return _alphaBasedTextureHighlighting;
     }
+
+    public static string AlphaBasedTextureHighlightingStatusText(bool enabled)
+        => "Alpha-based textures highlighting is " + (enabled ? "ENABLED" : "DISABLED");
 
     public VisualSlopePickingMode ToggleVisualSidedefSlopePicking()
     {
