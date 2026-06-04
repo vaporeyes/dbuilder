@@ -157,6 +157,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Expose an explicit Properties command for single linedef, sector, and thing selections.
   - [x] Expose the explicit Properties command for single vertex and sidedef selections.
   - [x] Enable Flags command availability for single linedef, sector, and thing selections.
+  - [x] Enable Flags command availability for single sidedef selections.
   - [x] Gate Custom Fields command availability by UDMF custom-field support.
   - [x] Include single selected sidedefs in Custom Fields command availability.
   - [x] Gate View browser and grid command availability by map, resource, and config state.
