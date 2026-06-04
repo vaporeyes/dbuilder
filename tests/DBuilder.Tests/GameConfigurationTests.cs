@@ -192,6 +192,41 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void BooleanSettingsUseUdbScalarConversion()
+    {
+        const string cfg = """
+            generalizedlinedefs = 1.0;
+            thingtypes
+            {
+                scalar
+                {
+                    fixedrotation = 1.0;
+                    3001 { title = "Scalar Thing"; fixedsize = 1.0; }
+                }
+            }
+            linedeftypes
+            {
+                scalar
+                {
+                    1 { title = "Scalar Action"; requiresactivation = 0.0; }
+                }
+            }
+            linedefactivations
+            {
+                playercross { name = "Player Cross"; istrigger = 0.0; }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.True(gc.GeneralizedActions);
+        Assert.True(gc.ThingCategories["scalar"].FixedRotation);
+        Assert.True(gc.GetThing(3001)!.FixedSize);
+        Assert.False(gc.GetLinedefAction(1)!.RequiresActivation);
+        Assert.False(gc.LinedefActivations.Single(a => a.Key == "playercross").IsTrigger);
+    }
+
+    [Fact]
     public void ParsesEditorBehaviorSettings()
     {
         const string cfg = """

@@ -2543,13 +2543,23 @@ public sealed class GameConfiguration
     }
 
     private static bool GetBool(IDictionary d, string key, bool fallback)
-        => d[key] switch
+    {
+        object? value = d[key];
+        if (value == null) return fallback;
+
+        try
         {
-            bool b => b,
-            int i => i != 0,
-            string s when bool.TryParse(s, out bool p) => p,
-            _ => fallback,
-        };
+            return Convert.ToBoolean(value, CultureInfo.InvariantCulture);
+        }
+        catch (FormatException)
+        {
+            return fallback;
+        }
+        catch (InvalidCastException)
+        {
+            return fallback;
+        }
+    }
 
     private static double GetDouble(IDictionary d, string key, double fallback)
     {
