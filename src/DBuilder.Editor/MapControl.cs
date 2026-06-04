@@ -3415,6 +3415,28 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public static string VisualThingInsertedStatusText()
         => "Inserted a new thing.";
 
+    public static string VisualMiddleTextureCreatedStatusText()
+        => "Created middle texture.";
+
+    public static bool TryCreateVisualMiddleTexture3D(VisualHit target, string defaultWallTexture)
+    {
+        if (!CanCreateVisualMiddleTexture3D(target, out Sidedef? side)) return false;
+
+        side!.SetTextureMid(defaultWallTexture);
+        if (side.Other != null && IsBlankTexture(side.Other.MidTexture))
+            side.Other.SetTextureMid(defaultWallTexture);
+        return true;
+    }
+
+    private static bool CanCreateVisualMiddleTexture3D(VisualHit target, out Sidedef? side)
+    {
+        side = target.Front ? target.Line?.Front : target.Line?.Back;
+        return target.Kind == VisualHitKind.Wall
+            && side != null
+            && !side.MiddleRequired()
+            && IsBlankTexture(side.MidTexture);
+    }
+
     private static string CountLabel(int count, string singular, string? plural = null)
         => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
 
@@ -3628,6 +3650,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return false;
         }
 
+        if (CanCreateVisualMiddleTexture3D(target, out _))
+        {
+            EditBegun?.Invoke("Create middle texture");
+            TryCreateVisualMiddleTexture3D(target, DefaultWallTexture3D());
+            _geo3DDirty = true;
+            MarkGeometryDirty();
+            Changed?.Invoke();
+            Target3DChanged?.Invoke(VisualMiddleTextureCreatedStatusText());
+            RequestNextFrameRendering();
+            return true;
+        }
+
         InsertThingAt(new Vec2D(target.Point.x, target.Point.y), snap: false, height: target.Point.z);
         _blockmapCache = null;
         _geo3DDirty = true;
@@ -3635,6 +3669,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         RequestNextFrameRendering();
         return true;
     }
+
+    private string DefaultWallTexture3D()
+        => FirstNonBlankOr("-", _mapOptions?.DefaultWallTexture, _gameConfig?.DefaultWallTexture);
 
     private bool CopyVisualThingSelection3D()
     {

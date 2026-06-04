@@ -3,6 +3,7 @@
 
 using System.Reflection;
 using DBuilder.Editor;
+using DBuilder.Geometry;
 using DBuilder.IO;
 using DBuilder.Map;
 
@@ -299,6 +300,62 @@ public sealed class MapControlCommandTests
     public void VisualThingInsertedStatusTextMatchesUdb()
         => Assert.Equal("Inserted a new thing.", MapControl.VisualThingInsertedStatusText());
 
+    [Fact]
+    public void VisualMiddleTextureCreatedStatusTextMatchesUdb()
+        => Assert.Equal("Created middle texture.", MapControl.VisualMiddleTextureCreatedStatusText());
+
+    [Fact]
+    public void TryCreateVisualMiddleTexture3DCreatesTextureOnBothBlankTwoSidedSides()
+    {
+        var (hit, front, back) = CreateTwoSidedWallHit();
+
+        bool changed = MapControl.TryCreateVisualMiddleTexture3D(hit, "STARTAN3");
+
+        Assert.True(changed);
+        Assert.Equal("STARTAN3", front.MidTexture);
+        Assert.Equal("STARTAN3", back.MidTexture);
+    }
+
+    [Fact]
+    public void TryCreateVisualMiddleTexture3DPreservesExistingOtherSideMiddleTexture()
+    {
+        var (hit, front, back) = CreateTwoSidedWallHit();
+        back.SetTextureMid("BROWN1");
+
+        bool changed = MapControl.TryCreateVisualMiddleTexture3D(hit, "STARTAN3");
+
+        Assert.True(changed);
+        Assert.Equal("STARTAN3", front.MidTexture);
+        Assert.Equal("BROWN1", back.MidTexture);
+    }
+
+    [Fact]
+    public void TryCreateVisualMiddleTexture3DDoesNotOverwriteExistingTargetMiddleTexture()
+    {
+        var (hit, front, back) = CreateTwoSidedWallHit();
+        front.SetTextureMid("STONE2");
+
+        bool changed = MapControl.TryCreateVisualMiddleTexture3D(hit, "STARTAN3");
+
+        Assert.False(changed);
+        Assert.Equal("STONE2", front.MidTexture);
+        Assert.Equal("-", back.MidTexture);
+    }
+
+    [Fact]
+    public void TryCreateVisualMiddleTexture3DDoesNotCreateRequiredMiddleTexture()
+    {
+        var line = new Linedef(new Vertex(new Vector2D(0, 0)), new Vertex(new Vector2D(64, 0)));
+        var front = new Sidedef();
+        line.AttachFront(front);
+        var hit = new VisualHit(VisualHitKind.Wall, 1, new Vector3D(32, 0, 64), null, line, true, 0, 128, SidedefPart.Middle);
+
+        bool changed = MapControl.TryCreateVisualMiddleTexture3D(hit, "STARTAN3");
+
+        Assert.False(changed);
+        Assert.Equal("-", front.MidTexture);
+    }
+
     [Theory]
     [InlineData("Vertex", "Pasted vertex properties.")]
     [InlineData("Linedef", "Pasted linedef properties.")]
@@ -491,14 +548,31 @@ public sealed class MapControlCommandTests
         int methodIndex = body.IndexOf("private bool InsertThingAtTarget3D()", StringComparison.Ordinal);
         int missingTargetIndex = body.IndexOf("if (_target3D is not { } target)", methodIndex, StringComparison.Ordinal);
         int warningIndex = body.IndexOf("Cannot insert thing here!", missingTargetIndex, StringComparison.Ordinal);
-        int insertIndex = body.IndexOf("InsertThingAt(new Vec2D(target.Point.x, target.Point.y), snap: false, height: target.Point.z);", warningIndex, StringComparison.Ordinal);
+        int createMiddleIndex = body.IndexOf("TryCreateVisualMiddleTexture3D(target, DefaultWallTexture3D());", warningIndex, StringComparison.Ordinal);
+        int middleStatusIndex = body.IndexOf("Target3DChanged?.Invoke(VisualMiddleTextureCreatedStatusText());", createMiddleIndex, StringComparison.Ordinal);
+        int insertIndex = body.IndexOf("InsertThingAt(new Vec2D(target.Point.x, target.Point.y), snap: false, height: target.Point.z);", middleStatusIndex, StringComparison.Ordinal);
         int statusIndex = body.IndexOf("Target3DChanged?.Invoke(VisualThingInsertedStatusText());", insertIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);
         Assert.True(missingTargetIndex > methodIndex);
         Assert.True(warningIndex > missingTargetIndex);
-        Assert.True(insertIndex > warningIndex);
+        Assert.True(createMiddleIndex > warningIndex);
+        Assert.True(middleStatusIndex > createMiddleIndex);
+        Assert.True(insertIndex > middleStatusIndex);
         Assert.True(statusIndex > insertIndex);
+    }
+
+    private static (VisualHit Hit, Sidedef Front, Sidedef Back) CreateTwoSidedWallHit()
+    {
+        var sector = new Sector { FloorHeight = 0, CeilHeight = 128 };
+        var otherSector = new Sector { FloorHeight = 0, CeilHeight = 128 };
+        var line = new Linedef(new Vertex(new Vector2D(0, 0)), new Vertex(new Vector2D(64, 0)));
+        var front = new Sidedef { Sector = sector };
+        var back = new Sidedef { Sector = otherSector };
+        line.AttachFront(front);
+        line.AttachBack(back);
+        var hit = new VisualHit(VisualHitKind.Wall, 1, new Vector3D(32, 0, 64), sector, line, true, 0, 128, SidedefPart.Upper);
+        return (hit, front, back);
     }
 
     [Fact]
