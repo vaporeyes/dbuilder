@@ -1541,6 +1541,7 @@ public partial class MainWindow : Window
             case "window.alignceilingtoback": OnAlignCeilingToBack(this, new RoutedEventArgs()); return true;
             case "window.align-things-to-wall": OnAlignThingsToWall(this, new RoutedEventArgs()); return true;
             case "window.find-replace": OnFindReplace(this, new RoutedEventArgs()); return true;
+            case "window.findmode": OnFindReplace(this, new RoutedEventArgs()); return true;
             case "window.build-bridge": OnBuildBridge(this, new RoutedEventArgs()); return true;
             case "window.make-door": OnMakeDoor(this, new RoutedEventArgs()); return true;
             case "window.makedoor": OnMakeDoor(this, new RoutedEventArgs()); return true;
@@ -1578,6 +1579,7 @@ public partial class MainWindow : Window
             case "window.toggle-auto-clear-sidedef-textures": OnToggleAutoClearSidedefTextures(this, new RoutedEventArgs()); return true;
             case "window.undo-redo-panel": OnUndoRedoPanel(this, new RoutedEventArgs()); return true;
             case "window.check-map": OnCheckMap(this, new RoutedEventArgs()); return true;
+            case "window.errorcheckmode": OnCheckMap(this, new RoutedEventArgs()); return true;
             case "window.clean-up-geometry": OnCleanUpGeometry(this, new RoutedEventArgs()); return true;
             case "window.test-map": OnTestMap(this, new RoutedEventArgs()); return true;
             case "window.things-filters-setup": OnThingFilter(this, new RoutedEventArgs()); return true;

@@ -5776,6 +5776,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         switch (commandId)
         {
             case "map2d.toggle-3d":
+            case "map2d.gzdbvisualmode":
             case "map3d.toggle-2d":
                 Toggle3DMode();
                 return true;
@@ -5907,6 +5908,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 PointThingsToCursor(awayFromCursor: modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta));
                 return true;
             case "map2d.bridge-mode":
+            case "map2d.bridgemode":
                 RunBridgeCommand();
                 return true;
             case "map2d.3dfloor.select-control-sector":

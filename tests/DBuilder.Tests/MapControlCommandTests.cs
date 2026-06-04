@@ -559,6 +559,8 @@ public sealed class MapControlCommandTests
     [InlineData("map2d.placevisualstart", "PlaceVisualStart()")]
     [InlineData("map2d.placethings", "PlaceThingsFromSelection()")]
     [InlineData("map2d.thinglookatcursor", "PointThingsToCursor(")]
+    [InlineData("map2d.bridgemode", "RunBridgeCommand()")]
+    [InlineData("map2d.gzdbvisualmode", "Toggle3DMode()")]
     [InlineData("map2d.curvelinesmode", "CurveSelectedLinedefs()")]
     [InlineData("map2d.fliplinedefs", "FlipLinedefs()")]
     [InlineData("map2d.flipsidedefs", "FlipSidedefs()")]

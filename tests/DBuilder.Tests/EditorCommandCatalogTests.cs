@@ -1762,6 +1762,7 @@ public class EditorCommandCatalogTests
     public void BridgeModeCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map2d.bridge-mode");
+        var alias = EditorCommandCatalog.Find("map2d.bridgemode");
 
         Assert.NotNull(command);
         Assert.Equal("Bridge Mode", command.Title);
@@ -1771,6 +1772,47 @@ public class EditorCommandCatalogTests
         Assert.False(command.AllowMouse);
         Assert.False(command.AllowScroll);
         Assert.False(command.Repeat);
+        Assert.NotNull(alias);
+        Assert.Equal(command.Title, alias.Title);
+        Assert.Equal(command.DefaultGesture, alias.DefaultGesture);
+        Assert.Equal(command.Scope, alias.Scope);
+        Assert.True(alias.AllowKeys);
+        Assert.False(alias.AllowMouse);
+        Assert.False(alias.AllowScroll);
+    }
+
+    [Fact]
+    public void VisualModeAliasMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.gzdbvisualmode");
+
+        Assert.NotNull(command);
+        Assert.Equal("Visual Mode", command.Title);
+        Assert.Equal("Q", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.True(command.DisregardShift);
+        Assert.True(command.DisregardAccelerator);
+        Assert.Equal("map2d.gzdbvisualmode", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Q"));
+    }
+
+    [Theory]
+    [InlineData("window.findmode", "Find and Replace Mode", "F3")]
+    [InlineData("window.errorcheckmode", "Map Analysis Mode", "F4")]
+    public void WindowModeAliasesMatchUdbActionSurface(string id, string title, string gesture)
+    {
+        var command = EditorCommandCatalog.Find(id);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(gesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.Equal(id, EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, gesture));
     }
 
     [Theory]
