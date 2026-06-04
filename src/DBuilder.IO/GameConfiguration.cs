@@ -556,6 +556,7 @@ public sealed class GameConfiguration
 
     /// <summary>Thing flag bit value -> display name (e.g. 1 -> "Easy", 8 -> "Ambush players").</summary>
     public IReadOnlyDictionary<int, string> ThingFlags => thingFlags;
+    public IReadOnlySet<string> ThingFlagKeys => thingFlagKeys;
 
     /// <summary>Skill level number -> display name (e.g. 1 -> "I'm too young to die").</summary>
     public IReadOnlyDictionary<int, string> Skills => skills;

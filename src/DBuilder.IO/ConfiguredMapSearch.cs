@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using DBuilder.Map;
 
 namespace DBuilder.IO;
@@ -17,12 +18,14 @@ public static class ConfiguredMapSearch
 
     public static int Replace(MapSet map, FindCategory category, string find, string replace, GameConfiguration? config)
     {
+        if (!ReplacementFlagsAreKnown(category, replace, config)) return 0;
         var (minThingType, maxThingType) = ThingTypeRange(config);
         return MapSearch.Replace(map, category, find, replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), false, config?.MixTexturesFlats == true, config?.MaxTextureNameLength ?? 8, minThingType, maxThingType);
     }
 
     public static int Replace(MapSet map, FindCategory category, string find, string replace, GameConfiguration? config, bool withinSelection)
     {
+        if (!ReplacementFlagsAreKnown(category, replace, config)) return 0;
         var (minThingType, maxThingType) = ThingTypeRange(config);
         return MapSearch.Replace(map, category, find, replace, TagSearchOptions.All, LinedefActionMatcher(config), SectorEffectMatcher(config), withinSelection, config?.MixTexturesFlats == true, config?.MaxTextureNameLength ?? 8, minThingType, maxThingType);
     }
@@ -31,6 +34,47 @@ public static class ConfiguredMapSearch
         => config?.MapFormat == MapFormat.Udmf
             ? (int.MinValue, int.MaxValue)
             : (short.MinValue, short.MaxValue);
+
+    private static bool ReplacementFlagsAreKnown(FindCategory category, string replace, GameConfiguration? config)
+    {
+        HashSet<string>? known = KnownReplacementFlags(category, config);
+        if (known is null) return true;
+        foreach (string flag in ParsedFlagNames(replace))
+            if (!known.Contains(flag)) return false;
+        return true;
+    }
+
+    private static HashSet<string>? KnownReplacementFlags(FindCategory category, GameConfiguration? config)
+    {
+        if (config is null) return null;
+
+        return category switch
+        {
+            FindCategory.LinedefFlags => Set(
+                config.LinedefFlagsTranslation.SelectMany(flag => flag.Fields)
+                    .Concat(config.LinedefActivations.Select(activation => activation.Key))),
+            FindCategory.SidedefFlags => Set(config.SidedefFlags.Keys),
+            FindCategory.SectorFlags => Set(config.SectorFlags.Keys
+                .Concat(config.CeilingPortalFlags.Keys)
+                .Concat(config.FloorPortalFlags.Keys)),
+            FindCategory.ThingFlags => Set(config.ThingFlagsTranslation.SelectMany(flag => flag.Fields)
+                .Concat(config.ThingFlagKeys)
+                .Concat(config.ThingFlagsCompare.Values.SelectMany(group => group.Flags.Keys))),
+            _ => null,
+        };
+    }
+
+    private static IEnumerable<string> ParsedFlagNames(string value)
+    {
+        foreach (string part in value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            string flag = part.StartsWith("!", StringComparison.Ordinal) ? part[1..].Trim() : part;
+            if (!string.IsNullOrWhiteSpace(flag)) yield return flag;
+        }
+    }
+
+    private static HashSet<string> Set(IEnumerable<string> values)
+        => new(values.Where(value => !string.IsNullOrWhiteSpace(value)), StringComparer.Ordinal);
 
     private static Func<int, int, bool>? LinedefActionMatcher(GameConfiguration? config)
         => config?.GeneralizedActions == true && config.GeneralizedLinedefs.Count > 0

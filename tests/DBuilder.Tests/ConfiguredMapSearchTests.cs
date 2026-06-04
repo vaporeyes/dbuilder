@@ -61,6 +61,29 @@ public class ConfiguredMapSearchTests
         }
         """;
 
+    private const string FlagCfg = """
+        linedefactivations
+        {
+            playeruse = "Player use";
+            monsteruse = "Monster use";
+        }
+        sidedefflags
+        {
+            clipmidtex = "Clip middle";
+            wrapmidtex = "Wrap middle";
+        }
+        sectorflags
+        {
+            secret = "Secret";
+            damagehazard = "Damage hazard";
+        }
+        thingflags
+        {
+            ambush = "Ambush";
+            skill2 = "Skill 2";
+        }
+        """;
+
     [Fact]
     public void ReplaceAnyTextureOrFlatHonorsMixedTexturesAndFlatsConfig()
     {
@@ -115,6 +138,50 @@ public class ConfiguredMapSearchTests
 
         Assert.Equal(1, changed);
         Assert.Equal(32768, map.Things[0].Type);
+    }
+
+    [Fact]
+    public void ReplaceFlagsRejectsUnknownConfiguredReplacementFlags()
+    {
+        var config = GameConfiguration.FromText(FlagCfg);
+        var map = BuildMap();
+        map.AddThing(new Vector2D(16, 16), 3001);
+        map.Linedefs[0].SetFlag("playeruse", true);
+        map.Sidedefs[0].SetFlag("clipmidtex", true);
+        map.Sectors[0].SetFlag("secret", true);
+        map.Things[0].SetFlag("ambush", true);
+
+        Assert.Equal(0, ConfiguredMapSearch.Replace(map, FindCategory.LinedefFlags, "playeruse", "missing", config));
+        Assert.Equal(0, ConfiguredMapSearch.Replace(map, FindCategory.SidedefFlags, "clipmidtex", "missing", config));
+        Assert.Equal(0, ConfiguredMapSearch.Replace(map, FindCategory.SectorFlags, "secret", "missing", config));
+        Assert.Equal(0, ConfiguredMapSearch.Replace(map, FindCategory.ThingFlags, "ambush", "missing", config));
+
+        Assert.False(map.Linedefs[0].IsFlagSet("missing"));
+        Assert.False(map.Sidedefs[0].IsFlagSet("missing"));
+        Assert.False(map.Sectors[0].IsFlagSet("missing"));
+        Assert.False(map.Things[0].IsFlagSet("missing"));
+    }
+
+    [Fact]
+    public void ReplaceFlagsAcceptsKnownConfiguredReplacementFlags()
+    {
+        var config = GameConfiguration.FromText(FlagCfg);
+        var map = BuildMap();
+        map.AddThing(new Vector2D(16, 16), 3001);
+        map.Linedefs[0].SetFlag("playeruse", true);
+        map.Sidedefs[0].SetFlag("clipmidtex", true);
+        map.Sectors[0].SetFlag("secret", true);
+        map.Things[0].SetFlag("ambush", true);
+
+        Assert.Equal(1, ConfiguredMapSearch.Replace(map, FindCategory.LinedefFlags, "playeruse", "monsteruse", config));
+        Assert.Equal(1, ConfiguredMapSearch.Replace(map, FindCategory.SidedefFlags, "clipmidtex", "wrapmidtex", config));
+        Assert.Equal(1, ConfiguredMapSearch.Replace(map, FindCategory.SectorFlags, "secret", "damagehazard", config));
+        Assert.Equal(1, ConfiguredMapSearch.Replace(map, FindCategory.ThingFlags, "ambush", "skill2", config));
+
+        Assert.True(map.Linedefs[0].IsFlagSet("monsteruse"));
+        Assert.True(map.Sidedefs[0].IsFlagSet("wrapmidtex"));
+        Assert.True(map.Sectors[0].IsFlagSet("damagehazard"));
+        Assert.True(map.Things[0].IsFlagSet("skill2"));
     }
 
     [Fact]
