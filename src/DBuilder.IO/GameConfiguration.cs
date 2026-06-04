@@ -1593,15 +1593,18 @@ public sealed class GameConfiguration
         if (effect <= 0) return result;
 
         int current = effect;
-        for (int i = genSectorEffects.Count - 1; i >= 0; i--)
+        if (GeneralizedEffects)
         {
-            for (int j = genSectorEffects[i].Bits.Count - 1; j >= 0; j--)
+            for (int i = genSectorEffects.Count - 1; i >= 0; i--)
             {
-                GeneralizedBit bit = genSectorEffects[i].Bits[j];
-                if (bit.Value > 0 && (current & bit.Value) == bit.Value)
+                for (int j = genSectorEffects[i].Bits.Count - 1; j >= 0; j--)
                 {
-                    current -= bit.Value;
-                    result.AddGeneralizedBit(bit.Value);
+                    GeneralizedBit bit = genSectorEffects[i].Bits[j];
+                    if (bit.Value > 0 && (current & bit.Value) == bit.Value)
+                    {
+                        current -= bit.Value;
+                        result.AddGeneralizedBit(bit.Value);
+                    }
                 }
             }
         }

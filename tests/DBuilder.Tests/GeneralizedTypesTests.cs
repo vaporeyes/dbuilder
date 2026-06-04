@@ -9,6 +9,7 @@ namespace DBuilder.Tests;
 public class GeneralizedTypesTests
 {
     private const string Cfg = @"
+generalizedsectors = true;
 gen_linedeftypes
 {
     normal
@@ -151,5 +152,29 @@ sectortypes
         var data = gc.GetSectorEffectData(33);
         Assert.Equal(1, data.Effect);
         Assert.Contains(32, data.GeneralizedBits);
+    }
+
+    [Fact]
+    public void SectorEffectDataDoesNotDecodeGeneralizedBitsWhenDisabledLikeUdb()
+    {
+        const string cfg = @"
+gen_sectortypes
+{
+    damage
+    {
+        0 = ""None"";
+        32 = ""5 per second"";
+    }
+}
+sectortypes
+{
+    1 = ""Secret"";
+}";
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var data = gc.GetSectorEffectData(33);
+        Assert.Equal(33, data.Effect);
+        Assert.Empty(data.GeneralizedBits);
     }
 }
