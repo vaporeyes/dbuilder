@@ -1322,6 +1322,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style script find-usages matching with whole-word and case options.
 - [ ] Port script compile flow.
   - [x] Build UDB-style directory and archive script compile plans and output target rules.
+  - [x] Select script compiler output target rules from UDB compiler interface metadata.
   - [x] Remap temporary compiler input errors back to source files, archive entries, and WAD script lumps.
   - [x] Build UDB-style script compiler process start settings.
   - [x] Select script compiler process settings from UDB compiler interface metadata.

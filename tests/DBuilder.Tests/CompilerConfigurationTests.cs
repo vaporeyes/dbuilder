@@ -537,6 +537,58 @@ public class CompilerConfigurationTests
         Assert.Equal("Unable to create target file: unable to determine target filename. Make sure \"ResultLump\" property is set in the \"BCC\" script configuration.", target.ErrorMessage);
     }
 
+    [Theory]
+    [InlineData("AccCompiler", "", "helpers", "/maps/project/scripts/helpers.o")]
+    [InlineData("BccCompiler", "library.o", "", "/maps/project/scripts/library.o")]
+    [InlineData("ZtBccCompiler", "library.o", "", "/maps/project/scripts/library.o")]
+    public void ScriptCompileFlowResolvesFileTargetsFromCompilerInterface(
+        string compilerInterface,
+        string resultLump,
+        string libraryName,
+        string expectedTarget)
+    {
+        var compiler = new CompilerInfo(
+            "compiler.cfg",
+            "compiler",
+            "/compilers",
+            "compiler",
+            compilerInterface,
+            new HashSet<string>());
+
+        var target = ScriptCompileFlow.ResolveFileTarget(
+            "/maps/project/scripts/library.acs",
+            resultLump,
+            compiler,
+            libraryName,
+            scriptConfigurationName: compilerInterface);
+
+        Assert.True(target.Success);
+        Assert.Equal(expectedTarget, target.TargetPath);
+    }
+
+    [Fact]
+    public void ScriptCompileFlowReportsMissingResultLumpFromCompilerInterfaceLikeUdb()
+    {
+        var compiler = new CompilerInfo(
+            "zt-bcc.cfg",
+            "zt-bcc",
+            "/compilers/ZT-BCC",
+            "zt-bcc",
+            "ZtBccCompiler",
+            new HashSet<string>());
+
+        var target = ScriptCompileFlow.ResolveArchiveTarget(
+            "acs/library.bcs",
+            resultLump: "",
+            compiler,
+            libraryName: "",
+            scriptConfigurationName: "ZT-BCC");
+
+        Assert.False(target.Success);
+        Assert.Equal("", target.TargetPath);
+        Assert.Equal("Unable to create target file: unable to determine target filename. Make sure \"ResultLump\" property is set in the \"ZT-BCC\" script configuration.", target.ErrorMessage);
+    }
+
     [Fact]
     public void ScriptCompileFlowReportsMissingOutputFileLikeUdb()
     {

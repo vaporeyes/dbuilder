@@ -129,6 +129,14 @@ public static class ScriptCompileFlow
     public static ScriptCompileTarget ResolveFileTarget(
         string sourceFile,
         string resultLump,
+        CompilerInfo compiler,
+        string libraryName,
+        string scriptConfigurationName = "")
+        => ResolveFileTarget(sourceFile, resultLump, IsAccCompiler(compiler), libraryName, scriptConfigurationName);
+
+    public static ScriptCompileTarget ResolveFileTarget(
+        string sourceFile,
+        string resultLump,
         bool isAccCompiler,
         string libraryName,
         string scriptConfigurationName = "")
@@ -138,6 +146,14 @@ public static class ScriptCompileFlow
         if (string.IsNullOrEmpty(resultLump)) return MissingResultLumpTarget(scriptConfigurationName);
         return new ScriptCompileTarget(Path.Combine(sourceDirectory, resultLump));
     }
+
+    public static ScriptCompileTarget ResolveArchiveTarget(
+        string archiveEntryName,
+        string resultLump,
+        CompilerInfo compiler,
+        string libraryName,
+        string scriptConfigurationName = "")
+        => ResolveArchiveTarget(archiveEntryName, resultLump, IsAccCompiler(compiler), libraryName, scriptConfigurationName);
 
     public static ScriptCompileTarget ResolveArchiveTarget(
         string archiveEntryName,
@@ -224,6 +240,9 @@ public static class ScriptCompileFlow
         => value
             .Replace('\\', Path.DirectorySeparatorChar)
             .Replace('/', Path.DirectorySeparatorChar);
+
+    private static bool IsAccCompiler(CompilerInfo compiler)
+        => string.Equals(compiler.ProgramInterface, "AccCompiler", StringComparison.Ordinal);
 }
 
 public sealed record ScriptCompilerError(string Description, string FileName = "", int LineNumber = -1);
