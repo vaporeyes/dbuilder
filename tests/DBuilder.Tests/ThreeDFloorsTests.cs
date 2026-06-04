@@ -438,6 +438,40 @@ public class ThreeDFloorsTests
     }
 
     [Fact]
+    public void SelectControlSectorsSelectsResolvedControlsAndClearsTargets()
+    {
+        var (map, control, target) = Setup(tag: 5, alpha: 255);
+        var otherControl = AddControlFloor(map, tag: 9);
+        target.Tags.Add(9);
+        target.Selected = true;
+
+        int count = ThreeDFloors.SelectControlSectors(map, new[] { target });
+
+        Assert.Equal(2, count);
+        Assert.True(control.Selected);
+        Assert.True(otherControl.Selected);
+        Assert.False(target.Selected);
+    }
+
+    [Fact]
+    public void SelectControlSectorsCanFilterToSharedControls()
+    {
+        var (map, sharedControl, first) = Setup(tag: 5, alpha: 255);
+        var second = map.AddSector();
+        second.Tag = 5;
+        Sector privateControl = AddControlFloor(map, tag: 9);
+        first.Tags.Add(9);
+
+        int count = ThreeDFloors.SelectControlSectors(map, new[] { first, second }, sharedOnly: true);
+
+        Assert.Equal(1, count);
+        Assert.True(sharedControl.Selected);
+        Assert.False(privateControl.Selected);
+        Assert.False(first.Selected);
+        Assert.False(second.Selected);
+    }
+
+    [Fact]
     public void ApplyControlEditUpdatesControlSectorAndActionLines()
     {
         var (map, control, target) = Setup(tag: 5, alpha: 128);

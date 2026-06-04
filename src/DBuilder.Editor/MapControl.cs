@@ -5119,6 +5119,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.bridge-mode":
                 RunBridgeCommand();
                 return true;
+            case "map2d.3dfloor.select-control-sector":
+                SelectThreeDFloorControlSectors();
+                return true;
             case "map2d.mode-vertices":
                 SetEditMode(EditMode.Vertices);
                 return true;
@@ -6928,6 +6931,29 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
         Changed?.Invoke();
         string status = "Placed " + count + " thing" + (count == 1 ? "." : "s.");
+        Picked?.Invoke(status);
+        return status;
+    }
+
+    public string SelectThreeDFloorControlSectors()
+    {
+        if (_map == null) return "No map loaded.";
+
+        IReadOnlyList<Sector> sectors = SelectedSectorsOrHighlighted();
+        if (sectors.Count == 0)
+        {
+            const string message = "Select sectors with 3D floors.";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        int count = ThreeDFloors.SelectControlSectors(_map, sectors);
+        SetEditMode(EditMode.Sectors);
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        string status = count == 0
+            ? "No 3D floor control sectors found."
+            : "Selected " + count + " 3D floor control sector" + (count == 1 ? "." : "s.");
         Picked?.Invoke(status);
         return status;
     }

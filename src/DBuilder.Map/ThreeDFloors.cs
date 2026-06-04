@@ -555,6 +555,17 @@ public static class ThreeDFloors
         return floors;
     }
 
+    public static int SelectControlSectors(MapSet map, IReadOnlyList<Sector> sectors, bool sharedOnly = false, bool udmf = false, bool requireManagedControlSector = false)
+    {
+        List<ThreeDFloor> floors = GetThreeDFloors(map, sectors, sharedOnly, udmf, requireManagedControlSector);
+        map.ClearAllSelected();
+
+        foreach (ThreeDFloor floor in floors)
+            floor.Control.Selected = true;
+
+        return floors.Count;
+    }
+
     private static bool IsSharedByAllSelectedSectors(ThreeDFloor floor, IReadOnlyList<Sector> sectors, Dictionary<Sector, List<ThreeDFloor>> floorsBySector)
     {
         foreach (Sector sector in sectors)
