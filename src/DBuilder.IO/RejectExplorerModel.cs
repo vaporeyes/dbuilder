@@ -70,6 +70,8 @@ public sealed record RejectExplorerRow(
     bool FromHighlighted,
     bool ToHighlighted);
 
+public sealed record RejectExplorerEngageDecision(bool CanEngage, string Title, string Message, bool IsWarning);
+
 public static class RejectExplorerModel
 {
     public const string DefaultColorKey = "colors.default";
@@ -156,6 +158,32 @@ public static class RejectExplorerModel
 
         return new RejectExplorerValidation(RejectExplorerValidationStatus.Valid, expected, rejectData.Length);
     }
+
+    public static RejectExplorerEngageDecision EngageDecision(RejectExplorerValidation validation)
+        => validation.Status switch
+        {
+            RejectExplorerValidationStatus.Missing => new(
+                CanEngage: false,
+                "Failed to engage Reject Explorer Mode",
+                "Map has no REJECT lump.",
+                IsWarning: false),
+            RejectExplorerValidationStatus.Empty => new(
+                CanEngage: false,
+                "Failed to engage Reject Explorer Mode",
+                "REJECT lump is empty.",
+                IsWarning: false),
+            RejectExplorerValidationStatus.TooSmall => new(
+                CanEngage: false,
+                "Failed to engage Reject Explorer Mode",
+                $"REJECT lump is too small. Expected {validation.ExpectedBytes} bytes, got {validation.ActualBytes} bytes.",
+                IsWarning: false),
+            RejectExplorerValidationStatus.TooLarge => new(
+                CanEngage: true,
+                "Reject Explorer Mode",
+                $"REJECT lump is too large. Expected {validation.ExpectedBytes} bytes, got {validation.ActualBytes} bytes.",
+                IsWarning: true),
+            _ => new(CanEngage: true, "Reject Explorer Mode", "REJECT lump loaded.", IsWarning: false),
+        };
 
     public static IReadOnlyList<RejectExplorerRow> BuildRows(RejectTable reject, int sectorCount, int? highlightedSector)
     {

@@ -134,6 +134,30 @@ public sealed class RejectExplorerModelTests
         Assert.True(tooLarge.CanUse);
     }
 
+    [Theory]
+    [InlineData(RejectExplorerValidationStatus.Missing, 2, 0, false, "Failed to engage Reject Explorer Mode", "Map has no REJECT lump.", false)]
+    [InlineData(RejectExplorerValidationStatus.Empty, 2, 0, false, "Failed to engage Reject Explorer Mode", "REJECT lump is empty.", false)]
+    [InlineData(RejectExplorerValidationStatus.TooSmall, 2, 1, false, "Failed to engage Reject Explorer Mode", "REJECT lump is too small. Expected 2 bytes, got 1 bytes.", false)]
+    [InlineData(RejectExplorerValidationStatus.TooLarge, 2, 3, true, "Reject Explorer Mode", "REJECT lump is too large. Expected 2 bytes, got 3 bytes.", true)]
+    [InlineData(RejectExplorerValidationStatus.Valid, 2, 2, true, "Reject Explorer Mode", "REJECT lump loaded.", false)]
+    public void EngageDecisionMatchesUdbModeLaunchOutcomes(
+        RejectExplorerValidationStatus status,
+        int expectedBytes,
+        int actualBytes,
+        bool canEngage,
+        string title,
+        string message,
+        bool isWarning)
+    {
+        var decision = RejectExplorerModel.EngageDecision(
+            new RejectExplorerValidation(status, expectedBytes, actualBytes));
+
+        Assert.Equal(canEngage, decision.CanEngage);
+        Assert.Equal(title, decision.Title);
+        Assert.Equal(message, decision.Message);
+        Assert.Equal(isWarning, decision.IsWarning);
+    }
+
     [Fact]
     public void RelationToHighlightClassifiesDirectionalVisibility()
     {

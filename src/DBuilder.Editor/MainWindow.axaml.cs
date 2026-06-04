@@ -4762,6 +4762,14 @@ public partial class MainWindow : Window
         byte[]? bytes;
         using (var wad = new WAD(_wadPath, openreadonly: true)) bytes = WadMaps.ReadMapLump(wad, _mapMarker, "REJECT");
         var validation = RejectExplorerModel.Validate(bytes, _map.Sectors.Count);
+        RejectExplorerEngageDecision decision = RejectExplorerModel.EngageDecision(validation);
+        if (!decision.CanEngage)
+        {
+            SetStatus($"{decision.Title}: {decision.Message}");
+            return;
+        }
+        if (decision.IsWarning) SetStatus($"{decision.Title}: {decision.Message}");
+
         RejectTable? reject = validation.CanUse ? RejectTable.Parse(bytes ?? Array.Empty<byte>(), _map.Sectors.Count) : null;
         int? target = sel.Count == 1 ? sel[0].Index : null;
 

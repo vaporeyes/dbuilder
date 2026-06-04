@@ -1595,6 +1595,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Wire Reject Explorer color configuration into the editor overlay.
   - [x] Add testable Reject Explorer no-line-of-sight sector selection model.
   - [x] Add UDB-style singular and plural labels to highlighted-sector REJECT status text.
+  - [x] Add UDB-style Reject Explorer engage, cancel, and warning outcomes for REJECT validation.
 - [ ] Port `SoundPropagationMode`.
   - [x] Add UDB-style sound propagation domain grouping, adjacent-domain expansion, block-line tracking, and hunting thing filtering.
   - [x] Add UDB-style leak path search model for rendering source-to-destination sound paths.
@@ -2308,6 +2309,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Wire Reject Explorer color configuration into the editor overlay.
   - [x] Add testable Reject Explorer row and summary formatting model.
   - [x] Add UDB-style singular and plural labels to Reject Explorer validation summaries.
+  - [x] Add UDB-style Reject Explorer engage, cancel, and warning outcomes for REJECT validation.
 - [ ] Port sound propagation mode behavior.
   - [x] Add UDB-style propagation domains, adjacent sectors across one sound-blocking boundary, and non-ambush hunting thing lists.
   - [x] Add UDB-style highlighted-domain overlay colors for direct, adjacent, unreachable, and source sectors.

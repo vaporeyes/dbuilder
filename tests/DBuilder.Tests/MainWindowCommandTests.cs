@@ -568,6 +568,17 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void RejectExplorerLaunchUsesUdbEngageDecision()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("RejectExplorerEngageDecision decision = RejectExplorerModel.EngageDecision(validation);", body, StringComparison.Ordinal);
+        Assert.Contains("if (!decision.CanEngage)", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus($\"{decision.Title}: {decision.Message}\");", body, StringComparison.Ordinal);
+        Assert.Contains("if (decision.IsWarning) SetStatus($\"{decision.Title}: {decision.Message}\");", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SelectionGroupCommandsAreRoutedThroughDynamicWindowCommandDispatch()
     {
         Type type = typeof(MainWindow);
