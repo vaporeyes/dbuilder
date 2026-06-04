@@ -232,6 +232,26 @@ public class ScriptSyntaxHighlightingTests
     }
 
     [Fact]
+    public void FunctionCallSearchUsesConfiguredExtraWordCharactersLikeUdb()
+    {
+        var config = ScriptConfigurationInfo.FromText("""
+            extrawordchars = ".";
+            functionopen = "(";
+            functionclose = ")";
+            argumentdelimiter = ",";
+            terminator = ";";
+            keywords { Namespace.Function = "Namespace.Function(value)"; }
+            """);
+        const string text = "Namespace.Function(";
+
+        var position = ScriptSyntaxHighlighting.FindFunctionCallPosition(config, text, text.Length);
+
+        Assert.NotNull(position);
+        Assert.Equal("Namespace.Function", position.FunctionName);
+        Assert.Equal(0, position.FunctionStartOffset);
+    }
+
+    [Fact]
     public void BuildsFunctionCallTipHighlightLikeUdb()
     {
         var config = ScriptConfigurationInfo.FromText("""

@@ -131,8 +131,8 @@ public static class ScriptSyntaxHighlighting
                     int wordPosition = SkipWhitespaceBackward(text, position - 1, limit);
                     if (wordPosition < limit) break;
 
-                    int wordStart = WordStart(text, wordPosition);
-                    int wordEnd = WordEnd(text, wordPosition);
+                    int wordStart = WordStart(text, wordPosition, scriptConfiguration.ExtraWordCharacters);
+                    int wordEnd = WordEnd(text, wordPosition, scriptConfiguration.ExtraWordCharacters);
                     string word = text[wordStart..wordEnd];
                     if (word.Length == 0) break;
                     if (word[0] == argumentDelimiter)
@@ -244,20 +244,20 @@ public static class ScriptSyntaxHighlighting
         return position;
     }
 
-    private static int WordStart(string text, int position)
+    private static int WordStart(string text, int position, string extraWordCharacters)
     {
         int start = position;
-        while (start > 0 && IsWordChar(text[start - 1])) start--;
+        while (start > 0 && IsWordChar(text[start - 1], extraWordCharacters)) start--;
         return start;
     }
 
-    private static int WordEnd(string text, int position)
+    private static int WordEnd(string text, int position, string extraWordCharacters)
     {
         int end = position;
-        while (end < text.Length && IsWordChar(text[end])) end++;
+        while (end < text.Length && IsWordChar(text[end], extraWordCharacters)) end++;
         return end;
     }
 
-    private static bool IsWordChar(char c)
-        => char.IsLetterOrDigit(c) || c == '_';
+    private static bool IsWordChar(char c, string extraWordCharacters)
+        => char.IsLetterOrDigit(c) || c == '_' || extraWordCharacters.Contains(c, StringComparison.Ordinal);
 }
