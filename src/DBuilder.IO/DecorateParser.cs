@@ -317,10 +317,14 @@ public static class DecorateParser
     }
 
     private static bool IsRegionToken(string token, bool decorateHeader)
-        => token.Equals("#region", decorateHeader ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+        => decorateHeader
+            ? token.Equals("#region", StringComparison.OrdinalIgnoreCase)
+            : token.StartsWith("#region", StringComparison.Ordinal);
 
     private static bool IsEndRegionToken(string token, bool decorateHeader)
-        => token.Equals("#endregion", decorateHeader ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+        => decorateHeader
+            ? token.Equals("#endregion", StringComparison.OrdinalIgnoreCase)
+            : token.StartsWith("#endregion", StringComparison.Ordinal);
 
     private static string? CurrentRegionCategory(List<string> regions)
         => regions.Count == 0 ? null : string.Join(".", regions);

@@ -1820,6 +1820,20 @@ class AfterRegion : Actor { Default { Radius 16; } }";
     }
 
     [Fact]
+    public void LowercaseZScriptRegionDirectivePrefixesContinueParsingLikeUdb()
+    {
+        const string zscript = @"
+#regionMonsters
+class BeforeEndRegion : Actor { Default { Radius 8; } }
+#endregionMonsters
+class AfterEndRegion : Actor { Default { Radius 16; } }";
+
+        var actors = ZScriptParser.Parse(zscript);
+
+        Assert.Equal(new[] { "BeforeEndRegion", "AfterEndRegion" }, actors.Select(actor => actor.ClassName).ToArray());
+    }
+
+    [Fact]
     public void ParsesClassDefinitionsFromIncludes()
     {
         const string root = @"
