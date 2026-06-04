@@ -29,6 +29,7 @@ public sealed class Settings
     public string? TestIwad { get; set; }
     public string? UdbScriptExternalEditor { get; set; }
     public Dictionary<string, object?> UdbScriptSettings { get; set; } = new(StringComparer.Ordinal);
+    public Dictionary<string, object?> UsdfDialogEditorSettings { get; set; } = new(StringComparer.Ordinal);
     public int? MaxRecentFiles { get; set; }
     public bool AutoClearSidedefTextures { get; set; } = true;
     public bool DynamicGridSize { get; set; } = true;
@@ -301,6 +302,8 @@ public sealed class Settings
             settings.ShortcutOverrides ??= new();
             settings.MapErrorCheckSettings ??= new(StringComparer.Ordinal);
             settings.ConfigurationResources ??= new(StringComparer.OrdinalIgnoreCase);
+            settings.UdbScriptSettings ??= new(StringComparer.Ordinal);
+            settings.UsdfDialogEditorSettings ??= new(StringComparer.Ordinal);
             NormalizeConfigurationResources(settings.ConfigurationResources);
             settings.PasteOptions ??= new();
             settings.DrawLineSettings ??= new();

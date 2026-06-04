@@ -536,6 +536,20 @@ public sealed class MainWindowCommandTests
         Assert.Contains("public UsdfConversationWindow(UsdfParseResult result, UsdfDialogEditorWindowState windowState)", body, StringComparison.Ordinal);
         Assert.Contains("WindowState = (Avalonia.Controls.WindowState)windowState.WindowState;", body, StringComparison.Ordinal);
         Assert.Contains("Position = new PixelPoint(windowState.PositionX, windowState.PositionY);", body, StringComparison.Ordinal);
+        Assert.Contains("CurrentWindowState()", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void UsdfWindowStatePersistsThroughEditorSettings()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("_settings.UsdfDialogEditorSettings", body, StringComparison.Ordinal);
+        Assert.Contains("UsdfDialogEditorModel.ReadWindowState(", body, StringComparison.Ordinal);
+        Assert.Contains("UsdfDialogEditorModel", body, StringComparison.Ordinal);
+        Assert.Contains(".WriteWindowState(window.CurrentWindowState())", body, StringComparison.Ordinal);
+        Assert.Contains("ReferenceEquals(_usdfConversations, window)", body, StringComparison.Ordinal);
+        Assert.Contains("SaveSettings();", body, StringComparison.Ordinal);
     }
 
     [Fact]

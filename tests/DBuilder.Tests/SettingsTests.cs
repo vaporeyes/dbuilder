@@ -234,6 +234,14 @@ public class SettingsTests
                     ["scriptslots.slot3"] = "/scripts/slotted.js",
                     ["directoryexpand.hash-child"] = false,
                 },
+                UsdfDialogEditorSettings = new Dictionary<string, object?>
+                {
+                    [UsdfDialogEditorModel.PositionXKey] = 44,
+                    [UsdfDialogEditorModel.PositionYKey] = 55,
+                    [UsdfDialogEditorModel.SizeWidthKey] = 777,
+                    [UsdfDialogEditorModel.SizeHeightKey] = 555,
+                    [UsdfDialogEditorModel.WindowStateKey] = UsdfDialogEditorModel.NormalWindowState,
+                },
                 MapErrorCheckSettings = new Dictionary<string, bool>(StringComparer.Ordinal)
                 {
                     ["errorchecks.checktexturealignment"] = true,
@@ -357,6 +365,13 @@ public class SettingsTests
             Assert.Equal("/tools/editor.exe", loaded.UdbScriptExternalEditor);
             Assert.Equal("/scripts/slotted.js", loaded.UdbScriptSettings["scriptslots.slot3"]?.ToString());
             Assert.Equal("False", loaded.UdbScriptSettings["directoryexpand.hash-child"]?.ToString());
+            Assert.Equal("44", loaded.UsdfDialogEditorSettings[UsdfDialogEditorModel.PositionXKey]?.ToString());
+            Assert.Equal("55", loaded.UsdfDialogEditorSettings[UsdfDialogEditorModel.PositionYKey]?.ToString());
+            Assert.Equal("777", loaded.UsdfDialogEditorSettings[UsdfDialogEditorModel.SizeWidthKey]?.ToString());
+            Assert.Equal("555", loaded.UsdfDialogEditorSettings[UsdfDialogEditorModel.SizeHeightKey]?.ToString());
+            Assert.Equal(
+                UsdfDialogEditorModel.NormalWindowState.ToString(),
+                loaded.UsdfDialogEditorSettings[UsdfDialogEditorModel.WindowStateKey]?.ToString());
             Assert.True(loaded.MapErrorCheckSettings["errorchecks.checktexturealignment"]);
             Assert.False(loaded.MapErrorCheckSettings["errorchecks.checkstuckthings"]);
             Assert.Equal(12, loaded.MaxRecentFiles);

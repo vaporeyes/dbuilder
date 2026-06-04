@@ -62,6 +62,14 @@ public sealed class UsdfConversationWindow : Window
         Content = root;
     }
 
+    public UsdfDialogEditorWindowState CurrentWindowState()
+        => new(
+            Position.X,
+            Position.Y,
+            (int)Math.Round(Width),
+            (int)Math.Round(Height),
+            (int)WindowState);
+
     private static IReadOnlyList<TreeViewItem> TreeItems(IReadOnlyList<UsdfDialogEditorTreeNode> nodes)
     {
         var roots = new List<TreeViewItem>();

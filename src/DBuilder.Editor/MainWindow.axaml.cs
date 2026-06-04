@@ -3663,8 +3663,22 @@ public partial class MainWindow : Window
             Encoding.UTF8.GetString(bytes),
             ResolveCurrentDialogueInclude);
         _usdfConversations?.Close();
-        _usdfConversations = new UsdfConversationWindow(result);
-        _usdfConversations.Closed += (_, _) => _usdfConversations = null;
+        var window = new UsdfConversationWindow(
+            result,
+            UsdfDialogEditorModel.ReadWindowState(
+                _settings.UsdfDialogEditorSettings,
+                UsdfDialogEditorModel.DefaultWindowState));
+        _usdfConversations = window;
+        window.Closed += (_, _) =>
+        {
+            _settings.UsdfDialogEditorSettings = UsdfDialogEditorModel
+                .WriteWindowState(window.CurrentWindowState())
+                .ToDictionary(kvp => kvp.Key, kvp => (object?)kvp.Value, StringComparer.Ordinal);
+            SaveSettings();
+
+            if (ReferenceEquals(_usdfConversations, window))
+                _usdfConversations = null;
+        };
         _usdfConversations.Show(this);
         SetStatus(UsdfDialogueParser.EditorStatus(result));
     }
