@@ -1565,6 +1565,7 @@ public partial class MainWindow : Window
             case "window.soundpropagationcolorconfiguration": OnSoundPropagationColors(this, new RoutedEventArgs()); return true;
             case "window.setleakfinderstart": OnSetLeakFinderStart(this, new RoutedEventArgs()); return true;
             case "window.setleakfinderend": OnSetLeakFinderEnd(this, new RoutedEventArgs()); return true;
+            case "window.applyjitter": OnApplyJitter(this, new RoutedEventArgs()); return true;
             case "window.applydirectionalshading": OnApplyDirectionalShading(this, new RoutedEventArgs()); return true;
             case "window.apply-slope-arch": OnApplySlopeArch(this, new RoutedEventArgs()); return true;
             case "window.apply-slopes": OnApplySlopes(this, new RoutedEventArgs()); return true;
@@ -5198,6 +5199,127 @@ public partial class MainWindow : Window
         UpdateInfo();
         SetStatus(StairBuilder.ApplyStatusText(n, dlg.ResultFloorStart, dlg.ResultFloorStep));
     }
+
+    private async void OnApplyJitter(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
+
+        var vertices = new HashSet<Vertex>();
+        var sectors = new HashSet<Sector>();
+        var things = new List<Thing>();
+        string title;
+
+        if (MapView.CurrentEditMode == MapControl.EditMode.Things && _map.SelectedThingsCount > 0)
+        {
+            things.AddRange(_map.GetSelectedThings());
+            title = $"Randomize {things.Count} thing{(things.Count == 1 ? "" : "s")}";
+        }
+        else if (MapView.CurrentEditMode == MapControl.EditMode.Sectors && _map.SelectedSectorsCount > 0)
+        {
+            foreach (Sector sector in _map.GetSelectedSectors())
+                AddJitterSector(sector, sectors, vertices);
+            title = $"Randomize {sectors.Count} sector{(sectors.Count == 1 ? "" : "s")}";
+        }
+        else if (MapView.CurrentEditMode == MapControl.EditMode.Linedefs && _map.SelectedLinedefsCount > 0)
+        {
+            foreach (Linedef line in _map.GetSelectedLinedefs())
+                AddJitterLineVertices(line, vertices);
+            title = $"Randomize {_map.SelectedLinedefsCount} linedef{(_map.SelectedLinedefsCount == 1 ? "" : "s")}";
+        }
+        else if (MapView.CurrentEditMode == MapControl.EditMode.Vertices && _map.SelectedVerticesCount > 0)
+        {
+            foreach (Vertex vertex in _map.GetSelectedVertices())
+                vertices.Add(vertex);
+            title = $"Randomize {vertices.Count} vertex{(vertices.Count == 1 ? "" : "es")}";
+        }
+        else
+        {
+            SetStatus("Select some things, sectors, linedefs or vertices first!");
+            return;
+        }
+
+        var dialog = new JitterDialog(title);
+        if (!await dialog.ShowDialog<bool>(this))
+        {
+            MapView.Focus();
+            return;
+        }
+
+        CreateUndo(title);
+        int changed = 0;
+        if (vertices.Count > 0)
+        {
+            changed += BuilderEffects.ApplyVertexTranslation(
+                vertices.Select(vertex => new VertexJitter(
+                    vertex,
+                    vertex.Position,
+                    RandomAngle(),
+                    SafeDistance: dialog.ResultPositionAmount)).ToList(),
+                dialog.ResultPositionAmount);
+        }
+
+        if (sectors.Count > 0)
+        {
+            var sectorJitter = sectors.Select(sector => new SectorHeightJitter(
+                sector,
+                sector.FloorHeight,
+                sector.CeilHeight,
+                RandomFactor(),
+                RandomFactor(),
+                SafeDistance: Math.Max(dialog.ResultFloorAmount, dialog.ResultCeilingAmount))).ToList();
+            changed += BuilderEffects.ApplySectorFloorHeight(sectorJitter, dialog.ResultFloorAmount);
+            changed += BuilderEffects.ApplySectorCeilingHeight(sectorJitter, dialog.ResultCeilingAmount);
+        }
+
+        if (things.Count > 0)
+        {
+            var thingJitter = things.Select(thing => new ThingJitter(
+                thing,
+                thing.Position,
+                thing.Angle,
+                thing.Pitch,
+                thing.Roll,
+                thing.Height,
+                thing.ScaleX,
+                thing.ScaleY,
+                OffsetAngle: RandomAngle(),
+                RotationFactor: RandomFactor(),
+                PitchFactor: 0,
+                RollFactor: 0,
+                HeightFactor: 0,
+                ScaleXFactor: 0,
+                ScaleYFactor: 0,
+                SafeDistance: dialog.ResultPositionAmount)).ToList();
+            changed += BuilderEffects.ApplyThingTranslation(thingJitter, dialog.ResultPositionAmount);
+            changed += BuilderEffects.ApplyThingRotation(thingJitter, dialog.ResultThingRotationAmount);
+            foreach (Thing thing in things)
+                thing.DetermineSector(_map);
+        }
+
+        MapView.MarkGeometryDirty();
+        UpdateInfo();
+        SetStatus($"Randomized {changed} map element{(changed == 1 ? "" : "s")}.");
+        MapView.Focus();
+    }
+
+    private static void AddJitterSector(Sector sector, HashSet<Sector> sectors, HashSet<Vertex> vertices)
+    {
+        sectors.Add(sector);
+        foreach (Sidedef side in sector.Sidedefs)
+            AddJitterLineVertices(side.Line, vertices);
+    }
+
+    private static void AddJitterLineVertices(Linedef line, HashSet<Vertex> vertices)
+    {
+        vertices.Add(line.Start);
+        vertices.Add(line.End);
+    }
+
+    private static double RandomAngle()
+        => Random.Shared.NextDouble() * Math.PI * 2.0;
+
+    private static double RandomFactor()
+        => Random.Shared.NextDouble() * 2.0 - 1.0;
 
     private async void OnApplyDirectionalShading(object? sender, RoutedEventArgs e)
     {

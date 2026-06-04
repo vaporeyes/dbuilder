@@ -146,6 +146,7 @@ public sealed class MainWindowCommandTests
     [InlineData("window.soundpropagationcolorconfiguration", "OnSoundPropagationColors")]
     [InlineData("window.setleakfinderstart", "OnSetLeakFinderStart")]
     [InlineData("window.setleakfinderend", "OnSetLeakFinderEnd")]
+    [InlineData("window.applyjitter", "OnApplyJitter")]
     [InlineData("window.applydirectionalshading", "OnApplyDirectionalShading")]
     public void UdbClassicWindowActionAliasesAreDispatched(string commandId, string handlerName)
     {

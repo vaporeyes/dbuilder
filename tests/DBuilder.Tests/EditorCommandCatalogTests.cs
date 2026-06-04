@@ -224,6 +224,22 @@ public class EditorCommandCatalogTests
         => Assert.Equal(commandId, EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, key, shift: true));
 
     [Fact]
+    public void JitterCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.applyjitter");
+
+        Assert.NotNull(command);
+        Assert.Equal("Randomize", command.Title);
+        Assert.Equal("Ctrl/Cmd+J", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.False(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.False(command.Repeat);
+        Assert.Equal("window.applyjitter", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "J", accelerator: true));
+    }
+
+    [Fact]
     public void DirectionalShadingCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("window.applydirectionalshading");
