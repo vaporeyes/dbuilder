@@ -74,6 +74,7 @@ public sealed class Settings
     public List<string> RecentFiles { get; set; } = new();
     public List<RecentMapReference> RecentMaps { get; set; } = new();
     public List<EditorShortcutBinding> ShortcutOverrides { get; set; } = new();
+    public Dictionary<string, bool> MapErrorCheckSettings { get; set; } = new(StringComparer.Ordinal);
     public Dictionary<string, List<DataLocation>> ConfigurationResources { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
     public int NormalizedStatusHistoryLimit =>
@@ -188,6 +189,22 @@ public sealed class Settings
         else ConfigurationResources[key] = list;
     }
 
+    public IReadOnlyList<MapErrorCheckerDescriptor> EnabledMapErrorCheckers()
+    {
+        MapErrorCheckSettings ??= new(StringComparer.Ordinal);
+        return MapAnalysis.CheckerDescriptors
+            .Where(descriptor => MapErrorCheckSettings.TryGetValue(descriptor.SettingsKey, out bool enabled)
+                ? enabled
+                : descriptor.DefaultChecked)
+            .ToArray();
+    }
+
+    public void SetMapErrorCheckerEnabled(MapErrorCheckerDescriptor descriptor, bool enabled)
+    {
+        MapErrorCheckSettings ??= new(StringComparer.Ordinal);
+        MapErrorCheckSettings[descriptor.SettingsKey] = enabled;
+    }
+
     public static string ConfigurationResourceKey(string? configNameOrPath)
     {
         if (string.IsNullOrWhiteSpace(configNameOrPath)) return "";
@@ -267,6 +284,7 @@ public sealed class Settings
             settings.RecentFiles ??= new();
             settings.RecentMaps ??= new();
             settings.ShortcutOverrides ??= new();
+            settings.MapErrorCheckSettings ??= new(StringComparer.Ordinal);
             settings.ConfigurationResources ??= new(StringComparer.OrdinalIgnoreCase);
             NormalizeConfigurationResources(settings.ConfigurationResources);
             settings.PasteOptions ??= new();

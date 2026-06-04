@@ -143,6 +143,35 @@ public class SettingsTests
     }
 
     [Fact]
+    public void EnabledMapErrorCheckersUseUdbDefaults()
+    {
+        var settings = new Settings();
+
+        var enabled = settings.EnabledMapErrorCheckers();
+
+        Assert.Contains(enabled, checker => checker.DisplayName == "Check missing textures");
+        Assert.DoesNotContain(enabled, checker => checker.DisplayName == "Check texture alignment");
+        Assert.DoesNotContain(enabled, checker => checker.DisplayName == "Check very short linedefs");
+    }
+
+    [Fact]
+    public void EnabledMapErrorCheckersApplyPersistedOverrides()
+    {
+        var settings = new Settings();
+        var textureAlignment = MapAnalysis.CheckerDescriptors.Single(checker => checker.DisplayName == "Check texture alignment");
+        var stuckThings = MapAnalysis.CheckerDescriptors.Single(checker => checker.DisplayName == "Check stuck things");
+
+        settings.SetMapErrorCheckerEnabled(textureAlignment, enabled: true);
+        settings.SetMapErrorCheckerEnabled(stuckThings, enabled: false);
+        var enabled = settings.EnabledMapErrorCheckers();
+
+        Assert.Contains(textureAlignment, enabled);
+        Assert.DoesNotContain(stuckThings, enabled);
+        Assert.True(settings.MapErrorCheckSettings["errorchecks.checktexturealignment"]);
+        Assert.False(settings.MapErrorCheckSettings["errorchecks.checkstuckthings"]);
+    }
+
+    [Fact]
     public void ExistingRecentFilesSkipsMissingPathsLikeUdbMenu()
     {
         var s = new Settings
@@ -188,6 +217,11 @@ public class SettingsTests
                 {
                     ["scriptslots.slot3"] = "/scripts/slotted.js",
                     ["directoryexpand.hash-child"] = false,
+                },
+                MapErrorCheckSettings = new Dictionary<string, bool>(StringComparer.Ordinal)
+                {
+                    ["errorchecks.checktexturealignment"] = true,
+                    ["errorchecks.checkstuckthings"] = false,
                 },
                 MaxRecentFiles = 12,
                 AutoClearSidedefTextures = false,
@@ -298,6 +332,8 @@ public class SettingsTests
             Assert.Equal("/tools/editor.exe", loaded.UdbScriptExternalEditor);
             Assert.Equal("/scripts/slotted.js", loaded.UdbScriptSettings["scriptslots.slot3"]?.ToString());
             Assert.Equal("False", loaded.UdbScriptSettings["directoryexpand.hash-child"]?.ToString());
+            Assert.True(loaded.MapErrorCheckSettings["errorchecks.checktexturealignment"]);
+            Assert.False(loaded.MapErrorCheckSettings["errorchecks.checkstuckthings"]);
             Assert.Equal(12, loaded.MaxRecentFiles);
             Assert.Equal(12, loaded.NormalizedMaxRecentFiles);
             Assert.False(loaded.AutoClearSidedefTextures);
