@@ -645,6 +645,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private DrawCurveModeSettings _drawCurveSettings = new();
     private DrawGridModeSettings _drawGridSettings = new();
     private AutomapModeSettings _automapSettings = new();
+    private ThreeDFloorControlSectorAreaSettings _threeDFloorControlSectorAreaSettings = new();
     public ShapeKind CurrentShape => _shapeKind;
 
     public DrawLineModeSettings DrawLineSettings
@@ -688,6 +689,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _geometryDirty = true;
             RequestNextFrameRendering();
         }
+    }
+
+    public ThreeDFloorControlSectorAreaSettings ThreeDFloorControlSectorAreaSettings
+    {
+        get => _threeDFloorControlSectorAreaSettings;
+        set => _threeDFloorControlSectorAreaSettings = value ?? new ThreeDFloorControlSectorAreaSettings();
     }
 
     // Thing categories hidden from rendering (keyed by config category, "(uncategorized)" for blank).
@@ -6966,7 +6973,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_map == null) return "No map loaded.";
 
         EditBegun?.Invoke("Relocate 3D floor control sectors");
-        int count = ThreeDFloors.RelocateManagedControlSectors(_map, new ThreeDFloorControlSectorAreaSettings());
+        int count = ThreeDFloors.RelocateManagedControlSectors(_map, ThreeDFloorControlSectorAreaSettings);
         if (count > 0)
         {
             MarkGeometryDirty();

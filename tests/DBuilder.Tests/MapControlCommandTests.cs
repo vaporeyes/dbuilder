@@ -43,4 +43,13 @@ public sealed class MapControlCommandTests
         Assert.Contains($"case \"{commandId}\"", body, StringComparison.Ordinal);
         Assert.Contains($"{handlerName}();", body, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void RelocateThreeDFloorControlSectorsUsesInjectedAreaSettings()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("ThreeDFloors.RelocateManagedControlSectors(_map, ThreeDFloorControlSectorAreaSettings)", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("ThreeDFloors.RelocateManagedControlSectors(_map, new ThreeDFloorControlSectorAreaSettings())", body, StringComparison.Ordinal);
+    }
 }

@@ -215,6 +215,7 @@ public partial class MainWindow : Window
         MapView.DrawCurveSettings = _settings.NormalizedDrawCurveSettings;
         MapView.DrawGridSettings = _settings.NormalizedDrawGridSettings;
         MapView.AutomapSettings = _settings.NormalizedAutomapSettings;
+        MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
         MapView.DynamicGridSizeEnabled = _settings.DynamicGridSize;
         MapView.SetUseHighlight(_settings.UseHighlight);
         MapView.SetAlphaBasedTextureHighlighting(_settings.AlphaBasedTextureHighlighting);
@@ -1302,6 +1303,7 @@ public partial class MainWindow : Window
         _settings.ShortcutOverrides = dlg.ShortcutOverrides;
         _settings.PasteOptions = dlg.PasteOptions;
         MapView.PasteOptions = _settings.NormalizedPasteOptions;
+        MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
         MapView.SetViewMode2D((MapControl.ClassicViewMode)_settings.NormalizedDefaultViewMode);
         ApplyShortcutBindings();
         _statusHistory.SetCapacity(_settings.NormalizedStatusHistoryLimit);

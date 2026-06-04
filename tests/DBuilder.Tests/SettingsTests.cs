@@ -274,6 +274,14 @@ public class SettingsTests
                     ShowLocks: false,
                     ShowTextures: false,
                     ColorPreset: AutomapColorPreset.Strife),
+                ThreeDFloorControlSectorAreaSettings = new ThreeDFloorControlSectorAreaSettings(
+                    UseCustomTagRange: true,
+                    FirstTag: 2000,
+                    LastTag: 2050,
+                    OuterLeft: -2048,
+                    OuterRight: -1024,
+                    OuterTop: 1024,
+                    OuterBottom: 512),
                 MakeDoorSettings = new MakeDoorModeSettings(
                     HasValues: true,
                     DoorTexture: " BIGDOOR2 ",
@@ -400,6 +408,13 @@ public class SettingsTests
             Assert.False(loaded.AutomapSettings.ShowTextures);
             Assert.Equal(AutomapColorPreset.Strife, loaded.AutomapSettings.ColorPreset);
             Assert.Equal(AutomapColorPreset.Strife, loaded.NormalizedAutomapSettings.ColorPreset);
+            Assert.True(loaded.NormalizedThreeDFloorControlSectorAreaSettings.UseCustomTagRange);
+            Assert.Equal(2000, loaded.NormalizedThreeDFloorControlSectorAreaSettings.FirstTag);
+            Assert.Equal(2050, loaded.NormalizedThreeDFloorControlSectorAreaSettings.LastTag);
+            Assert.Equal(-2048, loaded.NormalizedThreeDFloorControlSectorAreaSettings.OuterLeft);
+            Assert.Equal(-1024, loaded.NormalizedThreeDFloorControlSectorAreaSettings.OuterRight);
+            Assert.Equal(1024, loaded.NormalizedThreeDFloorControlSectorAreaSettings.OuterTop);
+            Assert.Equal(512, loaded.NormalizedThreeDFloorControlSectorAreaSettings.OuterBottom);
             Assert.True(loaded.MakeDoorSettings.HasValues);
             Assert.Equal("BIGDOOR2", loaded.NormalizedMakeDoorSettings.DoorTexture);
             Assert.Equal("DOORTRAK", loaded.NormalizedMakeDoorSettings.TrackTexture);
@@ -635,6 +650,7 @@ public class SettingsTests
         Assert.Equal(new DrawGridModeSettings(), s.NormalizedDrawGridSettings);
         Assert.Equal(new EditSelectionModeSettings(), s.NormalizedEditSelectionSettings);
         Assert.Equal(new AutomapModeSettings(), s.NormalizedAutomapSettings);
+        Assert.Equal(new ThreeDFloorControlSectorAreaSettings(), s.NormalizedThreeDFloorControlSectorAreaSettings);
         Assert.Equal(new MakeDoorModeSettings(), s.NormalizedMakeDoorSettings);
         Assert.Equal(new TagRangeStoredOptions(), s.NormalizedTagRangeSettings);
     }
