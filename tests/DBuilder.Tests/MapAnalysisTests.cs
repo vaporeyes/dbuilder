@@ -60,13 +60,19 @@ public class MapAnalysisTests
 
         Assert.Equal(22, descriptors.Count);
         Assert.Equal("Check texture alignment", descriptors[0].DisplayName);
+        Assert.Equal("CheckTextureAlignment", descriptors[0].ClassName);
+        Assert.Equal("errorchecks.checktexturealignment", descriptors[0].SettingsKey);
         Assert.False(descriptors[0].DefaultChecked);
         Assert.Equal(1000, descriptors[0].Cost);
         Assert.Equal("Check very short linedefs", descriptors[^1].DisplayName);
+        Assert.Equal("CheckShortLinedefs", descriptors[^1].ClassName);
+        Assert.Equal("errorchecks.checkshortlinedefs", descriptors[^1].SettingsKey);
         Assert.False(descriptors[^1].DefaultChecked);
         Assert.Equal(10, descriptors[^1].Cost);
         Assert.Equal(descriptors.Select(descriptor => descriptor.Cost).OrderDescending(), descriptors.Select(descriptor => descriptor.Cost));
+        Assert.Equal(descriptors.Count, descriptors.Select(descriptor => descriptor.SettingsKey).Distinct(StringComparer.Ordinal).Count());
         Assert.Equal("Check invalid sectors", descriptors.Single(descriptor => descriptor.IssueKinds.Contains(MapIssueKind.UnclosedSector)).ToString());
+        Assert.Equal("errorchecks.checkclosedsectors", descriptors.Single(descriptor => descriptor.DisplayName == "Check invalid sectors").SettingsKey);
         Assert.Contains(MapIssueKind.LinedefMissingFront, descriptors.Single(descriptor => descriptor.DisplayName == "Check line references").IssueKinds);
         Assert.Contains(MapIssueKind.UnknownThingAction, descriptors.Single(descriptor => descriptor.DisplayName == "Check unknown actions/effects").IssueKinds);
         Assert.DoesNotContain(MapIssueKind.ZeroLengthLinedef, descriptors.SelectMany(descriptor => descriptor.IssueKinds));

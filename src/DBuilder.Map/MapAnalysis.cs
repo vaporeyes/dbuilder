@@ -83,10 +83,13 @@ public sealed record MapIssueFixOptions(
 
 public sealed record MapErrorCheckerDescriptor(
     string DisplayName,
+    string ClassName,
     bool DefaultChecked,
     int Cost,
     IReadOnlyList<MapIssueKind> IssueKinds)
 {
+    public string SettingsKey => "errorchecks." + ClassName.ToLowerInvariant();
+
     public override string ToString() => DisplayName;
 }
 
@@ -230,28 +233,28 @@ public static class MapAnalysis
 {
     public static IReadOnlyList<MapErrorCheckerDescriptor> CheckerDescriptors { get; } =
     [
-        new("Check texture alignment", false, 1000, [MapIssueKind.MisalignedTexture]),
-        new("Check stuck things", true, 1000, [MapIssueKind.ThingOutsideMap, MapIssueKind.ThingStuckInLinedef, MapIssueKind.ThingStuckInThing]),
-        new("Check overlapping lines", true, 500, [MapIssueKind.OverlappingLinedefs]),
-        new("Check overlapping vertices", true, 500, [MapIssueKind.OverlappingVertices, MapIssueKind.VertexOverlappingLinedef]),
-        new("Check invalid sectors", true, 300, [MapIssueKind.EmptySector, MapIssueKind.UnclosedSector, MapIssueKind.InvalidSector]),
-        new("Check polyobjects", true, 100, [MapIssueKind.InvalidPolyobject]),
-        new("Check missing textures", true, 80, [MapIssueKind.MissingTexture]),
-        new("Check unknown textures", true, 60, [MapIssueKind.UnknownTexture]),
-        new("Check unused textures", true, 60, [MapIssueKind.UnusedTexture]),
-        new("Check unknown ACS scripts", true, 50, [MapIssueKind.UnknownLinedefScript, MapIssueKind.UnknownThingScript]),
-        new("Check line references", true, 50, [MapIssueKind.LinedefMissingFront, MapIssueKind.LinedefWithoutSidedefs, MapIssueKind.LinedefNotDoubleSided, MapIssueKind.LinedefNotSingleSided]),
-        new("Check off-grid vertices", true, 50, [MapIssueKind.OffGridVertex]),
-        new("Check map size", true, 50, [MapIssueKind.MapTooBig]),
-        new("Check missing activations", true, 50, [MapIssueKind.MissingActivation]),
-        new("Check unknown actions/effects", true, 50, [MapIssueKind.UnknownAction, MapIssueKind.UnknownSectorEffect, MapIssueKind.UnknownThingAction]),
-        new("Check unknown things", true, 50, [MapIssueKind.UnknownThingType]),
-        new("Check unconnected vertices", true, 50, [MapIssueKind.UnusedVertex]),
-        new("Check obsolete things", true, 50, [MapIssueKind.ObsoleteThingType]),
-        new("Check unused things", true, 50, [MapIssueKind.UnusedThing]),
-        new("Check missing flats", true, 40, [MapIssueKind.MissingFlat]),
-        new("Check unknown flats", true, 40, [MapIssueKind.UnknownFlat]),
-        new("Check very short linedefs", false, 10, [MapIssueKind.ShortLinedef]),
+        new("Check texture alignment", "CheckTextureAlignment", false, 1000, [MapIssueKind.MisalignedTexture]),
+        new("Check stuck things", "CheckStuckThings", true, 1000, [MapIssueKind.ThingOutsideMap, MapIssueKind.ThingStuckInLinedef, MapIssueKind.ThingStuckInThing]),
+        new("Check overlapping lines", "CheckOverlappingLines", true, 500, [MapIssueKind.OverlappingLinedefs]),
+        new("Check overlapping vertices", "CheckOverlappingVertices", true, 500, [MapIssueKind.OverlappingVertices, MapIssueKind.VertexOverlappingLinedef]),
+        new("Check invalid sectors", "CheckClosedSectors", true, 300, [MapIssueKind.EmptySector, MapIssueKind.UnclosedSector, MapIssueKind.InvalidSector]),
+        new("Check polyobjects", "CheckPolyobjects", true, 100, [MapIssueKind.InvalidPolyobject]),
+        new("Check missing textures", "CheckMissingTextures", true, 80, [MapIssueKind.MissingTexture]),
+        new("Check unknown textures", "CheckUnknownTextures", true, 60, [MapIssueKind.UnknownTexture]),
+        new("Check unused textures", "CheckUnusedTextures", true, 60, [MapIssueKind.UnusedTexture]),
+        new("Check unknown ACS scripts", "CheckUnknownScripts", true, 50, [MapIssueKind.UnknownLinedefScript, MapIssueKind.UnknownThingScript]),
+        new("Check line references", "CheckLineReferences", true, 50, [MapIssueKind.LinedefMissingFront, MapIssueKind.LinedefWithoutSidedefs, MapIssueKind.LinedefNotDoubleSided, MapIssueKind.LinedefNotSingleSided]),
+        new("Check off-grid vertices", "CheckOffGridVertices", true, 50, [MapIssueKind.OffGridVertex]),
+        new("Check map size", "CheckMapSize", true, 50, [MapIssueKind.MapTooBig]),
+        new("Check missing activations", "CheckMissingActivations", true, 50, [MapIssueKind.MissingActivation]),
+        new("Check unknown actions/effects", "CheckUnknownActions", true, 50, [MapIssueKind.UnknownAction, MapIssueKind.UnknownSectorEffect, MapIssueKind.UnknownThingAction]),
+        new("Check unknown things", "CheckUnknownThings", true, 50, [MapIssueKind.UnknownThingType]),
+        new("Check unconnected vertices", "CheckStrayVertices", true, 50, [MapIssueKind.UnusedVertex]),
+        new("Check obsolete things", "CheckObsoleteThings", true, 50, [MapIssueKind.ObsoleteThingType]),
+        new("Check unused things", "CheckUnusedThings", true, 50, [MapIssueKind.UnusedThing]),
+        new("Check missing flats", "CheckMissingFlats", true, 40, [MapIssueKind.MissingFlat]),
+        new("Check unknown flats", "CheckUnknownFlats", true, 40, [MapIssueKind.UnknownFlat]),
+        new("Check very short linedefs", "CheckShortLinedefs", false, 10, [MapIssueKind.ShortLinedef]),
     ];
 
     public static IReadOnlyList<MapErrorCheckerDescriptor> DefaultCheckerDescriptors { get; } =
