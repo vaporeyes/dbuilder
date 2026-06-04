@@ -1230,6 +1230,30 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ExpandedThingTypeDefinitionsUseUdbFallbackTitle()
+    {
+        const string cfg = """
+            thingtypes
+            {
+                misc
+                {
+                    9001
+                    {
+                        sprite = "BON1A0";
+                    }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var thing = gc.GetThing(9001);
+        Assert.NotNull(thing);
+        Assert.Equal("<9001>", thing!.Title);
+        Assert.Equal("BON1A0", thing.Sprite);
+    }
+
+    [Fact]
     public void IgnoresInvalidThingCategoryBlocks()
     {
         const string cfg = """

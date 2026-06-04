@@ -1733,7 +1733,7 @@ public sealed class GameConfiguration
                 {
                     Index = number,
                     Category = key,
-                    Title = GetString(child, "title", childKey),
+                    Title = GetString(child, "title", "<" + childKey + ">"),
                     Sprite = GetString(child, "sprite", info.Sprite),
                     LightName = GetString(child, "light", info.LightName),
                     ClassName = GetString(child, "class", ""),
