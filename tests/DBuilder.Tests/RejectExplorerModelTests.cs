@@ -61,6 +61,22 @@ public sealed class RejectExplorerModelTests
     }
 
     [Fact]
+    public void ModeDescriptorMatchesUdbEditModeMetadata()
+    {
+        RejectExplorerModeDescriptor mode = RejectExplorerModel.ModeDescriptor;
+
+        Assert.Equal("Reject Explorer", mode.DisplayName);
+        Assert.Equal("rejectexplorermode", mode.SwitchAction);
+        Assert.Equal("reject.png", mode.ButtonImage);
+        Assert.Equal(int.MinValue + 504, mode.ButtonOrder);
+        Assert.Equal("000_editing", mode.ButtonGroup);
+        Assert.Equal([RejectExplorerModel.DoomMapSetIo, RejectExplorerModel.HexenMapSetIo], mode.SupportedMapFormats);
+        Assert.True(mode.UseByDefault);
+        Assert.True(mode.Volatile);
+        Assert.Equal("/gzdb/features/classic_modes/mode_rejectexplorer.html", mode.HelpPath);
+    }
+
+    [Fact]
     public void ColorSettingsRoundTripUsesUdbPluginKeys()
     {
         var settings = new Dictionary<string, object?>

@@ -1582,6 +1582,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style REJECT lump validation and visibility relation model.
   - [x] Add UDB-style default overlay colors and relation color mapping.
   - [x] Add UDB-style color configuration action, labels, reset metadata, and plugin setting keys.
+  - [x] Add UDB-style Reject Explorer edit-mode metadata.
   - [x] Add UDB-style Reject Explorer action metadata and window command dispatch.
   - [x] Add editor Reject Explorer window for validation, relation summaries, and sector navigation.
   - [x] Render UDB-style Reject Explorer sector overlay colors for highlighted-sector relations.
@@ -2288,6 +2289,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style REJECT lump validation and highlighted-sector visibility relation model.
   - [x] Add UDB-style default overlay colors and relation color mapping.
   - [x] Add UDB-style color configuration action, labels, reset metadata, and plugin setting keys.
+  - [x] Add UDB-style Reject Explorer edit-mode metadata.
   - [x] Add UDB-style Reject Explorer action metadata and window command dispatch.
   - [x] Add non-modal Reject Explorer validation and relation summary window.
   - [x] Render highlighted-sector relation overlay colors in the editor.

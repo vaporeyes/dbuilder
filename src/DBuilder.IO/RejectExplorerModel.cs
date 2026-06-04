@@ -48,6 +48,17 @@ public sealed record RejectExplorerActionDescriptor(
     bool AllowMouse,
     bool AllowScroll);
 
+public sealed record RejectExplorerModeDescriptor(
+    string DisplayName,
+    string SwitchAction,
+    string ButtonImage,
+    int ButtonOrder,
+    string ButtonGroup,
+    IReadOnlyList<string> SupportedMapFormats,
+    bool UseByDefault,
+    bool Volatile,
+    string HelpPath);
+
 public sealed record RejectExplorerColorField(
     string Key,
     string Label,
@@ -68,6 +79,19 @@ public static class RejectExplorerModel
     public const string UnidirectionalToColorKey = "colors.unidirectionalto";
     public const string ColorConfigurationTitle = "Color Configuration";
     public const string ResetColorsText = "Reset colors";
+    public const string DoomMapSetIo = "DoomMapSetIO";
+    public const string HexenMapSetIo = "HexenMapSetIO";
+
+    public static RejectExplorerModeDescriptor ModeDescriptor { get; } = new(
+        "Reject Explorer",
+        "rejectexplorermode",
+        "reject.png",
+        int.MinValue + 504,
+        "000_editing",
+        [DoomMapSetIo, HexenMapSetIo],
+        UseByDefault: true,
+        Volatile: true,
+        "/gzdb/features/classic_modes/mode_rejectexplorer.html");
 
     public static RejectExplorerColorSettings DefaultColors { get; } = new(
         Default: unchecked((int)0xFFA0A0A0),
