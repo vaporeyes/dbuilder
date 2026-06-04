@@ -19,6 +19,16 @@ public sealed class MapControlCommandTests
         => Assert.Equal(expected, MapControl.TexturePasted3DStatusText(textureName, kind));
 
     [Theory]
+    [InlineData("FLOOR0_1", VisualHitKind.Floor, true, "Paste floor \"FLOOR0_1\"")]
+    [InlineData("CEIL1_1", VisualHitKind.Ceiling, true, "Paste ceiling \"CEIL1_1\"")]
+    [InlineData("STARTAN3", VisualHitKind.Wall, true, "Paste texture \"STARTAN3\"")]
+    [InlineData("FLOOR0_1", VisualHitKind.Floor, false, "Change flat \"FLOOR0_1\"")]
+    [InlineData("CEIL1_1", VisualHitKind.Ceiling, false, "Change flat \"CEIL1_1\"")]
+    [InlineData("STARTAN3", VisualHitKind.Wall, false, "Change texture STARTAN3")]
+    public void TextureApplied3DEditNameMatchesUdbTargetKind(string textureName, VisualHitKind kind, bool pasted, string expected)
+        => Assert.Equal(expected, MapControl.TextureApplied3DEditName(textureName, kind, pasted));
+
+    [Theory]
     [InlineData("FLOOR0_1", true, "Copied flat \"FLOOR0_1\".")]
     [InlineData("STARTAN3", false, "Copied texture \"STARTAN3\".")]
     public void TextureCopied3DStatusTextMatchesUdbTargetKind(string textureName, bool flat, string expected)
@@ -727,16 +737,23 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
-    public void ApplyTexture3DUsesUdbStatusForLastAppliedTarget()
+    public void ApplyTexture3DUsesUdbEditNameAndStatusForLastAppliedTarget()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
-        int methodIndex = body.IndexOf("private void ApplyTextureToTarget(string tex)", StringComparison.Ordinal);
-        int loopIndex = body.IndexOf("foreach (var h in targets) ApplyTextureToHit(h, tex);", methodIndex, StringComparison.Ordinal);
+        int chosenIndex = body.IndexOf("ApplyTextureToTarget(name, pasted: false);", StringComparison.Ordinal);
+        int pasteIndex = body.IndexOf("ApplyTextureToTarget(_texClipboard3D!, pasted: true);", chosenIndex, StringComparison.Ordinal);
+        int methodIndex = body.IndexOf("private void ApplyTextureToTarget(string tex, bool pasted)", pasteIndex, StringComparison.Ordinal);
+        int editIndex = body.IndexOf("EditBegun?.Invoke(TextureApplied3DEditName(tex, targets[^1].Kind, pasted));", methodIndex, StringComparison.Ordinal);
+        int loopIndex = body.IndexOf("foreach (var h in targets) ApplyTextureToHit(h, tex);", editIndex, StringComparison.Ordinal);
         int formatterIndex = body.IndexOf("TexturePasted3DStatusText(tex, targets[^1].Kind)", loopIndex, StringComparison.Ordinal);
 
+        Assert.True(chosenIndex >= 0);
+        Assert.True(pasteIndex > chosenIndex);
         Assert.True(methodIndex >= 0);
-        Assert.True(loopIndex > methodIndex);
+        Assert.True(editIndex > methodIndex);
+        Assert.True(loopIndex > editIndex);
         Assert.True(formatterIndex > loopIndex);
+        Assert.DoesNotContain("EditBegun?.Invoke(\"Apply texture\")", body, StringComparison.Ordinal);
         Assert.DoesNotContain("TextureApplied3DStatusText", body, StringComparison.Ordinal);
     }
 
@@ -1106,7 +1123,7 @@ public sealed class MapControlCommandTests
     public void VisualTexturePasteTargetsOnlySurfacesLikeUdb()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
-        int applyIndex = body.IndexOf("private void ApplyTextureToTarget(string tex)", StringComparison.Ordinal);
+        int applyIndex = body.IndexOf("private void ApplyTextureToTarget(string tex, bool pasted)", StringComparison.Ordinal);
         int targetsIndex = body.IndexOf("var targets = TextureApplyTargets3D();", applyIndex, StringComparison.Ordinal);
         int helperIndex = body.IndexOf("private System.Collections.Generic.List<VisualHit> TextureApplyTargets3D()", StringComparison.Ordinal);
         int filterIndex = body.IndexOf("hit.Kind is VisualHitKind.Floor or VisualHitKind.Ceiling or VisualHitKind.Wall", helperIndex, StringComparison.Ordinal);

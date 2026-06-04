@@ -2355,22 +2355,22 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public void ApplyChosenTexture(string name)
     {
         _texClipboard3D = name;
-        ApplyTextureToTarget(name);
+        ApplyTextureToTarget(name, pasted: false);
     }
 
     // Applies the 3D texture clipboard onto the targeted surface (undoable).
     private void ApplyTexture3D()
     {
         if (string.IsNullOrEmpty(_texClipboard3D)) { Target3DChanged?.Invoke("no copied texture (use C or T)"); return; }
-        ApplyTextureToTarget(_texClipboard3D!);
+        ApplyTextureToTarget(_texClipboard3D!, pasted: true);
     }
 
-    private void ApplyTextureToTarget(string tex)
+    private void ApplyTextureToTarget(string tex, bool pasted)
     {
         if (_map == null) return;
         var targets = TextureApplyTargets3D();
         if (targets.Count == 0) { Target3DChanged?.Invoke("aim at a surface to apply texture"); return; }
-        EditBegun?.Invoke("Apply texture");
+        EditBegun?.Invoke(TextureApplied3DEditName(tex, targets[^1].Kind, pasted));
         foreach (var h in targets) ApplyTextureToHit(h, tex);
         _geo3DDirty = true;
         MarkGeometryDirty();
@@ -2386,6 +2386,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             VisualHitKind.Ceiling => $"Pasted flat \"{textureName}\" on ceiling.",
             _ => $"Pasted texture \"{textureName}\".",
         };
+
+    public static string TextureApplied3DEditName(string textureName, VisualHitKind kind, bool pasted)
+        => pasted
+            ? kind switch
+            {
+                VisualHitKind.Floor => $"Paste floor \"{textureName}\"",
+                VisualHitKind.Ceiling => $"Paste ceiling \"{textureName}\"",
+                _ => $"Paste texture \"{textureName}\"",
+            }
+            : kind is VisualHitKind.Floor or VisualHitKind.Ceiling
+                ? $"Change flat \"{textureName}\""
+                : "Change texture " + textureName;
 
     public static string TextureCopied3DStatusText(string textureName, bool flat)
         => flat ? $"Copied flat \"{textureName}\"." : $"Copied texture \"{textureName}\".";
