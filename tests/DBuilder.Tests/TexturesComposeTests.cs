@@ -191,7 +191,7 @@ public class TexturesComposeTests
     public void ComposesClassicTexture1FromNestedWadPnames()
     {
         string pk3 = TestArtifacts.BuildPk3(
-            ("resources/pnames.wad", BuildNestedPnamesWad("REDPAT")),
+            ("pnames.wad", BuildNestedPnamesWad("REDPAT")),
             ("TEXTURE1", BuildClassicTexture1("NESTWALL", 1, 1, (0, 0, 0))),
             ("patches/REDPAT.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 90, 10, 20, 255))));
 

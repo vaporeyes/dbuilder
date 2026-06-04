@@ -92,7 +92,7 @@ public class ResourceStackTests
             ("F_END", Array.Empty<byte>()));
         string pk3 = TestArtifacts.BuildPk3(
             ("flats/PK3ONLY.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 60, 61, 62, 255))),
-            ("resources/nested.wad", BuildNestedWadBytes()));
+            ("nested.wad", BuildNestedWadBytes()));
         string dir = BuildResourceDirectory();
 
         try

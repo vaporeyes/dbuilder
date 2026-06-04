@@ -219,7 +219,33 @@ public class Pk3ResourceTests
     }
 
     [Fact]
-    public void NestedWadInsidePk3ProvidesPaletteAndFlats()
+    public void RootWadInsidePk3ProvidesPaletteAndFlats()
+    {
+        string path = Path.Combine(Path.GetTempPath(), "dbuilder_test_" + Guid.NewGuid().ToString("N") + ".pk3");
+        try
+        {
+            using (var fs = File.Create(path))
+            using (var zip = new ZipArchive(fs, ZipArchiveMode.Create))
+            {
+                using var s = zip.CreateEntry("nested.wad").Open();
+                var bytes = BuildNestedResourceWad();
+                s.Write(bytes, 0, bytes.Length);
+            }
+
+            using var rm = new ResourceManager();
+            rm.AddResource(path);
+
+            Assert.NotNull(rm.Palette);
+            var flat = rm.GetFlat("NESTFLAT");
+            Assert.NotNull(flat);
+            Assert.Equal(64, flat!.Width);
+            Assert.Equal(new byte[] { 42, 42, 42, 255 }, flat.Rgba[0..4]);
+        }
+        finally { File.Delete(path); }
+    }
+
+    [Fact]
+    public void FolderWadInsidePk3DoesNotProvideNestedResourcesLikeUdb()
     {
         string path = Path.Combine(Path.GetTempPath(), "dbuilder_test_" + Guid.NewGuid().ToString("N") + ".pk3");
         try
@@ -235,11 +261,7 @@ public class Pk3ResourceTests
             using var rm = new ResourceManager();
             rm.AddResource(path);
 
-            Assert.NotNull(rm.Palette);
-            var flat = rm.GetFlat("NESTFLAT");
-            Assert.NotNull(flat);
-            Assert.Equal(64, flat!.Width);
-            Assert.Equal(new byte[] { 42, 42, 42, 255 }, flat.Rgba[0..4]);
+            Assert.Null(rm.GetFlat("NESTFLAT"));
         }
         finally { File.Delete(path); }
     }

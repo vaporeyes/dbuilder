@@ -99,7 +99,7 @@ public class ResourcePriorityTests
             ("S_END", []));
         string pk3 = TestArtifacts.BuildPk3(
             ("sprites/POSSA0.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 20, 21, 22, 255))),
-            ("resources/nested.wad", nested));
+            ("nested.wad", nested));
 
         try
         {
@@ -125,7 +125,7 @@ public class ResourcePriorityTests
             ("VX_END", []));
         string pk3 = TestArtifacts.BuildPk3(
             ("voxels/BAR1.kvx", folderVoxel),
-            ("resources/nested.wad", nested));
+            ("nested.wad", nested));
 
         try
         {

@@ -57,7 +57,7 @@ public class HiresResourceTests
         string pk3 = TestArtifacts.BuildPk3(
             ("textures/ROCK.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 9, 9, 9, 255))),
             ("hires/ROCK.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 40, 41, 42, 255))),
-            ("resources/nested.wad", nested));
+            ("nested.wad", nested));
 
         try
         {

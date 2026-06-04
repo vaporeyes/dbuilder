@@ -988,7 +988,7 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
                 return ms.ToArray();
             });
 
-            if (Path.GetExtension(e.FullName).Equals(".wad", StringComparison.OrdinalIgnoreCase))
+            if (isRootWad)
             {
                 using var s = e.Open();
                 var ms = new MemoryStream();
