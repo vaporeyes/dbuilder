@@ -12,7 +12,7 @@ public sealed class TagExplorerModelTests
     [Fact]
     public void ParseSpecialFiltersReadsTagActionAndPolyobjectTokens()
     {
-        var filters = TagExplorerModel.ParseSpecialFilters("alpha #12 text $80 ^7 #bad #15");
+        var filters = TagExplorerModel.ParseSpecialFilters("alpha #12 text $80 ^7 #bad #15 #-2 $+3 ^-4");
 
         Assert.Equal(new[] { 12, 15 }, filters.Tags.Order());
         Assert.Equal(new[] { 80 }, filters.Actions);

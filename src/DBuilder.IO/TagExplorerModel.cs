@@ -591,7 +591,7 @@ public static class TagExplorerModel
     private static int ReadNumber(string text)
     {
         int pos = 0;
-        while (pos < text.Length && (char.IsDigit(text[pos]) || text[pos] == '-' || text[pos] == '+')) pos++;
+        while (pos < text.Length && char.IsDigit(text[pos])) pos++;
         if (pos == 0) return NoPolyobjectNumber;
 
         return int.TryParse(text[..pos], NumberStyles.Integer, CultureInfo.InvariantCulture, out int value)
