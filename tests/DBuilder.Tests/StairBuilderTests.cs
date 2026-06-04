@@ -1046,6 +1046,14 @@ public class StairBuilderTests
     }
 
     [Fact]
+    public void PrefabCollectionFormPlacementMatchesUdbOwnerOffset()
+    {
+        StairBuilderFormPlacement placement = StairBuilderPrefabSettings.FormPlacement;
+
+        Assert.Equal(new StairBuilderFormPlacement(20, 90), placement);
+    }
+
+    [Fact]
     public void PrefabCreatesStraightOptionsForLoadedFormState()
     {
         var prefab = new StairBuilderPrefab

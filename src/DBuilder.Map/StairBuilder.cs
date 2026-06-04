@@ -795,6 +795,8 @@ public enum StairBuilderTab
     Spline = 2
 }
 
+public sealed record StairBuilderFormPlacement(int OwnerOffsetX, int OwnerOffsetY);
+
 public sealed record StairBuilderPrefab
 {
     public string Name { get; init; } = "";
@@ -967,6 +969,7 @@ public static class StairBuilderPrefabSettings
 {
     public const string DefaultPrefabName = "[Default]";
     public const string PreviousPrefabName = "[Previous]";
+    public static StairBuilderFormPlacement FormPlacement { get; } = new(20, 90);
 
     private static readonly IReadOnlyList<StairBuilderTab> AllTabs =
         new[] { StairBuilderTab.Straight, StairBuilderTab.Curved, StairBuilderTab.Spline };
