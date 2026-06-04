@@ -1520,6 +1520,20 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void ShortcutResolutionNormalizesSpecialKeyAliases()
+    {
+        var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]
+        {
+            new EditorShortcutBinding("map2d.fit", EditorCommandScope.Map2D, "Space"),
+            new EditorShortcutBinding("map3d.select-texture", EditorCommandScope.Map3D, "OemBackslash"),
+        });
+
+        Assert.Equal("map2d.fit", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Map2D, "Spacebar"));
+        Assert.Equal("map2d.fit", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Map2D, "SpaceKey"));
+        Assert.Equal("map3d.select-texture", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Map3D, "OemPipe"));
+    }
+
+    [Fact]
     public void DefaultShortcutsResolveMap2DCommands()
     {
         Assert.Equal("map2d.toggle-sector-fills", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "S"));
@@ -2514,7 +2528,7 @@ public class EditorCommandCatalogTests
     public void ParseOverrideTextReadsWinFormsOemKeyNames()
     {
         var overrides = EditorCommandCatalog.ParseOverrideText(
-            "map2d.fit=Oem3; map3d.brightness-down=Oemplus; map3d.brightness-up=Oemcomma; window.tags=Oem7; window.status-history=Oem5; map2d.grid-down=Oem4; map2d.grid-up=Oem6; map3d.select-texture=Oem2; map2d.zoom-out=OemMinus");
+            "map2d.fit=Oem3; map3d.brightness-down=Oemplus; map3d.brightness-up=Oemcomma; window.tags=Oem7; window.status-history=Oem5; map2d.grid-down=Oem4; map2d.grid-up=Oem6; map3d.select-texture=Oem2; map3d.texture-copy=OemPipe; map2d.zoom-out=OemMinus");
 
         Assert.Contains(overrides, b => b.CommandId == "map2d.fit" && b.Key == "OemTilde");
         Assert.Contains(overrides, b => b.CommandId == "map3d.brightness-down" && b.Key == "OemPlus");
@@ -2524,7 +2538,18 @@ public class EditorCommandCatalogTests
         Assert.Contains(overrides, b => b.CommandId == "map2d.grid-down" && b.Key == "OemOpenBrackets");
         Assert.Contains(overrides, b => b.CommandId == "map2d.grid-up" && b.Key == "OemCloseBrackets");
         Assert.Contains(overrides, b => b.CommandId == "map3d.select-texture" && b.Key == "OemQuestion");
+        Assert.Contains(overrides, b => b.CommandId == "map3d.texture-copy" && b.Key == "OemBackslash");
         Assert.Contains(overrides, b => b.CommandId == "map2d.zoom-out" && b.Key == "OemMinus");
+    }
+
+    [Fact]
+    public void ParseOverrideTextReadsSpacebarAliases()
+    {
+        var overrides = EditorCommandCatalog.ParseOverrideText(
+            "map2d.fit=Spacebar; map2d.toggle-3d=SpaceKey");
+
+        Assert.Contains(overrides, b => b.CommandId == "map2d.fit" && b.Key == "Space");
+        Assert.Contains(overrides, b => b.CommandId == "map2d.toggle-3d" && b.Key == "Space");
     }
 
     [Fact]

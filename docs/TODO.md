@@ -155,6 +155,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Normalize configurable shortcut aliases for shifted top-row digit keys.
   - [x] Normalize configurable shortcut aliases for WinForms numpad digit keys.
   - [x] Normalize configurable shortcut aliases for WinForms modifier key names.
+  - [x] Normalize configurable shortcut aliases for Spacebar and WinForms OemPipe keys.
 - [ ] Port command hints and contextual help.
   - [x] Generate status and info-panel command hints from effective command bindings.
   - [x] Show thing placement command hints when entering Things mode.
