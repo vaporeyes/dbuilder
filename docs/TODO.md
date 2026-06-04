@@ -1347,6 +1347,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port script syntax highlighting behavior.
   - [x] Build UDB-style lexer keyword sets for script highlighting.
   - [x] Build UDB-style script autocomplete entries with keyword, property, constant, and snippet icons.
+  - [x] Build UDB-style script autocomplete list text for editor controls.
   - [x] Track UDB-style function call argument positions for script calltips.
   - [x] Build UDB-style script function calltip definitions and argument highlight spans.
 - [ ] Port find-usages behavior.

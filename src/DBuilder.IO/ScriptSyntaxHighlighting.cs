@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DBuilder.IO;
 
@@ -88,6 +89,9 @@ public static class ScriptSyntaxHighlighting
 
         return new List<ScriptAutoCompleteItem>(items.Values);
     }
+
+    public static string BuildAutoCompleteList(ScriptConfigurationInfo scriptConfiguration)
+        => string.Join(" ", BuildAutoCompleteItems(scriptConfiguration).Select(item => item.Entry));
 
     public static ScriptFunctionCallPosition? FindFunctionCallPosition(
         ScriptConfigurationInfo scriptConfiguration,

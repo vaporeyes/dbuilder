@@ -129,6 +129,32 @@ public class ScriptSyntaxHighlightingTests
     }
 
     [Fact]
+    public void BuildsAutocompleteListTextLikeUdb()
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_autocomplete_" + Guid.NewGuid().ToString("N"));
+        string snippets = Path.Combine(dir, "ACS");
+        Directory.CreateDirectory(snippets);
+        try
+        {
+            File.WriteAllText(Path.Combine(snippets, "Door Open.txt"), "Door_Open();");
+            var config = ScriptConfigurationInfo.FromText("""
+                snippetsdir = "ACS";
+                keywords { Function = ""; Script = ""; }
+                constants { OPEN = ""; Script = ""; }
+                properties { Door.Open = ""; }
+                """, dir);
+
+            string list = ScriptSyntaxHighlighting.BuildAutoCompleteList(config);
+
+            Assert.Equal("Function?1 Script?1 Door.Open?4 OPEN?0 Door_Open?3", list);
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
     public void FindsFunctionCallArgumentPositionLikeUdb()
     {
         var config = ScriptConfigurationInfo.FromText("""
