@@ -40,6 +40,20 @@ public sealed class MapControlCommandTests
         => Assert.Equal(expected, MapControl.VisualTextureReset3DStatusText(kind, local));
 
     [Theory]
+    [InlineData(VisualHitKind.Floor, 0.969, 1.016, 32, 64, "Floor scale changed to 0.969, 1.016 (33 x 63).")]
+    [InlineData(VisualHitKind.Ceiling, 0.969, 1.016, 32, 64, "Ceiling scale changed to 0.969, 1.016 (33 x 63).")]
+    [InlineData(VisualHitKind.Wall, 0.969, 1.016, 32, 64, "Wall scale changed to 0.969, 1.016 (33 x 63).")]
+    [InlineData(VisualHitKind.Thing, 1.031, 0.984, 32, 64, "Changed thing scale to 1.031, 0.984 (33 x 63).")]
+    public void VisualScale3DStatusTextMatchesUdbTargetKind(
+        VisualHitKind kind,
+        double scaleX,
+        double scaleY,
+        int width,
+        int height,
+        string expected)
+        => Assert.Equal(expected, MapControl.VisualScale3DStatusText(kind, scaleX, scaleY, width, height));
+
+    [Theory]
     [InlineData(1, "1 surface selected")]
     [InlineData(2, "2 surfaces selected")]
     public void SurfaceSelection3DStatusTextFormatsSingularAndPluralSurfaceCounts(int surfaceCount, string expected)
@@ -336,6 +350,22 @@ public sealed class MapControlCommandTests
         Assert.True(statusIndex > assignmentIndex);
         Assert.DoesNotContain("local texture fields reset", body, StringComparison.Ordinal);
         Assert.DoesNotContain("texture offsets reset", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ChangeVisualScale3DUsesUdbStatusForLastScaledTarget()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private void ChangeVisualScale3D(int incrementX, int incrementY)", StringComparison.Ordinal);
+        int statusVariableIndex = body.IndexOf("string scaleStatus = string.Empty;", methodIndex, StringComparison.Ordinal);
+        int thingStatusIndex = body.IndexOf("scaleStatus = VisualScale3DStatusText(", statusVariableIndex, StringComparison.Ordinal);
+        int finalStatusIndex = body.IndexOf("Target3DChanged?.Invoke(scaleStatus);", thingStatusIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(statusVariableIndex > methodIndex);
+        Assert.True(thingStatusIndex > statusVariableIndex);
+        Assert.True(finalStatusIndex > thingStatusIndex);
+        Assert.DoesNotContain("scaled {changed} target", body, StringComparison.Ordinal);
     }
 
     [Fact]

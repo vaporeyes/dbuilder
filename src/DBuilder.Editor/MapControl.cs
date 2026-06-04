@@ -2712,6 +2712,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         int changed = 0;
         int skipped = 0;
         bool begun = false;
+        string scaleStatus = string.Empty;
         var seenThings = new HashSet<Thing>();
         var seenWalls = new HashSet<(Sidedef Side, SidedefPart Part)>();
         var seenFlats = new HashSet<(Sector Sector, VisualHitKind Kind)>();
@@ -2728,7 +2729,16 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                     incrementY,
                     Math.Max(1, (int)Math.Round(size.radius * 2.0)),
                     Math.Max(1, (int)Math.Round(size.height)));
-                if (adjusted) changed++;
+                if (adjusted)
+                {
+                    changed++;
+                    scaleStatus = VisualScale3DStatusText(
+                        VisualHitKind.Thing,
+                        thing.ScaleX,
+                        thing.ScaleY,
+                        Math.Max(1, (int)Math.Round(size.radius * 2.0)),
+                        Math.Max(1, (int)Math.Round(size.height)));
+                }
             }
             else if (hit.Kind == VisualHitKind.Wall && hit.Line != null && hit.Part != SidedefPart.None)
             {
@@ -2744,7 +2754,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
                 if (!begun) { EditBegun?.Invoke("Change visual scale"); begun = true; }
                 bool adjusted = VisualScaleAdjustment.AdjustWall(side, hit.Part, incrementX, incrementY, image.Width, image.Height);
-                if (adjusted) changed++;
+                if (adjusted)
+                {
+                    changed++;
+                    var scale = WallScale3D(side, hit.Part);
+                    scaleStatus = VisualScale3DStatusText(hit.Kind, scale.X, scale.Y, image.Width, image.Height);
+                }
             }
             else if (hit.Kind is VisualHitKind.Floor or VisualHitKind.Ceiling && hit.Sector is { } sector && seenFlats.Add((sector, hit.Kind)))
             {
@@ -2759,7 +2774,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
                 if (!begun) { EditBegun?.Invoke("Change visual scale"); begun = true; }
                 bool adjusted = VisualScaleAdjustment.AdjustFlatForView(sector, ceiling, incrementX, incrementY, image.Width, image.Height, _yaw);
-                if (adjusted) changed++;
+                if (adjusted)
+                {
+                    changed++;
+                    var scale = FlatScale3D(sector, ceiling);
+                    scaleStatus = VisualScale3DStatusText(hit.Kind, scale.X, scale.Y, image.Width, image.Height);
+                }
             }
         }
 
@@ -2773,8 +2793,40 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
-        Target3DChanged?.Invoke($"scaled {changed} target{(changed == 1 ? "" : "s")}");
+        Target3DChanged?.Invoke(scaleStatus);
     }
+
+    public static string VisualScale3DStatusText(VisualHitKind kind, double scaleX, double scaleY, int width, int height)
+    {
+        int displayWidth = kind == VisualHitKind.Thing
+            ? (int)Math.Round(width * scaleX)
+            : (int)Math.Round(width / scaleX);
+        int displayHeight = kind == VisualHitKind.Thing
+            ? (int)Math.Round(height * scaleY)
+            : (int)Math.Round(height / scaleY);
+        string scale = $"{scaleX.ToString("F03", CultureInfo.InvariantCulture)}, {scaleY.ToString("F03", CultureInfo.InvariantCulture)} ({displayWidth} x {displayHeight}).";
+
+        return kind switch
+        {
+            VisualHitKind.Floor => "Floor scale changed to " + scale,
+            VisualHitKind.Ceiling => "Ceiling scale changed to " + scale,
+            VisualHitKind.Thing => "Changed thing scale to " + scale,
+            _ => "Wall scale changed to " + scale,
+        };
+    }
+
+    private static (double X, double Y) FlatScale3D(Sector sector, bool ceiling)
+        => (
+            sector.GetFloatField(ceiling ? "xscaleceiling" : "xscalefloor", 1.0),
+            sector.GetFloatField(ceiling ? "yscaleceiling" : "yscalefloor", 1.0));
+
+    private static (double X, double Y) WallScale3D(Sidedef side, SidedefPart part)
+        => part switch
+        {
+            SidedefPart.Upper => (side.GetFloatField("scalex_top", 1.0), side.GetFloatField("scaley_top", 1.0)),
+            SidedefPart.Lower => (side.GetFloatField("scalex_bottom", 1.0), side.GetFloatField("scaley_bottom", 1.0)),
+            _ => (side.GetFloatField("scalex_mid", 1.0), side.GetFloatField("scaley_mid", 1.0)),
+        };
 
     private void ResetVisualTexture3D(bool local)
     {
