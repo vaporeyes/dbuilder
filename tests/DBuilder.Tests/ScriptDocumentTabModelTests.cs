@@ -134,11 +134,42 @@ public class ScriptDocumentTabModelTests
         Assert.Equal(resource.Filename, tab.ErrorFilename);
         Assert.Equal("7:zombie.txt", tab.Title);
         Assert.Equal(resource.FilePathName, tab.ToolTip);
+        Assert.Equal(7, tab.ResourceLumpIndex);
         Assert.True(tab.ExplicitSave);
         Assert.False(tab.IsSaveAsRequired);
         Assert.True(tab.IsClosable);
         Assert.False(tab.IsReconfigurable);
         Assert.True(tab.IsReadOnly);
+    }
+
+    [Fact]
+    public void MatchesResourceTabsByPathAndLumpIndexLikeUdb()
+    {
+        var first = ScriptResource.FromText(
+            "maps/test.wad",
+            "test.wad",
+            "SCRIPTS",
+            ScriptType.Acs,
+            "script 1 OPEN {}",
+            lumpIndex: 4);
+        var same = ScriptResource.FromText(
+            "maps/test.wad",
+            "test.wad",
+            "SCRIPTS",
+            ScriptType.Acs,
+            "script 1 OPEN {}",
+            lumpIndex: 4);
+        var duplicateLump = ScriptResource.FromText(
+            "maps/test.wad",
+            "test.wad",
+            "SCRIPTS",
+            ScriptType.Acs,
+            "script 2 OPEN {}",
+            lumpIndex: 9);
+        var tab = ScriptDocumentTabModel.Resource(first);
+
+        Assert.True(tab.MatchesResource(same));
+        Assert.False(tab.MatchesResource(duplicateLump));
     }
 
     [Fact]

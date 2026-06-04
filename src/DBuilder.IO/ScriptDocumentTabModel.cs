@@ -27,7 +27,8 @@ public sealed class ScriptDocumentTabModel
         bool isReconfigurable,
         bool isReadOnly,
         string resourceLocation = "",
-        string errorFilename = "")
+        string errorFilename = "",
+        int resourceLumpIndex = -1)
     {
         TabType = tabType;
         ScriptType = scriptType;
@@ -41,6 +42,7 @@ public sealed class ScriptDocumentTabModel
         IsReadOnly = isReadOnly;
         ResourceLocation = resourceLocation;
         ErrorFilename = errorFilename.Length > 0 ? errorFilename : filename;
+        ResourceLumpIndex = resourceLumpIndex;
     }
 
     public ScriptDocumentTabType TabType { get; }
@@ -66,6 +68,8 @@ public sealed class ScriptDocumentTabModel
     public string ResourceLocation { get; }
 
     public string ErrorFilename { get; }
+
+    public int ResourceLumpIndex { get; }
 
     public string DisplayTitle(bool isChanged)
         => isChanged ? "\u25CF " + Title : Title;
@@ -124,7 +128,8 @@ public sealed class ScriptDocumentTabModel
             isReconfigurable: false,
             resource.IsReadOnly,
             resource.ResourcePath,
-            resource.Filename);
+            resource.Filename,
+            resource.LumpIndex);
 
     public ScriptDocumentSettings GetViewSettings(string text, ScriptDocumentTabViewState viewState)
     {
@@ -160,6 +165,11 @@ public sealed class ScriptDocumentTabModel
         };
     }
 
+    public bool MatchesResource(ScriptResource resource)
+        => TabType == ScriptDocumentTabType.Resource
+            && ResourceLumpIndex == resource.LumpIndex
+            && Filename == resource.FilePathName;
+
     public ScriptDocumentTabModel WithScriptConfiguration(ScriptConfigurationInfo configuration)
     {
         if (!IsReconfigurable) return this;
@@ -180,7 +190,8 @@ public sealed class ScriptDocumentTabModel
             IsReconfigurable,
             IsReadOnly,
             ResourceLocation,
-            ErrorFilename);
+            ErrorFilename,
+            ResourceLumpIndex);
     }
 
     private string SettingsFilename()
