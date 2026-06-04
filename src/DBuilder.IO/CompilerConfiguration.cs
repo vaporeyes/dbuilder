@@ -369,6 +369,19 @@ public static class AcsCompilePreflight
 
 public static class ScriptCompilerErrors
 {
+    public static IReadOnlyList<ScriptCompilerError> Parse(
+        CompilerInfo compiler,
+        IEnumerable<string> lines,
+        string tempPath,
+        string workingDirectory,
+        Func<string, string?>? resolveIncludeFile = null)
+        => compiler.ProgramInterface switch
+        {
+            "BccCompiler" => ParseBcc(lines, tempPath, workingDirectory, resolveIncludeFile),
+            "ZtBccCompiler" => ParseZtBcc(lines, tempPath, workingDirectory, resolveIncludeFile),
+            _ => ParseAcc(lines, tempPath, workingDirectory, resolveIncludeFile),
+        };
+
     public static IReadOnlyList<ScriptCompilerError> ParseAcc(
         IEnumerable<string> lines,
         string tempPath,

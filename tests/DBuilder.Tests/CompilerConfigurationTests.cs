@@ -900,6 +900,35 @@ public class CompilerConfigurationTests
         Assert.Equal(11, error.LineNumber);
     }
 
+    [Theory]
+    [InlineData("AccCompiler", "scripts.acs:12: Unknown function", "Unknown function", 11)]
+    [InlineData("BccCompiler", "scripts.bcs:8:4: Expected semicolon", "Expected semicolon", 7)]
+    [InlineData("ZtBccCompiler", "scripts/main.acs:10:2: Unknown identifier", "Unknown identifier", 9)]
+    public void ScriptCompilerErrorsSelectParserFromCompilerInterface(
+        string compilerInterface,
+        string line,
+        string expectedDescription,
+        int expectedLineNumber)
+    {
+        var compiler = new CompilerInfo(
+            "compiler.cfg",
+            "compiler",
+            "/compilers",
+            "compiler",
+            compilerInterface,
+            new HashSet<string>());
+
+        var errors = ScriptCompilerErrors.Parse(
+            compiler,
+            new[] { line },
+            "/tmp/dbuilder_compile",
+            "/maps/project");
+
+        var error = Assert.Single(errors);
+        Assert.Equal(expectedDescription, error.Description);
+        Assert.Equal(expectedLineNumber, error.LineNumber);
+    }
+
     [Fact]
     public void ScriptCompilerErrorsParseBccErrorLines()
     {
