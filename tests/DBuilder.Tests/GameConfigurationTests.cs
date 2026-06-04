@@ -1918,6 +1918,25 @@ ID # = 31005
     }
 
     [Fact]
+    public void ScalarRequiredArchiveEntriesUseUdbDefaults()
+    {
+        const string cfg = """
+            requiredarchives
+            {
+                gzdoom = "Ignored scalar";
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var archive = Assert.Single(gc.RequiredArchives);
+        Assert.Equal("gzdoom", archive.Name);
+        Assert.Equal("gzdoom.pk3", archive.Filename);
+        Assert.True(archive.NeedExclude);
+        Assert.Empty(archive.Entries);
+    }
+
+    [Fact]
     public void StaticLimitsInterpolateVisplanesMatchesUdbScaling()
     {
         const string cfg = """

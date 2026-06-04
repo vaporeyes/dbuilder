@@ -2488,7 +2488,7 @@ public sealed class GameConfiguration
         foreach (DictionaryEntry e in block)
         {
             string name = e.Key.ToString() ?? "";
-            if (e.Value is not IDictionary archive) continue;
+            IDictionary archive = e.Value as IDictionary ?? new Hashtable();
             var entries = new List<RequiredArchiveEntry>();
             foreach (DictionaryEntry child in archive)
             {
@@ -2501,7 +2501,7 @@ public sealed class GameConfiguration
             }
             requiredArchives.Add(new RequiredArchiveInfo(
                 name,
-                Convert.ToString(archive["filename"], CultureInfo.InvariantCulture) ?? "gzdoom.pk3",
+                GetString(archive, "filename", "gzdoom.pk3"),
                 GetBool(archive, "need_exclude", true),
                 entries));
         }
