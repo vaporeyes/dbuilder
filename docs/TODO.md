@@ -78,6 +78,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Persist the UDB auto-clear sidedef textures preference.
   - [x] Clamp Settings dialog numeric preference input to supported UDB ranges.
   - [x] Show normalized numeric preference defaults in the Settings dialog.
+  - [x] Expose alpha-based texture highlighting in the Settings dialog.
 - [ ] Port pre-command and post-command support.
   - [x] Execute configured before/after Test Map commands.
   - [x] Execute configured before/after Reload Resources commands.

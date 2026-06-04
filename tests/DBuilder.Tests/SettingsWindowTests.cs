@@ -17,4 +17,18 @@ public class SettingsWindowTests
         Assert.NotNull(type.GetConstructor([typeof(DBuilder.IO.Settings)]));
         Assert.NotNull(type.GetField("UdbScriptExternalEditor", BindingFlags.Instance | BindingFlags.Public));
     }
+
+    [Fact]
+    public void SettingsWindowExposesAlphaBasedTextureHighlightingPreference()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("AlphaBasedTextureHighlighting", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCheckBox(\"Alpha-based texture highlighting\", s.AlphaBasedTextureHighlighting)", body, StringComparison.Ordinal);
+        Assert.Contains("AlphaBasedTextureHighlighting = _alphaBasedTextureHighlighting.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.AlphaBasedTextureHighlighting = dlg.AlphaBasedTextureHighlighting;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.SetAlphaBasedTextureHighlighting(_settings.AlphaBasedTextureHighlighting);", mainWindow, StringComparison.Ordinal);
+    }
 }

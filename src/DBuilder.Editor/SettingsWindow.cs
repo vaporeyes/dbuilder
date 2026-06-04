@@ -11,11 +11,12 @@ public sealed class SettingsWindow : PropertyDialog
 {
     private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _statusHistoryLimit, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _pasteTagMode;
-    private readonly CheckBox _autoClearSidedefTextures, _pasteRemoveActions;
+    private readonly CheckBox _autoClearSidedefTextures, _alphaBasedTextureHighlighting, _pasteRemoveActions;
 
     public string? ConfigDir, TestPort, TestIwad, TestPortArgs, NodeBuilderPath, NodeBuilderArgs, UdbScriptExternalEditor;
     public int? MaxRecentFiles;
     public bool AutoClearSidedefTextures;
+    public bool AlphaBasedTextureHighlighting;
     public int DefaultViewMode;
     public int? StatusHistoryLimit;
     public PasteOptions PasteOptions = new();
@@ -39,6 +40,7 @@ public sealed class SettingsWindow : PropertyDialog
         _statusHistoryLimit = AddField("Status history", Settings.StatusHistoryLimitText(s));
         _shortcutOverrides = AddField("Shortcut overrides", EditorCommandCatalog.OverrideText(s.ShortcutOverrides));
         _autoClearSidedefTextures = AddCheckBox("Auto-clear sidedef textures", s.AutoClearSidedefTextures);
+        _alphaBasedTextureHighlighting = AddCheckBox("Alpha-based texture highlighting", s.AlphaBasedTextureHighlighting);
         _defaultViewMode = AddCombo("Default view mode", DefaultViewModeItems(), s.NormalizedDefaultViewMode);
         _pasteTagMode = AddCombo("Pasted tags", PasteTagModeItems(), (int)s.NormalizedPasteOptions.ChangeTags);
         _pasteRemoveActions = AddCheckBox("Remove pasted actions", s.NormalizedPasteOptions.RemoveActions);
@@ -56,6 +58,7 @@ public sealed class SettingsWindow : PropertyDialog
         MaxRecentFiles = Settings.AcceptMaxRecentFilesText(_maxRecentFiles.Text);
         StatusHistoryLimit = Settings.AcceptStatusHistoryLimitText(_statusHistoryLimit.Text);
         AutoClearSidedefTextures = _autoClearSidedefTextures.IsChecked == true;
+        AlphaBasedTextureHighlighting = _alphaBasedTextureHighlighting.IsChecked == true;
         DefaultViewMode = ComboNumber(_defaultViewMode, 0);
         ShortcutOverrides = EditorCommandCatalog.ParseOverrideText(_shortcutOverrides.Text);
         PasteOptions = new PasteOptions
