@@ -1050,7 +1050,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var appliedKinds = new List<PastePropertiesElementKind>();
         bool applied = false;
         bool hasWallTargets = targets.Any(hit => hit.Kind == VisualHitKind.Wall);
-        EditBegun?.Invoke("Paste visual properties");
+        EditBegun?.Invoke(VisualPropertiesPaste3DEditName(availableOptions.Tabs.Select(tab => tab.Kind)));
         WithTemporaryVisualPropertySelection(
             targets,
             () =>
@@ -1124,6 +1124,25 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             PastePropertiesElementKind.Sector => "Pasted sector properties.",
             PastePropertiesElementKind.Thing => "Pasted thing properties.",
             _ => string.Empty,
+        };
+    }
+
+    public static string VisualPropertiesPaste3DEditName(IEnumerable<PastePropertiesElementKind> availableKinds)
+    {
+        var kinds = availableKinds.Distinct().ToArray();
+        if (kinds.Length == 0) return "Paste properties";
+        if (kinds.Contains(PastePropertiesElementKind.Linedef) && kinds.Contains(PastePropertiesElementKind.Sidedef))
+            return "Paste linedef and sidedef properties";
+
+        PastePropertiesElementKind kind = kinds.LastOrDefault();
+        return kind switch
+        {
+            PastePropertiesElementKind.Vertex => "Paste vertex properties",
+            PastePropertiesElementKind.Linedef => "Paste linedef properties",
+            PastePropertiesElementKind.Sidedef => "Paste sidedef properties",
+            PastePropertiesElementKind.Sector => "Paste sector properties",
+            PastePropertiesElementKind.Thing => "Paste thing properties",
+            _ => "Paste properties",
         };
     }
 
