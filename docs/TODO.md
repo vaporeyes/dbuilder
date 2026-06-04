@@ -496,6 +496,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Resolve WAD `IWADINFO` definitions through the resource stack like UDB.
   - [x] Resolve WAD `DEHACKED` patches through the resource stack like UDB.
   - [x] Resolve WAD `CVARINFO` definitions through the resource stack like UDB.
+  - [x] Resolve WAD `LOCKDEFS` definitions through the resource stack like UDB.
 - [ ] Port PK3 reader resource behavior.
   - [x] Load only root-level WAD entries from PK3 resources like UDB.
   - [x] Resolve singular root PK3 lump-style files from the first matching title like UDB.
@@ -504,6 +505,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Resolve root `IWADINFO*` files without nested WAD IWADINFO data like UDB.
   - [x] Resolve root `DEHACKED*` files before nested WAD DEHACKED data like UDB.
   - [x] Resolve root `CVARINFO` title files before nested WAD CVARINFO data like UDB.
+  - [x] Resolve root `LOCKDEFS` title files before nested WAD LOCKDEFS data like UDB.
 - [ ] Port structured PK3 reader behavior.
   - [x] Discover and load maps from nested PK3 archives.
   - [x] Recognize UDB PK3-family archive extensions in nested archive readers.

@@ -1102,6 +1102,26 @@ public sealed class ResourceManager : IDisposable
         return result;
     }
 
+    /// <summary>LOCKDEFS definitions from every resource, oldest first.</summary>
+    public LockDefs GetLockDefs()
+    {
+        var result = new LockDefs();
+        foreach (var reader in readers)
+        {
+            foreach (string text in reader.GetLockdefsLumps())
+            {
+                var defs = LockdefsParser.Parse(text);
+                if (defs.ClearLocks)
+                {
+                    result.ClearLocks = true;
+                    result.Locks.Clear();
+                }
+                result.Locks.AddRange(defs.Locks);
+            }
+        }
+        return result;
+    }
+
     /// <summary>The active palette (first PLAYPAL found searching newest resource first), or UDB's gray fallback when resources define none.</summary>
     public DoomPalette? Palette
     {

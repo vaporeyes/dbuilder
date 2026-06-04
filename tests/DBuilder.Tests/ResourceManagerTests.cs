@@ -70,6 +70,12 @@ public class ResourceManagerTests
     private static byte[] CvarInfoBytes(string name, int value)
         => Encoding.ASCII.GetBytes($"server int {name} = {value.ToString(System.Globalization.CultureInfo.InvariantCulture)};");
 
+    private static byte[] LockdefsBytes(int id, string title, bool clearLocks = false)
+    {
+        string clear = clearLocks ? "clearlocks\n" : "";
+        return Encoding.ASCII.GetBytes($"{clear}lock {id.ToString(System.Globalization.CultureInfo.InvariantCulture)} {{ $title \"{title}\" }}");
+    }
+
     private static WAD BuildWad(params (string name, byte[] data)[] lumps)
     {
         var ms = new MemoryStream();
@@ -240,6 +246,56 @@ public class ResourceManagerTests
             Assert.Equal("extra_cvar", cvars[1].Name);
             Assert.Equal("nested_cvar", cvars[2].Name);
             Assert.Equal("directory_cvar", cvars[3].Name);
+        }
+        finally
+        {
+            File.Delete(nestedWad);
+            File.Delete(pk3);
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ResolvesLockdefsFromWadLumpsWithClearLocks()
+    {
+        using var wad = BuildWad(
+            ("LOCKDEFS", LockdefsBytes(1, "First")),
+            ("LOCKDEFS", LockdefsBytes(2, "Second", clearLocks: true)));
+        using var rm = new ResourceManager();
+
+        rm.AddResource(wad);
+
+        var locks = rm.GetLockDefs();
+        Assert.True(locks.ClearLocks);
+        var lockDef = Assert.Single(locks.Locks);
+        Assert.Equal("2", lockDef.Id);
+        Assert.Equal("Second", lockDef.Title);
+    }
+
+    [Fact]
+    public void FolderResourcesResolveRootLockdefsTitleFilesThenNestedWadsLikeUdb()
+    {
+        string nestedWad = TestArtifacts.BuildPwadFile(("LOCKDEFS", LockdefsBytes(3, "Nested")));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("LOCKDEFS.txt", LockdefsBytes(1, "Root")),
+            ("LOCKDEFS.extra", LockdefsBytes(2, "Extra")),
+            ("nested.wad", File.ReadAllBytes(nestedWad)));
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_lockdefs_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            Directory.CreateDirectory(dir);
+            File.WriteAllBytes(Path.Combine(dir, "LOCKDEFS.txt"), LockdefsBytes(4, "Directory"));
+
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+            rm.AddResource(dir);
+
+            var locks = rm.GetLockDefs().Locks;
+            Assert.Equal(4, locks.Count);
+            Assert.Equal("Root", locks[0].Title);
+            Assert.Equal("Extra", locks[1].Title);
+            Assert.Equal("Nested", locks[2].Title);
+            Assert.Equal("Directory", locks[3].Title);
         }
         finally
         {
