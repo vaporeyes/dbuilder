@@ -946,6 +946,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Keep configured empty enum lists like UDB.
   - [x] Sort linedef activation metadata like UDB.
   - [x] Sort sector effect metadata like UDB.
+  - [x] Sort linedef action and category metadata like UDB.
 - [x] Port configuration inheritance and includes.
 - [x] Port thing categories.
 - [x] Port thing type info behavior.

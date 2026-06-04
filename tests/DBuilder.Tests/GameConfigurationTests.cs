@@ -1285,6 +1285,36 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void LinedefActionsAndCategoriesEnumerateSortedLikeUdb()
+    {
+        const string cfg = """
+            linedeftypes
+            {
+                zeta
+                {
+                    title = "Zeta";
+                    30 { title = "Third"; }
+                }
+                alpha
+                {
+                    title = "Alpha";
+                    10 { title = "First"; }
+                }
+                middle
+                {
+                    title = "Middle";
+                    20 { title = "Second"; }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        Assert.Equal([10, 20, 30], gc.LinedefActions.Values.Select(action => action.Index));
+        Assert.Equal(["alpha", "middle", "zeta"], gc.LinedefActionCategories.Keys);
+    }
+
+    [Fact]
     public void ParsesLinedefActionCategoriesAndMetadata()
     {
         var gc = GameConfiguration.FromText(SampleCfg);

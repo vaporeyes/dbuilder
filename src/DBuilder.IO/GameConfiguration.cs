@@ -1840,6 +1840,9 @@ public sealed class GameConfiguration
                     category.Add(number);
             }
         }
+
+        SortLinedefActions();
+        SortLinedefActionCategories();
     }
 
     private bool AddLinedefAction(int number, LinedefActionInfo action)
@@ -1847,6 +1850,24 @@ public sealed class GameConfiguration
         if (linedefActions.ContainsKey(number)) return false;
         linedefActions.Add(number, action);
         return true;
+    }
+
+    private void SortLinedefActions()
+    {
+        var sorted = new List<KeyValuePair<int, LinedefActionInfo>>(linedefActions);
+        sorted.Sort((left, right) => left.Key.CompareTo(right.Key));
+        linedefActions.Clear();
+        foreach (var action in sorted)
+            linedefActions.Add(action.Key, action.Value);
+    }
+
+    private void SortLinedefActionCategories()
+    {
+        var sorted = new List<KeyValuePair<string, LinedefActionCategoryInfo>>(linedefActionCategories);
+        sorted.Sort((left, right) => string.Compare(left.Key, right.Key, StringComparison.Ordinal));
+        linedefActionCategories.Clear();
+        foreach (var category in sorted)
+            linedefActionCategories.Add(category.Key, category.Value);
     }
 
     private static LinedefActionErrorCheckerExemptions ParseLinedefActionErrorChecker(IDictionary action)
