@@ -2778,7 +2778,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             if (hit.Kind == VisualHitKind.Thing && hit.Thing is { } thing && seenThings.Add(thing))
             {
                 var size = ThingSize3D(thing);
-                if (!begun) { EditBegun?.Invoke("Change visual scale"); begun = true; }
+                if (!begun) { EditBegun?.Invoke(VisualScale3DEditName(hit.Kind)); begun = true; }
                 bool adjusted = VisualScaleAdjustment.AdjustThing(
                     thing,
                     incrementX,
@@ -2808,7 +2808,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                     continue;
                 }
 
-                if (!begun) { EditBegun?.Invoke("Change visual scale"); begun = true; }
+                if (!begun) { EditBegun?.Invoke(VisualScale3DEditName(hit.Kind)); begun = true; }
                 bool adjusted = VisualScaleAdjustment.AdjustWall(side, hit.Part, incrementX, incrementY, image.Width, image.Height);
                 if (adjusted)
                 {
@@ -2828,7 +2828,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                     continue;
                 }
 
-                if (!begun) { EditBegun?.Invoke("Change visual scale"); begun = true; }
+                if (!begun) { EditBegun?.Invoke(VisualScale3DEditName(hit.Kind)); begun = true; }
                 bool adjusted = VisualScaleAdjustment.AdjustFlatForView(sector, ceiling, incrementX, incrementY, image.Width, image.Height, _yaw);
                 if (adjusted)
                 {
@@ -2870,6 +2870,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _ => "Wall scale changed to " + scale,
         };
     }
+
+    public static string VisualScale3DEditName(VisualHitKind kind)
+        => kind switch
+        {
+            VisualHitKind.Thing => "Change thing scale",
+            VisualHitKind.Wall => "Change wall scale",
+            _ => "Change texture scale",
+        };
 
     private static (double X, double Y) FlatScale3D(Sector sector, bool ceiling)
         => (

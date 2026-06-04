@@ -56,6 +56,14 @@ public sealed class MapControlCommandTests
         => Assert.Equal(expected, MapControl.VisualScale3DStatusText(kind, scaleX, scaleY, width, height));
 
     [Theory]
+    [InlineData(VisualHitKind.Floor, "Change texture scale")]
+    [InlineData(VisualHitKind.Ceiling, "Change texture scale")]
+    [InlineData(VisualHitKind.Wall, "Change wall scale")]
+    [InlineData(VisualHitKind.Thing, "Change thing scale")]
+    public void VisualScale3DEditNameMatchesUdbTargetKind(VisualHitKind kind, string expected)
+        => Assert.Equal(expected, MapControl.VisualScale3DEditName(kind));
+
+    [Theory]
     [InlineData(VisualHitKind.Floor, 5.0, "Floor rotation changed to 5")]
     [InlineData(VisualHitKind.Ceiling, 355.0, "Ceiling rotation changed to 355")]
     public void VisualRotation3DStatusTextMatchesUdbTargetKind(VisualHitKind kind, double angle, string expected)
@@ -776,19 +784,26 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
-    public void ChangeVisualScale3DUsesUdbStatusForLastScaledTarget()
+    public void ChangeVisualScale3DUsesUdbEditNamesAndStatusForLastScaledTarget()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
         int methodIndex = body.IndexOf("private void ChangeVisualScale3D(int incrementX, int incrementY)", StringComparison.Ordinal);
         int statusVariableIndex = body.IndexOf("string scaleStatus = string.Empty;", methodIndex, StringComparison.Ordinal);
-        int thingStatusIndex = body.IndexOf("scaleStatus = VisualScale3DStatusText(", statusVariableIndex, StringComparison.Ordinal);
+        int thingEditIndex = body.IndexOf("EditBegun?.Invoke(VisualScale3DEditName(hit.Kind));", statusVariableIndex, StringComparison.Ordinal);
+        int thingStatusIndex = body.IndexOf("scaleStatus = VisualScale3DStatusText(", thingEditIndex, StringComparison.Ordinal);
+        int wallEditIndex = body.IndexOf("EditBegun?.Invoke(VisualScale3DEditName(hit.Kind));", thingStatusIndex, StringComparison.Ordinal);
+        int flatEditIndex = body.IndexOf("EditBegun?.Invoke(VisualScale3DEditName(hit.Kind));", wallEditIndex + 1, StringComparison.Ordinal);
         int finalStatusIndex = body.IndexOf("Target3DChanged?.Invoke(scaleStatus);", thingStatusIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);
         Assert.True(statusVariableIndex > methodIndex);
-        Assert.True(thingStatusIndex > statusVariableIndex);
+        Assert.True(thingEditIndex > statusVariableIndex);
+        Assert.True(thingStatusIndex > thingEditIndex);
+        Assert.True(wallEditIndex > thingStatusIndex);
+        Assert.True(flatEditIndex > wallEditIndex);
         Assert.True(finalStatusIndex > thingStatusIndex);
         Assert.DoesNotContain("scaled {changed} target", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("EditBegun?.Invoke(\"Change visual scale\")", body, StringComparison.Ordinal);
     }
 
     [Fact]
