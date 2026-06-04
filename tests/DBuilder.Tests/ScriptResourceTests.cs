@@ -18,16 +18,43 @@ public class ScriptResourceTests
             ScriptType.Decorate,
             "actor Zombie 3004 {}",
             lumpIndex: 12,
-            isReadOnly: true);
+            isReadOnly: true,
+            parentResourceLocation: "archives/parent.pk3");
 
         string filename = Path.Combine("actors", "monsters", "zombie.txt");
         Assert.Equal(filename, resource.Filename);
         Assert.Equal(Path.Combine(root, filename), resource.FilePathName);
         Assert.Equal(root, resource.ResourcePath);
         Assert.Equal("base.pk3", resource.ResourceDisplayName);
+        Assert.Equal("archives/parent.pk3", resource.ParentResourceLocation);
         Assert.Equal(12, resource.LumpIndex);
         Assert.Equal(ScriptType.Decorate, resource.ScriptType);
         Assert.True(resource.IsReadOnly);
+    }
+
+    [Fact]
+    public void MatchesReloadedResourceContainersLikeUdb()
+    {
+        var directoryResource = ScriptResource.FromText(
+            "archives/base.pk3",
+            "base.pk3",
+            "zscript/actors.txt",
+            ScriptType.ZScript,
+            "");
+        var embeddedWad = ScriptResource.FromText(
+            "/tmp/random/base.wad",
+            "base.wad",
+            "SCRIPTS",
+            ScriptType.Acs,
+            "",
+            lumpIndex: 8,
+            parentResourceLocation: "archives/base.pk3");
+
+        Assert.True(directoryResource.MatchesResourceContainer("archives/base.pk3", "renamed.pk3"));
+        Assert.False(directoryResource.MatchesResourceContainer("archives/other.pk3", "base.pk3"));
+        Assert.True(embeddedWad.MatchesResourceContainer("/tmp/other/base.wad", "base.wad", "archives/base.pk3"));
+        Assert.False(embeddedWad.MatchesResourceContainer("/tmp/random/base.wad", "base.wad", "archives/other.pk3"));
+        Assert.False(embeddedWad.MatchesResourceContainer("/tmp/random/base.wad", "other.wad", "archives/base.pk3"));
     }
 
     [Fact]

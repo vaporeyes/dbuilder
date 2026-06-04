@@ -25,7 +25,8 @@ public sealed class ScriptResource
         ScriptType scriptType,
         Func<string?> loadText,
         int lumpIndex = -1,
-        bool isReadOnly = false)
+        bool isReadOnly = false,
+        string parentResourceLocation = "")
     {
         ResourcePath = resourcePath;
         ResourceDisplayName = resourceDisplayName;
@@ -35,6 +36,7 @@ public sealed class ScriptResource
         this.loadText = loadText;
         LumpIndex = lumpIndex;
         IsReadOnly = isReadOnly;
+        ParentResourceLocation = parentResourceLocation;
     }
 
     public string Filename { get; }
@@ -46,6 +48,8 @@ public sealed class ScriptResource
     public string ResourcePath { get; }
 
     public string ResourceDisplayName { get; }
+
+    public string ParentResourceLocation { get; }
 
     public HashSet<string> Entries { get; } = new(StringComparer.OrdinalIgnoreCase);
 
@@ -60,7 +64,8 @@ public sealed class ScriptResource
         ScriptType scriptType,
         string text,
         int lumpIndex = -1,
-        bool isReadOnly = false)
+        bool isReadOnly = false,
+        string parentResourceLocation = "")
         => new(
             resourcePath,
             resourceDisplayName,
@@ -68,7 +73,8 @@ public sealed class ScriptResource
             scriptType,
             () => text,
             lumpIndex,
-            isReadOnly);
+            isReadOnly,
+            parentResourceLocation);
 
     public bool ContainsText(
         string findText,
@@ -100,6 +106,15 @@ public sealed class ScriptResource
 
         return results;
     }
+
+    public bool MatchesResourceContainer(
+        string resourcePath,
+        string resourceDisplayName,
+        string parentResourceLocation = "")
+        => ParentResourceLocation.Length > 0
+            ? string.Equals(ParentResourceLocation, parentResourceLocation, StringComparison.Ordinal)
+                && string.Equals(ResourceDisplayName, resourceDisplayName, StringComparison.Ordinal)
+            : string.Equals(ResourcePath, resourcePath, StringComparison.Ordinal);
 
     private static string NormalizeFilename(string filename)
         => filename
