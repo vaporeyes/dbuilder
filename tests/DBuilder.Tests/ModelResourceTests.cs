@@ -236,4 +236,28 @@ model Root { Model 0 "root.md3" }
             File.Delete(pk3);
         }
     }
+
+    [Fact]
+    public void WadModeldefIncludesUseLastMatchingLumpLikeUdb()
+    {
+        string wad = TestArtifacts.BuildPwadFile(
+            ("MODELDEF", Encoding.ASCII.GetBytes("""
+#include "MODELINC"
+model Root { Model 0 "root.md3" }
+""")),
+            ("MODELINC", Encoding.ASCII.GetBytes("model OldIncluded { Model 0 \"old.md3\" }")),
+            ("MODELINC", Encoding.ASCII.GetBytes("model NewIncluded { Model 0 \"new.md3\" }")));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(wad);
+
+            Assert.Equal(new[] { "NewIncluded", "Root" }, resources.GetModelDefs().Select(d => d.ActorName).OrderBy(n => n).ToArray());
+        }
+        finally
+        {
+            File.Delete(wad);
+        }
+    }
 }

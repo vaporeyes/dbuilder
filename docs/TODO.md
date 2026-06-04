@@ -489,6 +489,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 - [ ] Port UDB `DataManager` behavior.
 - [ ] Port WAD reader resource behavior.
+  - [x] Resolve named WAD text-resource includes from the last matching lump like UDB.
 - [ ] Port PK3 reader resource behavior.
   - [x] Load only root-level WAD entries from PK3 resources like UDB.
 - [ ] Port structured PK3 reader behavior.

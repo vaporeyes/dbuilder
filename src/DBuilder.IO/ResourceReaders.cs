@@ -413,7 +413,10 @@ internal sealed class WadResourceReader : IResourceReader
         }
     }
 
-    public string? GetTextResource(string name) => GetTextLump(name);
+    public string? GetTextResource(string name)
+        => wad.FindLastLump(name)?.Stream.ReadAllBytes() is { } bytes
+            ? System.Text.Encoding.ASCII.GetString(bytes)
+            : null;
 
     public byte[]? GetLumpBytes(string name) => wad.FindLump(name)?.Stream.ReadAllBytes();
 
