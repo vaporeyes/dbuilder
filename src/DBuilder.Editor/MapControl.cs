@@ -2908,7 +2908,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         {
             if (hit.Kind is VisualHitKind.Floor or VisualHitKind.Ceiling && hit.Sector is { } sector && seenSectors.Add((sector, hit.Kind)))
             {
-                if (!begun) { EditBegun?.Invoke(local ? "Reset local texture offsets" : "Reset texture offsets"); begun = true; }
+                if (!begun) { EditBegun?.Invoke(VisualTextureReset3DEditName(hit.Kind, local)); begun = true; }
                 bool ceiling = hit.Kind == VisualHitKind.Ceiling;
                 if (VisualTextureReset.ResetSectorFlat(sector, ceiling, local)) changed++;
                 resetStatus = VisualTextureReset3DStatusText(hit.Kind, local);
@@ -2921,20 +2921,20 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 if (local)
                 {
                     if (hit.Part == SidedefPart.None || !seenParts.Add((side, hit.Part))) continue;
-                    if (!begun) { EditBegun?.Invoke("Reset local texture offsets"); begun = true; }
+                    if (!begun) { EditBegun?.Invoke(VisualTextureReset3DEditName(hit.Kind, local)); begun = true; }
                     if (VisualTextureReset.ResetSidedefForCommand(side, hit.Part, local: true, isUdmf: _mapFormat == MapFormat.Udmf)) changed++;
                     resetStatus = VisualTextureReset3DStatusText(hit.Kind, local);
                 }
                 else if (seenSides.Add(side))
                 {
-                    if (!begun) { EditBegun?.Invoke("Reset texture offsets"); begun = true; }
+                    if (!begun) { EditBegun?.Invoke(VisualTextureReset3DEditName(hit.Kind, local)); begun = true; }
                     if (VisualTextureReset.ResetSidedefOffsets(side)) changed++;
                     resetStatus = VisualTextureReset3DStatusText(hit.Kind, local);
                 }
             }
             else if (hit.Kind == VisualHitKind.Thing && hit.Thing is { } thing && seenThings.Add(thing))
             {
-                if (!begun) { EditBegun?.Invoke(local ? "Reset thing scale, pitch and roll" : "Reset thing scale"); begun = true; }
+                if (!begun) { EditBegun?.Invoke(VisualTextureReset3DEditName(hit.Kind, local)); begun = true; }
                 if (VisualTextureReset.ResetThing(thing, local)) changed++;
                 resetStatus = VisualTextureReset3DStatusText(hit.Kind, local);
             }
@@ -2963,6 +2963,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             VisualHitKind.Thing => local ? "Thing scale, pitch and roll reset." : "Thing scale reset.",
             VisualHitKind.Floor or VisualHitKind.Ceiling => local ? "Texture offsets, scale, rotation and brightness reset." : "Texture offsets reset.",
             _ => local ? "Local texture offsets, scale and brightness reset." : "Texture offsets reset.",
+        };
+
+    public static string VisualTextureReset3DEditName(VisualHitKind kind, bool local)
+        => kind switch
+        {
+            VisualHitKind.Thing => local ? "Reset thing scale, pitch and roll" : "Reset thing scale",
+            VisualHitKind.Floor or VisualHitKind.Ceiling => local ? "Reset texture offsets, scale, rotation and brightness" : "Reset texture offsets",
+            _ => local ? "Reset local texture offsets, scale and brightness" : "Reset texture offsets",
         };
 
     // Resets the targeted wall's texture offsets to zero, undoable.

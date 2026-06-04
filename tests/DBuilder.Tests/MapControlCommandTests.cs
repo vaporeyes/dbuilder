@@ -42,6 +42,16 @@ public sealed class MapControlCommandTests
         => Assert.Equal(expected, MapControl.VisualTextureReset3DStatusText(kind, local));
 
     [Theory]
+    [InlineData(VisualHitKind.Floor, false, "Reset texture offsets")]
+    [InlineData(VisualHitKind.Ceiling, true, "Reset texture offsets, scale, rotation and brightness")]
+    [InlineData(VisualHitKind.Wall, false, "Reset texture offsets")]
+    [InlineData(VisualHitKind.Wall, true, "Reset local texture offsets, scale and brightness")]
+    [InlineData(VisualHitKind.Thing, false, "Reset thing scale")]
+    [InlineData(VisualHitKind.Thing, true, "Reset thing scale, pitch and roll")]
+    public void VisualTextureReset3DEditNameMatchesUdbTargetKind(VisualHitKind kind, bool local, string expected)
+        => Assert.Equal(expected, MapControl.VisualTextureReset3DEditName(kind, local));
+
+    [Theory]
     [InlineData(VisualHitKind.Floor, 0.969, 1.016, 32, 64, "Floor scale changed to 0.969, 1.016 (33 x 63).")]
     [InlineData(VisualHitKind.Ceiling, 0.969, 1.016, 32, 64, "Ceiling scale changed to 0.969, 1.016 (33 x 63).")]
     [InlineData(VisualHitKind.Wall, 0.969, 1.016, 32, 64, "Wall scale changed to 0.969, 1.016 (33 x 63).")]
@@ -772,13 +782,16 @@ public sealed class MapControlCommandTests
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
         int methodIndex = body.IndexOf("private void ResetVisualTexture3D(bool local)", StringComparison.Ordinal);
         int initialIndex = body.IndexOf("string resetStatus = VisualTextureReset3DStatusText(VisualHitKind.Wall, local);", methodIndex, StringComparison.Ordinal);
-        int assignmentIndex = body.IndexOf("resetStatus = VisualTextureReset3DStatusText(hit.Kind, local);", initialIndex, StringComparison.Ordinal);
+        int editNameIndex = body.IndexOf("EditBegun?.Invoke(VisualTextureReset3DEditName(hit.Kind, local));", initialIndex, StringComparison.Ordinal);
+        int assignmentIndex = body.IndexOf("resetStatus = VisualTextureReset3DStatusText(hit.Kind, local);", editNameIndex, StringComparison.Ordinal);
         int statusIndex = body.IndexOf("Target3DChanged?.Invoke(resetStatus);", assignmentIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);
         Assert.True(initialIndex > methodIndex);
-        Assert.True(assignmentIndex > initialIndex);
+        Assert.True(editNameIndex > initialIndex);
+        Assert.True(assignmentIndex > editNameIndex);
         Assert.True(statusIndex > assignmentIndex);
+        Assert.DoesNotContain("EditBegun?.Invoke(\"Reset local texture offsets\")", body, StringComparison.Ordinal);
         Assert.DoesNotContain("local texture fields reset", body, StringComparison.Ordinal);
         Assert.DoesNotContain("texture offsets reset", body, StringComparison.Ordinal);
     }
