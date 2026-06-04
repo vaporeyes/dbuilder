@@ -102,6 +102,37 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void DuplicateThingTypeNumbersKeepFirstDefinitionLikeUdb()
+    {
+        const string cfg = """
+            thingtypes
+            {
+                first
+                {
+                    title = "First Category";
+                    color = 4;
+                    3001 { title = "First Thing"; sprite = "FIRSA1"; }
+                }
+                second
+                {
+                    title = "Second Category";
+                    color = 12;
+                    3001 { title = "Second Thing"; sprite = "SECOA1"; }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var thing = gc.GetThing(3001);
+        Assert.NotNull(thing);
+        Assert.Equal("First Thing", thing!.Title);
+        Assert.Equal("FIRSA1", thing.Sprite);
+        Assert.Equal("first", thing.Category);
+        Assert.Equal(4, thing.Color);
+    }
+
+    [Fact]
     public void ParsesMapNameFormat()
     {
         var gc = GameConfiguration.FromText("mapnameformat = \"ExMy\";");

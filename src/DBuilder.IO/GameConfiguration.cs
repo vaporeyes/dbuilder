@@ -1699,7 +1699,7 @@ public sealed class GameConfiguration
                 if (e.Value is string scalarTitle)
                 {
                     bool scalarAbsoluteZ = info.AbsoluteZ;
-                    things[number] = new ThingTypeInfo
+                    AddThingType(number, new ThingTypeInfo
                     {
                         Index = number,
                         Category = key,
@@ -1719,14 +1719,14 @@ public sealed class GameConfiguration
                         FixedRotation = info.FixedRotation,
                         AbsoluteZ = scalarAbsoluteZ,
                         SpriteScale = info.SpriteScale,
-                    };
+                    });
                     continue;
                 }
 
                 if (e.Value is not IDictionary child) continue;
                 bool fixedSize = GetBool(child, "fixedsize", info.FixedSize);
                 bool absoluteZ = GetBool(child, "absolutez", info.AbsoluteZ);
-                things[number] = new ThingTypeInfo
+                AddThingType(number, new ThingTypeInfo
                 {
                     Index = number,
                     Category = key,
@@ -1753,7 +1753,7 @@ public sealed class GameConfiguration
                     FlagsRename = ParseFlagsRename(child),
                     AddUniversalFields = ParseAddUniversalFields(child),
                     Args = ParseArgs(child),
-                };
+                });
             }
             else
             {
@@ -1761,6 +1761,11 @@ public sealed class GameConfiguration
                 ParseThingCategory(key + "." + childKey, child, info);
             }
         }
+    }
+
+    private void AddThingType(int number, ThingTypeInfo thing)
+    {
+        if (!things.ContainsKey(number)) things.Add(number, thing);
     }
 
     private static bool IsValidThingCategory(IDictionary cat, string key, string title)

@@ -923,6 +923,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Parse file title style metadata.
   - [x] Parse colormap range metadata.
   - [x] Parse texture, flat, patch, sprite, hires, and voxel range metadata.
+  - [x] Preserve the first configured thing type when duplicate thing numbers are defined like UDB.
 - [x] Port configuration inheritance and includes.
 - [x] Port thing categories.
 - [x] Port thing type info behavior.
