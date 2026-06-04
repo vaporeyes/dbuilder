@@ -1724,6 +1724,37 @@ ACTOR FancyImp replaces DoomImp
     }
 
     [Fact]
+    public void MergeActorsPreservesExplicitZeroHeightLikeUdb()
+    {
+        const string cfg = @"
+thingtypes
+{
+    decorations
+    {
+        31023
+        {
+            title = ""Configured Thing"";
+            class = ""ZeroHeightThing"";
+            height = 56;
+        }
+    }
+}";
+        const string decorate = @"
+ACTOR ZeroHeightThing 31023
+{
+    Height 0
+    Radius 16
+}";
+
+        var gc = GameConfiguration.FromText(cfg);
+        gc.MergeActors(DecorateParser.Parse(decorate));
+
+        var info = gc.GetThing(31023);
+        Assert.NotNull(info);
+        Assert.Equal(0, info!.Height);
+    }
+
+    [Fact]
     public void MergeActorsRecategorizesReplacementActorWithExplicitCategory()
     {
         const string cfg = @"

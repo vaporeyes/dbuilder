@@ -1021,6 +1021,26 @@ class ZeroScaleZThing : Actor
     }
 
     [Fact]
+    public void MergesZScriptActorsPreservesExplicitZeroHeightLikeUdb()
+    {
+        const string zscript = @"
+class ZeroHeightZThing : Actor
+{
+    Default { Radius 24; Height 0; }
+    States { Spawn: ZZHT A -1; stop; }
+}";
+        var actors = ZScriptParser.Parse(zscript);
+        var doomEdNums = MapInfo.Parse("DoomEdNums { 9058 = ZeroHeightZThing }").DoomEdNums;
+
+        var gc = GameConfiguration.FromText("");
+        gc.MergeActors(actors, doomEdNums);
+
+        var info = gc.GetThing(9058);
+        Assert.NotNull(info);
+        Assert.Equal(0, info!.Height);
+    }
+
+    [Fact]
     public void MergesZScriptActorsPreservesExistingRenderStyleWhenActorIgnoresRenderStyle()
     {
         const string cfg = @"

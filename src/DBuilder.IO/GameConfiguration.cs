@@ -947,7 +947,7 @@ public sealed class GameConfiguration
             Width = SafeThingWidth(actorWidth, fixedSize),
             RenderRadius = ActorRenderRadius(actor, actorWidth, fallback),
             DistanceCheckSq = ActorDistanceCheckSq(actor, fallback, cvars),
-            Height = actor.Height > 0 ? actor.Height : fallback?.Height ?? 16,
+            Height = actor.Properties.ContainsKey("height") ? actor.Height : fallback?.Height ?? 16,
             Alpha = ActorAlpha(actor, fallback),
             RenderStyle = ActorRenderStyle(actor, fallback),
             Bright = actor.StateBright || ActorFlag(actor, "bright"),
