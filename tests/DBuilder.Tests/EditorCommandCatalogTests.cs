@@ -2551,6 +2551,24 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void ParseOverrideTextReadsShiftedTopRowDigitKeys()
+    {
+        var overrides = EditorCommandCatalog.ParseOverrideText(
+            "window.clear-group-1=Shift+!; window.clear-group-2=Shift+@; window.clear-group-3=Shift+#; window.clear-group-4=Shift+$; window.clear-group-5=Shift+%; window.clear-group-6=Shift+^; window.clear-group-7=Shift+&; window.clear-group-8=Shift+*; window.clear-group-9=Shift+(; window.clear-group-10=Shift+)");
+
+        Assert.Contains(overrides, b => b.CommandId == "window.clear-group-1" && b.Key == "D1" && b.Shift);
+        Assert.Contains(overrides, b => b.CommandId == "window.clear-group-2" && b.Key == "D2" && b.Shift);
+        Assert.Contains(overrides, b => b.CommandId == "window.clear-group-3" && b.Key == "D3" && b.Shift);
+        Assert.Contains(overrides, b => b.CommandId == "window.clear-group-4" && b.Key == "D4" && b.Shift);
+        Assert.Contains(overrides, b => b.CommandId == "window.clear-group-5" && b.Key == "D5" && b.Shift);
+        Assert.Contains(overrides, b => b.CommandId == "window.clear-group-6" && b.Key == "D6" && b.Shift);
+        Assert.Contains(overrides, b => b.CommandId == "window.clear-group-7" && b.Key == "D7" && b.Shift);
+        Assert.Contains(overrides, b => b.CommandId == "window.clear-group-8" && b.Key == "D8" && b.Shift);
+        Assert.Contains(overrides, b => b.CommandId == "window.clear-group-9" && b.Key == "D9" && b.Shift);
+        Assert.Contains(overrides, b => b.CommandId == "window.clear-group-10" && b.Key == "D0" && b.Shift);
+    }
+
+    [Fact]
     public void ParseOverrideTextReadsUdbStyleMouseButtonKeys()
     {
         var overrides = EditorCommandCatalog.ParseOverrideText(
