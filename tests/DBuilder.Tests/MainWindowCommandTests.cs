@@ -448,4 +448,13 @@ public sealed class MainWindowCommandTests
         Assert.Equal("Dialog Editor...", UsdfDialogEditorModel.MenuItem.Text);
         Assert.Contains("Header=\"USDF _Dialog Editor...\"", body, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void UsdfWindowUsesDialogEditorDefaultDimensions()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/UsdfConversationWindow.cs"));
+
+        Assert.Contains("Width = UsdfDialogEditorModel.DefaultClientWidth;", body, StringComparison.Ordinal);
+        Assert.Contains("Height = UsdfDialogEditorModel.DefaultClientHeight;", body, StringComparison.Ordinal);
+    }
 }

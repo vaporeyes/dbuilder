@@ -15,8 +15,8 @@ public sealed class UsdfConversationWindow : Window
     public UsdfConversationWindow(UsdfParseResult result)
     {
         Title = UsdfDialogEditorModel.MainFormTitle;
-        Width = 760;
-        Height = 560;
+        Width = UsdfDialogEditorModel.DefaultClientWidth;
+        Height = UsdfDialogEditorModel.DefaultClientHeight;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
         var root = new DockPanel { Margin = new Thickness(10) };
