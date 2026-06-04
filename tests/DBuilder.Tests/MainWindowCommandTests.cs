@@ -175,6 +175,7 @@ public sealed class MainWindowCommandTests
         int buildOptionsIndex = body.IndexOf("BuildObjTerrainImportOptions(dialog.ResultUseVertexHeights)", parseIndex, StringComparison.Ordinal);
         int optionsMethodIndex = body.IndexOf("private ObjTerrainImportOptions BuildObjTerrainImportOptions(bool useVertexHeights)", buildOptionsIndex, StringComparison.Ordinal);
         int useVertexHeightsIndex = body.IndexOf("UseVertexHeights: useVertexHeights", optionsMethodIndex, StringComparison.Ordinal);
+        int createHeightThingsIndex = body.IndexOf("CreateVertexHeightThings: useVertexHeights && _mapFormat != MapFormat.Udmf", useVertexHeightsIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);
         Assert.True(dialogIndex > methodIndex);
@@ -183,6 +184,7 @@ public sealed class MainWindowCommandTests
         Assert.True(buildOptionsIndex > parseIndex);
         Assert.True(optionsMethodIndex > buildOptionsIndex);
         Assert.True(useVertexHeightsIndex > optionsMethodIndex);
+        Assert.True(createHeightThingsIndex > useVertexHeightsIndex);
     }
 
     [Fact]

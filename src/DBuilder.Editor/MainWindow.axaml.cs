@@ -5124,7 +5124,8 @@ public partial class MainWindow : Window
             DefaultFloorTexture: FirstNonBlankOr("FLOOR0_1", _mapOptions?.DefaultFloorTexture ?? "", _config?.DefaultFloorTexture ?? ""),
             DefaultCeilingTexture: FirstNonBlankOr("F_SKY1", _mapOptions?.DefaultCeilingTexture ?? "", _config?.DefaultCeilingTexture ?? ""),
             DefaultWallTexture: FirstNonBlankOr("STARTAN3", _mapOptions?.DefaultWallTexture ?? "", _config?.DefaultWallTexture ?? ""),
-            UseVertexHeights: useVertexHeights);
+            UseVertexHeights: useVertexHeights,
+            CreateVertexHeightThings: useVertexHeights && _mapFormat != MapFormat.Udmf);
     }
 
     private void OnApplySlopeArch(object? sender, RoutedEventArgs e)
