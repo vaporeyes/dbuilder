@@ -281,4 +281,16 @@ public sealed class TagRangeModelTests
 
         Assert.Equal(new[] { 2, 3, 4, 5, 6 }, TagRangeModel.CollectUsedTags(map).Order());
     }
+
+    [Fact]
+    public void CollectUsedTagsIncludesMoreIdsWhenPrimaryTagIsZeroLikeUdbForAllTags()
+    {
+        var map = new MapSet();
+        map.AddSector().Tags.AddRange(new[] { 0, 2 });
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        line.Tags.AddRange(new[] { 0, 3 });
+        map.AddThing(new Vector2D(8, 8), 1).Tag = 4;
+
+        Assert.Equal(new[] { 2, 3, 4 }, TagRangeModel.CollectUsedTags(map).Order());
+    }
 }

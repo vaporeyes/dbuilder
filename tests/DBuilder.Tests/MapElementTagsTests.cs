@@ -74,6 +74,19 @@ public class MapElementTagsTests
     }
 
     [Fact]
+    public void MapSetGetNewTagCountsMoreIdsWhenPrimaryTagIsZeroLikeUdbForAllTags()
+    {
+        var map = new MapSet();
+        map.AddThing(new Vector2D(0, 0), 3001).Tag = 1;
+        var sector = map.AddSector();
+        sector.Tags.AddRange(new[] { 0, 2 });
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        line.Tags.AddRange(new[] { 0, 3 });
+
+        Assert.Equal(4, map.GetNewTag(maxTag: 8));
+    }
+
+    [Fact]
     public void MapSetGetNewTagCanScopeToMarkedGeometry()
     {
         var map = new MapSet();
