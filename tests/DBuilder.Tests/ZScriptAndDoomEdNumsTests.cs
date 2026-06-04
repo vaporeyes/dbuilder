@@ -1147,6 +1147,26 @@ class MissingGotoSemicolonZThing : Actor
     }
 
     [Fact]
+    public void ResolvesZScriptGotoToDottedStateLabelsLikeUdb()
+    {
+        const string zscript = @"
+class DottedStateGotoZThing : Actor
+{
+    States
+    {
+    Spawn:
+        goto Ready.Fire;
+    Ready.Fire:
+        DOTS A -1;
+        Stop;
+    }
+}";
+        var actor = ZScriptParser.Parse(zscript).Single();
+
+        Assert.Equal("DOTSA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void DoesNotUseZScriptStateFrameWithoutRequiredSemicolon()
     {
         const string zscript = @"

@@ -1415,10 +1415,9 @@ public static class DecorateParser
                     && (!zscriptBody || TryConsumeZScriptStateGotoSemicolon(t, ref i)))
                     actor.StateGotos[currentState] = target;
             }
-            else if (inStates && tk.Kind == Kind.Word && IsStateLabel(t, i))
+            else if (inStates && tk.Kind == Kind.Word && TryReadStateLabel(t, tk.Text, ref i, out var stateLabel))
             {
-                currentState = tk.Text;
-                i++;
+                currentState = stateLabel;
             }
         }
 
@@ -1529,6 +1528,24 @@ public static class DecorateParser
         && t[colonIndex].Kind == Kind.Sym
         && t[colonIndex].Text == ":"
         && !(colonIndex + 1 < t.Count && t[colonIndex + 1].Kind == Kind.Sym && t[colonIndex + 1].Text == ":");
+
+    private static bool TryReadStateLabel(List<Tok> t, string first, ref int i, out string stateLabel)
+    {
+        stateLabel = first;
+        int j = i;
+        while (j + 1 < t.Count
+            && t[j].Kind == Kind.Sym
+            && t[j].Text == "."
+            && t[j + 1].Kind == Kind.Word)
+        {
+            stateLabel += "." + t[j + 1].Text;
+            j += 2;
+        }
+
+        if (!IsStateLabel(t, j)) return false;
+        i = j + 1;
+        return true;
+    }
 
     private static bool IsMalformedZScriptStateSpriteName(string spriteName, List<Tok> t, int frameIndex)
         => spriteName.Length > 4
@@ -1781,24 +1798,22 @@ public static class DecorateParser
     private static bool TryReadStateGoto(List<Tok> t, ref int i, bool allowSingleColonClassTarget, out StateGotoTarget target)
     {
         target = default;
-        if (i >= t.Count || t[i].Kind is not (Kind.Word or Kind.Str)) return false;
 
-        string first = t[i++].Text;
+        if (!TryReadStateTargetName(t, ref i, out string first)) return false;
         string? className = null;
         string stateName = first;
         int spriteOffset = 0;
         if (i + 1 < t.Count && t[i].Text == ":" && t[i + 1].Text == ":")
         {
             i += 2;
-            if (i >= t.Count || t[i].Kind is not (Kind.Word or Kind.Str)) return false;
+            if (!TryReadStateTargetName(t, ref i, out stateName)) return false;
             className = first;
-            stateName = t[i++].Text;
         }
         else if (allowSingleColonClassTarget && i + 1 < t.Count && t[i].Text == ":" && t[i + 1].Kind is Kind.Word or Kind.Str)
         {
             i++;
             className = first;
-            stateName = t[i++].Text;
+            if (!TryReadStateTargetName(t, ref i, out stateName)) return false;
         }
 
         stateName = ReadStateNameAndOffset(stateName, ref spriteOffset);
@@ -1815,6 +1830,24 @@ public static class DecorateParser
         }
         if (stateName.Length == 0) return false;
         target = new StateGotoTarget(className, stateName, spriteOffset);
+        return true;
+    }
+
+    private static bool TryReadStateTargetName(List<Tok> t, ref int i, out string name)
+    {
+        name = "";
+        if (i >= t.Count || t[i].Kind is not (Kind.Word or Kind.Str)) return false;
+
+        name = t[i++].Text;
+        while (i + 1 < t.Count
+            && t[i].Kind == Kind.Sym
+            && t[i].Text == "."
+            && t[i + 1].Kind == Kind.Word)
+        {
+            name += "." + t[i + 1].Text;
+            i += 2;
+        }
+
         return true;
     }
 
