@@ -2636,7 +2636,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (TargetSidedefPart3D() is not { } target) { Target3DChanged?.Invoke("aim at a wall to copy offsets"); return; }
         bool localOffsets = _mapFormat == MapFormat.Udmf && _gameConfig?.UseLocalSidedefTextureOffsets == true;
         _texOffsetClipboard3D = VisualSidedefTextureOffsets.Copy(target.Side, target.Part, localOffsets);
-        Target3DChanged?.Invoke($"copied offsets {_texOffsetClipboard3D.Value.X}, {_texOffsetClipboard3D.Value.Y}");
+        Target3DChanged?.Invoke(TextureOffsetsCopied3DStatusText(_texOffsetClipboard3D.Value.X, _texOffsetClipboard3D.Value.Y));
     }
 
     private void PasteTextureOffsets3D()
@@ -2658,8 +2658,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
-        Target3DChanged?.Invoke($"pasted offsets to {targetCount} wall{(targetCount == 1 ? "" : "s")}");
+        Target3DChanged?.Invoke(TextureOffsetsPasted3DStatusText(offsets.X, offsets.Y));
     }
+
+    public static string TextureOffsetsCopied3DStatusText(int x, int y)
+        => $"Copied texture offsets {x}, {y}.";
+
+    public static string TextureOffsetsPasted3DStatusText(int x, int y)
+        => $"Pasted texture offsets {x}, {y}.";
 
     private void FitSelectedVisualTextures3D()
     {

@@ -22,6 +22,13 @@ public sealed class MapControlCommandTests
     public void TextureCopied3DStatusTextMatchesUdbTargetKind(string textureName, bool flat, string expected)
         => Assert.Equal(expected, MapControl.TextureCopied3DStatusText(textureName, flat));
 
+    [Fact]
+    public void TextureOffsetStatusTextMatchesUdb()
+    {
+        Assert.Equal("Copied texture offsets 12, -8.", MapControl.TextureOffsetsCopied3DStatusText(12, -8));
+        Assert.Equal("Pasted texture offsets 12, -8.", MapControl.TextureOffsetsPasted3DStatusText(12, -8));
+    }
+
     [Theory]
     [InlineData(1, "1 surface selected")]
     [InlineData(2, "2 surfaces selected")]
@@ -285,6 +292,23 @@ public sealed class MapControlCommandTests
         Assert.True(loopIndex > methodIndex);
         Assert.True(formatterIndex > loopIndex);
         Assert.DoesNotContain("TextureApplied3DStatusText", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TextureOffsetCommandsUseUdbStatusText()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int copyIndex = body.IndexOf("private void CopyTextureOffsets3D()", StringComparison.Ordinal);
+        int copyStatusIndex = body.IndexOf("TextureOffsetsCopied3DStatusText(_texOffsetClipboard3D.Value.X, _texOffsetClipboard3D.Value.Y)", copyIndex, StringComparison.Ordinal);
+        int pasteIndex = body.IndexOf("private void PasteTextureOffsets3D()", StringComparison.Ordinal);
+        int pasteStatusIndex = body.IndexOf("TextureOffsetsPasted3DStatusText(offsets.X, offsets.Y)", pasteIndex, StringComparison.Ordinal);
+
+        Assert.True(copyIndex >= 0);
+        Assert.True(copyStatusIndex > copyIndex);
+        Assert.True(pasteIndex >= 0);
+        Assert.True(pasteStatusIndex > pasteIndex);
+        Assert.DoesNotContain("copied offsets {_texOffsetClipboard3D.Value.X}", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("pasted offsets to {targetCount}", body, StringComparison.Ordinal);
     }
 
     [Fact]
