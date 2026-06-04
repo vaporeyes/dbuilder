@@ -68,6 +68,38 @@ public class VisualNearestHeightTests
     }
 
     [Fact]
+    public void WithinSelectionRequiresAtLeastTwoSelectedFloors()
+    {
+        Sector sector = Sector(0, 128);
+
+        VisualNearestHeightResult result = VisualNearestHeight.Apply(
+            [FloorHit(sector)],
+            raise: true,
+            withinSelection: true);
+
+        Assert.Equal(0, result.ChangedSurfaces);
+        Assert.Equal("Can't do: at least 2 selected floors are required!", result.Message);
+        Assert.Equal(0, sector.FloorHeight);
+    }
+
+    [Fact]
+    public void WithinSelectionReportsCombinedFloorAndCeilingRequirement()
+    {
+        Sector floor = Sector(0, 128);
+        Sector ceiling = Sector(16, 96);
+
+        VisualNearestHeightResult result = VisualNearestHeight.Apply(
+            [FloorHit(floor), CeilingHit(ceiling)],
+            raise: true,
+            withinSelection: true);
+
+        Assert.Equal(0, result.ChangedSurfaces);
+        Assert.Equal("Can't do: at least 2 selected floors and ceilings are required!", result.Message);
+        Assert.Equal(0, floor.FloorHeight);
+        Assert.Equal(96, ceiling.CeilHeight);
+    }
+
+    [Fact]
     public void RaisesAndLowersThingWithinContainingSector()
     {
         Sector sector = Sector(8, 72);

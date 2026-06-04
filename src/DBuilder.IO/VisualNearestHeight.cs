@@ -30,6 +30,20 @@ public static class VisualNearestHeight
         if (floors.Count + ceilings.Count == 0 && things.Count == 0)
             return new VisualNearestHeightResult(0, NoSuitableObjectsMessage);
 
+        if (withinSelection)
+        {
+            string required = string.Empty;
+            if (floors.Count == 1) required = "floors";
+            if (ceilings.Count == 1)
+            {
+                if (!string.IsNullOrEmpty(required)) required += " and ";
+                required += "ceilings";
+            }
+
+            if (!string.IsNullOrEmpty(required))
+                return new VisualNearestHeightResult(0, $"Can't do: at least 2 selected {required} are required!");
+        }
+
         int changed = 0;
         changed += raise
             ? RaiseFloors(floors.Keys, withinSelection)
