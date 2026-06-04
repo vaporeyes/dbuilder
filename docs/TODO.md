@@ -932,6 +932,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Drop missing thing flag comparison references like UDB.
   - [x] Default invalid thing flag comparison methods to and like UDB.
   - [x] Parse texture set filters with UDB-style value conversion and exact name key matching.
+  - [x] Parse resource range endpoints with UDB-style scalar value conversion.
 - [x] Port configuration inheritance and includes.
 - [x] Port thing categories.
 - [x] Port thing type info behavior.

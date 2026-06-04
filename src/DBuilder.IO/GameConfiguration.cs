@@ -2005,8 +2005,8 @@ public sealed class GameConfiguration
         {
             string name = e.Key.ToString() ?? "";
             if (name.Length == 0 || e.Value is not IDictionary range) continue;
-            string start = GetString(range, "start", "");
-            string end = GetString(range, "end", "");
+            string start = Convert.ToString(range["start"], CultureInfo.InvariantCulture) ?? "";
+            string end = Convert.ToString(range["end"], CultureInfo.InvariantCulture) ?? "";
             if (start.Length == 0 || end.Length == 0) continue;
             ranges.Add(new ResourceRangeInfo(name, start, end));
         }

@@ -820,6 +820,21 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void ResourceRangesConvertScalarEndpointsLikeUdb()
+    {
+        const string cfg = """
+            textures
+            {
+                numeric { start = 123; end = 456; }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        AssertRange(Assert.Single(gc.TextureRanges), "numeric", "123", "456");
+    }
+
+    [Fact]
     public void ThingsInheritCategoryDefaults()
     {
         var gc = GameConfiguration.FromText(SampleCfg);
