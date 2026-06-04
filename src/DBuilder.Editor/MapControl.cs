@@ -2431,7 +2431,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             if (floor.FloorTexture == fillTexture) { Target3DChanged?.Invoke("target already uses copied flat"); return; }
             if (_resources?.GetFlat(fillTexture) == null) { Target3DChanged?.Invoke("copied flat is not loaded"); return; }
 
-            EditBegun?.Invoke("Flood-fill floors");
+            EditBegun?.Invoke(VisualTextureFloodFill3DEditName(hit.Kind, fillTexture));
             Tools.FloodfillFlats(_map, floor, fillCeilings: false, new HashSet<string>(StringComparer.OrdinalIgnoreCase) { floor.FloorTexture }, fillTexture, resetSectorMarks: true);
             FinishFloodFill3D(VisualTextureFloodFill3DStatusText(hit.Kind, fillTexture));
         }
@@ -2440,7 +2440,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             if (ceiling.CeilTexture == fillTexture) { Target3DChanged?.Invoke("target already uses copied flat"); return; }
             if (_resources?.GetFlat(fillTexture) == null) { Target3DChanged?.Invoke("copied flat is not loaded"); return; }
 
-            EditBegun?.Invoke("Flood-fill ceilings");
+            EditBegun?.Invoke(VisualTextureFloodFill3DEditName(hit.Kind, fillTexture));
             Tools.FloodfillFlats(_map, ceiling, fillCeilings: true, new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ceiling.CeilTexture }, fillTexture, resetSectorMarks: true);
             FinishFloodFill3D(VisualTextureFloodFill3DStatusText(hit.Kind, fillTexture));
         }
@@ -2452,7 +2452,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             if (oldTexture == fillTexture) { Target3DChanged?.Invoke("target already uses copied texture"); return; }
             if (_resources?.GetWallTexture(fillTexture) == null) { Target3DChanged?.Invoke("copied texture is not loaded"); return; }
 
-            EditBegun?.Invoke("Flood-fill textures");
+            EditBegun?.Invoke(VisualTextureFloodFill3DEditName(hit.Kind, fillTexture));
             Tools.FloodfillTextures(_map, side, new HashSet<string>(StringComparer.OrdinalIgnoreCase) { oldTexture }, fillTexture, resetSideMarks: true);
             FinishFloodFill3D(VisualTextureFloodFill3DStatusText(hit.Kind, fillTexture));
         }
@@ -2477,6 +2477,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             VisualHitKind.Floor => "Flood-filled floors with " + textureName + ".",
             VisualHitKind.Ceiling => "Flood-filled ceilings with " + textureName + ".",
             _ => "Flood-filled textures with " + textureName + ".",
+        };
+
+    public static string VisualTextureFloodFill3DEditName(VisualHitKind kind, string textureName)
+        => kind switch
+        {
+            VisualHitKind.Floor => "Flood-fill floors with " + textureName,
+            VisualHitKind.Ceiling => "Flood-fill ceilings with " + textureName,
+            _ => "Flood-fill textures with " + textureName,
         };
 
     // The sidedef on the camera-facing side of the targeted wall, or null.

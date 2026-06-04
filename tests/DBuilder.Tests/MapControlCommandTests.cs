@@ -112,6 +112,13 @@ public sealed class MapControlCommandTests
         => Assert.Equal(expected, MapControl.VisualTextureFloodFill3DStatusText(kind, textureName));
 
     [Theory]
+    [InlineData(VisualHitKind.Floor, "FLOOR0_1", "Flood-fill floors with FLOOR0_1")]
+    [InlineData(VisualHitKind.Ceiling, "CEIL1_1", "Flood-fill ceilings with CEIL1_1")]
+    [InlineData(VisualHitKind.Wall, "STARTAN3", "Flood-fill textures with STARTAN3")]
+    public void VisualTextureFloodFill3DEditNameMatchesUdbTargetKind(VisualHitKind kind, string textureName, string expected)
+        => Assert.Equal(expected, MapControl.VisualTextureFloodFill3DEditName(kind, textureName));
+
+    [Theory]
     [InlineData(true, true, "Set upper-unpegged setting.")]
     [InlineData(true, false, "Removed upper-unpegged setting.")]
     [InlineData(false, true, "Set lower-unpegged setting.")]
@@ -758,14 +765,19 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
-    public void FloodFillTexture3DUsesUdbStatusWithTextureName()
+    public void FloodFillTexture3DUsesUdbEditNameAndStatusWithTextureName()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
         int methodIndex = body.IndexOf("private void FloodFillTexture3D()", StringComparison.Ordinal);
-        int statusIndex = body.IndexOf("FinishFloodFill3D(VisualTextureFloodFill3DStatusText(hit.Kind, fillTexture));", methodIndex, StringComparison.Ordinal);
+        int editIndex = body.IndexOf("EditBegun?.Invoke(VisualTextureFloodFill3DEditName(hit.Kind, fillTexture));", methodIndex, StringComparison.Ordinal);
+        int statusIndex = body.IndexOf("FinishFloodFill3D(VisualTextureFloodFill3DStatusText(hit.Kind, fillTexture));", editIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);
-        Assert.True(statusIndex > methodIndex);
+        Assert.True(editIndex > methodIndex);
+        Assert.True(statusIndex > editIndex);
+        Assert.DoesNotContain("EditBegun?.Invoke(\"Flood-fill floors\")", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("EditBegun?.Invoke(\"Flood-fill ceilings\")", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("EditBegun?.Invoke(\"Flood-fill textures\")", body, StringComparison.Ordinal);
         Assert.DoesNotContain("FinishFloodFill3D(\"flood-filled floors\")", body, StringComparison.Ordinal);
         Assert.DoesNotContain("FinishFloodFill3D(\"flood-filled ceilings\")", body, StringComparison.Ordinal);
         Assert.DoesNotContain("FinishFloodFill3D(\"flood-filled textures\")", body, StringComparison.Ordinal);
