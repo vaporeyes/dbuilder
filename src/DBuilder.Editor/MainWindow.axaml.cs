@@ -5187,7 +5187,20 @@ public partial class MainWindow : Window
         if (!await dialog.ShowDialog<bool>(this)) return;
         _settings.SoundPropagationColors = dialog.ResultColors;
         SaveSettings();
+        RefreshSoundEnvironmentColors();
         SetStatus("Sound propagation colors updated.");
+    }
+
+    private void RefreshSoundEnvironmentColors()
+    {
+        if (_map is null || _soundEnvironmentModel is null) return;
+
+        _soundEnvironmentModel = SoundPropagation.BuildSoundEnvironmentModel(
+            _map,
+            colors: _settings.SoundPropagationColors,
+            udmf: _mapFormat == MapFormat.Udmf);
+        _soundEnvironments?.SetModel(_soundEnvironmentModel);
+        MapView.SetSectorOverlayColors(_soundEnvironmentModel.SectorOverlayColors(_map.Sectors, _settings.SoundPropagationColors), 128);
     }
 
     private void OnBuildBridge(object? sender, RoutedEventArgs e)

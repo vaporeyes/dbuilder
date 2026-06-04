@@ -2117,6 +2117,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add testable Sound Environment row and warning filter model.
   - [x] Add UDB-style singular and plural labels to Sound Propagation reachability summaries.
   - [x] Add UDB-style singular and plural labels to Sound Environment summaries.
+  - [x] Refresh active Sound Environment overlays after color configuration changes.
 - [ ] Port stair sector builder mode and form behavior.
   - [x] Add UDB-style accept-path option application for generated or selected stair sectors.
   - [x] Add UDB-style numeric prefab settings load ordering.
