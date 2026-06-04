@@ -83,6 +83,7 @@ public sealed class MainWindowCommandTests
     [InlineData("window.toggle-automap-textured-hidden-sector", "OnToggleAutomapTexturedHiddenSector")]
     [InlineData("window.sector-color", "OnSectorColor")]
     [InlineData("window.dynamic-light-color", "OnDynamicLightColor")]
+    [InlineData("window.togglelightpannel", "OnToggleLightPanel")]
     [InlineData("window.import-obj-terrain", "OnImportObjTerrain")]
     [InlineData("window.importobjasterrain", "OnImportObjTerrain")]
     [InlineData("window.export-object", "OnExportObject")]
@@ -267,6 +268,10 @@ public sealed class MainWindowCommandTests
         Assert.Contains("bool canEditSectorColor = ColorPickerModel.CanEditSectorColors(_mapFormat == MapFormat.Udmf) && hasSelectedSector;", body, StringComparison.Ordinal);
         Assert.Contains("SetEnabled(canEditSectorColor, SectorColorMenuItem, SectorColorButton);", body, StringComparison.Ordinal);
         Assert.Contains("SetEnabled(hasSelectedInternalDynamicLight, DynamicLightColorMenuItem, DynamicLightColorButton);", body, StringComparison.Ordinal);
+        Assert.Contains("private void OnToggleLightPanel(object? sender, RoutedEventArgs e)", body, StringComparison.Ordinal);
+        Assert.Contains("ColorPickerModel.HasInternalDynamicLightSelection(_map.GetSelectedThings())", body, StringComparison.Ordinal);
+        Assert.Contains("OnDynamicLightColor(sender, e);", body, StringComparison.Ordinal);
+        Assert.Contains("OnSectorColor(sender, e);", body, StringComparison.Ordinal);
     }
 
     [Fact]

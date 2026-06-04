@@ -428,6 +428,21 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowScroll);
     }
 
+    [Fact]
+    public void ColorPickerPanelCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.togglelightpannel");
+
+        Assert.NotNull(command);
+        Assert.Equal("Open Color Picker", command.Title);
+        Assert.Equal("K", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.Equal("window.togglelightpannel", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "K"));
+    }
+
     [Theory]
     [InlineData("window.import-obj-terrain", "Import OBJ Terrain")]
     [InlineData("window.importobjasterrain", "Import OBJ Terrain")]

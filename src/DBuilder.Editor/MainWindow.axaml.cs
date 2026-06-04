@@ -1584,6 +1584,7 @@ public partial class MainWindow : Window
             case "window.toggle-automap-textured-hidden-sector": OnToggleAutomapTexturedHiddenSector(this, new RoutedEventArgs()); return true;
             case "window.sector-color": OnSectorColor(this, new RoutedEventArgs()); return true;
             case "window.dynamic-light-color": OnDynamicLightColor(this, new RoutedEventArgs()); return true;
+            case "window.togglelightpannel": OnToggleLightPanel(this, new RoutedEventArgs()); return true;
             case "window.toggle-auto-clear-sidedef-textures": OnToggleAutoClearSidedefTextures(this, new RoutedEventArgs()); return true;
             case "window.undo-redo-panel": OnUndoRedoPanel(this, new RoutedEventArgs()); return true;
             case "window.check-map": OnCheckMap(this, new RoutedEventArgs()); return true;
@@ -4920,6 +4921,26 @@ public partial class MainWindow : Window
         UpdateInfo();
         SetStatus(ColorPickerModel.DynamicLightColorAppliedStatusText(targets.Count, dlg.ResultColor));
         MapView.Focus();
+    }
+
+    private void OnToggleLightPanel(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
+        if (ColorPickerModel.HasInternalDynamicLightSelection(_map.GetSelectedThings()))
+        {
+            OnDynamicLightColor(sender, e);
+            return;
+        }
+
+        if (_map.SelectedSectorsCount > 0)
+        {
+            OnSectorColor(sender, e);
+            return;
+        }
+
+        SetStatus(ColorPickerModel.CanEditSectorColors(_mapFormat == MapFormat.Udmf)
+            ? "Select some lights, sectors or surfaces first!"
+            : ColorPickerModel.NoDynamicLightsWarning);
     }
 
     private IReadOnlyList<string> ArgTitles(int thingType)
