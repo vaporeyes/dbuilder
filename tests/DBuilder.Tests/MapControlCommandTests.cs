@@ -184,6 +184,21 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void AlignThingsToWall3DUsesUdbEmptySelectionWarning()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private bool AlignSelectedVisualThingsToWall3D()", StringComparison.Ordinal);
+        int emptySelectionIndex = body.IndexOf("if (things.Count == 0)", methodIndex, StringComparison.Ordinal);
+        int warningIndex = body.IndexOf("This action requires selected Things!", emptySelectionIndex, StringComparison.Ordinal);
+        int gameConfigIndex = body.IndexOf("if (_gameConfig == null)", warningIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(emptySelectionIndex > methodIndex);
+        Assert.True(warningIndex > emptySelectionIndex);
+        Assert.True(gameConfigIndex > warningIndex);
+    }
+
+    [Fact]
     public void VisualUnpeggedToggleUsesHighlightedWallState()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));

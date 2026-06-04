@@ -3565,6 +3565,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         var things = SelectedThings3D();
         if (_map == null) return false;
+        if (things.Count == 0)
+        {
+            Target3DChanged?.Invoke("This action requires selected Things!");
+            return false;
+        }
+
         if (_gameConfig == null)
         {
             Target3DChanged?.Invoke("no game configuration");
