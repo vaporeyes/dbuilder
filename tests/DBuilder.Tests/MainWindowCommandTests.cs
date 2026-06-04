@@ -200,6 +200,8 @@ public sealed class MainWindowCommandTests
         Assert.Contains("_model.AllIssues.Count == 0", code, StringComparison.Ordinal);
         Assert.Contains("Text = MapIssueListModel.NoErrorsResultText", code, StringComparison.Ordinal);
         Assert.Contains("IsEnabled = false", code, StringComparison.Ordinal);
+        Assert.Contains("MapIssueListModel.HaveSameFixSignature(selected)", code, StringComparison.Ordinal);
+        Assert.Contains("Several types of map analysis results are selected. To display fixes, make sure that only a single result type is selected.", code, StringComparison.Ordinal);
     }
 
     [Fact]

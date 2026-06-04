@@ -218,7 +218,10 @@ public sealed class MapCheckWindow : Window
 
     private void UpdateFixButtons()
     {
-        var fixes = SelectedIssue?.Fixes ?? Array.Empty<MapIssueFix>();
+        var selected = SelectedIssues();
+        var fixes = MapIssueListModel.HaveSameFixSignature(selected)
+            ? SelectedIssue?.Fixes ?? Array.Empty<MapIssueFix>()
+            : Array.Empty<MapIssueFix>();
         for (int i = 0; i < _fixButtons.Length; i++)
         {
             bool visible = _applyFix is not null && i < fixes.Count;
@@ -241,6 +244,13 @@ public sealed class MapCheckWindow : Window
 
     private void UpdateSelectionInfo()
     {
+        var selected = SelectedIssues();
+        if (!MapIssueListModel.HaveSameFixSignature(selected))
+        {
+            _selectionInfo.Text = "Several types of map analysis results are selected. To display fixes, make sure that only a single result type is selected.";
+            return;
+        }
+
         var issue = SelectedIssue;
         if (issue is not null)
         {

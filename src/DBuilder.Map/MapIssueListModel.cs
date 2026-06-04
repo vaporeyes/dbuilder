@@ -84,6 +84,15 @@ public sealed class MapIssueListModel
         return string.Join(Environment.NewLine, lines) + Environment.NewLine;
     }
 
+    public static bool HaveSameFixSignature(IEnumerable<MapIssue> issues)
+    {
+        var selected = issues.ToArray();
+        if (selected.Length <= 1) return true;
+
+        var first = selected[0].Fixes.Select(fix => fix.Label).ToArray();
+        return selected.Skip(1).All(issue => issue.Fixes.Select(fix => fix.Label).SequenceEqual(first));
+    }
+
     public static string HeaderText(IEnumerable<MapIssue> issues)
     {
         int errors = 0, warnings = 0;

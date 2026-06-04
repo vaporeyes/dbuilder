@@ -705,6 +705,27 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void MapIssueListModelComparesFixSignatures()
+    {
+        var first = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedVertex, "unused")
+        {
+            Fixes = new[] { new MapIssueFix("Delete", _ => true), new MapIssueFix("Keep", _ => true) },
+        };
+        var same = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.UnusedVertex, "unused again")
+        {
+            Fixes = new[] { new MapIssueFix("Delete", _ => true), new MapIssueFix("Keep", _ => true) },
+        };
+        var different = new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ShortLinedef, "short")
+        {
+            Fixes = new[] { new MapIssueFix("Dissolve", _ => true) },
+        };
+
+        Assert.True(MapIssueListModel.HaveSameFixSignature(Array.Empty<MapIssue>()));
+        Assert.True(MapIssueListModel.HaveSameFixSignature(new[] { first, same }));
+        Assert.False(MapIssueListModel.HaveSameFixSignature(new[] { first, different }));
+    }
+
+    [Fact]
     public void MapIssueListModelFormatsHeaderTextWithSingularAndPluralCounts()
     {
         var error = new MapIssue(MapIssueSeverity.Error, MapIssueKind.MissingTexture, "missing");
