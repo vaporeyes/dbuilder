@@ -107,6 +107,17 @@ public sealed class MapControlCommandTests
         => Assert.Equal(expected, MapControl.VisualBrightness3DStatusText(brightness));
 
     [Theory]
+    [InlineData("angle", 270, 0, 0, "Changed thing angle to 270.")]
+    [InlineData("pitch", 0, 45, 0, "Changed thing pitch to 45.")]
+    [InlineData("roll", 0, 0, 315, "Changed thing roll to 315.")]
+    public void VisualThingOrientation3DStatusTextMatchesUdb(string orientation, int angle, int pitch, int roll, string expected)
+    {
+        var thing = new Thing { Angle = angle, Pitch = pitch, Roll = roll };
+
+        Assert.Equal(expected, MapControl.VisualThingOrientation3DStatusText(thing, orientation));
+    }
+
+    [Theory]
     [InlineData(1, "1 surface selected")]
     [InlineData(2, "2 surfaces selected")]
     public void SurfaceSelection3DStatusTextFormatsSingularAndPluralSurfaceCounts(int surfaceCount, string expected)
@@ -477,6 +488,26 @@ public sealed class MapControlCommandTests
         Assert.True(thingStatusIndex > statusVariableIndex);
         Assert.True(finalStatusIndex > thingStatusIndex);
         Assert.DoesNotContain("scaled {changed} target", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void VisualThingOrientation3DUsesUdbStatusForLastChangedThing()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int rotateIndex = body.IndexOf("FinishThingOrientationChange3D(things, \"Rotate thing\", \"Rotate things\", \"angle\");", StringComparison.Ordinal);
+        int pitchIndex = body.IndexOf("FinishThingOrientationChange3D(things, \"Change thing pitch\", \"Change thing pitches\", \"pitch\");", StringComparison.Ordinal);
+        int rollIndex = body.IndexOf("FinishThingOrientationChange3D(things, \"Change thing roll\", \"Change thing rolls\", \"roll\");", StringComparison.Ordinal);
+        int finishIndex = body.IndexOf("private void FinishThingOrientationChange3D(", StringComparison.Ordinal);
+        int statusIndex = body.IndexOf("Target3DChanged?.Invoke(VisualThingOrientation3DStatusText(things[^1], orientation));", finishIndex, StringComparison.Ordinal);
+
+        Assert.True(rotateIndex >= 0);
+        Assert.True(pitchIndex > rotateIndex);
+        Assert.True(rollIndex > pitchIndex);
+        Assert.True(finishIndex > rollIndex);
+        Assert.True(statusIndex > finishIndex);
+        Assert.DoesNotContain("rotated things", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("changed thing pitches", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("changed thing rolls", body, StringComparison.Ordinal);
     }
 
     [Fact]

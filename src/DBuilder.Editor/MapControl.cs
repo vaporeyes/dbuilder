@@ -3617,7 +3617,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (things.Count == 0) return false;
 
         VisualThingRotation.Rotate(things, angleIncrement, _gameConfig?.DoomThingRotationAngles ?? false);
-        FinishThingOrientationChange3D(things, "Rotate thing", "Rotate things", "rotated thing", "rotated things");
+        FinishThingOrientationChange3D(things, "Rotate thing", "Rotate things", "angle");
         return true;
     }
 
@@ -3640,7 +3640,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         if (thingCount > 0 && flatCount == 0)
         {
-            FinishThingOrientationChange3D(things, "Rotate thing", "Rotate things", "rotated thing", "rotated things");
+            FinishThingOrientationChange3D(things, "Rotate thing", "Rotate things", "angle");
             return true;
         }
 
@@ -3680,7 +3680,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (things.Count == 0) return false;
 
         VisualThingRotation.ChangePitch(things, increment);
-        FinishThingOrientationChange3D(things, "Change thing pitch", "Change thing pitches", "changed thing pitch", "changed thing pitches");
+        FinishThingOrientationChange3D(things, "Change thing pitch", "Change thing pitches", "pitch");
         return true;
     }
 
@@ -3690,7 +3690,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (things.Count == 0) return false;
 
         VisualThingRotation.ChangeRoll(things, increment);
-        FinishThingOrientationChange3D(things, "Change thing roll", "Change thing rolls", "changed thing roll", "changed thing rolls");
+        FinishThingOrientationChange3D(things, "Change thing roll", "Change thing rolls", "roll");
         return true;
     }
 
@@ -3780,16 +3780,23 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         IReadOnlyList<Thing> things,
         string singleEditLabel,
         string pluralEditLabel,
-        string singleTargetMessage,
-        string pluralTargetMessage)
+        string orientation)
     {
         EditBegun?.Invoke(things.Count == 1 ? singleEditLabel : pluralEditLabel);
         _geo3DDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
-        Target3DChanged?.Invoke(things.Count == 1 ? singleTargetMessage : $"{pluralTargetMessage}: {things.Count}");
+        Target3DChanged?.Invoke(VisualThingOrientation3DStatusText(things[^1], orientation));
     }
+
+    public static string VisualThingOrientation3DStatusText(Thing thing, string orientation)
+        => orientation switch
+        {
+            "pitch" => "Changed thing pitch to " + thing.Pitch + ".",
+            "roll" => "Changed thing roll to " + thing.Roll + ".",
+            _ => "Changed thing angle to " + thing.Angle + ".",
+        };
 
     // Routes a right-drag by the captured target's kind: a thing moves on the plane; a surface changes height.
     private void Drag3D(double dx, double dy)
