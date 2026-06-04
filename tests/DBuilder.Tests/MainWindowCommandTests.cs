@@ -205,22 +205,32 @@ public sealed class MainWindowCommandTests
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
         int methodIndex = body.IndexOf("private async void OnApplyJitter", StringComparison.Ordinal);
-        int safeDistanceIndex = body.IndexOf("SafeDistance: JitterVertexSafeDistance(vertex, _map)", methodIndex, StringComparison.Ordinal);
-        int helperIndex = body.IndexOf("private static int JitterVertexSafeDistance(Vertex vertex, MapSet map)", StringComparison.Ordinal);
-        int lineScanIndex = body.IndexOf("foreach (Linedef line in map.Linedefs)", helperIndex, StringComparison.Ordinal);
+        int buildIndex = body.IndexOf("BuildVertexJitter(vertices, _map)", methodIndex, StringComparison.Ordinal);
+        int helperIndex = body.IndexOf("private static List<VertexJitter> BuildVertexJitter(IReadOnlyCollection<Vertex> vertices, MapSet map)", StringComparison.Ordinal);
+        int dictionaryIndex = body.IndexOf("new Dictionary<Vertex, int>(ReferenceEqualityComparer.Instance)", helperIndex, StringComparison.Ordinal);
+        int initializationIndex = body.IndexOf("safeDistances[vertex] = 0;", dictionaryIndex, StringComparison.Ordinal);
+        int lineScanIndex = body.IndexOf("foreach (Linedef line in map.Linedefs)", initializationIndex, StringComparison.Ordinal);
         int incidentIndex = body.IndexOf("if (vertex.Linedefs.Contains(line)) continue;", lineScanIndex, StringComparison.Ordinal);
         int safeDistanceToIndex = body.IndexOf("line.SafeDistanceToSq(vertex.Position, bounded: true)", incidentIndex, StringComparison.Ordinal);
         int nearestIndex = body.IndexOf("closestLine.NearestOnLine(vertex.Position)", safeDistanceToIndex, StringComparison.Ordinal);
-        int clampIndex = body.IndexOf("return distance > 0 ? distance / 2 : 0;", nearestIndex, StringComparison.Ordinal);
+        int startReduceIndex = body.IndexOf("ReduceVertexSafeDistance(safeDistances, closestLine.Start, distance);", nearestIndex, StringComparison.Ordinal);
+        int endReduceIndex = body.IndexOf("ReduceVertexSafeDistance(safeDistances, closestLine.End, distance);", startReduceIndex, StringComparison.Ordinal);
+        int setIndex = body.IndexOf("SetVertexSafeDistance(safeDistances, vertex, distance);", endReduceIndex, StringComparison.Ordinal);
+        int clampIndex = body.IndexOf("SafeDistance: safeDistances[vertex] > 0 ? safeDistances[vertex] / 2 : 0", setIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);
-        Assert.True(safeDistanceIndex > methodIndex);
-        Assert.True(helperIndex > safeDistanceIndex);
-        Assert.True(lineScanIndex > helperIndex);
+        Assert.True(buildIndex > methodIndex);
+        Assert.True(helperIndex > buildIndex);
+        Assert.True(dictionaryIndex > helperIndex);
+        Assert.True(initializationIndex > dictionaryIndex);
+        Assert.True(lineScanIndex > initializationIndex);
         Assert.True(incidentIndex > lineScanIndex);
         Assert.True(safeDistanceToIndex > incidentIndex);
         Assert.True(nearestIndex > safeDistanceToIndex);
-        Assert.True(clampIndex > nearestIndex);
+        Assert.True(startReduceIndex > nearestIndex);
+        Assert.True(endReduceIndex > startReduceIndex);
+        Assert.True(setIndex > endReduceIndex);
+        Assert.True(clampIndex > setIndex);
     }
 
     [Fact]

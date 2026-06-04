@@ -5288,11 +5288,7 @@ public partial class MainWindow : Window
         if (vertices.Count > 0)
         {
             changed += BuilderEffects.ApplyVertexTranslation(
-                vertices.Select(vertex => new VertexJitter(
-                    vertex,
-                    vertex.Position,
-                    RandomAngle(),
-                    SafeDistance: JitterVertexSafeDistance(vertex, _map))).ToList(),
+                BuildVertexJitter(vertices, _map),
                 dialog.ResultPositionAmount);
         }
 
@@ -5375,25 +5371,63 @@ public partial class MainWindow : Window
     private static int JitterSectorSafeHeightDistance(Sector sector)
         => Math.Max(0, (sector.CeilHeight - sector.FloorHeight) / 2);
 
-    private static int JitterVertexSafeDistance(Vertex vertex, MapSet map)
+    private static List<VertexJitter> BuildVertexJitter(IReadOnlyCollection<Vertex> vertices, MapSet map)
     {
-        Linedef? closestLine = null;
-        double closestDistanceSq = double.MaxValue;
-        foreach (Linedef line in map.Linedefs)
-        {
-            if (vertex.Linedefs.Contains(line)) continue;
+        var safeDistances = new Dictionary<Vertex, int>(ReferenceEqualityComparer.Instance);
+        foreach (Vertex vertex in vertices)
+            safeDistances[vertex] = 0;
 
-            double distanceSq = line.SafeDistanceToSq(vertex.Position, bounded: true);
-            if (distanceSq < closestDistanceSq)
+        foreach (Vertex vertex in vertices)
+        {
+            Linedef? closestLine = null;
+            double closestDistanceSq = double.MaxValue;
+            foreach (Linedef line in map.Linedefs)
             {
-                closestLine = line;
-                closestDistanceSq = distanceSq;
+                if (vertex.Linedefs.Contains(line)) continue;
+
+                double distanceSq = line.SafeDistanceToSq(vertex.Position, bounded: true);
+                if (distanceSq < closestDistanceSq)
+                {
+                    closestLine = line;
+                    closestDistanceSq = distanceSq;
+                }
             }
+
+            if (closestLine is null) continue;
+
+            int distance = (int)Math.Floor(Vector2D.Distance(vertex.Position, closestLine.NearestOnLine(vertex.Position)));
+            ReduceVertexSafeDistance(safeDistances, closestLine.Start, distance);
+            ReduceVertexSafeDistance(safeDistances, closestLine.End, distance);
+            SetVertexSafeDistance(safeDistances, vertex, distance);
         }
 
-        if (closestLine is null) return 0;
+        return vertices.Select(vertex => new VertexJitter(
+            vertex,
+            vertex.Position,
+            RandomAngle(),
+            SafeDistance: safeDistances[vertex] > 0 ? safeDistances[vertex] / 2 : 0)).ToList();
+    }
 
-        int distance = (int)Math.Floor(Vector2D.Distance(vertex.Position, closestLine.NearestOnLine(vertex.Position)));
+    private static void ReduceVertexSafeDistance(Dictionary<Vertex, int> safeDistances, Vertex vertex, int distance)
+    {
+        if (safeDistances.TryGetValue(vertex, out int current) && current > distance)
+            safeDistances[vertex] = distance;
+    }
+
+    private static void SetVertexSafeDistance(Dictionary<Vertex, int> safeDistances, Vertex vertex, int distance)
+    {
+        if (safeDistances.TryGetValue(vertex, out int current) && (current == 0 || current > distance))
+        {
+            safeDistances[vertex] = distance;
+        }
+    }
+
+    private static int JitterThingSafeDistance(Thing thing, ICollection<Thing> things)
+    {
+        Thing? closest = MapSet.NearestThing(things, thing);
+        int distance = closest is null
+            ? 512
+            : (int)Math.Round(Vector2D.Distance(thing.Position, closest.Position));
         return distance > 0 ? distance / 2 : 0;
     }
 
@@ -5405,15 +5439,6 @@ public partial class MainWindow : Window
 
         int thingHeight = _config.GetThing(thing.Type)?.Height ?? 0;
         return Math.Max(0, thing.Sector.CeilHeight - thingHeight - thing.Sector.FloorHeight);
-    }
-
-    private static int JitterThingSafeDistance(Thing thing, ICollection<Thing> things)
-    {
-        Thing? closest = MapSet.NearestThing(things, thing);
-        int distance = closest is null
-            ? 512
-            : (int)Math.Round(Vector2D.Distance(thing.Position, closest.Position));
-        return distance > 0 ? distance / 2 : 0;
     }
 
     private static double RandomAngle()
