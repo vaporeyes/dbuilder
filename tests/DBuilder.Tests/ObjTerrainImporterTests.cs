@@ -101,7 +101,8 @@ f 1 3 4
             Assert.Equal("GRASS", sector.FloorTexture);
             Assert.Equal("F_SKY1", sector.CeilTexture);
         });
-        Assert.Contains(map.Linedefs, line => line.Front != null && line.Back != null);
+        Assert.Contains(map.Linedefs, line => line.Front != null && line.Back != null && (line.Flags & Linedef.TwoSidedFlagBit) != 0);
+        Assert.Contains(map.Linedefs, line => line.Back == null && (line.Flags & Linedef.BlockingFlagBit) != 0);
         Assert.All(map.Sidedefs, side => Assert.Equal("ROCK", side.LowTexture));
     }
 

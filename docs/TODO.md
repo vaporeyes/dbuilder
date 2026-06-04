@@ -1529,6 +1529,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Propagate UDB-style Randomize vertex safe-distance clamps across selected nearest-line endpoints.
   - [x] Expose UDB-style OBJ terrain import up-axis, scale, and vertex-height settings.
   - [x] Enable UDB-style OBJ terrain vertex-height thing fallback for non-UDMF maps.
+  - [x] Apply UDB-style OBJ terrain imported linedef sidedness flags.
   - [x] Remember UDB-style BuilderEffects jitter and directional shading dialog settings.
   - [x] Expose UDB-style Randomize triangular sector floor and ceiling vertex-height jitter.
   - [x] Expose UDB-style Randomize sector upper and lower unpegged flag controls.

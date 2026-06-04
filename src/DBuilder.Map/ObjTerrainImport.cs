@@ -80,6 +80,7 @@ public static class ObjTerrainImporter
         int maxZ = geometry.MaxZ + (geometry.MaxZ - geometry.MinZ) / 2;
         var vertices = new Dictionary<Vector3D, Vertex>();
         var lines = new Dictionary<EdgeKey, Linedef>();
+        var createdLines = new List<Linedef>();
         int startingVertexCount = map.Vertices.Count;
         int startingLineCount = map.Linedefs.Count;
         int startingSideCount = map.Sidedefs.Count;
@@ -96,9 +97,9 @@ public static class ObjTerrainImporter
             sector.SetCeilTexture(options.DefaultCeilingTexture);
             sector.SetFloorTexture(options.DefaultFloorTexture);
 
-            AddSide(map, vertices, lines, sector, face.V1, face.V2, options);
-            AddSide(map, vertices, lines, sector, face.V2, face.V3, options);
-            AddSide(map, vertices, lines, sector, face.V3, face.V1, options);
+            AddSide(map, vertices, lines, createdLines, sector, face.V1, face.V2, options);
+            AddSide(map, vertices, lines, createdLines, sector, face.V2, face.V3, options);
+            AddSide(map, vertices, lines, createdLines, sector, face.V3, face.V1, options);
         }
 
         if (options.UseVertexHeights && options.CreateVertexHeightThings)
@@ -111,6 +112,7 @@ public static class ObjTerrainImporter
             }
         }
 
+        foreach (Linedef line in createdLines) line.ApplySidedFlags();
         map.BuildIndexes();
         return new ObjTerrainImportResult(
             map.Vertices.Count - startingVertexCount,
@@ -211,6 +213,7 @@ public static class ObjTerrainImporter
         MapSet map,
         Dictionary<Vector3D, Vertex> vertices,
         Dictionary<EdgeKey, Linedef> lines,
+        List<Linedef> createdLines,
         Sector sector,
         Vector3D from,
         Vector3D to,
@@ -227,6 +230,7 @@ public static class ObjTerrainImporter
             Sidedef side = map.AddSidedef(line, true, sector);
             if (!options.UseVertexHeights) side.SetTextureLow(options.DefaultWallTexture);
             lines.Add(edge, line);
+            createdLines.Add(line);
             return;
         }
 
