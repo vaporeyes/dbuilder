@@ -166,6 +166,44 @@ public class VisualNearestHeightTests
     }
 
     [Fact]
+    public void RaiseToNearestAbortsCeilingChangeWhenSelectedFloorCannotAlign()
+    {
+        Sector blockedFloor = Sector(32, 32);
+        Sector ceiling = Sector(0, 64);
+        Sector ceilingNeighbor = Sector(0, 96);
+        LinkAdjacent(ceiling, ceilingNeighbor);
+
+        VisualNearestHeightResult result = VisualNearestHeight.Apply(
+            [FloorHit(blockedFloor), CeilingHit(ceiling)],
+            raise: true,
+            withinSelection: false);
+
+        Assert.Equal(0, result.ChangedSurfaces);
+        Assert.Equal("Unable to align selected floor!", result.Message);
+        Assert.Equal(32, blockedFloor.FloorHeight);
+        Assert.Equal(64, ceiling.CeilHeight);
+    }
+
+    [Fact]
+    public void LowerToNearestAbortsFloorChangeWhenSelectedCeilingCannotAlign()
+    {
+        Sector floor = Sector(32, 128);
+        Sector floorNeighbor = Sector(0, 128);
+        Sector blockedCeiling = Sector(64, 64);
+        LinkAdjacent(floor, floorNeighbor);
+
+        VisualNearestHeightResult result = VisualNearestHeight.Apply(
+            [FloorHit(floor), CeilingHit(blockedCeiling)],
+            raise: false,
+            withinSelection: false);
+
+        Assert.Equal(0, result.ChangedSurfaces);
+        Assert.Equal("Unable to align selected ceiling!", result.Message);
+        Assert.Equal(32, floor.FloorHeight);
+        Assert.Equal(64, blockedCeiling.CeilHeight);
+    }
+
+    [Fact]
     public void RaisesAndLowersThingWithinContainingSector()
     {
         Sector sector = Sector(8, 72);

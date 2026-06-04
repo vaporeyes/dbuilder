@@ -51,6 +51,13 @@ public static class VisualNearestHeight
                 return new VisualNearestHeightResult(0, LowestCeilingBelowHighestFloorMessage);
         }
 
+        if (!withinSelection)
+        {
+            string failed = AlignFailureDescription(floors.Keys, ceilings.Keys, raise);
+            if (!string.IsNullOrEmpty(failed))
+                return new VisualNearestHeightResult(0, $"Unable to align selected {failed}!");
+        }
+
         int changed = 0;
         changed += raise
             ? RaiseFloors(floors.Keys, withinSelection)
@@ -60,21 +67,37 @@ public static class VisualNearestHeight
             : LowerCeilings(ceilings.Keys, withinSelection);
         changed += AlignThings(things, raise);
 
-        if (!withinSelection && changed == 0 && things.Count == 0 && floors.Count + ceilings.Count > 0)
-        {
-            string failed = string.Empty;
-            if (floors.Count > 0) failed = floors.Count > 1 ? "floors" : "floor";
-            if (ceilings.Count > 0)
-            {
-                if (!string.IsNullOrEmpty(failed)) failed += " and ";
-                failed += ceilings.Count > 1 ? "ceilings" : "ceiling";
-            }
-
-            return new VisualNearestHeightResult(0, $"Unable to align selected {failed}!");
-        }
-
         string verb = raise ? "raised" : "lowered";
         return new VisualNearestHeightResult(changed, $"{verb} {changed} object{(changed == 1 ? "" : "s")} to nearest height");
+    }
+
+    private static string AlignFailureDescription(IEnumerable<Sector> floors, IEnumerable<Sector> ceilings, bool raise)
+    {
+        var floorList = new HashSet<Sector>(floors, ReferenceEqualityComparer.Instance).ToList();
+        var ceilingList = new HashSet<Sector>(ceilings, ReferenceEqualityComparer.Instance).ToList();
+        string failed = string.Empty;
+
+        if (floorList.Count > 0)
+        {
+            bool hasTarget = raise
+                ? TryGetRaiseFloorTarget(floorList, withinSelection: false, out _)
+                : TryGetLowerFloorTarget(floorList, withinSelection: false, out _);
+            if (!hasTarget) failed = floorList.Count > 1 ? "floors" : "floor";
+        }
+
+        if (ceilingList.Count > 0)
+        {
+            bool hasTarget = raise
+                ? TryGetRaiseCeilingTarget(ceilingList, withinSelection: false, out _)
+                : TryGetLowerCeilingTarget(ceilingList, withinSelection: false, out _);
+            if (!hasTarget)
+            {
+                if (!string.IsNullOrEmpty(failed)) failed += " and ";
+                failed += ceilingList.Count > 1 ? "ceilings" : "ceiling";
+            }
+        }
+
+        return failed;
     }
 
     private static int RaiseFloors(IEnumerable<Sector> sectors, bool withinSelection)
@@ -82,16 +105,7 @@ public static class VisualNearestHeight
         var selected = new HashSet<Sector>(sectors, ReferenceEqualityComparer.Instance).ToList();
         if (selected.Count == 0) return 0;
 
-        int highestFloor = selected.Max(sector => sector.FloorHeight);
-        int lowestCeiling = selected.Min(sector => sector.CeilHeight);
-        int target = withinSelection
-            ? highestFloor
-            : AdjacentHeights(selected)
-                .Where(height => height > highestFloor && height <= lowestCeiling)
-                .DefaultIfEmpty(lowestCeiling > highestFloor ? lowestCeiling : int.MaxValue)
-                .Min();
-
-        if (target == int.MaxValue) return 0;
+        if (!TryGetRaiseFloorTarget(selected, withinSelection, out int target)) return 0;
         int changed = 0;
         foreach (Sector sector in selected)
         {
@@ -101,6 +115,20 @@ public static class VisualNearestHeight
         }
 
         return changed;
+    }
+
+    private static bool TryGetRaiseFloorTarget(IReadOnlyCollection<Sector> selected, bool withinSelection, out int target)
+    {
+        int highestFloor = selected.Max(sector => sector.FloorHeight);
+        int lowestCeiling = selected.Min(sector => sector.CeilHeight);
+        target = withinSelection
+            ? highestFloor
+            : AdjacentHeights(selected)
+                .Where(height => height > highestFloor && height <= lowestCeiling)
+                .DefaultIfEmpty(lowestCeiling > highestFloor ? lowestCeiling : int.MaxValue)
+                .Min();
+
+        return target != int.MaxValue;
     }
 
     private static int LowerFloors(IEnumerable<Sector> sectors, bool withinSelection)
@@ -108,15 +136,7 @@ public static class VisualNearestHeight
         var selected = new HashSet<Sector>(sectors, ReferenceEqualityComparer.Instance).ToList();
         if (selected.Count == 0) return 0;
 
-        int lowestFloor = selected.Min(sector => sector.FloorHeight);
-        int target = withinSelection
-            ? lowestFloor
-            : AdjacentHeights(selected)
-                .Where(height => height < lowestFloor)
-                .DefaultIfEmpty(int.MinValue)
-                .Max();
-
-        if (target == int.MinValue) return 0;
+        if (!TryGetLowerFloorTarget(selected, withinSelection, out int target)) return 0;
         int changed = 0;
         foreach (Sector sector in selected)
         {
@@ -128,20 +148,25 @@ public static class VisualNearestHeight
         return changed;
     }
 
+    private static bool TryGetLowerFloorTarget(IReadOnlyCollection<Sector> selected, bool withinSelection, out int target)
+    {
+        int lowestFloor = selected.Min(sector => sector.FloorHeight);
+        target = withinSelection
+            ? lowestFloor
+            : AdjacentHeights(selected)
+                .Where(height => height < lowestFloor)
+                .DefaultIfEmpty(int.MinValue)
+                .Max();
+
+        return target != int.MinValue;
+    }
+
     private static int RaiseCeilings(IEnumerable<Sector> sectors, bool withinSelection)
     {
         var selected = new HashSet<Sector>(sectors, ReferenceEqualityComparer.Instance).ToList();
         if (selected.Count == 0) return 0;
 
-        int highestCeiling = selected.Max(sector => sector.CeilHeight);
-        int target = withinSelection
-            ? highestCeiling
-            : AdjacentHeights(selected)
-                .Where(height => height > highestCeiling)
-                .DefaultIfEmpty(int.MaxValue)
-                .Min();
-
-        if (target == int.MaxValue) return 0;
+        if (!TryGetRaiseCeilingTarget(selected, withinSelection, out int target)) return 0;
         int changed = 0;
         foreach (Sector sector in selected)
         {
@@ -153,21 +178,25 @@ public static class VisualNearestHeight
         return changed;
     }
 
+    private static bool TryGetRaiseCeilingTarget(IReadOnlyCollection<Sector> selected, bool withinSelection, out int target)
+    {
+        int highestCeiling = selected.Max(sector => sector.CeilHeight);
+        target = withinSelection
+            ? highestCeiling
+            : AdjacentHeights(selected)
+                .Where(height => height > highestCeiling)
+                .DefaultIfEmpty(int.MaxValue)
+                .Min();
+
+        return target != int.MaxValue;
+    }
+
     private static int LowerCeilings(IEnumerable<Sector> sectors, bool withinSelection)
     {
         var selected = new HashSet<Sector>(sectors, ReferenceEqualityComparer.Instance).ToList();
         if (selected.Count == 0) return 0;
 
-        int lowestCeiling = selected.Min(sector => sector.CeilHeight);
-        int highestFloor = selected.Max(sector => sector.FloorHeight);
-        int target = withinSelection
-            ? lowestCeiling
-            : AdjacentHeights(selected)
-                .Where(height => height < lowestCeiling && height >= highestFloor)
-                .DefaultIfEmpty(highestFloor < lowestCeiling ? highestFloor : int.MinValue)
-                .Max();
-
-        if (target == int.MinValue) return 0;
+        if (!TryGetLowerCeilingTarget(selected, withinSelection, out int target)) return 0;
         int changed = 0;
         foreach (Sector sector in selected)
         {
@@ -177,6 +206,20 @@ public static class VisualNearestHeight
         }
 
         return changed;
+    }
+
+    private static bool TryGetLowerCeilingTarget(IReadOnlyCollection<Sector> selected, bool withinSelection, out int target)
+    {
+        int lowestCeiling = selected.Min(sector => sector.CeilHeight);
+        int highestFloor = selected.Max(sector => sector.FloorHeight);
+        target = withinSelection
+            ? lowestCeiling
+            : AdjacentHeights(selected)
+                .Where(height => height < lowestCeiling && height >= highestFloor)
+                .DefaultIfEmpty(highestFloor < lowestCeiling ? highestFloor : int.MinValue)
+                .Max();
+
+        return target != int.MinValue;
     }
 
     private static int AlignThings(IEnumerable<Thing> things, bool raise)
