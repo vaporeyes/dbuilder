@@ -213,7 +213,7 @@
       "udbPlugin": "TagExplorer",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Editor;DBuilder.IO",
-      "notes": "Tag listing and reveal surfaces exist. UDB-style tag explorer entry filtering, sorting, grouped tree shaping, thing category grouping in index view, configured action and effect labels in action grouping, generalized sector effect expansion in action grouping, export text shaping, docker command metadata, window command dispatch, and docker, control-label, tooltip, export, plugin-setting, and delayed refresh lifecycle metadata models exist for tags, actions, comments, and polyobjects. A non-modal editor Tag Explorer exposes grouped display mode, sort mode, special-token search, comments-only filtering, row navigation, text export, persisted visible options, and live refresh from map and tag-label changes. Full docked workflow remains incomplete."
+      "notes": "Tag listing and reveal surfaces exist. UDB-style tag explorer entry filtering, sorting, grouped tree shaping, thing category grouping in index view, configured action and effect labels in action grouping, generalized sector effect expansion in action grouping, export text shaping, docker command metadata, window command dispatch, rebuild selection and export state, and docker, control-label, tooltip, export, plugin-setting, and delayed refresh lifecycle metadata models exist for tags, actions, comments, and polyobjects. A non-modal editor Tag Explorer exposes grouped display mode, sort mode, special-token search, comments-only filtering, row navigation, text export, persisted visible options, and live refresh from map and tag-label changes. Full docked workflow remains incomplete."
     },
     {
       "udbPlugin": "TagRange",

@@ -1638,6 +1638,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Tag Explorer docker, control-label, tooltip, export, and plugin-setting metadata.
   - [x] Wire editor Tag Explorer persisted options and live refresh from map and tag-label changes.
   - [x] Add UDB-style Tag Explorer delayed refresh lifecycle metadata.
+  - [x] Add UDB-style Tag Explorer rebuild selection and export state.
 - [ ] Port `TagRange`.
   - [x] Add UDB-style Tag Range action metadata and window command dispatch.
   - [x] Add UDB-style absolute and relative tag range calculation model.
@@ -2350,6 +2351,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add testable Tag Explorer flattened tree row model for window navigation.
   - [x] Add UDB-style singular and plural labels to Tag Explorer activation status text.
   - [x] Add UDB-style Tag Explorer delayed refresh lifecycle metadata.
+  - [x] Add UDB-style Tag Explorer rebuild selection and export state.
 - [ ] Port tag range tools.
   - [x] Add UDB-style Tag Range action metadata and window command dispatch.
   - [x] Add UDB-style absolute and relative tag range calculation, duplicate detection, skip-used handling, and selected element assignment model.

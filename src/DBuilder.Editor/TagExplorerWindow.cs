@@ -22,6 +22,8 @@ public sealed class TagExplorerWindow : Window
     private readonly bool _centerOnSelected;
     private readonly bool _selectOnClick;
     private string _exportText = "";
+    private TagExplorerSelectedEntry? _selectedEntry;
+    private bool _updatingSelection;
 
     public event Action? OptionsChanged;
     public event Action<TagExplorerEntry>? EntryActivated;
@@ -99,7 +101,10 @@ public sealed class TagExplorerWindow : Window
         _header.TextWrapping = TextWrapping.Wrap;
         _list.SelectionChanged += (_, _) =>
         {
-            if (_list.SelectedItem is ListBoxItem { Tag: TagExplorerEntry entry }) EntryActivated?.Invoke(entry);
+            if (_list.SelectedItem is not ListBoxItem { Tag: TagExplorerEntry entry }) return;
+
+            _selectedEntry = new TagExplorerSelectedEntry(entry.Kind, entry.Index);
+            if (!_updatingSelection) EntryActivated?.Invoke(entry);
         };
 
         var root = new DockPanel();
@@ -116,17 +121,22 @@ public sealed class TagExplorerWindow : Window
     public void SetEntries(IReadOnlyList<TagExplorerEntry> entries, IReadOnlyDictionary<int, string>? tagLabels = null)
     {
         IReadOnlyList<TagExplorerTreeNode> tree = TagExplorerModel.BuildTree(entries, Options, tagLabels);
+        IReadOnlyList<TagExplorerTreeRow> flatRows = TagExplorerModel.FlattenTree(tree);
+        TagExplorerRebuildState state = TagExplorerModel.RebuildState(tree, flatRows, _selectedEntry);
         _exportText = TagExplorerModel.ExportTreeText(tree, Options.SortMode);
-        _export.IsEnabled = entries.Count > 0;
+        _export.IsEnabled = state.ExportEnabled;
         _header.Text = entries.Count == 0
             ? "No matching tag explorer entries."
             : $"{entries.Count} entr{(entries.Count == 1 ? "y" : "ies")}. Click a row to select and reveal it.";
 
         var rows = new List<ListBoxItem>();
-        foreach (TagExplorerTreeRow row in TagExplorerModel.FlattenTree(tree))
+        foreach (TagExplorerTreeRow row in flatRows)
             rows.Add(Row(row));
 
         _list.ItemsSource = rows;
+        _updatingSelection = true;
+        _list.SelectedIndex = state.SelectedRowIndex;
+        _updatingSelection = false;
     }
 
     private static ListBoxItem Row(TagExplorerTreeRow row)

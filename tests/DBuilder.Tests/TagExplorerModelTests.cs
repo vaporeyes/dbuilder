@@ -463,4 +463,45 @@ public sealed class TagExplorerModelTests
         Assert.True(rows[2].IsEntry);
         Assert.Same(entries[0], rows[2].Entry);
     }
+
+    [Fact]
+    public void RebuildStateRestoresPreviousSelectionOrFallsBackToFirstRootLikeUdb()
+    {
+        var map = new MapSet();
+        var thing = map.AddThing(new Vector2D(0, 0), 1);
+        thing.Tag = 7;
+        var sector = map.AddSector();
+        sector.Tag = 9;
+
+        var options = new TagExplorerOptions(SortMode: TagExplorerSortMode.ByTag);
+        IReadOnlyList<TagExplorerEntry> entries = TagExplorerModel.BuildEntries(map, null, options);
+        IReadOnlyList<TagExplorerTreeNode> tree = TagExplorerModel.BuildTree(entries, options);
+        IReadOnlyList<TagExplorerTreeRow> rows = TagExplorerModel.FlattenTree(tree);
+
+        TagExplorerRebuildState restored = TagExplorerModel.RebuildState(
+            tree,
+            rows,
+            new TagExplorerSelectedEntry(TagExplorerEntryKind.Sector, 0));
+        TagExplorerRebuildState fallback = TagExplorerModel.RebuildState(
+            tree,
+            rows,
+            new TagExplorerSelectedEntry(TagExplorerEntryKind.Linedef, 12));
+
+        Assert.True(restored.ExportEnabled);
+        Assert.Equal(5, restored.SelectedRowIndex);
+        Assert.True(fallback.ExportEnabled);
+        Assert.Equal(0, fallback.SelectedRowIndex);
+    }
+
+    [Fact]
+    public void RebuildStateDisablesExportAndSelectionWhenTreeIsEmpty()
+    {
+        TagExplorerRebuildState state = TagExplorerModel.RebuildState(
+            Array.Empty<TagExplorerTreeNode>(),
+            Array.Empty<TagExplorerTreeRow>(),
+            new TagExplorerSelectedEntry(TagExplorerEntryKind.Thing, 0));
+
+        Assert.False(state.ExportEnabled);
+        Assert.Equal(-1, state.SelectedRowIndex);
+    }
 }

@@ -89,6 +89,10 @@ public sealed record TagExplorerTreeRow(
     public bool IsEntry => Entry != null;
 }
 
+public sealed record TagExplorerSelectedEntry(TagExplorerEntryKind Kind, int Index);
+
+public sealed record TagExplorerRebuildState(bool ExportEnabled, int SelectedRowIndex);
+
 public sealed record TagExplorerRefreshTrigger(string EventName, string RefreshMethod, string? ActionName = null);
 
 public static class TagExplorerModel
@@ -215,6 +219,27 @@ public static class TagExplorerModel
             AddRows(rows, root, depth: 0);
 
         return rows;
+    }
+
+    public static TagExplorerRebuildState RebuildState(
+        IReadOnlyList<TagExplorerTreeNode> roots,
+        IReadOnlyList<TagExplorerTreeRow> rows,
+        TagExplorerSelectedEntry? previousSelection)
+    {
+        bool exportEnabled = roots.Count > 0;
+        if (!exportEnabled) return new TagExplorerRebuildState(false, -1);
+
+        if (previousSelection is not null)
+        {
+            for (int i = 0; i < rows.Count; i++)
+            {
+                TagExplorerEntry? entry = rows[i].Entry;
+                if (entry is not null && entry.Kind == previousSelection.Kind && entry.Index == previousSelection.Index)
+                    return new TagExplorerRebuildState(true, i);
+            }
+        }
+
+        return new TagExplorerRebuildState(true, 0);
     }
 
     public static TagExplorerSpecialFilters ParseSpecialFilters(string searchText)
