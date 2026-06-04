@@ -178,6 +178,11 @@ public sealed record UdbScriptLoadedSourcePlan(
     IReadOnlyList<UdbScriptLoadedSourceFile> Libraries,
     UdbScriptLoadedSourceFile? Script);
 
+public sealed record UdbScriptExecutionSource(
+    UdbScriptLoadedSourceFile Source,
+    bool IsLibrary,
+    bool TimedByRunStopwatch);
+
 public sealed record UdbScriptRunExecutionPlan(
     UdbScriptSourceFile Script,
     bool ReadScriptFile,
@@ -809,6 +814,23 @@ public static class UdbScriptRunnerModel
             "",
             libraries,
             new UdbScriptLoadedSourceFile(plan.Script, readAllText(plan.Script.Path)));
+    }
+
+    public static IReadOnlyList<UdbScriptExecutionSource> ExecutionSources(UdbScriptLoadedSourcePlan plan)
+    {
+        if (!plan.Success || plan.Script is null)
+            return Array.Empty<UdbScriptExecutionSource>();
+
+        var sources = new List<UdbScriptExecutionSource>(plan.Libraries.Count + 1);
+        sources.AddRange(plan.Libraries.Select(library => new UdbScriptExecutionSource(
+            library,
+            IsLibrary: true,
+            TimedByRunStopwatch: false)));
+        sources.Add(new UdbScriptExecutionSource(
+            plan.Script,
+            IsLibrary: false,
+            TimedByRunStopwatch: true));
+        return sources;
     }
 
     public static UdbScriptRunnerExceptionOutcome ClassifyException(

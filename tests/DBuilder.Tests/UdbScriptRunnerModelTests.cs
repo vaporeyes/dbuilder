@@ -846,6 +846,52 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void ExecutionSourcesExecuteLibrariesBeforeTimedScriptLikeUdb()
+    {
+        var plan = new UdbScriptLoadedSourcePlan(
+            true,
+            "",
+            new[]
+            {
+                new UdbScriptLoadedSourceFile(
+                    new UdbScriptSourceFile("/app/UDBScript/Libraries/one.js", "/UDBScript/Libraries/one.js"),
+                    "one"),
+                new UdbScriptLoadedSourceFile(
+                    new UdbScriptSourceFile("/app/UDBScript/Libraries/two.js", "/UDBScript/Libraries/two.js"),
+                    "two"),
+            },
+            new UdbScriptLoadedSourceFile(
+                new UdbScriptSourceFile("/app/UDBScript/Scripts/demo.js", "/UDBScript/Scripts/demo.js"),
+                "demo"));
+
+        IReadOnlyList<UdbScriptExecutionSource> sources = UdbScriptRunnerModel.ExecutionSources(plan);
+
+        Assert.Equal(
+            ["/UDBScript/Libraries/one.js", "/UDBScript/Libraries/two.js", "/UDBScript/Scripts/demo.js"],
+            sources.Select(source => source.Source.Source.EngineSourceName).ToArray());
+        Assert.Equal([true, true, false], sources.Select(source => source.IsLibrary).ToArray());
+        Assert.Equal([false, false, true], sources.Select(source => source.TimedByRunStopwatch).ToArray());
+        Assert.Equal(["one", "two", "demo"], sources.Select(source => source.Source.Text).ToArray());
+    }
+
+    [Fact]
+    public void ExecutionSourcesStopWhenSourceLoadingFails()
+    {
+        var plan = new UdbScriptLoadedSourcePlan(
+            false,
+            "/app/UDBScript/Libraries/missing.js",
+            new[]
+            {
+                new UdbScriptLoadedSourceFile(
+                    new UdbScriptSourceFile("/app/UDBScript/Libraries/one.js", "/UDBScript/Libraries/one.js"),
+                    "one"),
+            },
+            null);
+
+        Assert.Empty(UdbScriptRunnerModel.ExecutionSources(plan));
+    }
+
+    [Fact]
     public void LoadSourcePlanStopsAtMissingSourceFile()
     {
         var plan = new UdbScriptRunSourcePlan(
