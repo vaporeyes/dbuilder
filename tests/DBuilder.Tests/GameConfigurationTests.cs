@@ -997,6 +997,37 @@ public class GameConfigurationTests
     }
 
     [Fact]
+    public void DuplicateLinedefActionNumbersKeepFirstDefinitionLikeUdb()
+    {
+        const string cfg = """
+            linedeftypes
+            {
+                first
+                {
+                    title = "First Category";
+                    80 { title = "First Action"; prefix = "WR"; }
+                }
+                second
+                {
+                    title = "Second Category";
+                    80 { title = "Second Action"; prefix = "SR"; }
+                }
+            }
+            """;
+
+        var gc = GameConfiguration.FromText(cfg);
+
+        var action = gc.GetLinedefAction(80);
+        Assert.NotNull(action);
+        Assert.Equal("First Action", action!.Title);
+        Assert.Equal("WR", action.Prefix);
+        Assert.Equal("First Category", action.Category);
+        Assert.Equal("first", action.CategoryKey);
+        Assert.Contains(80, gc.LinedefActionCategories["first"].Actions);
+        Assert.DoesNotContain(80, gc.LinedefActionCategories["second"].Actions);
+    }
+
+    [Fact]
     public void ParsesLinedefActionCategoriesAndMetadata()
     {
         var gc = GameConfiguration.FromText(SampleCfg);

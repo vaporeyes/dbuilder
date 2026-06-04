@@ -1818,7 +1818,7 @@ public sealed class GameConfiguration
                 string name = GetString(action, "title", key);
                 string prefix = GetString(action, "prefix", "");
 
-                linedefActions[number] = new LinedefActionInfo
+                var info = new LinedefActionInfo
                 {
                     Index = number,
                     Category = catTitle,
@@ -1834,9 +1834,17 @@ public sealed class GameConfiguration
                     ErrorChecker = ParseLinedefActionErrorChecker(action),
                     Args = ParseArgs(action),
                 };
-                category.Add(number);
+                if (AddLinedefAction(number, info))
+                    category.Add(number);
             }
         }
+    }
+
+    private bool AddLinedefAction(int number, LinedefActionInfo action)
+    {
+        if (linedefActions.ContainsKey(number)) return false;
+        linedefActions.Add(number, action);
+        return true;
     }
 
     private static LinedefActionErrorCheckerExemptions ParseLinedefActionErrorChecker(IDictionary action)
