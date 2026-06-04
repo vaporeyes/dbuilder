@@ -1917,6 +1917,17 @@ public class EditorCommandCatalogTests
         Assert.False(command.Repeat);
     }
 
+    [Fact]
+    public void VisualDeleteCommandMatchesUdbDeleteItemAction()
+    {
+        var command = EditorCommandCatalog.Find("map3d.delete-target");
+
+        Assert.NotNull(command);
+        Assert.Equal("Delete Item", command.Title);
+        Assert.Equal("Delete", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+    }
+
     [Theory]
     [InlineData("map3d.scale-up", "Increase Scale", "NumPad9")]
     [InlineData("map3d.scale-down", "Decrease Scale", "NumPad7")]
