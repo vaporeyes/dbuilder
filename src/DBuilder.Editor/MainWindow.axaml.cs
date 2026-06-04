@@ -1552,6 +1552,7 @@ public partial class MainWindow : Window
             case "window.blockmapexplorermode": OnBlockmapExplorer(this, new RoutedEventArgs()); return true;
             case "window.reject-explorer": OnRejectViewer(this, new RoutedEventArgs()); return true;
             case "window.rejectexplorermode": OnRejectViewer(this, new RoutedEventArgs()); return true;
+            case "window.rejectexplorercolorconfiguration": OnRejectExplorerColors(this, new RoutedEventArgs()); return true;
             case "window.nodes-viewer": OnNodesViewer(this, new RoutedEventArgs()); return true;
             case "window.nodesviewermode": OnNodesViewer(this, new RoutedEventArgs()); return true;
             case "window.sound-propagation-mode": OnSoundPropagation(this, new RoutedEventArgs()); return true;
@@ -4765,13 +4766,7 @@ public partial class MainWindow : Window
         };
         win.ConfigureColorsRequested += async () =>
         {
-            var dialog = new RejectExplorerColorDialog(_settings.RejectExplorerColors);
-            if (!await dialog.ShowDialog<bool>(win)) return;
-            _settings.RejectExplorerColors = dialog.ResultColors;
-            SaveSettings();
-            if (reject is { HasData: true })
-                ApplyRejectOverlay(reject, target);
-            SetStatus("Reject Explorer colors updated.");
+            await ConfigureRejectExplorerColorsAsync(win, reject, target);
         };
         win.Closed += (_, _) => MapView.SetRejectOverlayColors(null);
         win.Show(this);
@@ -4790,6 +4785,20 @@ public partial class MainWindow : Window
         {
             SetStatus("Reject viewer opened. Select one sector before opening to highlight visibility relationships.");
         }
+    }
+
+    private async void OnRejectExplorerColors(object? sender, RoutedEventArgs e)
+        => await ConfigureRejectExplorerColorsAsync(this, null, null);
+
+    private async Task ConfigureRejectExplorerColorsAsync(Window owner, RejectTable? reject, int? target)
+    {
+        var dialog = new RejectExplorerColorDialog(_settings.RejectExplorerColors);
+        if (!await dialog.ShowDialog<bool>(owner)) return;
+        _settings.RejectExplorerColors = dialog.ResultColors;
+        SaveSettings();
+        if (reject is { HasData: true })
+            ApplyRejectOverlay(reject, target);
+        SetStatus("Reject Explorer colors updated.");
     }
 
     private void ApplyRejectOverlay(RejectTable reject, int? highlightedSector)

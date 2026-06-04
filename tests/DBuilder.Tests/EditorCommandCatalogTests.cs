@@ -1412,6 +1412,7 @@ public class EditorCommandCatalogTests
     [InlineData("window.rangetagselection", "Tag Range", EditorCommandScope.Window, true)]
     [InlineData("window.blockmapexplorermode", "Blockmap Explorer mode", EditorCommandScope.Window, true)]
     [InlineData("window.rejectexplorermode", "Reject Explorer mode", EditorCommandScope.Window, true)]
+    [InlineData("window.rejectexplorercolorconfiguration", "Configure colors", EditorCommandScope.Window, true)]
     [InlineData("window.nodesviewermode", "Nodes Viewer Mode", EditorCommandScope.Window, false)]
     [InlineData("window.soundpropagationmode", "Sound propagation mode", EditorCommandScope.Window, true)]
     [InlineData("window.soundenvironmentmode", "Sound environment mode", EditorCommandScope.Window, true)]

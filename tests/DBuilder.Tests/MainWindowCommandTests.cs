@@ -136,6 +136,7 @@ public sealed class MainWindowCommandTests
     [InlineData("window.rangetagselection", "OnTagRange")]
     [InlineData("window.blockmapexplorermode", "OnBlockmapExplorer")]
     [InlineData("window.rejectexplorermode", "OnRejectViewer")]
+    [InlineData("window.rejectexplorercolorconfiguration", "OnRejectExplorerColors")]
     [InlineData("window.nodesviewermode", "OnNodesViewer")]
     [InlineData("window.soundpropagationmode", "OnSoundPropagation")]
     [InlineData("window.soundenvironmentmode", "OnSoundEnvironments")]
@@ -154,6 +155,16 @@ public sealed class MainWindowCommandTests
 
         Assert.True(commandIndex >= 0);
         Assert.True(handlerIndex > commandIndex);
+    }
+
+    [Fact]
+    public void RejectExplorerColorConfigurationUsesSharedDialogHandler()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("case \"window.rejectexplorercolorconfiguration\": OnRejectExplorerColors", body, StringComparison.Ordinal);
+        Assert.Contains("await ConfigureRejectExplorerColorsAsync(win, reject, target);", body, StringComparison.Ordinal);
+        Assert.Contains("private async Task ConfigureRejectExplorerColorsAsync(Window owner, RejectTable? reject, int? target)", body, StringComparison.Ordinal);
     }
 
     [Fact]

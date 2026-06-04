@@ -142,6 +142,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.blockmapexplorermode", "Blockmap Explorer mode", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.reject-explorer", "Reject Explorer mode", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.rejectexplorermode", "Reject Explorer mode", "Menu", EditorCommandScope.Window, AllowScroll: true),
+        new EditorCommandDescriptor("window.rejectexplorercolorconfiguration", "Configure colors", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.nodes-viewer", "Nodes Viewer Mode", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.nodesviewermode", "Nodes Viewer Mode", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.sound-propagation-mode", "Sound propagation mode", "Menu", EditorCommandScope.Window, AllowScroll: true),
