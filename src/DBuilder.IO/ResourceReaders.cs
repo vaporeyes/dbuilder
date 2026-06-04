@@ -33,6 +33,8 @@ internal interface IResourceReader : IDisposable
     IEnumerable<string> GetGldefsLumps(string baseGame);
     /// <summary>X11R6RGB texts selected with UDB's singular text-resource rules.</summary>
     IEnumerable<string> GetX11RgbLumps();
+    /// <summary>IWADINFO definitions selected with UDB's per-resource rules.</summary>
+    IEnumerable<IwadDefinition> GetIwadInfos();
     /// <summary>The text of a named lump or exact PK3/directory path if this resource has one, else null.</summary>
     string? GetTextResource(string name);
     /// <summary>The raw bytes of a named lump (e.g. ANIMATED, PLAYPAL) if this resource has one, else null.</summary>
@@ -457,6 +459,13 @@ internal sealed class WadResourceReader : IResourceReader
         if (index >= 0) yield return System.Text.Encoding.ASCII.GetString(wad.Lumps[index].Stream.ReadAllBytes());
     }
 
+    public IEnumerable<IwadDefinition> GetIwadInfos()
+    {
+        foreach (string text in GetTextLumps("IWADINFO", partialTitleMatch: false))
+            foreach (var iwad in IwadInfoParser.Parse(text).Iwads)
+                yield return iwad;
+    }
+
     public byte[]? GetLumpBytes(string name) => wad.FindLump(name)?.Stream.ReadAllBytes();
 
     public DoomPatchNames? GetPatchNames() => DoomPatchNames.FromWad(wad);
@@ -773,6 +782,13 @@ internal abstract class FolderResourceReader : IResourceReader
                 yield return text;
     }
 
+    public virtual IEnumerable<IwadDefinition> GetIwadInfos()
+    {
+        foreach (string text in LocalTextLumps("IWADINFO", partialTitleMatch: true))
+            foreach (var iwad in IwadInfoParser.Parse(text).Iwads)
+                yield return iwad;
+    }
+
     public virtual byte[]? GetLumpBytes(string name)
     {
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
@@ -1049,10 +1065,8 @@ internal abstract class FolderResourceReader : IResourceReader
     {
         var matched = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         string normalizedName = name.ToLowerInvariant();
-        var paths = new List<string>(files.Keys);
-        paths.Sort(StringComparer.OrdinalIgnoreCase);
 
-        foreach (string path in paths)
+        foreach (string path in files.Keys)
         {
             if (!IsRootTextLumpMatch(path, normalizedName, partialTitleMatch)) continue;
             matched.Add(path);

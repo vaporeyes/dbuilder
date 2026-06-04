@@ -1073,6 +1073,15 @@ public sealed class ResourceManager : IDisposable
         return null;
     }
 
+    /// <summary>IWADINFO definitions from every resource, oldest first.</summary>
+    public IReadOnlyList<IwadDefinition> GetIwadInfos()
+    {
+        var result = new List<IwadDefinition>();
+        foreach (var reader in readers)
+            result.AddRange(reader.GetIwadInfos());
+        return result;
+    }
+
     /// <summary>The active palette (first PLAYPAL found searching newest resource first), or UDB's gray fallback when resources define none.</summary>
     public DoomPalette? Palette
     {

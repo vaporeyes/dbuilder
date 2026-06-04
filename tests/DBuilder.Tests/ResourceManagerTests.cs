@@ -61,6 +61,9 @@ public class ResourceManagerTests
         return bytes;
     }
 
+    private static byte[] IwadInfoBytes(string name)
+        => Encoding.ASCII.GetBytes($"IWad {{ Name = \"{name}\"; }}");
+
     private static WAD BuildWad(params (string name, byte[] data)[] lumps)
     {
         var ms = new MemoryStream();
@@ -92,6 +95,54 @@ public class ResourceManagerTests
         w.Write((uint)names.Length);
         foreach (string name in names) w.Write(FixedAscii(name, 8));
         return ms.ToArray();
+    }
+
+    [Fact]
+    public void ResolvesIwadInfoFromWadLumps()
+    {
+        using var wad = BuildWad(
+            ("IWADINFO", IwadInfoBytes("First")),
+            ("IWADINFO", IwadInfoBytes("Second")));
+        using var rm = new ResourceManager();
+
+        rm.AddResource(wad);
+
+        var infos = rm.GetIwadInfos();
+        Assert.Equal(2, infos.Count);
+        Assert.Equal("First", infos[0].Name);
+        Assert.Equal("Second", infos[1].Name);
+    }
+
+    [Fact]
+    public void FolderResourcesResolveRootIwadInfoPrefixFilesLikeUdb()
+    {
+        string nestedWad = TestArtifacts.BuildPwadFile(("IWADINFO", IwadInfoBytes("Nested")));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("IWADINFO.txt", IwadInfoBytes("Root")),
+            ("IWADINFO.extra", IwadInfoBytes("Extra")),
+            ("nested.wad", File.ReadAllBytes(nestedWad)));
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_iwadinfo_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            Directory.CreateDirectory(dir);
+            File.WriteAllBytes(Path.Combine(dir, "IWADINFO.txt"), IwadInfoBytes("Directory"));
+
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+            rm.AddResource(dir);
+
+            var infos = rm.GetIwadInfos();
+            Assert.Equal(3, infos.Count);
+            Assert.Equal("Root", infos[0].Name);
+            Assert.Equal("Extra", infos[1].Name);
+            Assert.Equal("Directory", infos[2].Name);
+        }
+        finally
+        {
+            File.Delete(nestedWad);
+            File.Delete(pk3);
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
     }
 
     private static byte[] Texture1(params (string TextureName, int Width, int Height, ushort PatchIndex)[] textures)
