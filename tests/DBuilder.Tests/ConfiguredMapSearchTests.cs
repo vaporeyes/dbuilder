@@ -343,6 +343,53 @@ public class ConfiguredMapSearchTests
     }
 
     [Fact]
+    public void ReplaceActionArgumentsWritesArg0StringOnlyWhenReplacementActionSupportsIt()
+    {
+        var config = GameConfiguration.FromText("""
+            linedeftypes
+            {
+                scripts
+                {
+                    80
+                    {
+                        title = "Script string";
+                        arg0 { str = true; }
+                    }
+                    82
+                    {
+                        title = "Script number";
+                        arg0 { title = "Script"; }
+                    }
+                }
+            }
+            """);
+        var map = BuildMap();
+        map.AddThing(new Vector2D(16, 16), 3001);
+        map.Linedefs[0].Action = 80;
+        map.Linedefs[0].Fields["arg0str"] = "CurrentLine";
+        map.Linedefs[0].Args[1] = 5;
+        map.Linedefs[1].Action = 80;
+        map.Linedefs[1].Fields["arg0str"] = "CurrentBlockedLine";
+        map.Linedefs[1].Args[1] = 5;
+        map.Things[0].Action = 80;
+        map.Things[0].Fields["arg0str"] = "CurrentThing";
+        map.Things[0].Args[1] = 5;
+
+        Assert.Equal(1, ConfiguredMapSearch.Replace(map, FindCategory.LinedefActionArguments, "80 CurrentLine 5", "80 NextLine 9", config));
+        Assert.Equal(1, ConfiguredMapSearch.Replace(map, FindCategory.LinedefActionArguments, "80 CurrentBlockedLine 5", "82 BlockedLine 9", config));
+        Assert.Equal(1, ConfiguredMapSearch.Replace(map, FindCategory.ThingActionArguments, "80 CurrentThing 5", "82 BlockedThing 9", config));
+
+        Assert.Equal("NextLine", map.Linedefs[0].Fields["arg0str"]);
+        Assert.Equal(9, map.Linedefs[0].Args[1]);
+        Assert.Equal("CurrentBlockedLine", map.Linedefs[1].Fields["arg0str"]);
+        Assert.Equal(82, map.Linedefs[1].Action);
+        Assert.Equal(9, map.Linedefs[1].Args[1]);
+        Assert.Equal("CurrentThing", map.Things[0].Fields["arg0str"]);
+        Assert.Equal(82, map.Things[0].Action);
+        Assert.Equal(9, map.Things[0].Args[1]);
+    }
+
+    [Fact]
     public void GeneralizedMatchingDoesNotApplyWithoutConfiguredGeneralizedActions()
     {
         var config = GameConfiguration.FromText(Cfg.Replace("generalizedlinedefs = true;", ""));

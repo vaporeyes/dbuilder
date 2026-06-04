@@ -522,7 +522,8 @@ public static class MapSearch
         bool mixTexturesFlats,
         int maxTextureNameLength,
         int minThingType,
-        int maxThingType)
+        int maxThingType,
+        Func<int, bool>? actionArg0StringSupported = null)
     {
         if (!CanReplace(cat, mixTexturesFlats)) return 0;
 
@@ -585,7 +586,7 @@ public static class MapSearch
             return ReplaceFlags(lists, cat, find, replace);
 
         if (cat == FindCategory.LinedefActionArguments || cat == FindCategory.ThingActionArguments)
-            return ReplaceActionArguments(lists, cat, find, replace, linedefActionMatcher);
+            return ReplaceActionArguments(lists, cat, find, replace, linedefActionMatcher, actionArg0StringSupported);
 
         if (cat == FindCategory.ThingType)
         {
@@ -868,7 +869,8 @@ public static class MapSearch
         FindCategory category,
         string find,
         string replace,
-        Func<int, int, bool>? linedefActionMatcher)
+        Func<int, int, bool>? linedefActionMatcher,
+        Func<int, bool>? actionArg0StringSupported)
     {
         if (!TryParseActionQuery(find, out var findQuery) ||
             !TryParseActionQuery(replace, out var replaceQuery) ||
@@ -883,7 +885,8 @@ public static class MapSearch
             {
                 if (!ActionQueryMatches(line, line.Action, line.Args, findQuery, linedefActionMatcher)) continue;
                 ApplyActionReplacement(line.Args, replaceQuery);
-                if (replaceQuery.Arg0String != null) line.SetStringField("arg0str", replaceQuery.Arg0String);
+                if (replaceQuery.Arg0String != null && ActionArg0StringSupported(replaceQuery.Action, actionArg0StringSupported))
+                    line.SetStringField("arg0str", replaceQuery.Arg0String);
                 line.Action = replaceQuery.Action;
                 changed++;
             }
@@ -894,7 +897,8 @@ public static class MapSearch
             {
                 if (!ActionQueryMatches(thing, thing.Action, thing.Args, findQuery)) continue;
                 ApplyActionReplacement(thing.Args, replaceQuery);
-                if (replaceQuery.Arg0String != null) thing.SetStringField("arg0str", replaceQuery.Arg0String);
+                if (replaceQuery.Arg0String != null && ActionArg0StringSupported(replaceQuery.Action, actionArg0StringSupported))
+                    thing.SetStringField("arg0str", replaceQuery.Arg0String);
                 thing.Action = replaceQuery.Action;
                 changed++;
             }
@@ -902,6 +906,9 @@ public static class MapSearch
 
         return changed;
     }
+
+    private static bool ActionArg0StringSupported(int action, Func<int, bool>? actionArg0StringSupported)
+        => actionArg0StringSupported?.Invoke(action) ?? true;
 
     private static void ApplyActionReplacement(int[] args, ActionArgQuery replaceQuery)
     {
