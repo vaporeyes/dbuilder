@@ -117,6 +117,14 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void WadAuthorPopupUsesModelEditDescriptions()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("EditBegun?.Invoke(WadAuthorModeModel.EditDescription(action));", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void DynamicLightDialogUsesRelativeLimitsWhenRelativeModeIsSelected()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/DynamicLightDialog.cs"));

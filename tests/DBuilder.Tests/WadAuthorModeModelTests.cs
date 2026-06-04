@@ -78,6 +78,15 @@ public class WadAuthorModeModelTests
         Assert.True(WadAuthorModeModel.CanExecuteLinedefPopupAction(WadAuthorLinedefPopupAction.Curve));
     }
 
+    [Theory]
+    [InlineData(WadAuthorLinedefPopupAction.Properties, "Edit linedef properties")]
+    [InlineData(WadAuthorLinedefPopupAction.Delete, "Delete linedef")]
+    [InlineData(WadAuthorLinedefPopupAction.Split, "Split linedef")]
+    [InlineData(WadAuthorLinedefPopupAction.Flip, "Flip linedef")]
+    [InlineData(WadAuthorLinedefPopupAction.Curve, "Curve linedef")]
+    public void LinedefPopupEditDescriptionsMatchEditorUndoLabels(WadAuthorLinedefPopupAction action, string expected)
+        => Assert.Equal(expected, WadAuthorModeModel.EditDescription(action));
+
     [Fact]
     public void EnterModeConvertsSelectedSectorsToLinedefsLikeUdb()
     {

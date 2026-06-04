@@ -103,6 +103,17 @@ public static class WadAuthorModeModel
     public static bool CanExecuteLinedefPopupAction(WadAuthorLinedefPopupAction action)
         => true;
 
+    public static string EditDescription(WadAuthorLinedefPopupAction action)
+        => action switch
+        {
+            WadAuthorLinedefPopupAction.Delete => "Delete linedef",
+            WadAuthorLinedefPopupAction.Split => "Split linedef",
+            WadAuthorLinedefPopupAction.Flip => "Flip linedef",
+            WadAuthorLinedefPopupAction.Curve => "Curve linedef",
+            WadAuthorLinedefPopupAction.Properties => "Edit linedef properties",
+            _ => "WadAuthor linedef action",
+        };
+
     public static string ModeToggleStatusText(bool enabled, string currentModeName)
         => enabled
             ? "Mode: WadAuthor. Hover highlights vertices, things, linedefs, and sectors using WadAuthor priority."
