@@ -13,7 +13,7 @@ public class ScriptNavigatorTests
         const string text = """
             $skip
             script 12 OPEN
-            {
+            { // Door opener
             }
 
             script "NamedScript" (int tid, str label)
@@ -28,10 +28,10 @@ public class ScriptNavigatorTests
 
         var items = ScriptNavigator.GetItems(ScriptType.Acs, text);
 
-        Assert.Equal("int CountThings(int tid)", items[0].Name);
-        Assert.Equal("NamedScript (int tid, str label)", items[1].Name);
-        Assert.Equal("Script 12(OPEN)", items[2].Name);
-        Assert.True(items[2].Skipped);
+        Assert.Equal("Door opener [Script 12](OPEN)", items[0].Name);
+        Assert.Equal("int CountThings(int tid)", items[1].Name);
+        Assert.Equal("NamedScript (int tid, str label)", items[2].Name);
+        Assert.True(items[0].Skipped);
     }
 
     [Fact]

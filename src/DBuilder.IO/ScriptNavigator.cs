@@ -22,7 +22,7 @@ public static class ScriptNavigator
         var items = new List<ScriptNavigatorItem>();
         switch (type)
         {
-            case ScriptType.Acs: AddAcsItems(tokens, items); break;
+            case ScriptType.Acs: AddAcsItems(tokens, text, items); break;
             case ScriptType.Decorate: AddHeaderItems(tokens, items, "ACTOR"); break;
             case ScriptType.ModelDef: AddModelItems(tokens, items); break;
             case ScriptType.ZScript: AddZScriptItems(tokens, items); break;
@@ -31,7 +31,7 @@ public static class ScriptNavigator
         return items;
     }
 
-    private static void AddAcsItems(IReadOnlyList<Token> tokens, List<ScriptNavigatorItem> items)
+    private static void AddAcsItems(IReadOnlyList<Token> tokens, string text, List<ScriptNavigatorItem> items)
     {
         int braceLevel = 0;
         bool skipNextScript = false;
@@ -50,7 +50,7 @@ public static class ScriptNavigator
 
             if (token == "script")
             {
-                AddAcsScript(tokens, ref i, items, ref skipNextScript);
+                AddAcsScript(tokens, text, ref i, items, ref skipNextScript);
             }
             else if (token == "function")
             {
@@ -59,7 +59,12 @@ public static class ScriptNavigator
         }
     }
 
-    private static void AddAcsScript(IReadOnlyList<Token> tokens, ref int index, List<ScriptNavigatorItem> items, ref bool skipNextScript)
+    private static void AddAcsScript(
+        IReadOnlyList<Token> tokens,
+        string text,
+        ref int index,
+        List<ScriptNavigatorItem> items,
+        ref bool skipNextScript)
     {
         int nameIndex = index + 1;
         if (nameIndex >= tokens.Count) return;
@@ -77,10 +82,31 @@ public static class ScriptNavigator
 
         if (int.TryParse(nameToken.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int number))
         {
-            items.Add(new ScriptNavigatorItem("Script " + number + argsText, nameToken.StartOffset, Skipped: skipNextScript));
+            string customName = NumberedScriptCustomName(tokens, nameIndex, text);
+            string name = customName.Length > 0 ? customName + " [Script " + number + "]" : "Script " + number;
+            items.Add(new ScriptNavigatorItem(name + argsText, nameToken.StartOffset, Skipped: skipNextScript));
             skipNextScript = false;
             index = nameIndex;
         }
+    }
+
+    private static string NumberedScriptCustomName(IReadOnlyList<Token> tokens, int startIndex, string text)
+    {
+        for (int i = startIndex + 1; i < tokens.Count; i++)
+        {
+            if (tokens[i].Text == "{") return LineCommentAfter(text, tokens[i].StartOffset + 1);
+            if (tokens[i].Text is ";" or "}") return "";
+        }
+
+        return "";
+    }
+
+    private static string LineCommentAfter(string text, int offset)
+    {
+        int lineEnd = text.IndexOf('\n', offset);
+        if (lineEnd < 0) lineEnd = text.Length;
+        int comment = text.IndexOf("//", offset, lineEnd - offset, StringComparison.Ordinal);
+        return comment < 0 ? "" : text[(comment + 2)..lineEnd].Trim();
     }
 
     private static void AddAcsFunction(IReadOnlyList<Token> tokens, ref int index, List<ScriptNavigatorItem> items)

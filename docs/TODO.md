@@ -1343,6 +1343,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match UDB embedded script resource identity through parent resource location and display name.
 - [ ] Port script handlers for ACS, DECORATE, MODELDEF, and ZScript.
   - [x] Add UDB-style script navigator entries for ACS, DECORATE, MODELDEF, and ZScript.
+  - [x] Show UDB-style numbered ACS script custom names from opening-brace comments.
 - [x] Match UDB exact script type names in script configuration parsing.
 - [ ] Port script editor UI.
 - [ ] Port script document tabs.
