@@ -3730,6 +3730,17 @@ public sealed class UdbScriptMapWrapper
 
         for (int i = 0; i < thing.Args.Length && i < info.Args.Length; i++)
             thing.Args[i] = Convert.ToInt32(info.Args[i].DefaultValue, CultureInfo.InvariantCulture);
+
+        if (!config.UniversalFields.TryGetValue("thing", out var fields)) return;
+        foreach (string fieldName in info.AddUniversalFields)
+        {
+            if (!fields.TryGetValue(fieldName, out UniversalFieldInfo? field) || field.DefaultValue == null) continue;
+
+            object? converted = UdbScriptApiConversionModel.GetConvertedUniversalValue(
+                new UdbScriptUniversalValue(field.Type, field.DefaultValue));
+            if (converted != null)
+                thing.Fields[fieldName] = converted;
+        }
     }
 
     private void ThrowIfDisposed(string member)

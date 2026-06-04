@@ -1703,6 +1703,29 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapWrapperCreateThingAppliesActorUserVariableDefaultsLikeUdbScript()
+    {
+        var config = GameConfiguration.FromText("");
+        var actor = new ActorInfo { ClassName = "DefaultUserVarThing" };
+        actor.UserVariables["user_score"] = new ActorUserVariable("user_score", UniversalType.Integer, 11);
+        actor.UserVariables["user_speed"] = new ActorUserVariable("user_speed", UniversalType.Float, 1.5);
+        actor.UserVariables["user_enabled"] = new ActorUserVariable("user_enabled", UniversalType.Boolean, false);
+        actor.UserVariables["user_label"] = new ActorUserVariable("user_label", UniversalType.String, "active");
+        actor.UserVariables["user_unset"] = new ActorUserVariable("user_unset", UniversalType.Integer);
+        config.MergeActors(new[] { actor }, new Dictionary<int, string> { [3001] = "DefaultUserVarThing" });
+        var map = new MapSet();
+        var wrapper = new UdbScriptMapWrapper(map, mapFormat: MapFormat.Udmf, config: config);
+
+        UdbScriptThingWrapper thing = wrapper.createThing(new object[] { 64.0, 96.0 }, type: 3001);
+
+        Assert.Equal(11, thing.Thing.Fields["user_score"]);
+        Assert.Equal(1.5, thing.Thing.Fields["user_speed"]);
+        Assert.Equal(false, thing.Thing.Fields["user_enabled"]);
+        Assert.Equal("active", thing.Thing.Fields["user_label"]);
+        Assert.False(thing.Thing.Fields.ContainsKey("user_unset"));
+    }
+
+    [Fact]
     public void MapOwnedThingWrappersDeleteThings()
     {
         var map = new MapSet();
