@@ -60,6 +60,19 @@ public static class VisualNearestHeight
             : LowerCeilings(ceilings.Keys, withinSelection);
         changed += AlignThings(things, raise);
 
+        if (!withinSelection && changed == 0 && things.Count == 0 && floors.Count + ceilings.Count > 0)
+        {
+            string failed = string.Empty;
+            if (floors.Count > 0) failed = floors.Count > 1 ? "floors" : "floor";
+            if (ceilings.Count > 0)
+            {
+                if (!string.IsNullOrEmpty(failed)) failed += " and ";
+                failed += ceilings.Count > 1 ? "ceilings" : "ceiling";
+            }
+
+            return new VisualNearestHeightResult(0, $"Unable to align selected {failed}!");
+        }
+
         string verb = raise ? "raised" : "lowered";
         return new VisualNearestHeightResult(changed, $"{verb} {changed} object{(changed == 1 ? "" : "s")} to nearest height");
     }
