@@ -1678,6 +1678,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style generalized linedef action bit matching for action find categories.
   - [x] Add UDB-style generalized sector effect matching for sector-effect find categories.
 - [ ] Port map error checker infrastructure.
+  - [x] Expose UDB error checker display names, defaults, costs, and issue-kind mappings.
   - [x] Add UDB-style per-element ignored error-check suppression for single and multi-element results.
   - [x] Add map-check window support for ignoring selected results.
   - [x] Add map-check window support for restoring ignored results.

@@ -81,6 +81,15 @@ public sealed record MapIssueFixOptions(
     string DefaultFloorTexture = "FLOOR0_1",
     string DefaultCeilingTexture = "CEIL1_1");
 
+public sealed record MapErrorCheckerDescriptor(
+    string DisplayName,
+    bool DefaultChecked,
+    int Cost,
+    IReadOnlyList<MapIssueKind> IssueKinds)
+{
+    public override string ToString() => DisplayName;
+}
+
 /// <summary>
 /// Optional lookups that enable the resource/config-aware checks. Delegates are injected by the host (so this
 /// project stays decoupled from resource/config code); a null delegate disables its check.
@@ -219,6 +228,32 @@ public sealed record MapIssue(MapIssueSeverity Severity, MapIssueKind Kind, stri
 
 public static class MapAnalysis
 {
+    public static IReadOnlyList<MapErrorCheckerDescriptor> CheckerDescriptors { get; } =
+    [
+        new("Check texture alignment", false, 1000, [MapIssueKind.MisalignedTexture]),
+        new("Check stuck things", true, 1000, [MapIssueKind.ThingOutsideMap, MapIssueKind.ThingStuckInLinedef, MapIssueKind.ThingStuckInThing]),
+        new("Check overlapping lines", true, 500, [MapIssueKind.OverlappingLinedefs]),
+        new("Check overlapping vertices", true, 500, [MapIssueKind.OverlappingVertices, MapIssueKind.VertexOverlappingLinedef]),
+        new("Check invalid sectors", true, 300, [MapIssueKind.EmptySector, MapIssueKind.UnclosedSector, MapIssueKind.InvalidSector]),
+        new("Check polyobjects", true, 100, [MapIssueKind.InvalidPolyobject]),
+        new("Check missing textures", true, 80, [MapIssueKind.MissingTexture]),
+        new("Check unknown textures", true, 60, [MapIssueKind.UnknownTexture]),
+        new("Check unused textures", true, 60, [MapIssueKind.UnusedTexture]),
+        new("Check unknown ACS scripts", true, 50, [MapIssueKind.UnknownLinedefScript, MapIssueKind.UnknownThingScript]),
+        new("Check line references", true, 50, [MapIssueKind.LinedefMissingFront, MapIssueKind.LinedefWithoutSidedefs, MapIssueKind.LinedefNotDoubleSided, MapIssueKind.LinedefNotSingleSided]),
+        new("Check off-grid vertices", true, 50, [MapIssueKind.OffGridVertex]),
+        new("Check map size", true, 50, [MapIssueKind.MapTooBig]),
+        new("Check missing activations", true, 50, [MapIssueKind.MissingActivation]),
+        new("Check unknown actions/effects", true, 50, [MapIssueKind.UnknownAction, MapIssueKind.UnknownSectorEffect, MapIssueKind.UnknownThingAction]),
+        new("Check unknown things", true, 50, [MapIssueKind.UnknownThingType]),
+        new("Check unconnected vertices", true, 50, [MapIssueKind.UnusedVertex]),
+        new("Check obsolete things", true, 50, [MapIssueKind.ObsoleteThingType]),
+        new("Check unused things", true, 50, [MapIssueKind.UnusedThing]),
+        new("Check missing flats", true, 40, [MapIssueKind.MissingFlat]),
+        new("Check unknown flats", true, 40, [MapIssueKind.UnknownFlat]),
+        new("Check very short linedefs", false, 10, [MapIssueKind.ShortLinedef]),
+    ];
+
     /// <summary>Scans the map and returns all detected issues (empty list when clean).</summary>
     public static IReadOnlyList<MapIssue> Check(MapSet map) => Check(map, null);
 

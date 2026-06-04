@@ -53,6 +53,25 @@ public class MapAnalysisTests
     private static bool Has(MapSet map, MapIssueKind kind)
         => MapAnalysis.Check(map).Any(i => i.Kind == kind);
 
+    [Fact]
+    public void CheckerDescriptorsExposeUdbNamesDefaultsCostsAndIssueKinds()
+    {
+        IReadOnlyList<MapErrorCheckerDescriptor> descriptors = MapAnalysis.CheckerDescriptors;
+
+        Assert.Equal(22, descriptors.Count);
+        Assert.Equal("Check texture alignment", descriptors[0].DisplayName);
+        Assert.False(descriptors[0].DefaultChecked);
+        Assert.Equal(1000, descriptors[0].Cost);
+        Assert.Equal("Check very short linedefs", descriptors[^1].DisplayName);
+        Assert.False(descriptors[^1].DefaultChecked);
+        Assert.Equal(10, descriptors[^1].Cost);
+        Assert.Equal(descriptors.Select(descriptor => descriptor.Cost).OrderDescending(), descriptors.Select(descriptor => descriptor.Cost));
+        Assert.Equal("Check invalid sectors", descriptors.Single(descriptor => descriptor.IssueKinds.Contains(MapIssueKind.UnclosedSector)).ToString());
+        Assert.Contains(MapIssueKind.LinedefMissingFront, descriptors.Single(descriptor => descriptor.DisplayName == "Check line references").IssueKinds);
+        Assert.Contains(MapIssueKind.UnknownThingAction, descriptors.Single(descriptor => descriptor.DisplayName == "Check unknown actions/effects").IssueKinds);
+        Assert.DoesNotContain(MapIssueKind.ZeroLengthLinedef, descriptors.SelectMany(descriptor => descriptor.IssueKinds));
+    }
+
     private static (MapSet Map, Linedef Shared) AdjacentSquares()
     {
         var map = new MapSet();
