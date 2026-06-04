@@ -1082,6 +1082,16 @@ public sealed class ResourceManager : IDisposable
         return result;
     }
 
+    /// <summary>DEHACKED patches from every resource, oldest first.</summary>
+    public IReadOnlyList<DehackedPatch> GetDehackedPatches()
+    {
+        var result = new List<DehackedPatch>();
+        foreach (var reader in readers)
+            foreach (string text in reader.GetDehackedLumps())
+                result.Add(DehackedParser.Parse(text));
+        return result;
+    }
+
     /// <summary>The active palette (first PLAYPAL found searching newest resource first), or UDB's gray fallback when resources define none.</summary>
     public DoomPalette? Palette
     {

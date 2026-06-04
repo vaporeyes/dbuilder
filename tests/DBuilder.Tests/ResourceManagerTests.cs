@@ -64,6 +64,9 @@ public class ResourceManagerTests
     private static byte[] IwadInfoBytes(string name)
         => Encoding.ASCII.GetBytes($"IWad {{ Name = \"{name}\"; }}");
 
+    private static byte[] DehackedThingBytes(string name)
+        => Encoding.ASCII.GetBytes($"Thing 1 ({name})\nID # = 9001\n");
+
     private static WAD BuildWad(params (string name, byte[] data)[] lumps)
     {
         var ms = new MemoryStream();
@@ -136,6 +139,55 @@ public class ResourceManagerTests
             Assert.Equal("Root", infos[0].Name);
             Assert.Equal("Extra", infos[1].Name);
             Assert.Equal("Directory", infos[2].Name);
+        }
+        finally
+        {
+            File.Delete(nestedWad);
+            File.Delete(pk3);
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ResolvesDehackedFromWadLumps()
+    {
+        using var wad = BuildWad(
+            ("DEHACKED", DehackedThingBytes("First")),
+            ("DEHACKED", DehackedThingBytes("Second")));
+        using var rm = new ResourceManager();
+
+        rm.AddResource(wad);
+
+        var patches = rm.GetDehackedPatches();
+        Assert.Equal(2, patches.Count);
+        Assert.Equal("First", patches[0].Things[0].Name);
+        Assert.Equal("Second", patches[1].Things[0].Name);
+    }
+
+    [Fact]
+    public void FolderResourcesResolveRootDehackedPrefixFilesThenNestedWadsLikeUdb()
+    {
+        string nestedWad = TestArtifacts.BuildPwadFile(("DEHACKED", DehackedThingBytes("Nested")));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("DEHACKED.txt", DehackedThingBytes("Root")),
+            ("DEHACKED.extra", DehackedThingBytes("Extra")),
+            ("nested.wad", File.ReadAllBytes(nestedWad)));
+        string dir = Path.Combine(Path.GetTempPath(), "dbuilder_dehacked_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            Directory.CreateDirectory(dir);
+            File.WriteAllBytes(Path.Combine(dir, "DEHACKED.txt"), DehackedThingBytes("Directory"));
+
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+            rm.AddResource(dir);
+
+            var patches = rm.GetDehackedPatches();
+            Assert.Equal(4, patches.Count);
+            Assert.Equal("Root", patches[0].Things[0].Name);
+            Assert.Equal("Extra", patches[1].Things[0].Name);
+            Assert.Equal("Nested", patches[2].Things[0].Name);
+            Assert.Equal("Directory", patches[3].Things[0].Name);
         }
         finally
         {
