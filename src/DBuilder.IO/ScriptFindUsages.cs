@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.RegularExpressions;
 
 namespace DBuilder.IO;
@@ -38,14 +39,17 @@ public static class ScriptFindUsages
         string pattern = wholeWord ? "\\b" + findText + "\\b" : findText;
         var options = caseSensitive ? RegexOptions.None : RegexOptions.IgnoreCase;
         var regex = new Regex(pattern, options);
-        string[] lines = text.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
-        for (int i = 0; i < lines.Length; i++)
+        using var reader = new StringReader(text);
+        int lineIndex = 0;
+        while (reader.ReadLine() is { } line)
         {
-            foreach (Match match in regex.Matches(lines[i]))
+            foreach (Match match in regex.Matches(line))
             {
-                result.Add(new ScriptUsageResult(lines[i], i, match.Index, match.Index + match.Length));
+                result.Add(new ScriptUsageResult(line, lineIndex, match.Index, match.Index + match.Length));
                 if (stopAfterFirst) return result;
             }
+
+            lineIndex++;
         }
 
         return result;

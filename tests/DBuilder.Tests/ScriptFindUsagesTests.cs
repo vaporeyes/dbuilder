@@ -114,4 +114,12 @@ public class ScriptFindUsagesTests
         Assert.True(ScriptFindUsages.ContainsText(text, "BETA"));
         Assert.False(ScriptFindUsages.ContainsText(text, "BETA", caseSensitive: true));
     }
+
+    [Fact]
+    public void DoesNotSearchSyntheticTrailingBlankLineLikeUdb()
+    {
+        var usages = ScriptFindUsages.Find("alpha\n", "^$", caseSensitive: true);
+
+        Assert.Empty(usages);
+    }
 }

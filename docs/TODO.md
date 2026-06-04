@@ -1363,6 +1363,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style script find-usages matching with whole-word and case options.
   - [x] Treat script find-usages search text as regex syntax.
   - [x] Keep script find-usages case-insensitive matching culture-sensitive.
+  - [x] Search script resources line-by-line without adding a synthetic trailing blank line.
 - [ ] Port script compile flow.
   - [x] Build UDB-style directory and archive script compile plans and output target rules.
   - [x] Select script compiler output target rules from UDB compiler interface metadata.
