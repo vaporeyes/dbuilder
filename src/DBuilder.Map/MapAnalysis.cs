@@ -279,6 +279,12 @@ public static class MapAnalysis
     /// <summary>Scans the map and returns all detected issues (empty list when clean).</summary>
     public static IReadOnlyList<MapIssue> Check(MapSet map) => Check(map, null);
 
+    public static IReadOnlyList<MapIssue> Check(
+        MapSet map,
+        MapCheckContext? ctx,
+        IEnumerable<MapErrorCheckerDescriptor> enabledCheckers)
+        => FilterIssuesForCheckers(Check(map, ctx), enabledCheckers);
+
     /// <summary>
     /// Scans the map, additionally running the resource/config-aware checks when <paramref name="ctx"/> is given.
     /// </summary>

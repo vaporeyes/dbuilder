@@ -106,6 +106,36 @@ public class MapAnalysisTests
         Assert.Equal(new[] { misalignedTexture, shortLinedef }, visible);
     }
 
+    [Fact]
+    public void CheckWithDefaultCheckerSelectionSuppressesOptionalUdbChecks()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(0.5, 0));
+        map.AddLinedef(a, b);
+        map.BuildIndexes();
+
+        var issues = MapAnalysis.Check(map, new MapCheckContext(), MapAnalysis.DefaultCheckerDescriptors);
+
+        Assert.DoesNotContain(issues, issue => issue.Kind == MapIssueKind.ShortLinedef);
+    }
+
+    [Fact]
+    public void CheckWithExplicitCheckerSelectionIncludesOptionalUdbChecks()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(0.5, 0));
+        map.AddLinedef(a, b);
+        map.BuildIndexes();
+        var enabled = MapAnalysis.CheckerDescriptors
+            .Where(descriptor => descriptor.DisplayName == "Check very short linedefs");
+
+        var issues = MapAnalysis.Check(map, new MapCheckContext(), enabled);
+
+        Assert.Contains(issues, issue => issue.Kind == MapIssueKind.ShortLinedef);
+    }
+
     private static (MapSet Map, Linedef Shared) AdjacentSquares()
     {
         var map = new MapSet();

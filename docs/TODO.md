@@ -1681,6 +1681,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Expose UDB error checker display names, defaults, costs, and issue-kind mappings.
   - [x] Expose UDB error checker class names and persisted settings keys.
   - [x] Add testable UDB-style default checker selection filtering.
+  - [x] Add UDB-style checker-selected map analysis filtering.
   - [x] Add UDB-style per-element ignored error-check suppression for single and multi-element results.
   - [x] Add map-check window support for ignoring selected results.
   - [x] Add map-check window support for restoring ignored results.
