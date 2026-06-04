@@ -59,6 +59,21 @@ public class ConfiguredTagSearchTests
     }
 
     [Fact]
+    public void UsedTagStatisticsSkipsDirectMoreidsWhenPrimaryTagIsZero()
+    {
+        var config = GameConfiguration.FromText(Cfg);
+        var map = BuildMap();
+        map.Sectors[0].Tags.Clear();
+        map.Sectors[0].Tags.AddRange([0, 7]);
+        map.Linedefs[0].Tags.Clear();
+        map.Linedefs[0].Tags.AddRange([0, 7]);
+
+        var stats = ConfiguredTagSearch.UsedTagStatistics(map, config);
+
+        Assert.DoesNotContain(stats, stat => stat.Tag == 7);
+    }
+
+    [Fact]
     public void ReplaceUpdatesTagTypedActionArgsOncePerElement()
     {
         var config = GameConfiguration.FromText(Cfg);

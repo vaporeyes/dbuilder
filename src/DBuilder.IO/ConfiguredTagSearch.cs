@@ -289,7 +289,10 @@ public static class ConfiguredTagSearch
         var things = new Dictionary<int, int>();
 
         foreach (var sector in map.Sectors)
+        {
+            if (sector.Tag == 0) continue;
             foreach (int tag in MapElementTags.PositiveTags(sector)) Add(sectors, tag);
+        }
 
         if (config?.HasThingTag ?? true)
         {
@@ -306,7 +309,10 @@ public static class ConfiguredTagSearch
         if (config?.HasLinedefTag ?? true)
         {
             foreach (var line in map.Linedefs)
+            {
+                if (line.Tag == 0) continue;
                 foreach (int tag in MapElementTags.PositiveTags(line)) Add(linedefs, tag);
+            }
         }
 
         if (config?.HasActionArgs ?? true)
