@@ -233,6 +233,28 @@ public class UdbScriptQueryOptionsModelTests
     }
 
     [Fact]
+    public void AddOptionRejectsNonGenericDictionaryEnumContainersLikeUdb()
+    {
+        var model = new UdbScriptQueryOptionsModel();
+
+        UdbScriptQueryOptionAddResult added = model.AddOption(
+            "demo.js",
+            "direction",
+            "Direction",
+            (int)UniversalType.EnumOption,
+            1,
+            new System.Collections.Hashtable
+            {
+                ["1"] = "Up",
+                ["2"] = "Down",
+            });
+
+        Assert.False(added.Added);
+        Assert.Equal("", added.ErrorDescription);
+        Assert.Empty(model.Options);
+    }
+
+    [Fact]
     public void ClearRemovesOptionsAndDuplicateNamesReturnLastValue()
     {
         var model = new UdbScriptQueryOptionsModel();

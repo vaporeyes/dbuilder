@@ -1,7 +1,7 @@
 // ABOUTME: Models UDBScript QueryOptions runtime prompt state and option validation.
 // ABOUTME: Keeps query option behavior aligned with upstream addOption and clear semantics.
 
-using System.Collections;
+using System.Dynamic;
 
 namespace DBuilder.IO;
 
@@ -175,15 +175,15 @@ public sealed class UdbScriptQueryOptionsModel
             return true;
         }
 
-        if (values is IDictionary dictionary)
+        if (values is Dictionary<string, object?> dictionary)
         {
             enumValues = ReadDictionary(dictionary);
             return true;
         }
 
-        if (values is IEnumerable<KeyValuePair<string, object?>> typedDictionary)
+        if (values is ExpandoObject expando)
         {
-            enumValues = ReadDictionary(typedDictionary);
+            enumValues = ReadExpando(expando);
             return true;
         }
 
@@ -191,22 +191,22 @@ public sealed class UdbScriptQueryOptionsModel
         return false;
     }
 
-    private static IReadOnlyList<UdbScriptEnumValue> ReadDictionary(IDictionary values)
+    private static IReadOnlyList<UdbScriptEnumValue> ReadDictionary(IReadOnlyDictionary<string, object?> values)
     {
         if (values.Count == 0)
             return Array.Empty<UdbScriptEnumValue>();
 
         var result = new List<UdbScriptEnumValue>();
-        foreach (DictionaryEntry entry in values)
-            result.Add(new UdbScriptEnumValue(entry.Key.ToString() ?? "", entry.Value?.ToString()));
+        foreach (KeyValuePair<string, object?> entry in values)
+            result.Add(new UdbScriptEnumValue(entry.Key, entry.Value?.ToString()));
 
         return result;
     }
 
-    private static IReadOnlyList<UdbScriptEnumValue> ReadDictionary(IEnumerable<KeyValuePair<string, object?>> values)
+    private static IReadOnlyList<UdbScriptEnumValue> ReadExpando(ExpandoObject values)
     {
         var result = new List<UdbScriptEnumValue>();
-        foreach (KeyValuePair<string, object?> entry in values)
+        foreach (KeyValuePair<string, object?> entry in (IDictionary<string, object?>)values)
             result.Add(new UdbScriptEnumValue(entry.Key, entry.Value?.ToString()));
 
         return result;
