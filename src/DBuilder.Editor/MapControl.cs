@@ -3088,19 +3088,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         => kind == VisualHitKind.Thing ? "Deleted a thing." : "Deleted a texture.";
 
     // Auto-aligns textures along the targeted wall's run, undoable.
-    private void AutoAlignSide3D(Sidedef side, bool alignX, bool alignY, string editName, string statusScope)
+    private void AutoAlignSide3D(Sidedef side, bool alignX, bool alignY, string editName)
     {
         string tex = SidedefTextureAlignment.PrimaryTexture(side);
         var img = _resources?.GetWallTexture(tex);
         EditBegun?.Invoke(editName);
-        int n = 0;
-        if (alignX) n += SidedefTextureAlignment.AutoAlignX(side, img?.Width ?? 0);
-        if (alignY) n += SidedefTextureAlignment.AutoAlignY(side, img?.Height ?? 0);
+        if (alignX) SidedefTextureAlignment.AutoAlignX(side, img?.Width ?? 0);
+        if (alignY) SidedefTextureAlignment.AutoAlignY(side, img?.Height ?? 0);
         _geo3DDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
-        Target3DChanged?.Invoke($"aligned {n} sidedef{(n == 1 ? "" : "s")} {statusScope}");
+        Target3DChanged?.Invoke(VisualAutoAlign3DStatusText(alignX, alignY, selected: false));
     }
 
     private void AutoAlignTarget3D(bool alignX, bool alignY)
@@ -3113,7 +3112,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
 
         string axis = alignX && alignY ? "X and Y" : alignX ? "X" : "Y";
-        AutoAlignSide3D(sd, alignX, alignY, $"Auto-align ({axis})", $"on {axis}");
+        AutoAlignSide3D(sd, alignX, alignY, $"Auto-align ({axis})");
     }
 
     private bool AutoAlignFlatTargets3D(bool alignX, bool alignY)
@@ -3156,7 +3155,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
-        Target3DChanged?.Invoke($"aligned {changed} flat{(changed == 1 ? "" : "s")} on {axis}");
+        Target3DChanged?.Invoke(VisualAutoAlign3DStatusText(alignX, alignY, selected: false));
         return true;
     }
 
@@ -3167,22 +3166,29 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         string axis = alignX && alignY ? "X and Y" : alignX ? "X" : "Y";
         var seen = new System.Collections.Generic.HashSet<Sidedef>();
-        int aligned = 0;
         EditBegun?.Invoke($"Auto-align selected textures ({axis})");
         foreach ((Sidedef side, _) in targets)
         {
             if (!seen.Add(side)) continue;
             string tex = SidedefTextureAlignment.PrimaryTexture(side);
             var img = _resources?.GetWallTexture(tex);
-            if (alignX) aligned += SidedefTextureAlignment.AutoAlignX(side, img?.Width ?? 0);
-            if (alignY) aligned += SidedefTextureAlignment.AutoAlignY(side, img?.Height ?? 0);
+            if (alignX) SidedefTextureAlignment.AutoAlignX(side, img?.Width ?? 0);
+            if (alignY) SidedefTextureAlignment.AutoAlignY(side, img?.Height ?? 0);
         }
 
         _geo3DDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();
         RequestNextFrameRendering();
-        Target3DChanged?.Invoke($"aligned {aligned} sidedef{(aligned == 1 ? "" : "s")} to selection on {axis}");
+        Target3DChanged?.Invoke(VisualAutoAlign3DStatusText(alignX, alignY, selected: true));
+    }
+
+    public static string VisualAutoAlign3DStatusText(bool alignX, bool alignY, bool selected)
+    {
+        string axis = alignX && alignY ? "X and Y" : alignX ? "X" : "Y";
+        return selected
+            ? "Auto-aligned textures to selected sidedefs (" + axis + ")."
+            : "Auto-aligned textures (" + axis + ").";
     }
 
     // Adjusts the selected (or targeted) sectors' brightness ([ darker / ] brighter), undoable.
