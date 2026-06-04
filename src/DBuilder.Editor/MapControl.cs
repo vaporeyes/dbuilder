@@ -2500,18 +2500,28 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     // Nudges the targeted or selected walls and flats' texture offsets, undoable.
     private void NudgeTargetOffset3D(int deltaX, int deltaY)
     {
-        var wallTargets = TextureOffsetTargets3D();
+        bool localOffsets = _mapFormat == MapFormat.Udmf && _gameConfig?.UseLocalSidedefTextureOffsets == true;
+        var wallPartTargets = TextureOffsetPartTargets3D();
         var flatTargets = FlatTextureOffsetTargets3D();
-        if (wallTargets.Count == 0 && flatTargets.Count == 0) { Target3DChanged?.Invoke("aim at a surface to offset its texture"); return; }
+        if (wallPartTargets.Count == 0 && flatTargets.Count == 0) { Target3DChanged?.Invoke("aim at a surface to offset its texture"); return; }
 
         int changed = 0;
         bool begun = false;
-        foreach (Sidedef side in wallTargets)
+        var seenGlobalSides = new System.Collections.Generic.HashSet<Sidedef>();
+        foreach ((Sidedef side, SidedefPart part) in wallPartTargets)
         {
+            if (!localOffsets && !seenGlobalSides.Add(side)) continue;
             if (!begun) { EditBegun?.Invoke("Texture offset"); begun = true; }
-            side.OffsetX += deltaX;
-            side.OffsetY += deltaY;
-            changed++;
+            int? textureWidth = null;
+            int? textureHeight = null;
+            if (_resources?.GetWallTexture(side.GetTexture(part)) is { } image)
+            {
+                textureWidth = image.Width;
+                textureHeight = image.Height;
+            }
+
+            if (VisualSidedefTextureOffsets.Nudge(side, part, deltaX, deltaY, localOffsets, textureWidth, textureHeight))
+                changed++;
         }
 
         int skippedFlats = 0;

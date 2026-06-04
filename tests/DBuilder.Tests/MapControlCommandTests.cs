@@ -100,6 +100,7 @@ public sealed class MapControlCommandTests
         Assert.True(flatTargetsIndex > methodIndex);
         Assert.True(flatOffsetIndex > flatTargetsIndex);
         Assert.Contains("if (_mapFormat == MapFormat.Udmf)", body, StringComparison.Ordinal);
+        Assert.Contains("VisualSidedefTextureOffsets.Nudge(side, part, deltaX, deltaY, localOffsets, textureWidth, textureHeight)", body, StringComparison.Ordinal);
     }
 
     [Fact]
