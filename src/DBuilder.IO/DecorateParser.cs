@@ -1524,10 +1524,13 @@ public static class DecorateParser
         || value.Equals("item", StringComparison.OrdinalIgnoreCase);
 
     private static bool IsStateLabel(List<Tok> t, int colonIndex)
-        => colonIndex < t.Count
-        && t[colonIndex].Kind == Kind.Sym
-        && t[colonIndex].Text == ":"
-        && !(colonIndex + 1 < t.Count && t[colonIndex + 1].Kind == Kind.Sym && t[colonIndex + 1].Text == ":");
+    {
+        SkipNewlines(t, ref colonIndex);
+        return colonIndex < t.Count
+            && t[colonIndex].Kind == Kind.Sym
+            && t[colonIndex].Text == ":"
+            && !(colonIndex + 1 < t.Count && t[colonIndex + 1].Kind == Kind.Sym && t[colonIndex + 1].Text == ":");
+    }
 
     private static bool TryReadStateLabel(List<Tok> t, string first, ref int i, out string stateLabel)
     {
@@ -1542,6 +1545,7 @@ public static class DecorateParser
             j += 2;
         }
 
+        SkipNewlines(t, ref j);
         if (!IsStateLabel(t, j)) return false;
         i = j + 1;
         return true;

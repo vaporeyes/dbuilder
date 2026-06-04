@@ -1167,6 +1167,25 @@ class DottedStateGotoZThing : Actor
     }
 
     [Fact]
+    public void ParsesZScriptStateLabelsWithWhitespaceBeforeColonLikeUdb()
+    {
+        const string zscript = @"
+class SpacedStateLabelZThing : Actor
+{
+    States
+    {
+    Spawn
+        :
+        SPCL A -1;
+        Stop;
+    }
+}";
+        var actor = ZScriptParser.Parse(zscript).Single();
+
+        Assert.Equal("SPCLA0", actor.EditorSprite);
+    }
+
+    [Fact]
     public void DoesNotUseZScriptStateFrameWithoutRequiredSemicolon()
     {
         const string zscript = @"

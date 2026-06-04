@@ -792,6 +792,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Resolve DECORATE single-colon class-qualified `goto` targets.
   - [x] Resolve quoted DECORATE `goto` targets with sprite offsets.
   - [x] Resolve ZScript `goto` targets to dotted state labels like UDB.
+  - [x] Parse ZScript state labels with whitespace before the colon like UDB.
   - [x] Stop ZScript frame `Light()` scans at semicolon boundaries.
   - [x] Avoid inheriting non-Spawn state sprites from root `Actor`.
   - [x] Prefer inherited relevant state sprites before unrelated child states.
