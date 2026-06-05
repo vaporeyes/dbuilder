@@ -981,6 +981,56 @@ public class CompilerConfigurationTests
         Assert.Equal(11, error.LineNumber);
     }
 
+    [Fact]
+    public void ScriptCompilerErrorsReadAccErrorFileOnZeroExitLikeUdb()
+    {
+        var compiler = new CompilerInfo(
+            "acc.cfg",
+            "acc",
+            "/compilers/ACC",
+            "acc",
+            "AccCompiler",
+            new HashSet<string>());
+
+        var errors = ScriptCompilerErrors.ParseProcessResult(
+            compiler,
+            new ScriptCompilerProcessResult(
+                0,
+                "stdout is ignored",
+                "stderr is ignored",
+                "/tmp/dbuilder_compile/scripts.acs:12: Unknown function"),
+            "/tmp/dbuilder_compile",
+            "/maps/project");
+
+        var error = Assert.Single(errors);
+        Assert.Equal("Unknown function", error.Description);
+        Assert.Equal(Path.Combine("/maps/project", "scripts.acs"), error.FileName);
+        Assert.Equal(11, error.LineNumber);
+    }
+
+    [Fact]
+    public void ScriptCompilerErrorsIgnoreAccProcessStreamsWithoutErrorFileLikeUdb()
+    {
+        var compiler = new CompilerInfo(
+            "acc.cfg",
+            "acc",
+            "/compilers/ACC",
+            "acc",
+            "AccCompiler",
+            new HashSet<string>());
+
+        var errors = ScriptCompilerErrors.ParseProcessResult(
+            compiler,
+            new ScriptCompilerProcessResult(
+                1,
+                "scripts.acs:12: Unknown function",
+                "fatal"),
+            "/tmp/dbuilder_compile",
+            "/maps/project");
+
+        Assert.Empty(errors);
+    }
+
     [Theory]
     [InlineData("AccCompiler", "scripts.acs:12: Unknown function", "Unknown function", 11)]
     [InlineData("BccCompiler", "scripts.bcs:8:4: Expected semicolon", "Expected semicolon", 7)]

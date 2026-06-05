@@ -249,7 +249,11 @@ public sealed record ScriptCompilerError(string Description, string FileName = "
 
 public sealed record ScriptCompilerErrorDisplayItem(int Index, string Description, string Source);
 
-public sealed record ScriptCompilerProcessResult(int ExitCode, string StandardOutput, string StandardError);
+public sealed record ScriptCompilerProcessResult(
+    int ExitCode,
+    string StandardOutput,
+    string StandardError,
+    string AccErrorFileText = "");
 
 public static class ScriptCompilerErrorDisplay
 {
@@ -407,13 +411,15 @@ public static class ScriptCompilerErrors
         string workingDirectory,
         Func<string, string?>? resolveIncludeFile = null)
     {
-        if (result.ExitCode == 0) return Array.Empty<ScriptCompilerError>();
-
         return compiler.ProgramInterface switch
         {
-            "BccCompiler" => ParseBcc(SplitCompilerOutput(result.StandardOutput), tempPath, workingDirectory, resolveIncludeFile),
-            "ZtBccCompiler" => ParseZtBcc(SplitCompilerOutput(result.StandardError), tempPath, workingDirectory, resolveIncludeFile),
-            _ => Array.Empty<ScriptCompilerError>(),
+            "BccCompiler" => result.ExitCode == 0
+                ? Array.Empty<ScriptCompilerError>()
+                : ParseBcc(SplitCompilerOutput(result.StandardOutput), tempPath, workingDirectory, resolveIncludeFile),
+            "ZtBccCompiler" => result.ExitCode == 0
+                ? Array.Empty<ScriptCompilerError>()
+                : ParseZtBcc(SplitCompilerOutput(result.StandardError), tempPath, workingDirectory, resolveIncludeFile),
+            _ => ParseAcc(SplitCompilerOutput(result.AccErrorFileText), tempPath, workingDirectory, resolveIncludeFile),
         };
     }
 

@@ -1489,6 +1489,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Build UDB-style ACC compiler command arguments from `%FI`, `%FO`, `%FS`, `%PT`, and `%PS`.
   - [x] Validate ACS map-script and external-library compile preconditions and include lists like UDB.
   - [x] Report unresolved ACS include resources during preflight like UDB.
+  - [x] Read ACC compiler diagnostics from the `acs.err` working-directory file.
 - [ ] Port BCC compiler integration.
   - [x] Configure redirected stdout and stderr process mode like UDB.
   - [x] Read BCC compiler diagnostics from stdout only on nonzero exit.
