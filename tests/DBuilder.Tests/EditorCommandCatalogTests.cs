@@ -3034,7 +3034,11 @@ public class EditorCommandCatalogTests
         Assert.False(command.Repeat);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
-        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
+        Assert.Equal("Shift+MButton", udbAlias.DefaultGesture);
+        Assert.Equal("map3d.floodfilltextures", EditorCommandCatalog.ResolveShortcut(
+            EditorCommandScope.Map3D,
+            EditorPointerInput.MiddleButton,
+            shift: true));
     }
 
     [Theory]
