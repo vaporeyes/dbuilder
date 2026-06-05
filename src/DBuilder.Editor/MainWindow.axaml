@@ -75,7 +75,7 @@
                 <Separator />
                 <MenuItem Header="E_xit" x:Name="ExitMenuItem" Click="OnExit" />
             </MenuItem>
-            <MenuItem Header="_Edit">
+            <MenuItem Header="_Edit" x:Name="EditMenuItem">
                 <MenuItem Header="_Undo" x:Name="UndoMenuItem" Click="OnUndo" />
                 <MenuItem Header="_Redo" x:Name="RedoMenuItem" Click="OnRedo" />
                 <Separator />

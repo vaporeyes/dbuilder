@@ -7187,6 +7187,7 @@ public partial class MainWindow : Window
             && !string.IsNullOrWhiteSpace(_lastPrefabPath)
             && System.IO.File.Exists(_lastPrefabPath);
 
+        EditMenuItem.IsVisible = hasMap;
         SetEnabled(hasArchive, OpenMapMenuItem, ReloadMapMenuItem, OpenMapButton, ReloadMapButton);
         SetEnabled(hasMap,
             CloseMapMenuItem, MapOptionsMenuItem, PrefabsMenuItem, SelectAllMenuItem, InvertSelectionMenuItem, SelectionGroupsMenu,

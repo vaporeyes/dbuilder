@@ -254,6 +254,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Gate sector color command availability by UDMF map format and selected sectors.
   - [x] Gate Tag Range command availability by taggable selected elements.
   - [x] Enable Cut and Copy by map-level copy/paste availability like UDB.
+  - [x] Hide the Edit parent menu when no map is loaded like UDB.
   - [x] Reflect menu command availability in command palette usable actions.
   - [x] Reflect core undo, archive, tool, and Help command availability in command palette usable actions.
   - [x] Reflect view, model rendering, and explorer command availability in command palette usable actions.
