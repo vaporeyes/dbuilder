@@ -3314,8 +3314,8 @@ public class EditorCommandCatalogTests
     [Theory]
     [InlineData("map3d.align-texture-x", "Align texture X", "A")]
     [InlineData("map3d.align-texture-y", "Align texture Y", "Shift+A")]
-    [InlineData("map3d.visual-auto-align", "Auto-align Textures X and Y", "Ctrl+A")]
-    [InlineData("map3d.visualautoalign", "Auto-align Textures X and Y", "Ctrl+A")]
+    [InlineData("map3d.visual-auto-align", "Auto-align Textures X and Y", "Ctrl/Cmd+A")]
+    [InlineData("map3d.visualautoalign", "Auto-align Textures X and Y", "Ctrl/Cmd+A")]
     [InlineData("map3d.visual-auto-align-x", "Auto-align Textures X", "Menu")]
     [InlineData("map3d.visualautoalignx", "Auto-align Textures X", "Menu")]
     [InlineData("map3d.visual-auto-align-y", "Auto-align Textures Y", "Menu")]
@@ -3338,6 +3338,8 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
         Assert.False(command.Repeat);
+
+        Assert.Equal("map3d.visualautoalign", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", accelerator: true));
     }
 
     [Fact]
