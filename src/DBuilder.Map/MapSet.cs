@@ -1642,6 +1642,9 @@ public class MapSet : IDisposable
     /// <summary>Clears the Marked flag on every element of every type.</summary>
     public void ClearAllMarked() => ClearAllMarked(false);
 
+    public void ClearAllMarks() => ClearAllMarked();
+    public void ClearAllMarks(bool mark) => ClearAllMarked(mark);
+
     /// <summary>Sets the Marked flag on every element of every type to <paramref name="mark"/>.</summary>
     public void ClearAllMarked(bool mark)
     {
@@ -1659,6 +1662,8 @@ public class MapSet : IDisposable
     public void InvertMarkedThings() { foreach (var t in Things) t.Marked = !t.Marked; }
 
     /// <summary>Inverts the Marked flag on every element of every type.</summary>
+    public void InvertAllMarks() => InvertAllMarked();
+
     public void InvertAllMarked()
     {
         InvertMarkedVertices();

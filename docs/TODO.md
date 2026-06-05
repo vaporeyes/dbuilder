@@ -1186,6 +1186,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Change Map Element Index action for single selected elements.
   - [x] Add UDB-style fixed-step floor and ceiling height actions for selected or highlighted sectors.
   - [x] Add UDB-style brightness-level step actions for selected or highlighted sectors.
+  - [x] Add UDB-compatible all-mark clear and invert helper aliases.
 - [ ] Port snapping behavior fully.
   - [x] Use UDB-compatible grid setup snap math in the editor.
   - [x] Add menu commands for snap toggle and grid-size stepping.

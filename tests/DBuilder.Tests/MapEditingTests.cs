@@ -469,4 +469,35 @@ public class MapEditingTests
         Assert.True(thing.Marked);
         Assert.False(map.Vertices[1].Marked);
     }
+
+    [Fact]
+    public void UdbMarkAliasesSetClearAndInvertAllElementTypes()
+    {
+        var map = BuildTwoRooms();
+        var thing = map.AddThing(new Vector2D(16, 16), 3004);
+
+        map.ClearAllMarks(true);
+
+        Assert.True(map.Vertices[0].Marked);
+        Assert.True(map.Linedefs[0].Marked);
+        Assert.True(map.Sidedefs[0].Marked);
+        Assert.True(map.Sectors[0].Marked);
+        Assert.True(thing.Marked);
+
+        map.InvertAllMarks();
+
+        Assert.False(map.Vertices[0].Marked);
+        Assert.False(map.Linedefs[0].Marked);
+        Assert.False(map.Sidedefs[0].Marked);
+        Assert.False(map.Sectors[0].Marked);
+        Assert.False(thing.Marked);
+
+        map.ClearAllMarks();
+
+        Assert.Empty(map.GetMarkedVertices());
+        Assert.Empty(map.GetMarkedLinedefs());
+        Assert.Empty(map.GetMarkedSidedefs());
+        Assert.Empty(map.GetMarkedSectors());
+        Assert.Empty(map.GetMarkedThings());
+    }
 }
