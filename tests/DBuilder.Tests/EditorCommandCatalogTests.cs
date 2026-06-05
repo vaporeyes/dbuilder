@@ -2504,20 +2504,21 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map2d.increase-subdivision-level", "Increase Subdivision Level", "Ctrl/Cmd+ScrollUp")]
-    [InlineData("map2d.increasesubdivlevel", "Increase Subdivision Level", "Ctrl/Cmd+ScrollUp")]
-    [InlineData("map2d.decrease-subdivision-level", "Decrease Subdivision Level", "Ctrl/Cmd+ScrollDown")]
-    [InlineData("map2d.decreasesubdivlevel", "Decrease Subdivision Level", "Ctrl/Cmd+ScrollDown")]
-    [InlineData("map2d.increase-bevel", "Increase Corners Bevel", "Ctrl/Cmd+Shift+ScrollUp")]
-    [InlineData("map2d.increasebevel", "Increase Corners Bevel", "Ctrl/Cmd+Shift+ScrollUp")]
-    [InlineData("map2d.decrease-bevel", "Decrease Corners Bevel", "Ctrl/Cmd+Shift+ScrollDown")]
-    [InlineData("map2d.decreasebevel", "Decrease Corners Bevel", "Ctrl/Cmd+Shift+ScrollDown")]
-    public void DrawAdjustmentCommandsMatchUdbActionSurface(string id, string title, string gesture)
+    [InlineData("map2d.increase-subdivision-level", "Increase Subdivision Level", "Ctrl/Cmd+ScrollUp", "Increases subdivision level in Rectangle and Ellipse Drawing Modes.")]
+    [InlineData("map2d.increasesubdivlevel", "Increase Subdivision Level", "Ctrl/Cmd+ScrollUp", "Increases subdivision level in Rectangle and Ellipse Drawing Modes.")]
+    [InlineData("map2d.decrease-subdivision-level", "Decrease Subdivision Level", "Ctrl/Cmd+ScrollDown", "Decreases subdivision level in Rectangle and Ellipse Drawing Modes.")]
+    [InlineData("map2d.decreasesubdivlevel", "Decrease Subdivision Level", "Ctrl/Cmd+ScrollDown", "Decreases subdivision level in Rectangle and Ellipse Drawing Modes.")]
+    [InlineData("map2d.increase-bevel", "Increase Corners Bevel", "Ctrl/Cmd+Shift+ScrollUp", "Increase corners bevel in Rectangle Drawing Modes. Bevel can be negative.")]
+    [InlineData("map2d.increasebevel", "Increase Corners Bevel", "Ctrl/Cmd+Shift+ScrollUp", "Increase corners bevel in Rectangle Drawing Modes. Bevel can be negative.")]
+    [InlineData("map2d.decrease-bevel", "Decrease Corners Bevel", "Ctrl/Cmd+Shift+ScrollDown", "Decreases corners bevel in Rectangle Drawing Modes. Bevel can be negative.")]
+    [InlineData("map2d.decreasebevel", "Decrease Corners Bevel", "Ctrl/Cmd+Shift+ScrollDown", "Decreases corners bevel in Rectangle Drawing Modes. Bevel can be negative.")]
+    public void DrawAdjustmentCommandsMatchUdbActionSurface(string id, string title, string gesture, string description)
     {
         var command = EditorCommandCatalog.Find(id);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal(gesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
