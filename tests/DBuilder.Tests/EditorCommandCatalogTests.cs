@@ -2421,22 +2421,23 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map2d.draw-rectangle", "Start Rectangle Drawing", "Ctrl/Cmd+Shift+D")]
-    [InlineData("map2d.drawlinesmode", "Start Drawing", "Ctrl/Cmd+D")]
-    [InlineData("map2d.drawrectanglemode", "Start Rectangle Drawing", "Ctrl/Cmd+Shift+D")]
-    [InlineData("map2d.draw-ellipse", "Start Ellipse Drawing", "Alt+Shift+D")]
-    [InlineData("map2d.drawellipsemode", "Start Ellipse Drawing", "Alt+Shift+D")]
-    [InlineData("map2d.draw-curve", "Start Curve Drawing", "Ctrl/Cmd+Alt+D")]
-    [InlineData("map2d.drawcurvemode", "Start Curve Drawing", "Ctrl/Cmd+Alt+D")]
-    [InlineData("map2d.curvelinesmode", "Curve Linedefs", "Shift+C")]
-    [InlineData("map2d.draw-grid", "Start Grid Drawing", "Menu")]
-    [InlineData("map2d.drawgridmode", "Start Grid Drawing", "Menu")]
-    public void ShapeDrawCommandsMatchUdbActionSurface(string id, string title, string gesture)
+    [InlineData("map2d.draw-rectangle", "Start Rectangle Drawing", "Ctrl/Cmd+Shift+D", "")]
+    [InlineData("map2d.drawlinesmode", "Start Drawing", "Ctrl/Cmd+D", "")]
+    [InlineData("map2d.drawrectanglemode", "Start Rectangle Drawing", "Ctrl/Cmd+Shift+D", "")]
+    [InlineData("map2d.draw-ellipse", "Start Ellipse Drawing", "Alt+Shift+D", "")]
+    [InlineData("map2d.drawellipsemode", "Start Ellipse Drawing", "Alt+Shift+D", "")]
+    [InlineData("map2d.draw-curve", "Start Curve Drawing", "Ctrl/Cmd+Alt+D", "")]
+    [InlineData("map2d.drawcurvemode", "Start Curve Drawing", "Ctrl/Cmd+Alt+D", "")]
+    [InlineData("map2d.curvelinesmode", "Curve Linedefs", "Shift+C", "")]
+    [InlineData("map2d.draw-grid", "Start Grid Drawing", "Menu", "Starts drawing a grid. Increase/Decrease Subdivision Level and Increase/Decrease Corners Bevel actions are available in this mode.")]
+    [InlineData("map2d.drawgridmode", "Start Grid Drawing", "Menu", "Starts drawing a grid. Increase/Decrease Subdivision Level and Increase/Decrease Corners Bevel actions are available in this mode.")]
+    public void ShapeDrawCommandsMatchUdbActionSurface(string id, string title, string gesture, string description)
     {
         var command = EditorCommandCatalog.Find(id);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal(gesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
