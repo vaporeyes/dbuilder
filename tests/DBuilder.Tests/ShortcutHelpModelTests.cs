@@ -203,6 +203,8 @@ public sealed class ShortcutHelpModelTests
         Assert.Contains("OptionColumnHeader", body, StringComparison.Ordinal);
         Assert.Contains("CommandColumnHeader", body, StringComparison.Ordinal);
         Assert.Contains("DescriptionColumnHeader", body, StringComparison.Ordinal);
+        Assert.Contains("Text = row.GestureText,\n            Foreground = Brushes.Khaki,\n            FontSize = 12,\n            VerticalAlignment = VerticalAlignment.Top,\n            TextWrapping = TextWrapping.Wrap,", body, StringComparison.Ordinal);
+        Assert.Contains("Text = row.ModifierText,\n            Foreground = MutedBrush,\n            FontSize = 12,\n            VerticalAlignment = VerticalAlignment.Top,\n            TextWrapping = TextWrapping.Wrap,", body, StringComparison.Ordinal);
         Assert.Contains("Text = row.DescriptionText", body, StringComparison.Ordinal);
         Assert.Contains("_searchExpandedOverride = null;", body, StringComparison.Ordinal);
         Assert.Contains("ShortcutHelpModel.ResolveSectionExpanded(searching, rememberedExpanded, _searchExpandedOverride)", body, StringComparison.Ordinal);

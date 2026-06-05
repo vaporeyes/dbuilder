@@ -244,6 +244,7 @@ public sealed class ShortcutsWindow : Window
             Foreground = Brushes.Khaki,
             FontSize = 12,
             VerticalAlignment = VerticalAlignment.Top,
+            TextWrapping = TextWrapping.Wrap,
         });
         var modifiers = new TextBlock
         {
@@ -251,6 +252,7 @@ public sealed class ShortcutsWindow : Window
             Foreground = MutedBrush,
             FontSize = 12,
             VerticalAlignment = VerticalAlignment.Top,
+            TextWrapping = TextWrapping.Wrap,
         };
         Grid.SetColumn(modifiers, 1);
         grid.Children.Add(modifiers);
