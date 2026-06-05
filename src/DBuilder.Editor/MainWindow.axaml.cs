@@ -1534,6 +1534,7 @@ public partial class MainWindow : Window
             case "window.map-options": OnMapOptions(this, new RoutedEventArgs()); return true;
             case "window.mapoptions": OnMapOptions(this, new RoutedEventArgs()); return true;
             case "window.snap-selection-to-grid": OnSnapSelectionToGrid(this, new RoutedEventArgs()); return true;
+            case "window.snapvertstogrid": OnSnapSelectionToGrid(this, new RoutedEventArgs()); return true;
             case "window.game-configurations": OnLoadConfig(this, new RoutedEventArgs()); return true;
             case "window.configuration": OnLoadConfig(this, new RoutedEventArgs()); return true;
             case "window.preferences": OnSettings(this, new RoutedEventArgs()); return true;
@@ -4273,7 +4274,7 @@ public partial class MainWindow : Window
             "window.save-map-as" => SaveAsMenuItem,
             "window.save-as-format" => SaveAsFormatMenuItem,
             "window.map-options" => MapOptionsMenuItem,
-            "window.snap-selection-to-grid" => SnapSelectionToGridMenuItem,
+            "window.snap-selection-to-grid" or "window.snapvertstogrid" => SnapSelectionToGridMenuItem,
             "window.game-configurations" or "window.configuration" => LoadGameConfigMenuItem,
             "window.preferences" => SettingsMenuItem,
             "window.exit" => ExitMenuItem,

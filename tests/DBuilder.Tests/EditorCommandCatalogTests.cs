@@ -371,6 +371,7 @@ public class EditorCommandCatalogTests
     [InlineData("window.map-options", "Map Options", "Menu")]
     [InlineData("window.mapoptions", "Map Options", "Menu")]
     [InlineData("window.snap-selection-to-grid", "Snap Selected Map Elements to Grid", "Menu")]
+    [InlineData("window.snapvertstogrid", "Snap Selected Map Elements to Grid", "Menu")]
     [InlineData("window.game-configurations", "Game Configurations", "Menu")]
     [InlineData("window.configuration", "Game Configurations", "Menu")]
     [InlineData("window.preferences", "Preferences", "Menu")]

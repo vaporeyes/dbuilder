@@ -168,6 +168,7 @@ public sealed class MainWindowCommandTests
     [InlineData("window.classicpasteproperties", "OnPasteProperties")]
     [InlineData("window.classicpastepropertieswithoptions", "OnPastePropertiesWithOptions")]
     [InlineData("window.pasteselectionspecial", "OnPasteSpecial")]
+    [InlineData("window.snapvertstogrid", "OnSnapSelectionToGrid")]
     [InlineData("window.deleteitem", "OnDelete")]
     [InlineData("window.clearselection", "OnSelectNone")]
     [InlineData("window.selectsimilar", "OnSelectSimilar")]
@@ -1454,7 +1455,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("\"window.reload-map\" => ReloadMapMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.save\" or \"window.save-map\" => SaveMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.map-options\" => MapOptionsMenuItem", code, StringComparison.Ordinal);
-        Assert.Contains("\"window.snap-selection-to-grid\" => SnapSelectionToGridMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.snap-selection-to-grid\" or \"window.snapvertstogrid\" => SnapSelectionToGridMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.game-configurations\" or \"window.configuration\" => LoadGameConfigMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.exit\" => ExitMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.show-errors\" or \"window.showerrors\" => ErrorLogMenuItem", code, StringComparison.Ordinal);
