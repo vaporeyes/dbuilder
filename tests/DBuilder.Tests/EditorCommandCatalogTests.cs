@@ -3218,6 +3218,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Toggle models rendering", command.Title);
+        Assert.Equal("Cycles through all models rendering modes in Classic and Visual modes.", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -3226,6 +3227,7 @@ public class EditorCommandCatalogTests
         Assert.False(command.Repeat);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
@@ -3247,6 +3249,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Toggle dynamic lights rendering", command.Title);
+        Assert.Equal("Cycles through all dynamic light rendering modes in Visual mode.", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -3255,6 +3258,7 @@ public class EditorCommandCatalogTests
         Assert.False(command.Repeat);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
@@ -3293,16 +3297,17 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map3d.toggle-fog-rendering", "Toggle fog rendering", "Menu", true)]
-    [InlineData("map3d.toggle-sky-rendering", "Toggle sky rendering", "Menu", true)]
-    [InlineData("map3d.toggle-event-lines", "Toggle Event lines", "Menu", false)]
-    [InlineData("map3d.toggle-visual-vertices", "Toggle Visual Vertices", "Alt+V", false)]
-    public void VisualGzDoomToggleCommandsMatchUdbActionSurface(string id, string title, string gesture, bool allowMouse)
+    [InlineData("map3d.toggle-fog-rendering", "Toggle fog rendering", "Menu", true, "Toggles fog rendering in Visual mode.")]
+    [InlineData("map3d.toggle-sky-rendering", "Toggle sky rendering", "Menu", true, "Toggles sky rendering in Visual mode.")]
+    [InlineData("map3d.toggle-event-lines", "Toggle Event lines", "Menu", false, "When enabled, shows order, in which patrol points and interpolation points are connected. Also shows action target for currently highlighted item in 2D modes.")]
+    [InlineData("map3d.toggle-visual-vertices", "Toggle Visual Vertices", "Alt+V", false, "When enabled, shows vertices, which heights can be changed, in Visual mode (UDMF only).")]
+    public void VisualGzDoomToggleCommandsMatchUdbActionSurface(string id, string title, string gesture, bool allowMouse, string description)
     {
         var command = EditorCommandCatalog.Find(id);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal(gesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -3338,6 +3343,7 @@ public class EditorCommandCatalogTests
         Assert.Equal(canonical.AllowMouse, alias.AllowMouse);
         Assert.Equal(canonical.AllowScroll, alias.AllowScroll);
         Assert.Equal(canonical.Repeat, alias.Repeat);
+        Assert.Equal(canonical.Description, alias.Description);
     }
 
     [Fact]
