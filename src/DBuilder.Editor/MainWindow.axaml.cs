@@ -324,8 +324,8 @@ public partial class MainWindow : Window
         SetShortcutToolTip(RaiseCeiling8MenuItem, "Raise Ceiling by 8 mp", "map2d.raiseceiling8");
         SetShortcutToolTip(RaiseBrightness8MenuItem, "Increase Brightness by 8", "map2d.raisebrightness8");
         SetShortcutToolTip(LowerBrightness8MenuItem, "Decrease Brightness by 8", "map2d.lowerbrightness8");
-        SetShortcutToolTip(FlipHorizontalMenuItem, "Flip Horizontal", "window.flip-selection-horizontal");
-        SetShortcutToolTip(FlipVerticalMenuItem, "Flip Vertical", "window.flip-selection-vertical");
+        SetShortcutToolTip(FlipHorizontalMenuItem, "Flip Selection Horizontally", "window.flip-selection-horizontal");
+        SetShortcutToolTip(FlipVerticalMenuItem, "Flip Selection Vertically", "window.flip-selection-vertical");
         SetShortcutToolTip(RotateCwMenuItem, "Rotate 90 CW", "window.rotate-selection-cw");
         SetShortcutToolTip(RotateCcwMenuItem, "Rotate 90 CCW", "window.rotate-selection-ccw");
         SetShortcutToolTip(ScaleUpMenuItem, "Scale Up", "window.scale-selection-up");

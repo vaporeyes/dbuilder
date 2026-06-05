@@ -969,10 +969,10 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("window.flip-selection-horizontal", "Flip Horizontal")]
-    [InlineData("window.flipselectionh", "Flip Horizontal")]
-    [InlineData("window.flip-selection-vertical", "Flip Vertical")]
-    [InlineData("window.flipselectionv", "Flip Vertical")]
+    [InlineData("window.flip-selection-horizontal", "Flip Selection Horizontally", "Flips the selection in Edit Selection mode horizontally.")]
+    [InlineData("window.flipselectionh", "Flip Selection Horizontally", "Flips the selection in Edit Selection mode horizontally.")]
+    [InlineData("window.flip-selection-vertical", "Flip Selection Vertically", "Flips the selection in Edit Selection mode vertically.")]
+    [InlineData("window.flipselectionv", "Flip Selection Vertically", "Flips the selection in Edit Selection mode vertically.")]
     [InlineData("window.rotate-selection-cw", "Rotate 90 CW")]
     [InlineData("window.rotateclockwise", "Rotate 90 CW")]
     [InlineData("window.rotate-selection-ccw", "Rotate 90 CCW")]
@@ -983,17 +983,22 @@ public class EditorCommandCatalogTests
     [InlineData("window.moveselectionright", "Move Selection Right by Grid Size")]
     [InlineData("window.scale-selection-up", "Scale Up")]
     [InlineData("window.scale-selection-down", "Scale Down")]
-    public void WindowTransformSelectionCommandsMatchUdbActionSurface(string commandId, string title)
+    public void WindowTransformSelectionCommandsMatchUdbActionSurface(string commandId, string title, string? description = null)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        if (description != null) Assert.Equal(description, command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
-        Assert.Equal(commandId.StartsWith("window.moveselection", StringComparison.Ordinal), command.AllowScroll);
+        Assert.Equal(
+            commandId.StartsWith("window.moveselection", StringComparison.Ordinal)
+                || commandId.StartsWith("window.flip-selection", StringComparison.Ordinal)
+                || commandId.StartsWith("window.flipselection", StringComparison.Ordinal),
+            command.AllowScroll);
     }
 
     [Theory]

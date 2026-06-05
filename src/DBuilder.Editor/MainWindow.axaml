@@ -114,8 +114,8 @@
                     <MenuItem Header="_Decrease Brightness by 8" x:Name="LowerBrightness8MenuItem" Click="OnLowerBrightness8" />
                 </MenuItem>
                 <MenuItem Header="_Transform selection" x:Name="TransformSelectionMenuItem">
-                    <MenuItem Header="Flip _Horizontal" x:Name="FlipHorizontalMenuItem" Click="OnFlipH" />
-                    <MenuItem Header="Flip _Vertical" x:Name="FlipVerticalMenuItem" Click="OnFlipV" />
+                    <MenuItem Header="Flip Selection _Horizontally" x:Name="FlipHorizontalMenuItem" Click="OnFlipH" />
+                    <MenuItem Header="Flip Selection _Vertically" x:Name="FlipVerticalMenuItem" Click="OnFlipV" />
                     <MenuItem Header="Rotate 90 C_W" x:Name="RotateCwMenuItem" Click="OnRotateCW" />
                     <MenuItem Header="Rotate 90 CC_W" x:Name="RotateCcwMenuItem" Click="OnRotateCCW" />
                     <MenuItem Header="Scale _Up" x:Name="ScaleUpMenuItem" Click="OnScaleUp" />
