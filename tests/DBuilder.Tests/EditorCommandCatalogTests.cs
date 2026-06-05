@@ -2557,16 +2557,17 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map2d.flip", "Flip Linedefs", "F")]
-    [InlineData("map2d.fliplinedefs", "Flip Linedefs", "F")]
-    [InlineData("map2d.flip-sidedefs", "Flip Sidedefs", "Shift+F")]
-    [InlineData("map2d.flipsidedefs", "Flip Sidedefs", "Shift+F")]
-    public void FlipLinedefCommandsMatchUdbActionSurface(string id, string title, string gesture)
+    [InlineData("map2d.flip", "Flip Linedefs", "F", "This flips the selected linedefs around and keeps sidedefs on the correct side.")]
+    [InlineData("map2d.fliplinedefs", "Flip Linedefs", "F", "This flips the selected linedefs around and keeps sidedefs on the correct side.")]
+    [InlineData("map2d.flip-sidedefs", "Flip Sidedefs", "Shift+F", "This flips the sidedefs on the selected linedefs around, keeping the line in the same direction.")]
+    [InlineData("map2d.flipsidedefs", "Flip Sidedefs", "Shift+F", "This flips the sidedefs on the selected linedefs around, keeping the line in the same direction.")]
+    public void FlipLinedefCommandsMatchUdbActionSurface(string id, string title, string gesture, string description)
     {
         var command = EditorCommandCatalog.Find(id);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal(gesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
