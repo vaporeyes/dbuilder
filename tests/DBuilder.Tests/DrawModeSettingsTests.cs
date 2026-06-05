@@ -274,6 +274,25 @@ public class DrawModeSettingsTests
     }
 
     [Fact]
+    public void DrawGridPlanOptionsNormalizeDeserializedValues()
+    {
+        var settings = new DrawGridModeSettings(
+            GridLockMode: (DrawGridLockMode)99,
+            HorizontalSlices: 0,
+            VerticalSlices: -5,
+            HorizontalInterpolation: (InterpolationTools.Mode)999,
+            VerticalInterpolation: (InterpolationTools.Mode)999);
+
+        DrawGridPlanOptions options = settings.ToPlanOptions();
+
+        Assert.Equal(DrawGridLockMode.None, options.GridLockMode);
+        Assert.Equal(1, options.HorizontalSlices);
+        Assert.Equal(1, options.VerticalSlices);
+        Assert.Equal(InterpolationTools.Mode.LINEAR, options.HorizontalInterpolation);
+        Assert.Equal(InterpolationTools.Mode.LINEAR, options.VerticalInterpolation);
+    }
+
+    [Fact]
     public void DrawGridAdjustmentActionsRespectLockModeAndMinimumSlices()
     {
         var settings = new DrawGridModeSettings(HorizontalSlices: 2, VerticalSlices: 2);

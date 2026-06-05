@@ -2073,6 +2073,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Place Things action for selected vertices, linedefs, and sectors.
   - [x] Apply UDB-style continuous drawing accept lifecycle to line, sector, curve, rectangle, ellipse, and grid drawing.
   - [x] Add UDB-style singular and plural labels to draw-grid completion status.
+  - [x] Normalize persisted draw-grid planner options before shape creation.
 - [ ] Port sector drawing options.
   - [x] Apply UDB-style map drawing overrides to newly drawn sectors.
 - [ ] Port sector gradient tools.

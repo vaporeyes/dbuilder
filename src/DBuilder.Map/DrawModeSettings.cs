@@ -251,16 +251,19 @@ public sealed record DrawGridModeSettings(
     }
 
     public DrawGridPlanOptions ToPlanOptions()
-        => new()
+    {
+        DrawGridModeSettings settings = Normalized();
+        return new DrawGridPlanOptions
         {
-            HorizontalSlices = HorizontalSlices,
-            VerticalSlices = VerticalSlices,
-            Triangulate = Triangulate,
-            RelativeInterpolation = RelativeInterpolation,
-            GridLockMode = GridLockMode,
-            HorizontalInterpolation = HorizontalInterpolation,
-            VerticalInterpolation = VerticalInterpolation
+            HorizontalSlices = settings.HorizontalSlices,
+            VerticalSlices = settings.VerticalSlices,
+            Triangulate = settings.Triangulate,
+            RelativeInterpolation = settings.RelativeInterpolation,
+            GridLockMode = settings.GridLockMode,
+            HorizontalInterpolation = settings.HorizontalInterpolation,
+            VerticalInterpolation = settings.VerticalInterpolation
         };
+    }
 
     public DrawGridModeSettings IncreaseHorizontalSlices()
         => GridLockMode is DrawGridLockMode.None or DrawGridLockMode.Vertical
