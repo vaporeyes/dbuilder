@@ -2889,7 +2889,14 @@ public class EditorCommandCatalogTests
         Assert.False(command.Repeat);
 
         Assert.NotNull(legacyAlias);
+        Assert.Equal("Toggle walk mode (gravity)", legacyAlias.Title);
+        Assert.Equal(command.Description, legacyAlias.Description);
+        Assert.Equal("G", legacyAlias.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, legacyAlias.Scope);
+        Assert.True(legacyAlias.AllowKeys);
+        Assert.True(legacyAlias.AllowMouse);
+        Assert.True(legacyAlias.AllowScroll);
+        Assert.False(legacyAlias.Repeat);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
         Assert.Equal(command.Description, udbAlias.Description);

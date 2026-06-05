@@ -529,7 +529,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map3d.move-height", "Move up / down", "Q / E", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.toggle-gravity", "Toggle Gravity", "G", EditorCommandScope.Map3D, AllowScroll: true, Description: "Toggles the use of gravity while moving around in visual mode. Turn gravity off to fly around, turn gravity on to walk on the sector floors."),
         new EditorCommandDescriptor("map3d.togglegravity", "Toggle Gravity", "G", EditorCommandScope.Map3D, AllowScroll: true, Description: "Toggles the use of gravity while moving around in visual mode. Turn gravity off to fly around, turn gravity on to walk on the sector floors."),
-        new EditorCommandDescriptor("map3d.walk-mode", "Toggle walk mode (gravity)", "G", EditorCommandScope.Map3D),
+        new EditorCommandDescriptor("map3d.walk-mode", "Toggle walk mode (gravity)", "G", EditorCommandScope.Map3D, AllowScroll: true, Description: "Toggles the use of gravity while moving around in visual mode. Turn gravity off to fly around, turn gravity on to walk on the sector floors."),
         new EditorCommandDescriptor("map3d.move-camera-to-cursor", "Move Camera to Cursor", "Menu", EditorCommandScope.Map3D, Description: "Place the camera nearby the point at the cursor."),
         new EditorCommandDescriptor("map3d.movecameratocursor", "Move Camera to Cursor", "Menu", EditorCommandScope.Map3D, Description: "Place the camera nearby the point at the cursor."),
         new EditorCommandDescriptor("map3d.move-thing-left", "Move Thing Left", "Menu", EditorCommandScope.Map3D, AllowScroll: true, Repeat: true, Description: "Moves selected Things left in Visual Modes."),
