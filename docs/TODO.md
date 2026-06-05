@@ -1250,6 +1250,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Let action and effect browser picks apply to selected map elements.
   - [x] Let flat browser picks apply to selected sector floors and ceilings.
   - [x] Add UDB-style singular and plural labels to browser apply status text.
+  - [x] Add an Edit menu command for snapping the current selection to the grid.
 - [ ] Port toolbar layout and all toolbar actions.
   - [x] Add toolbar buttons for draw mode and shape tools.
   - [x] Add toolbar buttons for map check, cleanup, test, stairs, and slopes.

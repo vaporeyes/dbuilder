@@ -1257,6 +1257,7 @@ public sealed class MainWindowCommandTests
 
         Assert.Contains("SetShortcutToolTip(CopyMenuItem, \"Copy selection\", \"window.copy\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(SelectSimilarMenuItem, \"Select Similar Map Elements\", \"window.select-similar\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(SnapSelectionToGridMenuItem, \"Snap Selected Map Elements to Grid\", \"window.snap-selection-to-grid\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(LowerFloor8MenuItem, \"Lower Floor by 8 mp\", \"map2d.lower-floor-8\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(FitSelectedTexturesMenuItem, \"Fit Selected Textures\", \"map2d.fit-selected-textures\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ApplyLightFogFlagMenuItem, \"Apply 'lightfog' Flag\", \"map2d.apply-lightfog-flag\");", body, StringComparison.Ordinal);
@@ -1361,6 +1362,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("\"window.reload-map\" => ReloadMapMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.save\" or \"window.save-map\" => SaveMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.map-options\" => MapOptionsMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.snap-selection-to-grid\" => SnapSelectionToGridMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.game-configurations\" => LoadGameConfigMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.show-errors\" => ErrorLogMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.model-render-all\" => ModelRenderAllMenuItem", code, StringComparison.Ordinal);

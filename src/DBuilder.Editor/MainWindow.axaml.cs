@@ -308,6 +308,7 @@ public partial class MainWindow : Window
         SetShortcutToolTip(SelectSimilarMenuItem, "Select Similar Map Elements", "window.select-similar");
         SetShortcutToolTip(SelectNoneMenuItem, "Select none", "window.select-none");
         SetShortcutToolTip(ChangeMapElementIndexMenuItem, "Change Map Element Index", "window.change-map-element-index");
+        SetShortcutToolTip(SnapSelectionToGridMenuItem, "Snap Selected Map Elements to Grid", "window.snap-selection-to-grid");
         SetShortcutToolTip(StitchMenuItem, "Stitch geometry", "window.stitch-geometry");
         SetShortcutToolTip(JoinSectorsMenuItem, "Join sectors", "window.join-sectors");
         SetShortcutToolTip(MergeSectorsMenuItem, "Merge sectors", "window.merge-sectors");
@@ -4212,6 +4213,7 @@ public partial class MainWindow : Window
             "window.save-map-as" => SaveAsMenuItem,
             "window.save-as-format" => SaveAsFormatMenuItem,
             "window.map-options" => MapOptionsMenuItem,
+            "window.snap-selection-to-grid" => SnapSelectionToGridMenuItem,
             "window.game-configurations" => LoadGameConfigMenuItem,
             "window.preferences" => SettingsMenuItem,
             "window.view-used-tags" => TagStatisticsMenuItem,
@@ -7204,7 +7206,7 @@ public partial class MainWindow : Window
         SetEnabled(hasMap,
             CloseMapMenuItem, MapOptionsMenuItem, PrefabsMenuItem, SelectAllMenuItem, InvertSelectionMenuItem, SelectionGroupsMenu,
             StitchMenuItem, InsertPrefabMenuItem, FindReplaceMenuItem, TagsMenuItem,
-            InsertAtCursorMenuItem, SelectSingleSidedMenuItem, SelectDoubleSidedMenuItem, ChangeMapElementIndexMenuItem, FlipLinedefsMenuItem, FlipSidedefsMenuItem, AlignLinedefsMenuItem, SplitLinedefsMenuItem,
+            InsertAtCursorMenuItem, SelectSingleSidedMenuItem, SelectDoubleSidedMenuItem, ChangeMapElementIndexMenuItem, SnapSelectionToGridMenuItem, FlipLinedefsMenuItem, FlipSidedefsMenuItem, AlignLinedefsMenuItem, SplitLinedefsMenuItem,
             SectorHeightsMenuItem,
             LowerFloor8MenuItem, RaiseFloor8MenuItem, LowerCeiling8MenuItem, RaiseBrightness8MenuItem, LowerBrightness8MenuItem, EditModeMenuItem, VerticesModeMenuItem,
             LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,
