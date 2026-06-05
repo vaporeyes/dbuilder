@@ -5940,6 +5940,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 BeginEditSelectionMode();
                 return true;
             case "map2d.edit-properties":
+            case "map2d.classicedit":
                 EditRequested?.Invoke();
                 return true;
             case "map2d.draw-sector":

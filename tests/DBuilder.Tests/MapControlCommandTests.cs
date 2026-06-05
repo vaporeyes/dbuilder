@@ -554,9 +554,11 @@ public sealed class MapControlCommandTests
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
         int commandIndex = body.IndexOf("case \"map2d.edit-properties\":", StringComparison.Ordinal);
+        int aliasIndex = body.IndexOf("case \"map2d.classicedit\":", commandIndex, StringComparison.Ordinal);
         int eventIndex = body.IndexOf("EditRequested?.Invoke();", commandIndex, StringComparison.Ordinal);
 
         Assert.True(commandIndex >= 0);
+        Assert.True(aliasIndex > commandIndex);
         Assert.True(eventIndex > commandIndex);
     }
 

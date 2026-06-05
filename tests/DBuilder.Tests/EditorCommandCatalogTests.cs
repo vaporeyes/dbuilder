@@ -2679,6 +2679,26 @@ public class EditorCommandCatalogTests
         Assert.False(command.Repeat);
     }
 
+    [Theory]
+    [InlineData("map2d.classicselect", "Select", "Click")]
+    [InlineData("map2d.classicedit", "Edit", "Menu")]
+    public void ClassicSelectAndEditCommandsMatchUdbActionSurface(string commandId, string title, string gesture)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(gesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.True(command.DisregardShift);
+        Assert.True(command.DisregardAccelerator);
+        Assert.True(command.DisregardAlt);
+        Assert.False(command.Repeat);
+    }
+
     [Fact]
     public void VisualDeleteCommandMatchesUdbDeleteItemAction()
     {
