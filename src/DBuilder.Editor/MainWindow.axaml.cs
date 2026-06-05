@@ -1568,6 +1568,7 @@ public partial class MainWindow : Window
             case "window.toggle-blockmap": OnToggleBlockmap(this, new RoutedEventArgs()); return true;
             case "window.toggle-nodes": OnToggleNodes(this, new RoutedEventArgs()); return true;
             case "window.toggle-info-panel": OnToggleInfoPanel(this, new RoutedEventArgs()); return true;
+            case "window.togglebrightness": OnToggleFullBrightness(this, new RoutedEventArgs()); return true;
             case "window.cut": OnCut(this, new RoutedEventArgs()); return true;
             case "window.copy": OnCopy(this, new RoutedEventArgs()); return true;
             case "window.paste": OnPaste(this, new RoutedEventArgs()); return true;
@@ -4298,6 +4299,7 @@ public partial class MainWindow : Window
             "window.toggle-blockmap" => ToggleBlockmapMenuItem,
             "window.toggle-nodes" => ToggleNodesMenuItem,
             "window.toggle-info-panel" => InfoPanelMenuItem,
+            "window.togglebrightness" => ToggleFullBrightnessMenuItem,
             "window.cut" => CutMenuItem,
             "window.copy" => CopyMenuItem,
             "window.paste" => PasteMenuItem,

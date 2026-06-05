@@ -73,6 +73,7 @@ public sealed class MainWindowCommandTests
     [InlineData("window.toggle-3d-floors", "OnToggle3DFloors")]
     [InlineData("window.toggle-blockmap", "OnToggleBlockmap")]
     [InlineData("window.toggle-nodes", "OnToggleNodes")]
+    [InlineData("window.togglebrightness", "OnToggleFullBrightness")]
     [InlineData("window.gradient-floor-heights", "OnGradientFloorHeights")]
     [InlineData("window.gradientfloors", "OnGradientFloorHeights")]
     [InlineData("window.gradient-ceiling-heights", "OnGradientCeilingHeights")]
@@ -1443,6 +1444,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("commandId.StartsWith(\"window.cleargroup\", StringComparison.Ordinal)", code, StringComparison.Ordinal);
         Assert.Contains("commandId == \"window.udbscriptexecute\"", code, StringComparison.Ordinal);
         Assert.Contains("commandId.StartsWith(\"window.udbscriptexecuteslot\", StringComparison.Ordinal)", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.togglebrightness\" => ToggleFullBrightnessMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.undo\" => UndoMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.redo\" => RedoMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.new-map\" => NewMapMenuItem", code, StringComparison.Ordinal);

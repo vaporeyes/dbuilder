@@ -66,6 +66,7 @@ public class EditorCommandCatalogTests
     [InlineData("window.gridsetup", "Tools")]
     [InlineData("window.toggle-info-panel", "View")]
     [InlineData("window.toggleinfopanel", "View")]
+    [InlineData("window.togglebrightness", "View")]
     [InlineData("window.create-prefab", "Prefabs")]
     [InlineData("window.createprefab", "Prefabs")]
     [InlineData("window.insertprefabfile", "Prefabs")]
@@ -1378,6 +1379,7 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
+    [InlineData("window.togglebrightness", EditorCommandScope.Window)]
     [InlineData("map2d.toggle-full-brightness", EditorCommandScope.Map2D)]
     [InlineData("map3d.toggle-full-brightness", EditorCommandScope.Map3D)]
     public void FullBrightnessCommandsMatchUdbActionSurface(string commandId, EditorCommandScope scope)

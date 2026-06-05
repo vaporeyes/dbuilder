@@ -1396,6 +1396,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Persist UDB-style default classic 2D view mode setting and apply it on startup.
   - [x] Add UDB-style highlight toggle action ids, default shortcut, persisted setting, menu state, and 3D target overlay gating.
   - [x] Add UDB-style full-brightness display toggle for 2D and 3D rendering.
+  - [x] Add raw UDB full-brightness action alias to window command dispatch.
   - [x] Add UDB-style classic rendering toggle action, persistence, dynamic-light tint suppression, and 16-step visual light banding.
   - [x] Add UDB-style fog, sky, event-line, and visual-vertices toggle actions and persisted state.
 - [ ] Port vertex formats and buffers.
