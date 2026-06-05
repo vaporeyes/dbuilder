@@ -3019,16 +3019,17 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map3d.reset-offsets", "Reset Texture Offsets", "O")]
-    [InlineData("map3d.resettexture", "Reset Texture Offsets", "O")]
-    [InlineData("map3d.reset-local-offsets", "Reset Local Texture Offsets (UDMF)", "Ctrl/Cmd+Shift+R")]
-    [InlineData("map3d.resettextureudmf", "Reset Local Texture Offsets (UDMF)", "Ctrl/Cmd+Shift+R")]
-    public void VisualTextureResetCommandsMatchUdbActionSurface(string id, string title, string gesture)
+    [InlineData("map3d.reset-offsets", "Reset Texture Offsets", "O", "Resets the texture offsets of targeted or selected sidedefs (all map formats) and floors/ceilings (UDMF only). Also resets scale of targeted or selected things (UDMF only)")]
+    [InlineData("map3d.resettexture", "Reset Texture Offsets", "O", "Resets the texture offsets of targeted or selected sidedefs (all map formats) and floors/ceilings (UDMF only). Also resets scale of targeted or selected things (UDMF only)")]
+    [InlineData("map3d.reset-local-offsets", "Reset Local Texture Offsets (UDMF)", "Ctrl/Cmd+Shift+R", "Resets upper/middle/lower texture offsets, scale and brightness of targeted or selected sidedefs. Resets texture offsets, rotation, scale and brightness of targeted or selected floors/ceilings. Resets scale, pitch and roll of targeted or selected things.")]
+    [InlineData("map3d.resettextureudmf", "Reset Local Texture Offsets (UDMF)", "Ctrl/Cmd+Shift+R", "Resets upper/middle/lower texture offsets, scale and brightness of targeted or selected sidedefs. Resets texture offsets, rotation, scale and brightness of targeted or selected floors/ceilings. Resets scale, pitch and roll of targeted or selected things.")]
+    public void VisualTextureResetCommandsMatchUdbActionSurface(string id, string title, string gesture, string description)
     {
         var command = EditorCommandCatalog.Find(id);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal(gesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -3148,16 +3149,17 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map3d.toggle-upper-unpegged", "Toggle Upper Unpegged")]
-    [InlineData("map3d.toggleupperunpegged", "Toggle Upper Unpegged")]
-    [InlineData("map3d.toggle-lower-unpegged", "Toggle Lower Unpegged")]
-    [InlineData("map3d.togglelowerunpegged", "Toggle Lower Unpegged")]
-    public void VisualUnpeggedCommandsMatchUdbActionSurface(string id, string title)
+    [InlineData("map3d.toggle-upper-unpegged", "Toggle Upper Unpegged", "Toggles the Upper Unpegged setting on the selected or targeted linedef.")]
+    [InlineData("map3d.toggleupperunpegged", "Toggle Upper Unpegged", "Toggles the Upper Unpegged setting on the selected or targeted linedef.")]
+    [InlineData("map3d.toggle-lower-unpegged", "Toggle Lower Unpegged", "Toggles the Lower Unpegged setting on the selected or targeted linedef.")]
+    [InlineData("map3d.togglelowerunpegged", "Toggle Lower Unpegged", "Toggles the Lower Unpegged setting on the selected or targeted linedef.")]
+    public void VisualUnpeggedCommandsMatchUdbActionSurface(string id, string title, string description)
     {
         var command = EditorCommandCatalog.Find(id);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
