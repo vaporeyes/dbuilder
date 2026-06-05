@@ -636,6 +636,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Prefer WAD patch fallback outside built-in flat ranges before flat-range fallback.
 - [ ] Port wall texture composition fully.
   - [x] Compose root PK3 classic `TEXTURE1` and `TEXTURE2` wall textures from patch resources.
+  - [x] Resolve root PK3 classic texture patches from mixed texture and flat folders when namespaces are mixed.
   - [x] Skip the reserved first WAD `TEXTURE1` entry like UDB.
   - [x] Resolve simple WAD wall textures from configured texture ranges.
   - [x] Apply UDB classic texture patch offset compatibility flags during composition.

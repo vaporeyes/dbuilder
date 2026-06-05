@@ -188,6 +188,29 @@ public class TexturesComposeTests
     }
 
     [Fact]
+    public void ClassicTexture1UsesMixedNamespacePatchFolders()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("PNAMES", BuildPnames("TEXPAT", "FLTPAT")),
+            ("TEXTURE1", BuildClassicTexture1("OLDMIX", 2, 1, (0, 0, 0), (1, 0, 1))),
+            ("textures/TEXPAT.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 20, 30, 40, 255))),
+            ("flats/FLTPAT.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 50, 60, 70, 255))));
+
+        try
+        {
+            using var rm = new ResourceManager { MixTexturesFlats = true };
+            rm.AddResource(pk3);
+
+            var texture = rm.GetWallTexture("OLDMIX");
+
+            Assert.NotNull(texture);
+            Assert.Equal(new byte[] { 20, 30, 40, 255 }, texture!.Rgba[0..4]);
+            Assert.Equal(new byte[] { 50, 60, 70, 255 }, texture.Rgba[4..8]);
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
     public void ComposesClassicTexture1FromNestedWadPnames()
     {
         string pk3 = TestArtifacts.BuildPk3(

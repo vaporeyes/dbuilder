@@ -1317,7 +1317,7 @@ public sealed class ResourceManager : IDisposable
         if (flatCache.TryGetValue(name, out var cached)) return cached;
         var result = ResolveCoreWithHiRes(name, flatDefs, static (r, n, p) => r.GetFlatBase(n, p), includeCameraTextures: true);
         if (result == null && MixTexturesFlats)
-            result = ResolveCoreWithHiRes(name, wallDefs, static (r, n, p) => r.GetWallTextureBase(n, p), includeCameraTextures: true);
+            result = ResolveCoreWithHiRes(name, wallDefs, (r, n, p) => r.GetWallTextureBase(n, p, MixTexturesFlats), includeCameraTextures: true);
         flatCache[name] = result;
         return result;
     }
@@ -1327,7 +1327,7 @@ public sealed class ResourceManager : IDisposable
     {
         if (string.IsNullOrEmpty(name) || name == "-") return null;
         if (textureCache.TryGetValue(name, out var cached)) return cached;
-        var result = ResolveCoreWithHiRes(name, wallDefs, static (r, n, p) => r.GetWallTextureBase(n, p), includeCameraTextures: true);
+        var result = ResolveCoreWithHiRes(name, wallDefs, (r, n, p) => r.GetWallTextureBase(n, p, MixTexturesFlats), includeCameraTextures: true);
         if (result == null && MixTexturesFlats)
             result = ResolveCoreWithHiRes(name, flatDefs, static (r, n, p) => r.GetFlatBase(n, p), includeCameraTextures: true);
         textureCache[name] = result;

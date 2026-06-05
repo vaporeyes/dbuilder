@@ -19,7 +19,7 @@ internal interface IResourceReader : IDisposable
     ImageData? GetWallTexture(string name, DoomPalette? palette);
     ImageData? GetSprite(string name, DoomPalette? palette);
     ImageData? GetFlatBase(string name, DoomPalette? palette);
-    ImageData? GetWallTextureBase(string name, DoomPalette? palette);
+    ImageData? GetWallTextureBase(string name, DoomPalette? palette, bool includeMixedPatchNamespaces = false);
     ImageData? GetSpriteBase(string name, DoomPalette? palette);
     ImageData? GetHiRes(string name, DoomPalette? palette);
     ImageData? GetPatch(string name, DoomPalette? palette, bool includeMixedNamespaces, bool longName);
@@ -164,7 +164,7 @@ internal sealed class WadResourceReader : IResourceReader
 
     public ImageData? GetFlatBase(string name, DoomPalette? palette) => GetFlat(name, palette);
 
-    public ImageData? GetWallTextureBase(string name, DoomPalette? palette) => GetWallTexture(name, palette);
+    public ImageData? GetWallTextureBase(string name, DoomPalette? palette, bool includeMixedPatchNamespaces = false) => GetWallTexture(name, palette);
 
     public ImageData? GetSpriteBase(string name, DoomPalette? palette) => GetSprite(name, palette);
 
@@ -710,11 +710,11 @@ internal abstract class FolderResourceReader : IResourceReader
         return image;
     }
 
-    public virtual ImageData? GetWallTextureBase(string name, DoomPalette? palette)
+    public virtual ImageData? GetWallTextureBase(string name, DoomPalette? palette, bool includeMixedPatchNamespaces = false)
     {
         for (int i = nestedReaders.Count - 1; i >= 0; i--)
         {
-            var nestedImage = nestedReaders[i].GetWallTextureBase(name, palette);
+            var nestedImage = nestedReaders[i].GetWallTextureBase(name, palette, includeMixedPatchNamespaces);
             if (nestedImage != null) return nestedImage;
         }
 
@@ -723,7 +723,7 @@ internal abstract class FolderResourceReader : IResourceReader
             : Decode(Find(name, "textures", "patches"), palette, preferFlat: false);
         if (image != null) return image;
 
-        image = ComposeClassicTexture(name, palette);
+        image = ComposeClassicTexture(name, palette, includeMixedPatchNamespaces);
         return image;
     }
 
@@ -1181,7 +1181,7 @@ internal abstract class FolderResourceReader : IResourceReader
 
     private static bool IsPathQualified(string name) => name.Contains('/') || name.Contains('\\');
 
-    private ImageData? ComposeClassicTexture(string name, DoomPalette? palette)
+    private ImageData? ComposeClassicTexture(string name, DoomPalette? palette, bool includeMixedPatchNamespaces)
     {
         if (!ClassicTextureDefs().TryGetValue(name, out var def)) return null;
         if (def.Width <= 0 || def.Height <= 0 || def.Patches.Count == 0) return null;
@@ -1191,7 +1191,7 @@ internal abstract class FolderResourceReader : IResourceReader
         var canvas = DoomWallTextureCompositor.Compose(
             def,
             pnames,
-            patchName => GetPatch(patchName, palette, includeMixedNamespaces: false, longName: false),
+            patchName => GetPatch(patchName, palette, includeMixedPatchNamespaces, longName: false),
             config?.FixNegativePatchOffsets ?? true,
             config?.FixMaskedPatchOffsets ?? true);
         return canvas != null ? new ImageData(def.Width, def.Height, canvas) : null;
