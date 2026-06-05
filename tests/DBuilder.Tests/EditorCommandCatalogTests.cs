@@ -972,13 +972,13 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("window.stitch-geometry", "Stitch geometry", null)]
-    [InlineData("window.geomergeclassic", "Merge Dragged Vertices Only", "Only vertex-line intersections will be processed when applying geometry drag or paste actions.")]
-    [InlineData("window.geomerge", "Merge Dragged Geometry", "Geometry merging will be performed when applying geometry drag or paste actions.")]
-    [InlineData("window.georeplace", "Replace with Dragged Geometry", "Dragged geometry will replace underlaying geometry when applying geometry drag or paste actions.")]
-    [InlineData("window.join-sectors", "Join Sectors", "Joins two or more selected sectors together and keeps all linedefs.")]
-    [InlineData("window.merge-sectors", "Merge Sectors", "Joins two or more selected sectors together and removes the shared linedefs.")]
-    public void WindowGeometryEditCommandsMatchUdbActionSurface(string commandId, string title, string? description = null)
+    [InlineData("window.stitch-geometry", "Stitch geometry", false, null)]
+    [InlineData("window.geomergeclassic", "Merge Dragged Vertices Only", false, "Only vertex-line intersections will be processed when applying geometry drag or paste actions.")]
+    [InlineData("window.geomerge", "Merge Dragged Geometry", false, "Geometry merging will be performed when applying geometry drag or paste actions.")]
+    [InlineData("window.georeplace", "Replace with Dragged Geometry", false, "Dragged geometry will replace underlaying geometry when applying geometry drag or paste actions.")]
+    [InlineData("window.join-sectors", "Join Sectors", true, "Joins two or more selected sectors together and keeps all linedefs.")]
+    [InlineData("window.merge-sectors", "Merge Sectors", true, "Joins two or more selected sectors together and removes the shared linedefs.")]
+    public void WindowGeometryEditCommandsMatchUdbActionSurface(string commandId, string title, bool allowScroll, string? description = null)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
@@ -989,7 +989,7 @@ public class EditorCommandCatalogTests
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
-        Assert.False(command.AllowScroll);
+        Assert.Equal(allowScroll, command.AllowScroll);
     }
 
     [Theory]
