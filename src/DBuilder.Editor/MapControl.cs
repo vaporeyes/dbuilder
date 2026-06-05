@@ -8316,7 +8316,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
 
         EditBegun?.Invoke("Apply 'lightfog' flag");
-        SidedefLightFogFlagResult result = SidedefFogTools.ApplyLightFogFlags(linedefs, mapInfo: null, _gameConfig);
+        SidedefLightFogFlagResult result = SidedefFogTools.ApplyLightFogFlags(linedefs, CurrentMapInfo(), _gameConfig);
         if (result.Changed)
         {
             MarkGeometryDirty();
@@ -8326,6 +8326,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Picked?.Invoke(result.Message);
         return result.Message;
     }
+
+    private MapInfoEntry? CurrentMapInfo()
+        => _resources?.GetMapInfo().GetMap(_mapOptions?.CurrentName ?? "");
 
     // Traces the line loop enclosing the cursor and creates a sector from it (undoable).
     public string MakeSectorAtCursor()

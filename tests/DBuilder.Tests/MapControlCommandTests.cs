@@ -829,6 +829,21 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void ApplyLightFogUsesCurrentMapInfoLikeUdb()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("public string ApplyLightFogFlag()", StringComparison.Ordinal);
+        int applyIndex = body.IndexOf("SidedefFogTools.ApplyLightFogFlags(linedefs, CurrentMapInfo(), _gameConfig)", methodIndex, StringComparison.Ordinal);
+        int helperIndex = body.IndexOf("private MapInfoEntry? CurrentMapInfo()", methodIndex, StringComparison.Ordinal);
+        int lookupIndex = body.IndexOf("_resources?.GetMapInfo().GetMap(_mapOptions?.CurrentName ?? \"\")", helperIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(applyIndex > methodIndex);
+        Assert.True(helperIndex > applyIndex);
+        Assert.True(lookupIndex > helperIndex);
+    }
+
+    [Fact]
     public void GridRenderingCommandControlsVisibleGridOnly()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
