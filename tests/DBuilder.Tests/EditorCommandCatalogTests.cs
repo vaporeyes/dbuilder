@@ -1194,21 +1194,21 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map2d.toggle-grid-snap", "Snap to Grid", "G", false, "Toggles snapping to the grid for things and vertices that are being dragged.")]
-    [InlineData("map2d.togglesnap", "Snap to Grid", "G", false, "Toggles snapping to the grid for things and vertices that are being dragged.")]
-    [InlineData("map2d.grid-down", "Decrease grid size", "[", true, null)]
-    [InlineData("map2d.grid-up", "Increase grid size", "]", true, null)]
-    public void GridSizeAndSnapCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture, bool repeat, string? description = null)
+    [InlineData("map2d.toggle-grid-snap", "Snap to Grid", "G", false, false, "Toggles snapping to the grid for things and vertices that are being dragged.")]
+    [InlineData("map2d.togglesnap", "Snap to Grid", "G", false, false, "Toggles snapping to the grid for things and vertices that are being dragged.")]
+    [InlineData("map2d.grid-down", "Decrease grid size", "[", true, true, "Decreases the grid size, increasing the grid density.")]
+    [InlineData("map2d.grid-up", "Increase grid size", "]", true, true, "Increases the grid size, decreasing the grid density.")]
+    public void GridSizeAndSnapCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture, bool repeat, bool allowMouse, string description)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
-        if (description != null) Assert.Equal(description, command.Description);
+        Assert.Equal(description, command.Description);
         Assert.Equal(defaultGesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
-        Assert.Equal(description == null, command.AllowMouse);
+        Assert.Equal(allowMouse, command.AllowMouse);
         Assert.False(command.AllowScroll);
         Assert.Equal(repeat, command.Repeat);
     }
