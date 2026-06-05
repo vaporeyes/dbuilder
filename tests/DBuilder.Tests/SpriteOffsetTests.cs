@@ -79,6 +79,32 @@ public class SpriteOffsetTests
     }
 
     [Fact]
+    public void ResourceManagerSurfacesTexturesSpriteOffsets()
+    {
+        string textures =
+            "Sprite TROOA0, 2, 2\n" +
+            "{\n" +
+            "    Offset 7, 11\n" +
+            "    Patch PAT, 0, 0\n" +
+            "}\n";
+        string pk3 = TestArtifacts.BuildPk3(
+            ("TEXTURES.txt", Encoding.ASCII.GetBytes(textures)),
+            ("patches/PAT.png", TestArtifacts.Png(2, 2, TestArtifacts.SolidRgba(2, 2, 5, 6, 7, 255))));
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            var sprite = rm.GetSprite("TROOA0");
+
+            Assert.NotNull(sprite);
+            Assert.Equal(7, sprite!.OffsetX);
+            Assert.Equal(11, sprite.OffsetY);
+        }
+        finally { File.Delete(pk3); }
+    }
+
+    [Fact]
     public void NoGrabMeansZeroOffsets()
     {
         var img = PngDecoder.Decode(TestArtifacts.Png(2, 2, TestArtifacts.SolidRgba(2, 2, 1, 1, 1, 255)));

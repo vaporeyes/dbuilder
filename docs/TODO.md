@@ -668,6 +668,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Skip placeholder actor state sprites when choosing editor sprites.
   - [x] Reject invalid classic sprite rotation digits during fallback.
   - [x] Reject invalid classic sprite frame characters during fallback.
+  - [x] Surface `TEXTURES` sprite `Offset` metadata through resource sprite lookups.
 - [x] Port high-resolution replacements.
 - [x] Port camera texture images.
 - [x] Port dynamic bitmap images.
