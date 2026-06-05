@@ -550,6 +550,17 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void Map2DEditPropertiesActionRequestsPropertyEditing()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int commandIndex = body.IndexOf("case \"map2d.edit-properties\":", StringComparison.Ordinal);
+        int eventIndex = body.IndexOf("EditRequested?.Invoke();", commandIndex, StringComparison.Ordinal);
+
+        Assert.True(commandIndex >= 0);
+        Assert.True(eventIndex > commandIndex);
+    }
+
+    [Fact]
     public void MapControlChecksAllWheelAxesForShortcutDispatch()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
