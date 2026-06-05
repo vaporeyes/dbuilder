@@ -1217,14 +1217,17 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map2d.zoomin", "Zoom in", "+")]
-    [InlineData("map2d.zoomout", "Zoom out", "-")]
-    public void ZoomCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture)
+    [InlineData("map2d.zoom-in", "Zoom In", "+", "Zooms in on the map at the current mouse location.")]
+    [InlineData("map2d.zoomin", "Zoom In", "+", "Zooms in on the map at the current mouse location.")]
+    [InlineData("map2d.zoom-out", "Zoom Out", "-", "Zooms out on the map from the current mouse location.")]
+    [InlineData("map2d.zoomout", "Zoom Out", "-", "Zooms out on the map from the current mouse location.")]
+    public void ZoomCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture, string description)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal(defaultGesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
