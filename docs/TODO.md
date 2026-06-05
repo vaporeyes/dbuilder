@@ -315,6 +315,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add stable UDB action id for USDF Conversations.
   - [x] Add stable UDB action ids for blockmap, nodes, and 3D floor view toggles.
   - [x] Add stable UDB action ids for fixed thing scale and always-show-vertices view toggles.
+  - [x] Add raw UDB fixed thing scale and always-show-vertices action aliases.
   - [x] Add UDB-style singular and plural labels to Filter Selected Things status text.
 
 ## Plugin Architecture
@@ -2242,6 +2243,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style smart pivot selection, adjacent-handle selection, and command metadata for visual vertex slope handles.
   - [x] Match UDB adjacent visual vertex slope selection status text.
 - [ ] Port all BuilderModes visual modes.
+  - [x] Add raw UDB fixed thing scale and always-show-vertices action aliases.
 
 ## UDBScript
 

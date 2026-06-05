@@ -5871,9 +5871,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 Target3DChanged?.Invoke($"Comments are {(ToggleComments() ? "ENABLED" : "DISABLED")}");
                 return true;
             case "map2d.toggle-fixed-things-scale":
+            case "map2d.togglefixedthingsscale":
                 ToggleFixedThingsScale();
                 return true;
             case "map2d.toggle-always-show-vertices":
+            case "map2d.togglealwaysshowvertices":
                 ToggleAlwaysShowVertices();
                 return true;
             case "map2d.toggle-full-brightness":

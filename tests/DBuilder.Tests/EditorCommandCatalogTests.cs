@@ -1237,7 +1237,9 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("map2d.toggle-fixed-things-scale", "Toggle Fixed Things Scale")]
+    [InlineData("map2d.togglefixedthingsscale", "Toggle Fixed Things Scale")]
     [InlineData("map2d.toggle-always-show-vertices", "Toggle Always Show Vertices")]
+    [InlineData("map2d.togglealwaysshowvertices", "Toggle Always Show Vertices")]
     public void ViewToggleCommandsMatchUdbActionSurface(string commandId, string title)
         => AssertKeyOnlyMap2DCommand(commandId, title);
 
