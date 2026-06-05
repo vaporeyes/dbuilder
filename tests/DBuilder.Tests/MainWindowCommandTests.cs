@@ -31,6 +31,7 @@ public sealed class MainWindowCommandTests
     [InlineData("window.opencommandpalette", "OnOpenCommandPalette")]
     [InlineData("window.shortcuts", "OnShortcuts")]
     [InlineData("window.about", "OnAbout")]
+    [InlineData("window.centeroncoordinates", "OnGoToCoordinates")]
     [InlineData("window.select-all", "OnSelectAll")]
     [InlineData("window.invert-selection", "OnInvertSelection")]
     [InlineData("window.select-none", "OnSelectNone")]
@@ -1464,6 +1465,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("\"window.toggle-3d-floors\" => Toggle3DFloorsMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.toggle-blockmap\" => ToggleBlockmapMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.toggle-info-panel\" => InfoPanelMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.center-on-coordinates\" or \"window.centeroncoordinates\" or \"window.go-to-coordinates\" => GoToCoordinatesMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.paste-special\" or \"window.pasteselectionspecial\" => PasteSpecialMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.delete\" or \"window.deleteitem\" => DeleteMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.properties\" => PropertiesMenuItem", code, StringComparison.Ordinal);

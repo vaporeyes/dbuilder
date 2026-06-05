@@ -1332,6 +1332,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add external command fields to the map options dialog.
   - [x] Add external command working directories and behavior flags to the map options dialog.
   - [x] Persist view position and zoom through map options.
+  - [x] Add raw UDB center on coordinates action alias to shortcut metadata and dispatch.
   - [x] Add script compiler field to the map options dialog.
   - [x] Add UDB-style script compiler selector using compiled ACS script configs.
 - [ ] Port open map options dialog.

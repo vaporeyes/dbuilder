@@ -385,6 +385,7 @@ public class EditorCommandCatalogTests
     [InlineData("window.view-thing-types", "View Thing Types", "Menu")]
     [InlineData("window.viewthingtypes", "View Thing Types", "Menu")]
     [InlineData("window.center-on-coordinates", "Go To Coordinates", "Ctrl/Cmd+Shift+G")]
+    [InlineData("window.centeroncoordinates", "Go To Coordinates", "Ctrl/Cmd+Shift+G")]
     [InlineData("window.go-to-coordinates", "Go To Coordinates", "Ctrl/Cmd+Shift+G")]
     public void KeyOnlyWindowCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture)
     {

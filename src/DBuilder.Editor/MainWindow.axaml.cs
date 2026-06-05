@@ -1549,6 +1549,7 @@ public partial class MainWindow : Window
             case "window.comments-panel": OnCommentsPanel(this, new RoutedEventArgs()); return true;
             case "window.view-thing-types": OnThingStatistics(this, new RoutedEventArgs()); return true;
             case "window.center-on-coordinates": OnGoToCoordinates(this, new RoutedEventArgs()); return true;
+            case "window.centeroncoordinates": OnGoToCoordinates(this, new RoutedEventArgs()); return true;
             case "window.go-to-coordinates": OnGoToCoordinates(this, new RoutedEventArgs()); return true;
             case "window.status-history": OnStatusHistory(this, new RoutedEventArgs()); return true;
             case "window.show-errors": OnErrorLog(this, new RoutedEventArgs()); return true;
@@ -4282,7 +4283,7 @@ public partial class MainWindow : Window
             "window.tag-explorer" => TagExplorerMenuItem,
             "window.comments-panel" => CommentsPanelMenuItem,
             "window.view-thing-types" => ThingStatisticsMenuItem,
-            "window.center-on-coordinates" or "window.go-to-coordinates" => GoToCoordinatesMenuItem,
+            "window.center-on-coordinates" or "window.centeroncoordinates" or "window.go-to-coordinates" => GoToCoordinatesMenuItem,
             "window.status-history" => StatusHistoryMenuItem,
             "window.show-errors" or "window.showerrors" => ErrorLogMenuItem,
             "window.browse-wall-textures" => BrowseWallTexturesMenuItem,

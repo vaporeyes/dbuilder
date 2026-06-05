@@ -81,6 +81,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.view-thing-types", "View Thing Types", "Menu", EditorCommandScope.Window, AllowMouse: false, Description: "Opens Thing Statistics form, which shows all thing types available in current game configuration."),
         new EditorCommandDescriptor("window.viewthingtypes", "View Thing Types", "Menu", EditorCommandScope.Window, AllowMouse: false, Description: "Opens Thing Statistics form, which shows all thing types available in current game configuration."),
         new EditorCommandDescriptor("window.center-on-coordinates", "Go To Coordinates", "Ctrl/Cmd+Shift+G", EditorCommandScope.Window, AllowMouse: false, Description: "Centers the view on given map coordinates."),
+        new EditorCommandDescriptor("window.centeroncoordinates", "Go To Coordinates", "Ctrl/Cmd+Shift+G", EditorCommandScope.Window, AllowMouse: false, Description: "Centers the view on given map coordinates."),
         new EditorCommandDescriptor("window.go-to-coordinates", "Go To Coordinates", "Ctrl/Cmd+Shift+G", EditorCommandScope.Window, AllowMouse: false, Description: "Centers the view on given map coordinates."),
         new EditorCommandDescriptor("window.status-history", "Status History", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.show-errors", "Show Errors and Warnings", "F11", EditorCommandScope.Window, Description: "Shows the errors and warnings that may have occurred during loading or editing operations."),
