@@ -37,6 +37,61 @@ public sealed class ImageExportModelTests
         Assert.Equal(ImageExportImageFormat.Jpeg, settings.ImageFormat);
     }
 
+    [Fact]
+    public void FormStateExposesUdbImageExportLabelsAndOptions()
+    {
+        ImageExportOptions options = new(
+            Path.Combine("maps", "doom2_MAP01.png"),
+            Floor: false,
+            Fullbright: false,
+            ApplySectorColors: false,
+            Brightmap: true,
+            Transparency: true,
+            Tiles: true,
+            ScaleIndex: 2,
+            ImageFormatIndex: 1,
+            PixelFormatIndex: 2);
+
+        ImageExportFormState state = ImageExportFormState.FromOptions(options);
+
+        Assert.Equal(options, state.DefaultOptions);
+        Assert.Equal("Image export settings", state.Title);
+        Assert.Equal("Exports selected sectors, or the whole map, as an image.", state.Description);
+        Assert.Equal("Path:", state.PathLabel);
+        Assert.Equal("Image format:", state.ImageFormatLabel);
+        Assert.Equal("Color depth:", state.PixelFormatLabel);
+        Assert.Equal("Floor", state.FloorText);
+        Assert.Equal("Ceiling", state.CeilingText);
+        Assert.Equal("Use fullbright", state.FullbrightText);
+        Assert.Equal("Apply sector colors", state.ApplySectorColorsText);
+        Assert.Equal("Allow transparency", state.TransparencyText);
+        Assert.Equal("Create brightmap", state.BrightmapText);
+        Assert.Equal("Create 64x64 tiles", state.TilesText);
+        Assert.Equal("Scale:", state.ScaleLabel);
+        Assert.Equal("Export", state.ExportButtonText);
+        Assert.Equal("Close", state.CloseButtonText);
+        Assert.Equal(["PNG", "JPG"], state.ImageFormats);
+        Assert.Equal(["32 bit", "24 bit", "16 bit"], state.PixelFormats);
+        Assert.Equal(["100%", "200%", "400%", "800%"], state.Scales);
+    }
+
+    [Fact]
+    public void EditorImageExportDialogUsesSharedUdbMetadata()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/ImageExportDialog.cs"));
+
+        Assert.Contains("ImageExportSettings.FormTitle", body, StringComparison.Ordinal);
+        Assert.Contains("ImageExportSettings.PathLabel", body, StringComparison.Ordinal);
+        Assert.Contains("ImageExportSettings.FloorText", body, StringComparison.Ordinal);
+        Assert.Contains("ImageExportSettings.FullbrightText", body, StringComparison.Ordinal);
+        Assert.Contains("ImageExportSettings.ApplySectorColorsText", body, StringComparison.Ordinal);
+        Assert.Contains("ImageExportSettings.BrightmapText", body, StringComparison.Ordinal);
+        Assert.Contains("ImageExportSettings.TransparencyText", body, StringComparison.Ordinal);
+        Assert.Contains("ImageExportSettings.TilesText", body, StringComparison.Ordinal);
+        Assert.Contains("ImageExportSettings.ScaleLabel", body, StringComparison.Ordinal);
+        Assert.Contains("ImageExportSettings.ScaleTexts", body, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData(0, ImageExportImageFormat.Png, ".png")]
     [InlineData(1, ImageExportImageFormat.Jpeg, ".jpg")]

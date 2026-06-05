@@ -118,6 +118,28 @@ public sealed record ImageExportSettings(
     ImageExportPixelFormat PixelFormat,
     ImageExportImageFormat ImageFormat)
 {
+    public const string FormTitle = "Image export settings";
+    public const string FormDescription = "Exports selected sectors, or the whole map, as an image.";
+    public const string PathLabel = "Path:";
+    public const string ImageFormatLabel = "Image format:";
+    public const string PixelFormatLabel = "Color depth:";
+    public const string FloorText = "Floor";
+    public const string CeilingText = "Ceiling";
+    public const string FullbrightText = "Use fullbright";
+    public const string ApplySectorColorsText = "Apply sector colors";
+    public const string TransparencyText = "Allow transparency";
+    public const string BrightmapText = "Create brightmap";
+    public const string TilesText = "Create 64x64 tiles";
+    public const string ScaleLabel = "Scale:";
+    public const string ExportButtonText = "Export";
+    public const string CloseButtonText = "Close";
+    public const string PngText = "PNG";
+    public const string JpgText = "JPG";
+    public const string Format32BitText = "32 bit";
+    public const string Format24BitText = "24 bit";
+    public const string Format16BitText = "16 bit";
+    public static readonly string[] ScaleTexts = { "100%", "200%", "400%", "800%" };
+
     public static ImageExportSettings FromOptions(ImageExportOptions options)
     {
         string filePath = options.FilePath.Trim();
@@ -181,6 +203,50 @@ public sealed record ImageExportSettings(
 
     private static string CountLabel(int count, string singular, string? plural = null)
         => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
+}
+
+public sealed record ImageExportFormState(
+    ImageExportOptions DefaultOptions,
+    string Title,
+    string Description,
+    string PathLabel,
+    string ImageFormatLabel,
+    string PixelFormatLabel,
+    string FloorText,
+    string CeilingText,
+    string FullbrightText,
+    string ApplySectorColorsText,
+    string TransparencyText,
+    string BrightmapText,
+    string TilesText,
+    string ScaleLabel,
+    string ExportButtonText,
+    string CloseButtonText,
+    IReadOnlyList<string> ImageFormats,
+    IReadOnlyList<string> PixelFormats,
+    IReadOnlyList<string> Scales)
+{
+    public static ImageExportFormState FromOptions(ImageExportOptions options)
+        => new(
+            options,
+            ImageExportSettings.FormTitle,
+            ImageExportSettings.FormDescription,
+            ImageExportSettings.PathLabel,
+            ImageExportSettings.ImageFormatLabel,
+            ImageExportSettings.PixelFormatLabel,
+            ImageExportSettings.FloorText,
+            ImageExportSettings.CeilingText,
+            ImageExportSettings.FullbrightText,
+            ImageExportSettings.ApplySectorColorsText,
+            ImageExportSettings.TransparencyText,
+            ImageExportSettings.BrightmapText,
+            ImageExportSettings.TilesText,
+            ImageExportSettings.ScaleLabel,
+            ImageExportSettings.ExportButtonText,
+            ImageExportSettings.CloseButtonText,
+            [ImageExportSettings.PngText, ImageExportSettings.JpgText],
+            [ImageExportSettings.Format32BitText, ImageExportSettings.Format24BitText, ImageExportSettings.Format16BitText],
+            ImageExportSettings.ScaleTexts);
 }
 
 public readonly record struct ImageExportLayout(Vector2D Size, Vector2D Offset);

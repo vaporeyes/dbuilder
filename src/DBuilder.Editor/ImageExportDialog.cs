@@ -20,17 +20,17 @@ public sealed class ImageExportDialog : PropertyDialog
     public ImageExportOptions ResultOptions { get; private set; }
 
     public ImageExportDialog(ImageExportOptions options)
-        : base("Export Image PNG", "Exports selected sectors, or the whole map, as a PNG image.")
+        : base(ImageExportSettings.FormTitle, ImageExportSettings.FormDescription)
     {
         ResultOptions = options;
-        _filePath = AddField("PNG path", options.FilePath);
-        _floor = AddCheckBox("Export floor flats", options.Floor);
-        _fullbright = AddCheckBox("Fullbright", options.Fullbright);
-        _applySectorColors = AddCheckBox("Apply sector colors", options.ApplySectorColors);
-        _brightmap = AddCheckBox("Generate brightmap", options.Brightmap);
-        _transparency = AddCheckBox("Transparent background", options.Transparency);
-        _tiles = AddCheckBox("Export 64x64 tiles", options.Tiles);
-        _scale = AddCombo("Scale", ScaleItems(), Math.Max(0, options.ScaleIndex));
+        _filePath = AddField(ImageExportSettings.PathLabel, options.FilePath);
+        _floor = AddCheckBox(ImageExportSettings.FloorText, options.Floor);
+        _fullbright = AddCheckBox(ImageExportSettings.FullbrightText, options.Fullbright);
+        _applySectorColors = AddCheckBox(ImageExportSettings.ApplySectorColorsText, options.ApplySectorColors);
+        _brightmap = AddCheckBox(ImageExportSettings.BrightmapText, options.Brightmap);
+        _transparency = AddCheckBox(ImageExportSettings.TransparencyText, options.Transparency);
+        _tiles = AddCheckBox(ImageExportSettings.TilesText, options.Tiles);
+        _scale = AddCombo(ImageExportSettings.ScaleLabel, ScaleItems(), Math.Max(0, options.ScaleIndex));
     }
 
     protected override void OnConfirm()
@@ -50,9 +50,7 @@ public sealed class ImageExportDialog : PropertyDialog
 
     private static IEnumerable<CatalogItem> ScaleItems()
     {
-        yield return new CatalogItem(0, "1x");
-        yield return new CatalogItem(1, "2x");
-        yield return new CatalogItem(2, "4x");
-        yield return new CatalogItem(3, "8x");
+        for (int i = 0; i < ImageExportSettings.ScaleTexts.Length; i++)
+            yield return new CatalogItem(i, ImageExportSettings.ScaleTexts[i]);
     }
 }
