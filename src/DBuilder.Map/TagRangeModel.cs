@@ -128,6 +128,7 @@ public static class TagRangeModel
         IReadOnlySet<int> usedTags,
         TagRangeOptions options)
     {
+        options = NormalizeOptions(options);
         var newTags = new List<int>(initialTags.Count);
         bool tagsUsed = false;
 
@@ -302,6 +303,9 @@ public static class TagRangeModel
 
     private static string CountLabel(int count, string singular, string? plural = null)
         => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";
+
+    private static TagRangeOptions NormalizeOptions(TagRangeOptions options)
+        => options.Step == 0 ? options with { Step = 1 } : options;
 
     private static bool OutsideRange(int tag, TagRangeOptions options)
         => tag > options.MaxTag || tag < options.MinTag;

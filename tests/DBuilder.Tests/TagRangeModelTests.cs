@@ -177,6 +177,19 @@ public sealed class TagRangeModelTests
     }
 
     [Fact]
+    public void CreateRangeNormalizesZeroStepLikeDialogInput()
+    {
+        var result = TagRangeModel.CreateRange(
+            new[] { 0, 0, 0 },
+            new HashSet<int> { 10 },
+            new TagRangeOptions(StartTag: 10, Step: 0, Relative: false, SkipUsedTags: true));
+
+        Assert.Equal(new[] { 11, 12, 13 }, result.Tags);
+        Assert.False(result.TagsUsed);
+        Assert.False(result.OutOfTags);
+    }
+
+    [Fact]
     public void CreateRangeBuildsRelativeRangeFromInitialTags()
     {
         var result = TagRangeModel.CreateRange(

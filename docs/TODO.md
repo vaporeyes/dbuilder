@@ -1740,6 +1740,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Tag Range action, toolbar, dialog label, warning, and undo text metadata.
   - [x] Add testable Tag Range apply and warning status text model.
   - [x] Add UDB-style singular and plural labels to Tag Range status messages.
+  - [x] Normalize zero Tag Range increments before range creation.
   - [x] Add UDB-style Tag Range toolbar update lifecycle plan.
 - [ ] Port `UDBScript`.
   - [x] Add UDBScript action metadata and editor command catalog entries for Execute Script and 30 script slots.
