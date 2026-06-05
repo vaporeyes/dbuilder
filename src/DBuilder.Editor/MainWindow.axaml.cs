@@ -239,6 +239,7 @@ public partial class MainWindow : Window
         RebuildSelectionGroupsMenu();
         RebuildRecentMenu();
         TryLoadDefaultConfig();
+        RebuildTestMapMenu();
         UpdateAutomapOptionControls();
 
         if (openPath != null && System.IO.File.Exists(openPath))
@@ -591,6 +592,52 @@ public partial class MainWindow : Window
         OpenRecentMenu.ItemsSource = items;
     }
 
+    private void RebuildTestMapMenu()
+    {
+        var items = new List<object>
+        {
+            MenuCommand("_Run with current settings", () => TestMap(testFromCurrentPosition: false)),
+            new Separator(),
+        };
+
+        var skills = _config?.Skills ?? new Dictionary<int, string>();
+        foreach (TestMapMenuEntry entry in TestMapMenuModel.Build(skills, _settings.NormalizedTestSkill, _settings.TestMonsters))
+        {
+            if (entry.Kind == TestMapMenuEntryKind.Separator)
+            {
+                items.Add(new Separator());
+                continue;
+            }
+
+            if (entry.Kind == TestMapMenuEntryKind.AdditionalParameters)
+            {
+                items.Add(MenuCommand("_Additional parameters...", () => OnSettings(this, new RoutedEventArgs())));
+                continue;
+            }
+
+            var item = new MenuItem
+            {
+                Header = entry.Header,
+                ToggleType = MenuItemToggleType.CheckBox,
+                IsChecked = entry.Checked,
+            };
+            TestMapMenuEntry captured = entry;
+            item.Click += (_, _) => SelectTestMapMenuEntry(captured);
+            items.Add(item);
+        }
+
+        TestMapMenuItem.ItemsSource = items;
+    }
+
+    private void SelectTestMapMenuEntry(TestMapMenuEntry entry)
+    {
+        _settings.TestSkill = TestMapMenuModel.SelectedSkillFromEntry(entry);
+        _settings.TestMonsters = TestMapMenuModel.TestMonstersFromEntry(entry);
+        SaveSettings();
+        RebuildTestMapMenu();
+        TestMap(testFromCurrentPosition: false);
+    }
+
     private static string RecentMapHeader(RecentMapReference map)
         => RecentMenuModel.RecentMapHeader(map);
 
@@ -711,6 +758,7 @@ public partial class MainWindow : Window
                 SaveSettings();
             }
             RebuildResourcesForActiveSource();
+            RebuildTestMapMenu();
             SetStatus($"Game config: {_configName} ({_config.Things.Count} things, {_config.LinedefActions.Count} actions, {_config.SectorEffects.Count} sector types)");
             UpdateStatusDetails();
             UpdateInfo();
@@ -1363,6 +1411,7 @@ public partial class MainWindow : Window
         ApplyShortcutBindings();
         _statusHistory.SetCapacity(_settings.NormalizedStatusHistoryLimit);
         RebuildRecentMenu();
+        RebuildTestMapMenu();
         ReloadCompilerConfiguration();
         SaveSettings();
         SetStatus("Settings saved.");
@@ -4350,6 +4399,7 @@ public partial class MainWindow : Window
         _configIsAuto = false;
         MapView.GameConfig = _config;
         ReloadCompilerConfiguration();
+        RebuildTestMapMenu();
     }
 
     private void ApplyOpenMapScriptCompiler(MapOptions options)

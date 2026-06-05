@@ -1101,6 +1101,21 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void TestMapMenuExposesSkillSelectionEntries()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("private void RebuildTestMapMenu()", body, StringComparison.Ordinal);
+        Assert.Contains("TestMapMenuModel.Build(skills, _settings.NormalizedTestSkill, _settings.TestMonsters)", body, StringComparison.Ordinal);
+        Assert.Contains("ToggleType = MenuItemToggleType.CheckBox", body, StringComparison.Ordinal);
+        Assert.Contains("IsChecked = entry.Checked", body, StringComparison.Ordinal);
+        Assert.Contains("TestMapMenuItem.ItemsSource = items;", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.TestSkill = TestMapMenuModel.SelectedSkillFromEntry(entry);", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.TestMonsters = TestMapMenuModel.TestMonstersFromEntry(entry);", body, StringComparison.Ordinal);
+        Assert.Contains("TestMap(testFromCurrentPosition: false);", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SoundPropagationColorUpdatesRefreshActiveSoundEnvironmentOverlay()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
