@@ -487,6 +487,9 @@ public partial class MainWindow : Window
         SetShortcutToolTip(ReloadMapButton, "Reload Map", "window.reload-map");
         SetShortcutToolTip(CloseMapButton, "Close Map", "window.close-map");
         SetShortcutToolTip(SaveButton, "Save WAD", "window.save");
+        SetShortcutToolTip(CutButton, "Cut Selection", "window.cut");
+        SetShortcutToolTip(CopyButton, "Copy Selection", "window.copy");
+        SetShortcutToolTip(PasteButton, "Paste Selection", "window.paste");
         SetShortcutToolTip(DeleteButton, "Delete Selection", "window.delete");
         SetShortcutToolTip(FitButton, "Fit to Map", "map2d.fit");
         SetShortcutToolTip(Toggle3DModeButton, "Toggle 3D Mode", "map2d.toggle-3d");
@@ -7478,7 +7481,7 @@ public partial class MainWindow : Window
         SetEnabled(canEditUsdf, UsdfConversationsMenuItem);
         SetEnabled(canFilterThingCategories, ThingFilterMenuItem);
         SetEnabled(canReloadResources, ReloadResourcesMenuItem, ReloadResourcesButton);
-        SetEnabled(canUseCopyPaste, CutMenuItem, CopyMenuItem, PasteMenuItem, PasteSpecialMenuItem);
+        SetEnabled(canUseCopyPaste, CutMenuItem, CopyMenuItem, PasteMenuItem, PasteSpecialMenuItem, CutButton, CopyButton, PasteButton);
         SetEnabled(canBrowseAny, BrowsersMenuItem);
         SetEnabled(hasResources, BrowseWallTexturesMenuItem, BrowseFlatsMenuItem);
         SetEnabled(canBrowseCatalogs, BrowseThingsMenuItem, BrowseLinedefActionsMenuItem, BrowseSectorEffectsMenuItem);

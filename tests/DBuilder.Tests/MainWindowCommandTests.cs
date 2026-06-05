@@ -807,9 +807,13 @@ public sealed class MainWindowCommandTests
     public void EditMenuCopyPasteAvailabilityReflectsUdbModeLevelRule()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        string xaml = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml"));
 
         Assert.Contains("bool canUseCopyPaste = hasMap;", body, StringComparison.Ordinal);
-        Assert.Contains("SetEnabled(canUseCopyPaste, CutMenuItem, CopyMenuItem, PasteMenuItem, PasteSpecialMenuItem);", body, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"CutButton\" Click=\"OnCut\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"CopyButton\" Click=\"OnCopy\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"PasteButton\" Click=\"OnPaste\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("SetEnabled(canUseCopyPaste, CutMenuItem, CopyMenuItem, PasteMenuItem, PasteSpecialMenuItem, CutButton, CopyButton, PasteButton);", body, StringComparison.Ordinal);
         Assert.Contains("SetEnabled(hasSelection,\n            DuplicateMenuItem, DeleteMenuItem, SelectNoneMenuItem,", body, StringComparison.Ordinal);
         Assert.DoesNotContain("SetEnabled(hasSelection,\n            CutMenuItem, CopyMenuItem", body, StringComparison.Ordinal);
     }
@@ -1168,6 +1172,9 @@ public sealed class MainWindowCommandTests
         Assert.Contains("x:Name=\"TestMapFromViewButton\"", xaml, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(OpenWadButton, \"Open WAD\", \"window.open-map\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(SaveButton, \"Save WAD\", \"window.save\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(CutButton, \"Cut Selection\", \"window.cut\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(CopyButton, \"Copy Selection\", \"window.copy\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(PasteButton, \"Paste Selection\", \"window.paste\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(OpenMapButton, \"Open Map\", \"window.open-map-in-current-wad\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(TestMapFromViewButton, \"Test Map from Current Position\", \"window.testmapfromview\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(VerticesModeButton, \"Vertices Mode\", \"map2d.mode-vertices\");", body, StringComparison.Ordinal);
