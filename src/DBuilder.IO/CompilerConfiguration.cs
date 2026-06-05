@@ -249,6 +249,8 @@ public sealed record ScriptCompilerError(string Description, string FileName = "
 
 public sealed record ScriptCompilerErrorDisplayItem(int Index, string Description, string Source);
 
+public sealed record ScriptCompilerProcessResult(int ExitCode, string StandardOutput, string StandardError);
+
 public static class ScriptCompilerErrorDisplay
 {
     public static IReadOnlyList<ScriptCompilerError> Combine(
@@ -398,6 +400,23 @@ public static class ScriptCompilerErrors
             _ => ParseAcc(lines, tempPath, workingDirectory, resolveIncludeFile),
         };
 
+    public static IReadOnlyList<ScriptCompilerError> ParseProcessResult(
+        CompilerInfo compiler,
+        ScriptCompilerProcessResult result,
+        string tempPath,
+        string workingDirectory,
+        Func<string, string?>? resolveIncludeFile = null)
+    {
+        if (result.ExitCode == 0) return Array.Empty<ScriptCompilerError>();
+
+        return compiler.ProgramInterface switch
+        {
+            "BccCompiler" => ParseBcc(SplitCompilerOutput(result.StandardOutput), tempPath, workingDirectory, resolveIncludeFile),
+            "ZtBccCompiler" => ParseZtBcc(SplitCompilerOutput(result.StandardError), tempPath, workingDirectory, resolveIncludeFile),
+            _ => Array.Empty<ScriptCompilerError>(),
+        };
+    }
+
     public static IReadOnlyList<ScriptCompilerError> ParseAcc(
         IEnumerable<string> lines,
         string tempPath,
@@ -488,6 +507,9 @@ public static class ScriptCompilerErrors
 
         return false;
     }
+
+    private static IReadOnlyList<string> SplitCompilerOutput(string output)
+        => output.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
 
     private static bool TryFindAccErrorLocation(string line, out int firstColon, out int secondColon, out int lineNumber)
     {

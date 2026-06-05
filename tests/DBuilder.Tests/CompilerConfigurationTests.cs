@@ -1025,6 +1025,81 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void ScriptCompilerErrorsReadBccProcessStdoutOnNonzeroExitLikeUdb()
+    {
+        var compiler = new CompilerInfo(
+            "bcc.cfg",
+            "bcc",
+            "/compilers/BCC",
+            "bcc",
+            "BccCompiler",
+            new HashSet<string>());
+
+        var errors = ScriptCompilerErrors.ParseProcessResult(
+            compiler,
+            new ScriptCompilerProcessResult(
+                1,
+                "scripts/main.bcs:8:4: Expected semicolon",
+                "stderr is ignored"),
+            "/tmp/dbuilder_compile",
+            "/maps/project");
+
+        var error = Assert.Single(errors);
+        Assert.Equal("Expected semicolon", error.Description);
+        Assert.Equal(Path.Combine("/maps/project", "scripts/main.bcs"), error.FileName);
+        Assert.Equal(7, error.LineNumber);
+    }
+
+    [Fact]
+    public void ScriptCompilerErrorsIgnoreBccProcessOutputOnZeroExitLikeUdb()
+    {
+        var compiler = new CompilerInfo(
+            "bcc.cfg",
+            "bcc",
+            "/compilers/BCC",
+            "bcc",
+            "BccCompiler",
+            new HashSet<string>());
+
+        var errors = ScriptCompilerErrors.ParseProcessResult(
+            compiler,
+            new ScriptCompilerProcessResult(
+                0,
+                "scripts/main.bcs:8:4: Expected semicolon",
+                "fatal"),
+            "/tmp/dbuilder_compile",
+            "/maps/project");
+
+        Assert.Empty(errors);
+    }
+
+    [Fact]
+    public void ScriptCompilerErrorsReadZtBccProcessStderrOnNonzeroExitLikeUdb()
+    {
+        var compiler = new CompilerInfo(
+            "zt-bcc.cfg",
+            "zt-bcc",
+            "/compilers/ZT-BCC",
+            "zt-bcc",
+            "ZtBccCompiler",
+            new HashSet<string>());
+
+        var errors = ScriptCompilerErrors.ParseProcessResult(
+            compiler,
+            new ScriptCompilerProcessResult(
+                1,
+                "stdout is ignored",
+                "scripts/main.bcs:10:2: Unknown identifier"),
+            "/tmp/dbuilder_compile",
+            "/maps/project");
+
+        var error = Assert.Single(errors);
+        Assert.Equal("Unknown identifier", error.Description);
+        Assert.Equal(Path.Combine("/maps/project", "scripts/main.bcs"), error.FileName);
+        Assert.Equal(9, error.LineNumber);
+    }
+
+    [Fact]
     public void ScriptCompilerErrorsResolveBccIncludeErrorsLikeUdb()
     {
         var errors = ScriptCompilerErrors.ParseBcc(

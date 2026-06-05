@@ -1491,9 +1491,11 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Report unresolved ACS include resources during preflight like UDB.
 - [ ] Port BCC compiler integration.
   - [x] Configure redirected stdout and stderr process mode like UDB.
+  - [x] Read BCC compiler diagnostics from stdout only on nonzero exit.
 - [ ] Port ZT-BCC compiler integration.
   - [x] Configure redirected stdout and stderr process mode like UDB.
   - [x] Add UDB-style ZT-BCC compiler process start settings.
+  - [x] Read ZT-BCC compiler diagnostics from stderr only on nonzero exit.
 - [ ] Port nodes compiler integration.
   - [x] Add UDB-style nodebuilder process result handling for exit codes and output containing errors.
   - [x] Add UDB-style nodebuilder process start settings.
