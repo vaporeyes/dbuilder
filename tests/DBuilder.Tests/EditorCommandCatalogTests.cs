@@ -904,19 +904,19 @@ public class EditorCommandCatalogTests
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
-        Assert.Equal("Remove selection", command.Title);
+        Assert.Equal("Delete Item", command.Title);
         Assert.Equal("Delete", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
-        Assert.False(command.AllowScroll);
+        Assert.True(command.AllowScroll);
     }
 
     [Theory]
     [InlineData("window.select-all", "Select all")]
     [InlineData("window.invert-selection", "Invert selection")]
-    [InlineData("window.select-none", "Select none")]
-    [InlineData("window.clearselection", "Select none")]
+    [InlineData("window.select-none", "Clear Selection")]
+    [InlineData("window.clearselection", "Clear Selection")]
     public void WindowSelectionCommandsMatchUdbActionSurface(string commandId, string title)
     {
         var command = EditorCommandCatalog.Find(commandId);
@@ -927,7 +927,7 @@ public class EditorCommandCatalogTests
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
-        Assert.False(command.AllowScroll);
+        Assert.Equal(commandId is "window.select-none" or "window.clearselection", command.AllowScroll);
     }
 
     [Theory]

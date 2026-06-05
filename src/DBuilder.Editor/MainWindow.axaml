@@ -89,11 +89,11 @@
                 <MenuItem Header="Paste Properties" x:Name="PastePropertiesMenuItem" Click="OnPasteProperties" />
                 <MenuItem Header="Paste Properties _Special..." x:Name="PastePropertiesOptionsMenuItem" Click="OnPastePropertiesWithOptions" />
                 <Separator />
-                <MenuItem Header="_Delete selection" x:Name="DeleteMenuItem" Click="OnDelete" />
+                <MenuItem Header="_Delete Item" x:Name="DeleteMenuItem" Click="OnDelete" />
                 <MenuItem Header="Select _all" x:Name="SelectAllMenuItem" Click="OnSelectAll" />
                 <MenuItem Header="_Invert selection" x:Name="InvertSelectionMenuItem" Click="OnInvertSelection" />
                 <MenuItem Header="Select S_imilar" x:Name="SelectSimilarMenuItem" Click="OnSelectSimilar" />
-                <MenuItem Header="Select _none" x:Name="SelectNoneMenuItem" Click="OnSelectNone" />
+                <MenuItem Header="Clear _Selection" x:Name="SelectNoneMenuItem" Click="OnSelectNone" />
                 <MenuItem Header="Change Map Element _Index..." x:Name="ChangeMapElementIndexMenuItem" Click="OnChangeMapElementIndex" />
                 <MenuItem Header="Snap Selection to _Grid" x:Name="SnapSelectionToGridMenuItem" Click="OnSnapSelectionToGrid" />
                 <MenuItem Header="Selection _Groups" x:Name="SelectionGroupsMenu" />

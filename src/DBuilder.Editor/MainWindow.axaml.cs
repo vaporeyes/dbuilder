@@ -305,11 +305,11 @@ public partial class MainWindow : Window
         SetShortcutToolTip(CopyPropertiesMenuItem, "Copy Properties", "window.classiccopyproperties");
         SetShortcutToolTip(PastePropertiesMenuItem, "Paste Properties", "window.classicpasteproperties");
         SetShortcutToolTip(PastePropertiesOptionsMenuItem, "Paste Properties Special", "window.classicpastepropertieswithoptions");
-        SetShortcutToolTip(DeleteMenuItem, "Delete selection", "window.delete");
+        SetShortcutToolTip(DeleteMenuItem, "Delete Item", "window.delete");
         SetShortcutToolTip(SelectAllMenuItem, "Select all", "window.select-all");
         SetShortcutToolTip(InvertSelectionMenuItem, "Invert selection", "window.invert-selection");
         SetShortcutToolTip(SelectSimilarMenuItem, "Select Similar Map Elements", "window.select-similar");
-        SetShortcutToolTip(SelectNoneMenuItem, "Select none", "window.select-none");
+        SetShortcutToolTip(SelectNoneMenuItem, "Clear Selection", "window.select-none");
         SetShortcutToolTip(ChangeMapElementIndexMenuItem, "Change Map Element Index", "window.change-map-element-index");
         SetShortcutToolTip(SnapSelectionToGridMenuItem, "Snap Selected Map Elements to Grid", "window.snap-selection-to-grid");
         SetShortcutToolTip(StitchMenuItem, "Stitch geometry", "window.stitch-geometry");
@@ -2111,7 +2111,7 @@ public partial class MainWindow : Window
         if (_map is null || _undo is null) return;
         int sel = _map.SelectedVerticesCount + _map.SelectedLinedefsCount + _map.SelectedSectorsCount + _map.SelectedThingsCount;
         if (sel == 0) { SetStatus("Nothing selected to delete.", StatusHistoryKind.Warning); return; }
-        CreateUndo("Delete selection");
+        CreateUndo("Delete Item");
         int removed = _map.DeleteSelection();
         _map.BuildIndexes();
         MapView.MarkGeometryDirty();
