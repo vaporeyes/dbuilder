@@ -773,6 +773,49 @@ public class ToolsTraceTests
     }
 
     [Fact]
+    public void SplitOuterSectorsSeparatesDrawnMultipartSectorIsland()
+    {
+        var map = new MapSet();
+        var left = Ring(map, new[]
+        {
+            new Vector2D(0, 0),
+            new Vector2D(0, 64),
+            new Vector2D(64, 64),
+            new Vector2D(64, 0),
+        });
+        var right = Ring(map, new[]
+        {
+            new Vector2D(128, 0),
+            new Vector2D(128, 64),
+            new Vector2D(192, 64),
+            new Vector2D(192, 0),
+        });
+        Sector outer = map.AddSector();
+        outer.FloorHeight = 16;
+        outer.CeilHeight = 144;
+        outer.SetFloorTexture("OUTFLAT");
+        outer.SetCeilTexture("OUTCEIL");
+        foreach (Linedef line in left.Concat(right))
+            map.AddSidedef(line, isFront: true, outer);
+        map.BuildIndexes();
+
+        int split = Tools.SplitOuterSectors(map, left.Take(2).Concat(right.Take(2)).ToList());
+        map.BuildIndexes();
+
+        Assert.Equal(1, split);
+        Assert.Equal(2, map.Sectors.Count);
+        Assert.Contains(outer, map.Sectors);
+        Sector created = Assert.Single(map.Sectors, sector => !ReferenceEquals(sector, outer));
+        Assert.Equal(4, outer.Sidedefs.Count);
+        Assert.Equal(4, created.Sidedefs.Count);
+        Assert.Equal(16, created.FloorHeight);
+        Assert.Equal(144, created.CeilHeight);
+        Assert.Equal("OUTFLAT", created.FloorTexture);
+        Assert.Equal("OUTCEIL", created.CeilTexture);
+        Assert.NotSame(left[0].Front!.Sector, right[0].Front!.Sector);
+    }
+
+    [Fact]
     public void MakeSectorFromLoopCreatesLoopLinesAndUsesUdbDefaults()
     {
         var map = new MapSet();

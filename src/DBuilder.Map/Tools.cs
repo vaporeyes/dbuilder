@@ -423,6 +423,108 @@ public static class Tools
         }
     }
 
+    /// <summary>Splits drawn islands out of multipart outer sectors, matching UDB Tools.SplitOuterSectors.</summary>
+    public static int SplitOuterSectors(
+        MapSet map,
+        IEnumerable<Linedef> drawnLines,
+        SectorCreationOptions? options = null,
+        bool autoClearSidedefTextures = true)
+    {
+        map.BuildIndexes();
+        var sectorSides = new Dictionary<Sector, HashSet<Sidedef>>(ReferenceEqualityComparer.Instance);
+        var drawnSides = new HashSet<Sidedef>(ReferenceEqualityComparer.Instance);
+
+        foreach (Linedef line in drawnLines)
+        {
+            AddDrawnSide(line.Front);
+            AddDrawnSide(line.Back);
+        }
+
+        int splitCount = 0;
+        foreach (var group in sectorSides)
+        {
+            map.BuildIndexes();
+            if (group.Key.Sidedefs.Count == group.Value.Count)
+            {
+                group.Key.Marked = true;
+                continue;
+            }
+
+            foreach (Sidedef side in group.Value)
+            {
+                if (!ReferenceEquals(side.Sector, group.Key)) continue;
+
+                List<LinedefSide>? lineSides = FindPotentialSectorAt(map, side.Line, side.IsFront);
+                if (lineSides == null || lineSides.Count == 0 || lineSides.Count >= group.Key.Sidedefs.Count) continue;
+
+                var newSectorSides = new HashSet<Sidedef>(ReferenceEqualityComparer.Instance);
+                foreach (LinedefSide lineSide in lineSides)
+                {
+                    Sidedef? found = lineSide.Front ? lineSide.Line.Front : lineSide.Line.Back;
+                    if (found != null) newSectorSides.Add(found);
+                }
+
+                bool shouldSplit = group.Key.Sidedefs.Any(sideInOriginal =>
+                    !newSectorSides.Contains(sideInOriginal) && drawnSides.Contains(sideInOriginal));
+                if (!shouldSplit) continue;
+
+                Sector? newSector = MakeSector(
+                    map,
+                    lineSides,
+                    nearbyLines: null,
+                    useOverrides: false,
+                    options,
+                    autoClearSidedefTextures);
+                if (newSector == null) continue;
+
+                splitCount++;
+                map.BuildIndexes();
+                SectorWasInvalid(map, group.Key);
+                break;
+            }
+        }
+
+        return splitCount;
+
+        void AddDrawnSide(Sidedef? side)
+        {
+            if (side?.Sector == null || SectorWasInvalid(map, side.Sector)) return;
+
+            if (Triangulation.Create(side.Sector).IslandVertices.Count > 1)
+            {
+                if (!sectorSides.TryGetValue(side.Sector, out var sides))
+                    sectorSides[side.Sector] = sides = new HashSet<Sidedef>(ReferenceEqualityComparer.Instance);
+                sides.Add(side);
+            }
+
+            drawnSides.Add(side);
+        }
+    }
+
+    private static bool SectorWasInvalid(MapSet map, Sector sector)
+    {
+        if (sector.IsDisposed) return true;
+        if (sector.Sidedefs.Count >= 3 && Triangulation.Create(sector).Vertices.Count >= 3) return false;
+
+        var changedLines = new HashSet<Linedef>(ReferenceEqualityComparer.Instance);
+        foreach (Sidedef side in sector.Sidedefs)
+            if (side.Line != null) changedLines.Add(side.Line);
+        foreach (Sidedef side in sector.Sidedefs.ToArray())
+            map.RemoveSidedef(side);
+        map.RemoveSector(sector);
+
+        foreach (Linedef line in changedLines)
+        {
+            if (line.Front != null || line.Back == null) continue;
+
+            line.FlipVertices();
+            line.FlipSidedefs();
+        }
+
+        map.BuildIndexes();
+        return true;
+    }
+
     /// <summary>Creates or reuses loop linedefs, then materializes a sector through UDB-style traced-side creation.</summary>
     public static Sector? MakeSectorFromLoop(
         MapSet map,
