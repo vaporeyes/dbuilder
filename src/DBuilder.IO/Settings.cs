@@ -40,7 +40,7 @@ public sealed class Settings
     public int? MaxRecentFiles { get; set; }
     public bool AutoClearSidedefTextures { get; set; } = true;
     public bool AutoMerge { get; set; } = true;
-    public bool SplitJoinedSectors { get; set; }
+    public bool SplitJoinedSectors { get; set; } = true;
     public bool RenderGrid { get; set; } = true;
     public bool DynamicGridSize { get; set; } = true;
     public int? DefaultViewMode { get; set; }

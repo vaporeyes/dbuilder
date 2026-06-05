@@ -108,6 +108,12 @@ public class SettingsTests
     }
 
     [Fact]
+    public void SplitJoinedSectorsDefaultsEnabledLikeUdb()
+    {
+        Assert.True(new Settings().SplitJoinedSectors);
+    }
+
+    [Fact]
     public void ModelRenderModeDefaultsToAllLikeUdb()
     {
         Assert.Equal(ThingModelRenderMode.All, new Settings().NormalizedModelRenderMode);
