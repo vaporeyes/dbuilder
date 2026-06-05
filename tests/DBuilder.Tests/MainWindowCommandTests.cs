@@ -1393,6 +1393,25 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void LinedefBrightnessGradientLightFogUsesCurrentMapInfoLikeUdb()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        int methodIndex = body.IndexOf("private void ApplyLinedefBrightnessGradient()", StringComparison.Ordinal);
+        int mapInfoIndex = body.IndexOf("MapInfoEntry? mapInfo = CurrentMapInfo();", methodIndex, StringComparison.Ordinal);
+        int frontIndex = body.IndexOf("SidedefFogTools.UpdateLightFogFlag(line.Front, mapInfo, _config)", mapInfoIndex, StringComparison.Ordinal);
+        int backIndex = body.IndexOf("SidedefFogTools.UpdateLightFogFlag(line.Back, mapInfo, _config)", frontIndex, StringComparison.Ordinal);
+        int helperIndex = body.IndexOf("private MapInfoEntry? CurrentMapInfo()", methodIndex, StringComparison.Ordinal);
+        int lookupIndex = body.IndexOf("_resources?.GetMapInfo().GetMap(_mapOptions?.CurrentName ?? _mapMarker ?? \"\")", helperIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(mapInfoIndex > methodIndex);
+        Assert.True(frontIndex > mapInfoIndex);
+        Assert.True(backIndex > frontIndex);
+        Assert.True(helperIndex > backIndex);
+        Assert.True(lookupIndex > helperIndex);
+    }
+
+    [Fact]
     public void PrefabGuardsUseWarningStatusKind()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));

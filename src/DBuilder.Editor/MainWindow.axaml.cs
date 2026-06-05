@@ -3049,10 +3049,11 @@ public partial class MainWindow : Window
         LinedefGradientResult result = LinedefGradient.ApplyBrightness(selected, _gradientInterpolationMode);
         if (result.Applied)
         {
+            MapInfoEntry? mapInfo = CurrentMapInfo();
             foreach (var line in selected)
             {
-                if (line.Front is not null) SidedefFogTools.UpdateLightFogFlag(line.Front, mapInfo: null, _config);
-                if (line.Back is not null) SidedefFogTools.UpdateLightFogFlag(line.Back, mapInfo: null, _config);
+                if (line.Front is not null) SidedefFogTools.UpdateLightFogFlag(line.Front, mapInfo, _config);
+                if (line.Back is not null) SidedefFogTools.UpdateLightFogFlag(line.Back, mapInfo, _config);
             }
         }
 
@@ -3061,6 +3062,9 @@ public partial class MainWindow : Window
         MapView.Focus();
         SetStatus(result.Message);
     }
+
+    private MapInfoEntry? CurrentMapInfo()
+        => _resources?.GetMapInfo().GetMap(_mapOptions?.CurrentName ?? _mapMarker ?? "");
 
     private void SetGradientInterpolation(InterpolationTools.Mode mode)
     {
