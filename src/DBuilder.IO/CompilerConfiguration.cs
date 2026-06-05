@@ -176,6 +176,9 @@ public static class ScriptCompileFlow
     public static ScriptCompilerError CompilerInitializationError(Exception error)
         => new("Unable to initialize compiler. " + error.GetType().Name + ": " + error.Message);
 
+    public static ScriptCompilerError CompilerStartError(string compilerName, Exception error)
+        => new("Unable to start the compiler (" + compilerName + "). " + error.GetType().Name + ": " + error.Message);
+
     public static ScriptCompilerError WorkingFileWriteError(Exception error)
         => new("Unable to write script to working file. " + error.GetType().Name + ": " + error.Message);
 

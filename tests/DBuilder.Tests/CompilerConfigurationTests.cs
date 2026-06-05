@@ -664,6 +664,18 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void ScriptCompileFlowReportsCompilerStartFailuresLikeUdb()
+    {
+        var error = ScriptCompileFlow.CompilerStartError(
+            "zdoom_acc",
+            new System.ComponentModel.Win32Exception("No such file or directory"));
+
+        Assert.Equal("Unable to start the compiler (zdoom_acc). Win32Exception: No such file or directory", error.Description);
+        Assert.Equal("", error.FileName);
+        Assert.Equal(-1, error.LineNumber);
+    }
+
+    [Fact]
     public void ScriptCompileFlowReportsFileOperationFailuresLikeUdb()
     {
         var write = ScriptCompileFlow.WorkingFileWriteError(new IOException("disk full"));
