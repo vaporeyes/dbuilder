@@ -1190,6 +1190,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style singular and plural labels to cut and delete selection status text.
   - [x] Add menu commands to scale the current selection.
   - [x] Add UDB-style Join Sectors and Merge Sectors command actions.
+  - [x] Add raw UDB paste selection special action alias to shortcut metadata and dispatch.
   - [x] Add UDB-style Select Single-sided and Select Double-sided linedef actions.
   - [x] Add UDB-style Align Linedefs action for selected linedefs and sectors.
   - [x] Add UDB-style Flip Linedefs action for selected linedefs and sectors.

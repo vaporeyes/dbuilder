@@ -106,6 +106,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.copy", "Copy selection", "Ctrl/Cmd+C", EditorCommandScope.Window, Description: "Copies the current selection to the clipboard."),
         new EditorCommandDescriptor("window.paste", "Paste selection", "Ctrl/Cmd+V", EditorCommandScope.Window, Description: "Pastes the current contents of the clipboard into the map as a new selection."),
         new EditorCommandDescriptor("window.paste-special", "Paste Selection Special", "Menu", EditorCommandScope.Window, Description: "Allows you to choose options or pasting and then pastes the current contents of the clipboard into the map as a new selection."),
+        new EditorCommandDescriptor("window.pasteselectionspecial", "Paste Selection Special", "Menu", EditorCommandScope.Window, Description: "Allows you to choose options or pasting and then pastes the current contents of the clipboard into the map as a new selection."),
         new EditorCommandDescriptor("window.duplicate", "Duplicate selection", "Ctrl/Cmd+D", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.copy-properties", "Copy Properties", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.classiccopyproperties", "Copy Properties", "Menu", EditorCommandScope.Window, AllowScroll: true),

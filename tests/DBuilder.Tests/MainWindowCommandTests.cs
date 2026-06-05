@@ -167,6 +167,7 @@ public sealed class MainWindowCommandTests
     [InlineData("window.classiccopyproperties", "OnCopyProperties")]
     [InlineData("window.classicpasteproperties", "OnPasteProperties")]
     [InlineData("window.classicpastepropertieswithoptions", "OnPastePropertiesWithOptions")]
+    [InlineData("window.pasteselectionspecial", "OnPasteSpecial")]
     [InlineData("window.deleteitem", "OnDelete")]
     [InlineData("window.clearselection", "OnSelectNone")]
     [InlineData("window.selectsimilar", "OnSelectSimilar")]
@@ -1462,6 +1463,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("\"window.toggle-3d-floors\" => Toggle3DFloorsMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.toggle-blockmap\" => ToggleBlockmapMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.toggle-info-panel\" => InfoPanelMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.paste-special\" or \"window.pasteselectionspecial\" => PasteSpecialMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.delete\" or \"window.deleteitem\" => DeleteMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.properties\" => PropertiesMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.moveselectionup\" or \"window.moveselectiondown\" or \"window.moveselectionleft\" or \"window.moveselectionright\" => TransformSelectionMenuItem", code, StringComparison.Ordinal);

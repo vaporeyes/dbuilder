@@ -810,10 +810,12 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowScroll);
     }
 
-    [Fact]
-    public void PasteSpecialCommandMatchesUdbActionSurface()
+    [Theory]
+    [InlineData("window.paste-special")]
+    [InlineData("window.pasteselectionspecial")]
+    public void PasteSpecialCommandMatchesUdbActionSurface(string commandId)
     {
-        var command = EditorCommandCatalog.Find("window.paste-special");
+        var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal("Paste Selection Special", command.Title);

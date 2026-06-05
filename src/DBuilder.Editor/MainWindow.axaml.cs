@@ -1573,6 +1573,7 @@ public partial class MainWindow : Window
             case "window.copy": OnCopy(this, new RoutedEventArgs()); return true;
             case "window.paste": OnPaste(this, new RoutedEventArgs()); return true;
             case "window.paste-special": OnPasteSpecial(this, new RoutedEventArgs()); return true;
+            case "window.pasteselectionspecial": OnPasteSpecial(this, new RoutedEventArgs()); return true;
             case "window.duplicate": OnDuplicate(this, new RoutedEventArgs()); return true;
             case "window.copy-properties": OnCopyProperties(this, new RoutedEventArgs()); return true;
             case "window.classiccopyproperties": OnCopyProperties(this, new RoutedEventArgs()); return true;
@@ -4303,7 +4304,7 @@ public partial class MainWindow : Window
             "window.cut" => CutMenuItem,
             "window.copy" => CopyMenuItem,
             "window.paste" => PasteMenuItem,
-            "window.paste-special" => PasteSpecialMenuItem,
+            "window.paste-special" or "window.pasteselectionspecial" => PasteSpecialMenuItem,
             "window.duplicate" => DuplicateMenuItem,
             "window.copy-properties" or "window.classiccopyproperties" => CopyPropertiesMenuItem,
             "window.paste-properties" or "window.classicpasteproperties" => PastePropertiesMenuItem,
