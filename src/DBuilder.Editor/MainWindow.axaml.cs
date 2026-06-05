@@ -5274,7 +5274,7 @@ public partial class MainWindow : Window
         var sectors = _map.GetSelectedSectors();
         if (sectors.Count == 0)
         {
-            SetStatus("Select one or more sectors to toggle textured automap visibility.");
+            SetStatus("Select one or more sectors to toggle textured automap visibility.", StatusHistoryKind.Warning);
             return;
         }
 
@@ -5292,7 +5292,7 @@ public partial class MainWindow : Window
         var lines = _map.GetSelectedLinedefs();
         if (lines.Count == 0)
         {
-            SetStatus($"Select one or more linedefs to toggle {label}.");
+            SetStatus($"Select one or more linedefs to toggle {label}.", StatusHistoryKind.Warning);
             return;
         }
 
@@ -5434,15 +5434,15 @@ public partial class MainWindow : Window
     {
         if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
         var sectors = _map.GetSelectedSectors();
-        if (sectors.Count == 0) { SetStatus("Select one or more sectors to slope-arch."); return; }
+        if (sectors.Count == 0) { SetStatus("Select one or more sectors to slope-arch.", StatusHistoryKind.Warning); return; }
         if (!TrySelectedSectorBounds(sectors, out double minX, out double minY, out double maxX, out double maxY))
         {
-            SetStatus("Selected sectors have no linedef bounds.");
+            SetStatus("Selected sectors have no linedef bounds.", StatusHistoryKind.Warning);
             return;
         }
         if (maxX - minX <= 0.0)
         {
-            SetStatus("Selected sectors need horizontal span for slope arch.");
+            SetStatus("Selected sectors need horizontal span for slope arch.", StatusHistoryKind.Warning);
             return;
         }
 
@@ -5495,7 +5495,7 @@ public partial class MainWindow : Window
     {
         if (_map is null || _undo is null) return;
         var sel = _map.GetSelectedSectors();
-        if (sel.Count < 2) { SetStatus("Select 2 or more sectors to build stairs."); return; }
+        if (sel.Count < 2) { SetStatus("Select 2 or more sectors to build stairs.", StatusHistoryKind.Warning); return; }
 
         var dlg = new StairBuilderDialog(sel[0].FloorHeight, 8, sel[0].CeilHeight, 8, _settings.StairBuilderPrefabs);
         bool accepted = await dlg.ShowDialog<bool>(this);
