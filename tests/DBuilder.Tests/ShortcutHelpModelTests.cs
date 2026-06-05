@@ -107,7 +107,10 @@ public sealed class ShortcutHelpModelTests
             EditorCommandCatalog.DefaultShortcuts,
             "map3d");
         Assert.Contains(scopeLabel.SelectMany(section => section.Rows), row => row.Command.Id == "map3d.toggle-2d");
-        Assert.All(scopeLabel.SelectMany(section => section.Rows), row => Assert.Equal("3D mode", row.ScopeText));
+        Assert.Contains(scopeLabel.SelectMany(section => section.Rows), row => row.Command.Id == "map2d.gzdbvisualmode");
+        Assert.All(
+            scopeLabel.SelectMany(section => section.Rows).Where(row => row.Command.Id.StartsWith("map3d.", StringComparison.Ordinal)),
+            row => Assert.Equal("3D mode", row.ScopeText));
 
         var modifiers = ShortcutHelpModel.BuildSections(
             EditorCommandCatalog.All,

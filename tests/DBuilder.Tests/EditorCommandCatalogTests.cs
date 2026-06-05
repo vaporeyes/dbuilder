@@ -2552,6 +2552,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Visual Mode", command.Title);
+        Assert.Equal("Switches to the visual editing mode. Hold Shift key to invert 'Synhcronize selection between Visual and Classic modes' setting. Hold Control key to disable position synchronization when 'Synchronize camera position between 2D and 3D modes' Preferences option is enabled.", command.Description);
         Assert.Equal("Q", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);

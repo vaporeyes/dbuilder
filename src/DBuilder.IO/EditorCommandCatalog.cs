@@ -509,7 +509,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.cancel-draw", "Cancel drawing", "Esc", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.cancelmode", "Cancel Action", "Esc", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.toggle-3d", "Enter 3D mode", "Tab", EditorCommandScope.Map2D),
-        new EditorCommandDescriptor("map2d.gzdbvisualmode", "Visual Mode", "Q", EditorCommandScope.Map2D, AllowScroll: true, DisregardShift: true, DisregardAccelerator: true),
+        new EditorCommandDescriptor("map2d.gzdbvisualmode", "Visual Mode", "Q", EditorCommandScope.Map2D, AllowScroll: true, DisregardShift: true, DisregardAccelerator: true, Description: "Switches to the visual editing mode. Hold Shift key to invert 'Synhcronize selection between Visual and Classic modes' setting. Hold Control key to disable position synchronization when 'Synchronize camera position between 2D and 3D modes' Preferences option is enabled."),
 
         new EditorCommandDescriptor("map3d.move", "Move", "WASD", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.move-forward", "Move Forward", "Menu", EditorCommandScope.Map3D, AllowScroll: true, DisregardShift: true, Description: "Moves the camera forward in 3D Visual Mode. Use in combination with Shift for double the speed."),
