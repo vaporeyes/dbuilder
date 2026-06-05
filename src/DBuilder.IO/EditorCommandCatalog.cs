@@ -1133,6 +1133,7 @@ public static class EditorCommandCatalog
         if (key.Equals("Return", StringComparison.OrdinalIgnoreCase)) return "Enter";
         if (key.Equals("Ins", StringComparison.OrdinalIgnoreCase)) return "Insert";
         if (key.Equals("Del", StringComparison.OrdinalIgnoreCase)) return "Delete";
+        if (key.Equals("Bksp", StringComparison.OrdinalIgnoreCase)) return "Back";
         if (key.Equals("Backspace", StringComparison.OrdinalIgnoreCase)) return "Back";
         if (key.Equals("Prior", StringComparison.OrdinalIgnoreCase)) return "PageUp";
         if (key.Equals("PgUp", StringComparison.OrdinalIgnoreCase)) return "PageUp";

@@ -3341,7 +3341,7 @@ public class EditorCommandCatalogTests
             new EditorShortcutBinding("window.cancel-draw", EditorCommandScope.Window, "Esc"),
             new EditorShortcutBinding("window.properties", EditorCommandScope.Window, "Return"),
             new EditorShortcutBinding("map2d.insert", EditorCommandScope.Map2D, "Ins"),
-            new EditorShortcutBinding("window.delete", EditorCommandScope.Window, "Backspace"),
+            new EditorShortcutBinding("window.delete", EditorCommandScope.Window, "Bksp"),
             new EditorShortcutBinding("map3d.raise-sector-to-nearest", EditorCommandScope.Map3D, "Prior"),
             new EditorShortcutBinding("map3d.lower-sector-to-nearest", EditorCommandScope.Map3D, "Next"),
             new EditorShortcutBinding("window.toggle-info-panel", EditorCommandScope.Window, "Capital"),
