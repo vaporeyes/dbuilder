@@ -147,6 +147,32 @@ public class DirectoryResourceTests
     }
 
     [Fact]
+    public void NestedPk3FamilyArchiveInsideDirectoryProvidesResourcesLikeUdb()
+    {
+        string dir = BuildResourceDir();
+        string pk3 = TestArtifacts.BuildPk3(
+            ("flats/NESTDIR.png", TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 33, 44, 55, 255))));
+        try
+        {
+            Directory.CreateDirectory(Path.Combine(dir, "archives"));
+            File.Copy(pk3, Path.Combine(dir, "archives", "nested.ipk3"));
+
+            using var rm = new ResourceManager();
+            rm.AddResource(dir);
+
+            var flat = rm.GetFlat("NESTDIR");
+            Assert.NotNull(flat);
+            Assert.Equal(new byte[] { 33, 44, 55, 255 }, flat!.Rgba[0..4]);
+            Assert.Contains("NESTDIR", rm.GetFlatNames());
+        }
+        finally
+        {
+            File.Delete(pk3);
+            Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
     public void DirectoryDataLocationRootOptionsExposeRootImagesLikeUdb()
     {
         string dir = BuildResourceDir();

@@ -1387,6 +1387,8 @@ internal sealed class DirectoryResourceReader : FolderResourceReader
             }
             if (ShouldSkipPath(rel, config)) continue;
             AddEntry(rel, () => File.ReadAllBytes(p));
+            if (ArchivePath.IsPk3FamilyPath(rel))
+                nestedReaders.Add(new Pk3ResourceReader(File.OpenRead(path), ownsStream: true, displayName: rel, configProvider: this.configProvider));
         }
     }
 

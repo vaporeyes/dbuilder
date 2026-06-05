@@ -600,6 +600,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Honor configured ignored directory names and ignored extensions when scanning folder resources.
   - [x] Skip files directly inside configured ignored folder-resource directories like UDB.
   - [x] Search directory resource namespace subfolders and long titles like UDB.
+  - [x] Load nested PK3-family archives from directory resources like UDB.
 - [ ] Port data location and data location list behavior.
   - [x] Add UDB-style resource display names for data locations.
   - [x] Use shared PK3-family archive classification for data location type inference.
