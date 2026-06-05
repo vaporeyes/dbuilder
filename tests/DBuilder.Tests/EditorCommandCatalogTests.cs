@@ -624,6 +624,24 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
+    [InlineData("window.savescreenshot", "Save Screenshot", "F12", "Saves a screenshot of editor's window into 'Screenshots' folder.")]
+    [InlineData("window.saveeditareascreenshot", "Save Screenshot (active window)", "Ctrl/Cmd+F12", "Saves a screenshot of currently active window, or editing area if no windows are open into 'Screenshots' folder.")]
+    public void ScreenshotCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture, string description)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(defaultGesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.False(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.False(command.Repeat);
+        Assert.Equal(description, command.Description);
+    }
+
+    [Theory]
     [InlineData("window.check-map", "Check Map")]
     [InlineData("window.clean-up-geometry", "Clean Up Geometry")]
     public void MapMaintenanceCommandsMatchUdbActionSurface(string commandId, string title)

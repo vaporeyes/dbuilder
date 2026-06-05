@@ -102,6 +102,8 @@ public sealed class MainWindowCommandTests
     [InlineData("window.togglelightpannel", "OnToggleLightPanel")]
     [InlineData("window.import-obj-terrain", "OnImportObjTerrain")]
     [InlineData("window.importobjasterrain", "OnImportObjTerrain")]
+    [InlineData("window.savescreenshot", "OnSaveScreenshot")]
+    [InlineData("window.saveeditareascreenshot", "OnSaveEditAreaScreenshot")]
     [InlineData("window.export-object", "OnExportObject")]
     [InlineData("window.export-image", "OnExportImage")]
     [InlineData("window.exporttoimage", "OnExportImage")]
@@ -165,6 +167,20 @@ public sealed class MainWindowCommandTests
         Assert.Contains("SetStatus($\"{context}: {exception.Message}\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
         Assert.Contains("private void SetStatus(string text, StatusHistoryKind kind = StatusHistoryKind.Info)", body, StringComparison.Ordinal);
         Assert.Contains("_statusHistory.Add(text, kind);", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ScreenshotCommandsWriteTimestampedPngFiles()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("private void OnSaveScreenshot(object? sender, RoutedEventArgs e)", body, StringComparison.Ordinal);
+        Assert.Contains("private void OnSaveEditAreaScreenshot(object? sender, RoutedEventArgs e)", body, StringComparison.Ordinal);
+        Assert.Contains("new RenderTargetBitmap(new PixelSize(width, height), new Vector(96, 96))", body, StringComparison.Ordinal);
+        Assert.Contains("bitmap.Render(target);", body, StringComparison.Ordinal);
+        Assert.Contains("bitmap.Save(path);", body, StringComparison.Ordinal);
+        Assert.Contains("System.IO.Path.Combine(parent, \"Screenshots\")", body, StringComparison.Ordinal);
+        Assert.Contains("DateTime.Now.ToString(\"yyyyMMdd_HHmmss\", CultureInfo.InvariantCulture)", body, StringComparison.Ordinal);
     }
 
     [Theory]

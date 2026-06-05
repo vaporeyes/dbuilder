@@ -236,6 +236,8 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.opendialogeditor", "Dialog Editor", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.import-obj-terrain", "Import OBJ Terrain", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.importobjasterrain", "Import OBJ Terrain", "Menu", EditorCommandScope.Window, AllowScroll: true),
+        new EditorCommandDescriptor("window.savescreenshot", "Save Screenshot", "F12", EditorCommandScope.Window, AllowMouse: false, Description: "Saves a screenshot of editor's window into 'Screenshots' folder."),
+        new EditorCommandDescriptor("window.saveeditareascreenshot", "Save Screenshot (active window)", "Ctrl/Cmd+F12", EditorCommandScope.Window, AllowMouse: false, Description: "Saves a screenshot of currently active window, or editing area if no windows are open into 'Screenshots' folder."),
         new EditorCommandDescriptor("window.export-object", "Export Object OBJ", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.export-image", "Export Image PNG", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.exporttoimage", "Export Image PNG", "Menu", EditorCommandScope.Window, AllowScroll: true),

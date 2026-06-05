@@ -1713,6 +1713,8 @@ public partial class MainWindow : Window
             case "window.opendialogeditor": OnUsdfConversations(this, new RoutedEventArgs()); return true;
             case "window.import-obj-terrain": OnImportObjTerrain(this, new RoutedEventArgs()); return true;
             case "window.importobjasterrain": OnImportObjTerrain(this, new RoutedEventArgs()); return true;
+            case "window.savescreenshot": OnSaveScreenshot(this, new RoutedEventArgs()); return true;
+            case "window.saveeditareascreenshot": OnSaveEditAreaScreenshot(this, new RoutedEventArgs()); return true;
             case "window.export-object": OnExportObject(this, new RoutedEventArgs()); return true;
             case "window.export-image": OnExportImage(this, new RoutedEventArgs()); return true;
             case "window.exporttoimage": OnExportImage(this, new RoutedEventArgs()); return true;
@@ -6742,6 +6744,58 @@ public partial class MainWindow : Window
         {
             LogAndSetStatus(ex, "Wavefront export failed");
         }
+    }
+
+    private void OnSaveScreenshot(object? sender, RoutedEventArgs e)
+        => SaveScreenshot(this, "window");
+
+    private void OnSaveEditAreaScreenshot(object? sender, RoutedEventArgs e)
+        => SaveScreenshot(MapView, "editarea");
+
+    private void SaveScreenshot(Control target, string prefix)
+    {
+        int width = Math.Max(1, (int)Math.Ceiling(target.Bounds.Width));
+        int height = Math.Max(1, (int)Math.Ceiling(target.Bounds.Height));
+        if (width <= 1 || height <= 1)
+        {
+            SetStatus("Screenshot failed: target is not visible.", StatusHistoryKind.Warning);
+            return;
+        }
+
+        try
+        {
+            string path = NextScreenshotPath(prefix);
+            var bitmap = new RenderTargetBitmap(new PixelSize(width, height), new Vector(96, 96));
+            bitmap.Render(target);
+            bitmap.Save(path);
+            SetStatus($"Saved screenshot to {System.IO.Path.GetFileName(path)}.");
+        }
+        catch (Exception ex)
+        {
+            LogAndSetStatus(ex, "Screenshot failed");
+        }
+    }
+
+    private string NextScreenshotPath(string prefix)
+    {
+        string folder = ScreenshotFolder();
+        System.IO.Directory.CreateDirectory(folder);
+        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture);
+        string baseName = $"dbuilder_{prefix}_{timestamp}";
+        string path = System.IO.Path.Combine(folder, baseName + ".png");
+        for (int i = 2; System.IO.File.Exists(path); i++)
+            path = System.IO.Path.Combine(folder, $"{baseName}_{i}.png");
+        return path;
+    }
+
+    private string ScreenshotFolder()
+    {
+        string? sourcePath = _wadPath ?? _pk3Path;
+        string? parent = string.IsNullOrWhiteSpace(sourcePath)
+            ? null
+            : System.IO.Path.GetDirectoryName(sourcePath);
+        if (string.IsNullOrWhiteSpace(parent)) parent = AppContext.BaseDirectory;
+        return System.IO.Path.Combine(parent, "Screenshots");
     }
 
     private ImageExportOptions DefaultImageExportOptions(string filePath)
