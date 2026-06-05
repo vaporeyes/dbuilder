@@ -1329,7 +1329,10 @@ public sealed class MainWindowCommandTests
 
         Assert.Contains(".Where(IsPaletteCommandUsable)", code, StringComparison.Ordinal);
         Assert.Contains("if (command.Scope != EditorCommandScope.Window) return false;", code, StringComparison.Ordinal);
-        Assert.Contains("return PaletteCommandControl(command.Id)?.IsEnabled ?? true;", code, StringComparison.Ordinal);
+        Assert.Contains("return PaletteCommandControl(command.Id) is not { } control || PaletteControlIsUsable(control);", code, StringComparison.Ordinal);
+        Assert.Contains("private static bool PaletteControlIsUsable(Control control)", code, StringComparison.Ordinal);
+        Assert.Contains("for (Control? current = control; current is not null; current = current.Parent as Control)", code, StringComparison.Ordinal);
+        Assert.Contains("if (!current.IsEnabled || !current.IsVisible) return false;", code, StringComparison.Ordinal);
         Assert.Contains("if (IsSelectionGroupCommand(commandId)) return SelectionGroupsMenu;", code, StringComparison.Ordinal);
         Assert.Contains("if (IsUdbScriptPaletteCommand(commandId)) return UdbScriptDockerMenuItem;", code, StringComparison.Ordinal);
         Assert.Contains("if (commandId == \"window.cancel-draw\") return DrawMenuItem;", code, StringComparison.Ordinal);

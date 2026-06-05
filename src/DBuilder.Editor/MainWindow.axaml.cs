@@ -4179,7 +4179,15 @@ public partial class MainWindow : Window
     private bool IsPaletteCommandUsable(EditorCommandDescriptor command)
     {
         if (command.Scope != EditorCommandScope.Window) return false;
-        return PaletteCommandControl(command.Id)?.IsEnabled ?? true;
+        return PaletteCommandControl(command.Id) is not { } control || PaletteControlIsUsable(control);
+    }
+
+    private static bool PaletteControlIsUsable(Control control)
+    {
+        for (Control? current = control; current is not null; current = current.Parent as Control)
+            if (!current.IsEnabled || !current.IsVisible) return false;
+
+        return true;
     }
 
     private Control? PaletteCommandControl(string commandId)
