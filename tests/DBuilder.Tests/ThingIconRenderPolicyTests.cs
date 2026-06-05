@@ -41,4 +41,31 @@ public sealed class ThingIconRenderPolicyTests
         Assert.True(ThingIconRenderPolicy.DirectionTickBaseSize(compactMarkers: true)
             < ThingIconRenderPolicy.DirectionTickBaseSize(compactMarkers: false));
     }
+
+    [Fact]
+    public void SpriteHalfSizeUsesThingRadiusInsteadOfRawSpritePixels()
+    {
+        var (halfWidth, halfHeight) = ThingIconRenderPolicy.SpriteHalfSize(
+            imageWidth: 64,
+            imageHeight: 32,
+            thingRadius: 20,
+            viewScale: 6,
+            fixedThingsScale: true);
+
+        Assert.Equal(18, halfWidth);
+        Assert.Equal(9, halfHeight);
+    }
+
+    [Fact]
+    public void FixedThingScaleCapsOnlyWhenZoomedInTooFar()
+    {
+        Assert.Equal(20, ThingIconRenderPolicy.ScaledWorldRadius(
+            mapRadius: 20,
+            viewScale: 6,
+            fixedThingsScale: true));
+        Assert.Equal(24, ThingIconRenderPolicy.ScaledWorldRadius(
+            mapRadius: 80,
+            viewScale: 0.5,
+            fixedThingsScale: true));
+    }
 }

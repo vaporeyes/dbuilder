@@ -4722,13 +4722,20 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                     continue;
                 }
 
-                ThingBillboardDisplay? display = ThingBillboardDisplayPlanner.Plan(_gameConfig?.GetThing(t.Type), _resources);
+                ThingTypeInfo? thingInfo = _gameConfig?.GetThing(t.Type);
+                ThingBillboardDisplay? display = ThingBillboardDisplayPlanner.Plan(thingInfo, _resources);
                 if (!compactThingMarkers && display != null && GetSpriteTexture(display.SpriteName) is { })
                 {
                     ImageData img = display.Image;
                     int sc = ThingBillboardTint(t, gldefs);
-                    double scale = _fixedThingsScale ? _zoom : 1.0;
-                    double hw = img.Width * 0.5 * scale, hh = img.Height * 0.5 * scale;
+                    double thingRadius = t.Size > 0 ? t.Size : thingInfo?.RenderRadius ?? thingInfo?.Width ?? 10.0;
+                    var (hw, hh) = ThingIconRenderPolicy.SpriteHalfSize(
+                        img.Width,
+                        img.Height,
+                        thingRadius,
+                        _zoom,
+                        _fixedThingsScale,
+                        t.FixedSize || thingInfo?.FixedSize == true);
                     var p = t.Position;
                     if (!spriteVerts.TryGetValue(display.SpriteName, out var list)) { list = new(); spriteVerts[display.SpriteName] = list; }
                     // Image top (v=0) maps to higher world-y so the sprite stands upright on screen.
