@@ -1748,10 +1748,12 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
+        Assert.Equal("This opens the dialog editor that allows you to edit DIALOGUE conversations in your map.", command.Description);
         Assert.Equal("opendialogeditor", UsdfDialogEditorModel.Action.Id);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
         Assert.Equal(command.Scope, udbAlias.Scope);
+        Assert.Equal(command.Description, udbAlias.Description);
         Assert.True(udbAlias.AllowScroll);
     }
 
