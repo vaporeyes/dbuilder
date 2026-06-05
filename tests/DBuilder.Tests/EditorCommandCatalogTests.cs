@@ -2843,9 +2843,13 @@ public class EditorCommandCatalogTests
     [InlineData("map3d.toggle-dynamic-lights-rendering", "map3d.toggledynamiclightsrendering")]
     [InlineData("map3d.toggle-classic-rendering", "map3d.toggleclassicrendering")]
     [InlineData("map3d.toggle-fog-rendering", "map3d.togglefogrendering")]
+    [InlineData("map3d.toggle-fog-rendering", "map3d.gztogglefog")]
     [InlineData("map3d.toggle-sky-rendering", "map3d.toggleskyrendering")]
+    [InlineData("map3d.toggle-sky-rendering", "map3d.gztogglesky")]
     [InlineData("map3d.toggle-event-lines", "map3d.toggleeventlines")]
+    [InlineData("map3d.toggle-event-lines", "map3d.gztoggleeventlines")]
     [InlineData("map3d.toggle-visual-vertices", "map3d.togglevisualvertices")]
+    [InlineData("map3d.toggle-visual-vertices", "map3d.gztogglevisualvertices")]
     public void VisualRenderingToggleAliasesShareCanonicalMetadata(string canonicalId, string aliasId)
     {
         var canonical = EditorCommandCatalog.Find(canonicalId);

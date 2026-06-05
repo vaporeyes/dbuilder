@@ -6450,21 +6450,25 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map3d.toggle-fog-rendering":
             case "map3d.togglefogrendering":
+            case "map3d.gztogglefog":
                 ToggleDrawFog();
                 Target3DChanged?.Invoke($"Fog rendering is {(_drawFog ? "ENABLED" : "DISABLED")}");
                 return true;
             case "map3d.toggle-sky-rendering":
             case "map3d.toggleskyrendering":
+            case "map3d.gztogglesky":
                 ToggleDrawSky();
                 Target3DChanged?.Invoke($"Sky rendering is {(_drawSky ? "ENABLED" : "DISABLED")}");
                 return true;
             case "map3d.toggle-event-lines":
             case "map3d.toggleeventlines":
+            case "map3d.gztoggleeventlines":
                 ToggleEventLines();
                 Target3DChanged?.Invoke($"Event lines are {(_showEventLines ? "ENABLED" : "DISABLED")}");
                 return true;
             case "map3d.toggle-visual-vertices":
             case "map3d.togglevisualvertices":
+            case "map3d.gztogglevisualvertices":
                 ToggleVisualVertices();
                 Target3DChanged?.Invoke($"Visual vertices are {(_showVisualVertices ? "ENABLED" : "DISABLED")}");
                 return true;

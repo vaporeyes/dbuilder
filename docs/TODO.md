@@ -1481,6 +1481,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port surface highlighting and selection behavior.
   - [x] Add UDB-style global highlight visibility toggle for target and mode hover overlays.
   - [x] Add UDB-style visual Select, Edit, and Clear Selection action aliases.
+  - [x] Add raw UDB GZDoom visual rendering toggle action aliases.
   - [x] Add UDB-style visual Paint Selection action metadata.
   - [x] Add UDB-style alpha-based texture highlighting action metadata and persisted toggle state.
   - [x] Add UDB-style singular and plural labels to 3D visual surface selection status text.
@@ -2246,6 +2247,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match UDB adjacent visual vertex slope selection status text.
 - [ ] Port all BuilderModes visual modes.
   - [x] Add raw UDB fixed thing scale and always-show-vertices action aliases.
+  - [x] Add raw UDB GZDoom visual rendering toggle action aliases.
 
 ## UDBScript
 
