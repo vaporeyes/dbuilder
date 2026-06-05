@@ -225,4 +225,21 @@ public class DirectoryResourceTests
         }
         finally { Directory.Delete(dir, recursive: true); }
     }
+
+    [Fact]
+    public void DirectoryResourceSkipsInvalidPathCharactersLikeUdb()
+    {
+        string dir = BuildResourceDir();
+        try
+        {
+            File.WriteAllBytes(Path.Combine(dir, "textures", "BAD<.png"), TestArtifacts.Png(1, 1, TestArtifacts.SolidRgba(1, 1, 4, 5, 6, 255)));
+
+            using var rm = new ResourceManager();
+            rm.AddResource(dir);
+
+            Assert.Null(rm.GetWallTexture("BAD<"));
+            Assert.NotNull(rm.GetWallTexture("DWALL"));
+        }
+        finally { Directory.Delete(dir, recursive: true); }
+    }
 }
