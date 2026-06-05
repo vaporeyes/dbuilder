@@ -821,7 +821,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     /// <summary>Which element class clicks select. Switched with the number keys 1-4.</summary>
     public enum EditMode { Vertices, Linedefs, Sectors, Things }
-    public enum ThreeDFloorEditMode { None, Floor, Slope, DrawSlopes }
+    public enum ThreeDFloorEditMode { None, Floor, Slope, DrawSlopes, StairSectorBuilder }
     private EditMode _editMode = EditMode.Linedefs;
     private ThreeDFloorEditMode _threeDFloorEditMode;
     public EditMode CurrentEditMode => _editMode;
@@ -831,6 +831,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         ThreeDFloorEditMode.Floor => ThreeDFloors.ModeDescriptor.DisplayName,
         ThreeDFloorEditMode.Slope => ThreeDFloors.SlopeModeDescriptor.DisplayName,
         ThreeDFloorEditMode.DrawSlopes => ThreeDFloors.DrawSlopesModeDescriptor.DisplayName,
+        ThreeDFloorEditMode.StairSectorBuilder => "Stair Sector Builder Mode",
         _ => _editSelectionMode ? "Edit Selection" : _editMode.ToString(),
     };
     private bool _editSelectionMode;
@@ -6190,6 +6191,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.mode-draw-slopes":
             case "map2d.drawslopesmode":
                 SetThreeDFloorEditMode(ThreeDFloorEditMode.DrawSlopes);
+                return true;
+            case "map2d.mode-stair-sector-builder":
+            case "map2d.stairsectorbuildermode":
+                SetThreeDFloorEditMode(ThreeDFloorEditMode.StairSectorBuilder);
                 return true;
             case "map2d.3dfloor.select-control-sector":
             case "map2d.select3dfloorcontrolsector":

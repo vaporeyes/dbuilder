@@ -633,9 +633,10 @@ public sealed class MapControlCommandTests
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
 
-        Assert.Contains("public enum ThreeDFloorEditMode { None, Floor, Slope, DrawSlopes }", body, StringComparison.Ordinal);
+        Assert.Contains("public enum ThreeDFloorEditMode { None, Floor, Slope, DrawSlopes, StairSectorBuilder }", body, StringComparison.Ordinal);
         Assert.Contains("public ThreeDFloorEditMode CurrentThreeDFloorEditMode => _threeDFloorEditMode;", body, StringComparison.Ordinal);
         Assert.Contains("ThreeDFloors.ModeDescriptor.DisplayName", body, StringComparison.Ordinal);
+        Assert.Contains("ThreeDFloorEditMode.StairSectorBuilder => \"Stair Sector Builder Mode\"", body, StringComparison.Ordinal);
         Assert.Contains("case \"map2d.mode-3d-floor\":", body, StringComparison.Ordinal);
         Assert.Contains("case \"map2d.threedfloorhelpermode\":", body, StringComparison.Ordinal);
         Assert.Contains("SetThreeDFloorEditMode(ThreeDFloorEditMode.Floor);", body, StringComparison.Ordinal);
@@ -645,6 +646,9 @@ public sealed class MapControlCommandTests
         Assert.Contains("case \"map2d.mode-draw-slopes\":", body, StringComparison.Ordinal);
         Assert.Contains("case \"map2d.drawslopesmode\":", body, StringComparison.Ordinal);
         Assert.Contains("SetThreeDFloorEditMode(ThreeDFloorEditMode.DrawSlopes);", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.mode-stair-sector-builder\":", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.stairsectorbuildermode\":", body, StringComparison.Ordinal);
+        Assert.Contains("SetThreeDFloorEditMode(ThreeDFloorEditMode.StairSectorBuilder);", body, StringComparison.Ordinal);
     }
 
     [Fact]
