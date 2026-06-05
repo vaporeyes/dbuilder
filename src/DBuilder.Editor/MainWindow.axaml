@@ -99,6 +99,9 @@
                 <MenuItem Header="Selection _Groups" x:Name="SelectionGroupsMenu" />
                 <Separator />
                 <MenuItem Header="Stitch _geometry" x:Name="StitchMenuItem" Click="OnStitch" />
+                <MenuItem Header="Merge Dragged _Vertices Only" x:Name="MergeGeometryClassicMenuItem" ToggleType="CheckBox" Click="OnMergeGeometryClassic" />
+                <MenuItem Header="Merge Dragged _Geometry" x:Name="MergeGeometryMergeMenuItem" ToggleType="CheckBox" Click="OnMergeGeometryMerge" />
+                <MenuItem Header="_Replace with Dragged Geometry" x:Name="MergeGeometryReplaceMenuItem" ToggleType="CheckBox" Click="OnMergeGeometryReplace" />
                 <MenuItem Header="_Join sectors" x:Name="JoinSectorsMenuItem" Click="OnJoinSectors" />
                 <MenuItem Header="Mer_ge sectors" x:Name="MergeSectorsMenuItem" Click="OnMergeSectors" />
                 <MenuItem Header="Sector _Heights" x:Name="SectorHeightsMenuItem">

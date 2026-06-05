@@ -311,6 +311,9 @@ public partial class MainWindow : Window
         SetShortcutToolTip(ChangeMapElementIndexMenuItem, "Change Map Element Index", "window.change-map-element-index");
         SetShortcutToolTip(SnapSelectionToGridMenuItem, "Snap Selected Map Elements to Grid", "window.snap-selection-to-grid");
         SetShortcutToolTip(StitchMenuItem, "Stitch geometry", "window.stitch-geometry");
+        SetShortcutToolTip(MergeGeometryClassicMenuItem, "Merge Dragged Vertices Only", "window.geomergeclassic");
+        SetShortcutToolTip(MergeGeometryMergeMenuItem, "Merge Dragged Geometry", "window.geomerge");
+        SetShortcutToolTip(MergeGeometryReplaceMenuItem, "Replace with Dragged Geometry", "window.georeplace");
         SetShortcutToolTip(JoinSectorsMenuItem, "Join sectors", "window.join-sectors");
         SetShortcutToolTip(MergeSectorsMenuItem, "Merge sectors", "window.merge-sectors");
         SetShortcutToolTip(LowerFloor8MenuItem, "Lower Floor by 8 mp", "map2d.lower-floor-8");
@@ -1602,6 +1605,9 @@ public partial class MainWindow : Window
             case "window.change-map-element-index": OnChangeMapElementIndex(this, new RoutedEventArgs()); return true;
             case "window.changemapelementindex": OnChangeMapElementIndex(this, new RoutedEventArgs()); return true;
             case "window.stitch-geometry": OnStitch(this, new RoutedEventArgs()); return true;
+            case "window.geomergeclassic": SetMergeGeometryMode(MergeGeometryMode.Classic); return true;
+            case "window.geomerge": SetMergeGeometryMode(MergeGeometryMode.Merge); return true;
+            case "window.georeplace": SetMergeGeometryMode(MergeGeometryMode.Replace); return true;
             case "window.join-sectors": OnJoinSectors(this, new RoutedEventArgs()); return true;
             case "window.merge-sectors": OnMergeSectors(this, new RoutedEventArgs()); return true;
             case "window.flip-selection-horizontal": OnFlipH(this, new RoutedEventArgs()); return true;
@@ -2740,6 +2746,27 @@ public partial class MainWindow : Window
         MapView.MarkGeometryDirty();
         UpdateInfo();
         SetStatus($"Stitched: {merged} vertices merged, {split} lines split.");
+    }
+
+    private void OnMergeGeometryClassic(object? sender, RoutedEventArgs e) => SetMergeGeometryMode(MergeGeometryMode.Classic);
+
+    private void OnMergeGeometryMerge(object? sender, RoutedEventArgs e) => SetMergeGeometryMode(MergeGeometryMode.Merge);
+
+    private void OnMergeGeometryReplace(object? sender, RoutedEventArgs e) => SetMergeGeometryMode(MergeGeometryMode.Replace);
+
+    private void SetMergeGeometryMode(MergeGeometryMode mode)
+    {
+        _settings.MergeGeometryMode = mode;
+        SaveSettings();
+        UpdateCommandCheckedState();
+        SetStatus(mode switch
+        {
+            MergeGeometryMode.Classic => "\"Merge Dragged Vertices Only\" mode selected",
+            MergeGeometryMode.Merge => "\"Merge Dragged Geometry\" mode selected",
+            MergeGeometryMode.Replace => "\"Replace with Dragged Geometry\" mode selected",
+            _ => "Merge geometry mode selected",
+        });
+        MapView.Focus();
     }
 
     private void OnJoinSectors(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.JoinOrMergeSelectedSectors(merge: false));
@@ -4333,6 +4360,9 @@ public partial class MainWindow : Window
             "window.filter-selected-things" or "window.filterselectedthings" => FilterSelectedThingsMenuItem,
             "window.change-map-element-index" or "window.changemapelementindex" => ChangeMapElementIndexMenuItem,
             "window.stitch-geometry" => StitchMenuItem,
+            "window.geomergeclassic" => MergeGeometryClassicMenuItem,
+            "window.geomerge" => MergeGeometryMergeMenuItem,
+            "window.georeplace" => MergeGeometryReplaceMenuItem,
             "window.join-sectors" => JoinSectorsMenuItem,
             "window.merge-sectors" => MergeSectorsMenuItem,
             "window.flip-selection-horizontal" or "window.flipselectionh" => FlipHorizontalMenuItem,
@@ -7288,7 +7318,7 @@ public partial class MainWindow : Window
         SetEnabled(hasArchive, OpenMapMenuItem, ReloadMapMenuItem, OpenMapButton, ReloadMapButton);
         SetEnabled(hasMap,
             CloseMapMenuItem, MapOptionsMenuItem, PrefabsMenuItem, SelectAllMenuItem, InvertSelectionMenuItem, SelectionGroupsMenu,
-            StitchMenuItem, InsertPrefabMenuItem, FindReplaceMenuItem, TagsMenuItem,
+            StitchMenuItem, MergeGeometryClassicMenuItem, MergeGeometryMergeMenuItem, MergeGeometryReplaceMenuItem, InsertPrefabMenuItem, FindReplaceMenuItem, TagsMenuItem,
             InsertAtCursorMenuItem, SelectSingleSidedMenuItem, SelectDoubleSidedMenuItem, ChangeMapElementIndexMenuItem, SnapSelectionToGridMenuItem, FlipLinedefsMenuItem, FlipSidedefsMenuItem, AlignLinedefsMenuItem, SplitLinedefsMenuItem,
             SectorHeightsMenuItem,
             LowerFloor8MenuItem, RaiseFloor8MenuItem, LowerCeiling8MenuItem, RaiseBrightness8MenuItem, LowerBrightness8MenuItem, EditModeMenuItem, VerticesModeMenuItem,
@@ -7410,6 +7440,9 @@ public partial class MainWindow : Window
         SetChecked(ModelRenderSelectionMenuItem, MapView.ModelRenderMode == ThingModelRenderMode.Selection);
         SetChecked(ModelRenderActiveFilterMenuItem, MapView.ModelRenderMode == ThingModelRenderMode.ActiveThingsFilter);
         SetChecked(ModelRenderAllMenuItem, MapView.ModelRenderMode == ThingModelRenderMode.All);
+        SetChecked(MergeGeometryClassicMenuItem, _settings.NormalizedMergeGeometryMode == MergeGeometryMode.Classic);
+        SetChecked(MergeGeometryMergeMenuItem, _settings.NormalizedMergeGeometryMode == MergeGeometryMode.Merge);
+        SetChecked(MergeGeometryReplaceMenuItem, _settings.NormalizedMergeGeometryMode == MergeGeometryMode.Replace);
         SetChecked(ViewModeWireframeMenuItem, MapView.ViewMode2D == MapControl.ClassicViewMode.Wireframe);
         SetChecked(ViewModeBrightnessMenuItem, MapView.ViewMode2D == MapControl.ClassicViewMode.Brightness);
         SetChecked(ViewModeFloorsMenuItem, MapView.ViewMode2D == MapControl.ClassicViewMode.FloorTextures);

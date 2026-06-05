@@ -995,6 +995,32 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void MergeGeometryModeCommandsUpdatePersistedSetting()
+    {
+        string code = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        string xaml = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml"));
+
+        Assert.Contains("x:Name=\"MergeGeometryClassicMenuItem\" ToggleType=\"CheckBox\" Click=\"OnMergeGeometryClassic\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"MergeGeometryMergeMenuItem\" ToggleType=\"CheckBox\" Click=\"OnMergeGeometryMerge\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"MergeGeometryReplaceMenuItem\" ToggleType=\"CheckBox\" Click=\"OnMergeGeometryReplace\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(MergeGeometryClassicMenuItem, \"Merge Dragged Vertices Only\", \"window.geomergeclassic\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(MergeGeometryMergeMenuItem, \"Merge Dragged Geometry\", \"window.geomerge\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(MergeGeometryReplaceMenuItem, \"Replace with Dragged Geometry\", \"window.georeplace\");", code, StringComparison.Ordinal);
+        Assert.Contains("case \"window.geomergeclassic\": SetMergeGeometryMode(MergeGeometryMode.Classic); return true;", code, StringComparison.Ordinal);
+        Assert.Contains("case \"window.geomerge\": SetMergeGeometryMode(MergeGeometryMode.Merge); return true;", code, StringComparison.Ordinal);
+        Assert.Contains("case \"window.georeplace\": SetMergeGeometryMode(MergeGeometryMode.Replace); return true;", code, StringComparison.Ordinal);
+        Assert.Contains("_settings.MergeGeometryMode = mode;", code, StringComparison.Ordinal);
+        Assert.Contains("SaveSettings();\n        UpdateCommandCheckedState();", code, StringComparison.Ordinal);
+        Assert.Contains("MergeGeometryClassicMenuItem, MergeGeometryMergeMenuItem, MergeGeometryReplaceMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("SetChecked(MergeGeometryClassicMenuItem, _settings.NormalizedMergeGeometryMode == MergeGeometryMode.Classic);", code, StringComparison.Ordinal);
+        Assert.Contains("SetChecked(MergeGeometryMergeMenuItem, _settings.NormalizedMergeGeometryMode == MergeGeometryMode.Merge);", code, StringComparison.Ordinal);
+        Assert.Contains("SetChecked(MergeGeometryReplaceMenuItem, _settings.NormalizedMergeGeometryMode == MergeGeometryMode.Replace);", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.geomergeclassic\" => MergeGeometryClassicMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.geomerge\" => MergeGeometryMergeMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.georeplace\" => MergeGeometryReplaceMenuItem", code, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void AlignTexturesParentAvailabilityReflectsEitherChildGroup()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));

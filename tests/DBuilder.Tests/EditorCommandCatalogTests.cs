@@ -881,6 +881,9 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("window.stitch-geometry", "Stitch geometry")]
+    [InlineData("window.geomergeclassic", "Merge Dragged Vertices Only")]
+    [InlineData("window.geomerge", "Merge Dragged Geometry")]
+    [InlineData("window.georeplace", "Replace with Dragged Geometry")]
     [InlineData("window.join-sectors", "Join sectors")]
     [InlineData("window.merge-sectors", "Merge sectors")]
     public void WindowGeometryEditCommandsMatchUdbActionSurface(string commandId, string title)

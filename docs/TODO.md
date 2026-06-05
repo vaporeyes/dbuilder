@@ -406,6 +406,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style split-lines-by-lines helper.
   - [x] Add UDB-style selected geometry stitch orchestration.
   - [x] Wire editor stitch action to selected geometry stitching.
+  - [x] Add raw UDB merge geometry mode actions to command metadata, menu state, and dispatch.
   - [x] Add UDB-style overlapping linedef joining to stitch cleanup.
   - [x] Add UDB-style sector lookup for contained linedefs.
   - [x] Add UDB-style outer sidedef correction for lines inside sectors.
