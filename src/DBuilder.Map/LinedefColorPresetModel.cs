@@ -60,10 +60,38 @@ public static class LinedefColorPresetModel
             || preset.RequiredFlags.Count > 0
             || preset.DisallowedFlags.Count > 0;
 
+    public static string? ValidationWarning(
+        IReadOnlyList<LinedefColorPreset> presets,
+        int index,
+        bool isUdmf)
+    {
+        if (index < 0 || index >= presets.Count) return null;
+
+        LinedefColorPreset preset = presets[index];
+        if (!IsValid(preset)) return isUdmf ? InvalidUdmfPresetWarning : InvalidClassicPresetWarning;
+
+        for (int i = 0; i < presets.Count; i++)
+        {
+            if (i == index) continue;
+            if (!MatchCriteriaEqual(preset, presets[i])) continue;
+            return $"Preset matches \"{presets[i].Name}\"!";
+        }
+
+        return null;
+    }
+
     public static string? ValidationWarning(LinedefColorPreset preset, bool isUdmf)
-        => IsValid(preset)
-            ? null
-            : isUdmf ? InvalidUdmfPresetWarning : InvalidClassicPresetWarning;
+        => IsValid(preset) ? null : isUdmf ? InvalidUdmfPresetWarning : InvalidClassicPresetWarning;
+
+    private static bool MatchCriteriaEqual(LinedefColorPreset left, LinedefColorPreset right)
+        => left.Action == right.Action
+            && left.Activation == right.Activation
+            && SetEqual(left.RequiredFlags, right.RequiredFlags)
+            && SetEqual(left.DisallowedFlags, right.DisallowedFlags);
+
+    private static bool SetEqual(IReadOnlyList<string> left, IReadOnlyList<string> right)
+        => left.Count == right.Count
+            && left.All(flag => right.Contains(flag, StringComparer.Ordinal));
 
     public static string FormatColor(int color)
         => unchecked((uint)color).ToString("X8", CultureInfo.InvariantCulture);

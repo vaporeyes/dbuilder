@@ -64,6 +64,22 @@ public class LinedefColorPresetModelTests
         Assert.Null(LinedefColorPresetModel.ValidationWarning(validByRestrictedFlags, isUdmf: false));
     }
 
+    [Fact]
+    public void ValidationWarningReportsMatchingPresetLikeUdb()
+    {
+        var presets = new[]
+        {
+            new LinedefColorPreset("Exit", 1, Action: 11, Activation: 2, Flags: new[] { "secret", "impassable" }, RestrictedFlags: new[] { "blocking" }),
+            new LinedefColorPreset("Duplicate", 2, Action: 11, Activation: 2, Flags: new[] { "impassable", "secret" }, RestrictedFlags: new[] { "blocking" }),
+            new LinedefColorPreset("Different", 3, Action: 80, Activation: 2, Flags: new[] { "secret" }, RestrictedFlags: new[] { "blocking" }),
+        };
+
+        Assert.Equal("Preset matches \"Duplicate\"!", LinedefColorPresetModel.ValidationWarning(presets, index: 0, isUdmf: false));
+        Assert.Equal("Preset matches \"Exit\"!", LinedefColorPresetModel.ValidationWarning(presets, index: 1, isUdmf: false));
+        Assert.Null(LinedefColorPresetModel.ValidationWarning(presets, index: 2, isUdmf: false));
+        Assert.Null(LinedefColorPresetModel.ValidationWarning(presets, index: -1, isUdmf: false));
+    }
+
     private static Linedef Line(int action = 0, int activation = 0, params string[] flags)
     {
         var line = new Linedef(
