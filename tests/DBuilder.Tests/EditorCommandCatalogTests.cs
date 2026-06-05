@@ -2520,13 +2520,15 @@ public class EditorCommandCatalogTests
         Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Back"));
     }
 
-    [Fact]
-    public void MakeSectorModeAliasMatchesUdbActionSurface()
+    [Theory]
+    [InlineData("map2d.make-sector", "Make sector at cursor")]
+    [InlineData("map2d.makesectormode", "Make Sector Mode")]
+    public void MakeSectorModeAliasMatchesUdbActionSurface(string id, string title)
     {
-        var command = EditorCommandCatalog.Find("map2d.makesectormode");
+        var command = EditorCommandCatalog.Find(id);
 
         Assert.NotNull(command);
-        Assert.Equal("Make Sector Mode", command.Title);
+        Assert.Equal(title, command.Title);
         Assert.Equal("Switches to the Make Sector editing mode. This mode allows creating and/or fixing split sectors by clicking within a closed region.", command.Description);
         Assert.Equal("M", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
