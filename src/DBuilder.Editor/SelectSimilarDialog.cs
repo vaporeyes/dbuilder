@@ -33,6 +33,10 @@ public sealed class SelectSimilarDialog : PropertyDialog
     private readonly CheckBox? _linedefActivation;
     private readonly CheckBox? _linedefTags;
     private readonly CheckBox? _linedefFlags;
+    private readonly CheckBox? _linedefAlpha;
+    private readonly CheckBox? _linedefRenderStyle;
+    private readonly CheckBox? _linedefLockNumber;
+    private readonly CheckBox? _linedefComment;
     private readonly CheckBox? _linedefFields;
     private readonly CheckBox? _sidedefUpperTexture;
     private readonly CheckBox? _sidedefMiddleTexture;
@@ -97,7 +101,11 @@ public sealed class SelectSimilarDialog : PropertyDialog
                 _linedefActivation = AddCheckBox("Activation", SavedLinedefOptions.Activation);
                 _linedefTags = AddCheckBox("Tags", SavedLinedefOptions.Tags);
                 _linedefFlags = AddCheckBox("Linedef flags", SavedLinedefOptions.Flags);
+                _linedefAlpha = AddCheckBox("Alpha", SavedLinedefOptions.Alpha);
+                _linedefRenderStyle = AddCheckBox("Render style", SavedLinedefOptions.RenderStyle);
+                _linedefLockNumber = AddCheckBox("Lock number", SavedLinedefOptions.LockNumber);
                 _linedefFields = AddCheckBox("Linedef custom fields", SavedLinedefOptions.Fields);
+                _linedefComment = AddCheckBox("Comment", SavedLinedefOptions.Comment);
                 _sidedefUpperTexture = AddCheckBox("Upper texture", SavedSidedefOptions.UpperTexture);
                 _sidedefMiddleTexture = AddCheckBox("Middle texture", SavedSidedefOptions.MiddleTexture);
                 _sidedefLowerTexture = AddCheckBox("Lower texture", SavedSidedefOptions.LowerTexture);
@@ -168,6 +176,10 @@ public sealed class SelectSimilarDialog : PropertyDialog
                     Activation = Checked(_linedefActivation),
                     Tags = Checked(_linedefTags),
                     Flags = Checked(_linedefFlags),
+                    Alpha = Checked(_linedefAlpha),
+                    RenderStyle = Checked(_linedefRenderStyle),
+                    LockNumber = Checked(_linedefLockNumber),
+                    Comment = Checked(_linedefComment),
                     Fields = Checked(_linedefFields),
                 };
                 SidedefOptions = new SidedefSimilarityOptions

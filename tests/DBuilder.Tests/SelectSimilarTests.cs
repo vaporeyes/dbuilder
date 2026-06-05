@@ -222,6 +222,65 @@ public class SelectSimilarTests
     }
 
     [Fact]
+    public void SelectLinedefsMatchesUdbManagedFieldsIndependentlyFromCustomFields()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var source = AddLine(map, sector, new Vector2D(0, 0), new Vector2D(64, 0), "STARTAN3");
+        source.Selected = true;
+        source.Fields["alpha"] = 0.5;
+        source.Fields["renderstyle"] = "Translucent";
+        source.Fields["locknumber"] = 3;
+        source.Fields["comment"] = "door";
+        source.Fields["portal"] = "blue";
+
+        var match = AddLine(map, sector, new Vector2D(0, 64), new Vector2D(64, 64), "STARTAN3");
+        match.Fields["alpha"] = 0.5;
+        match.Fields["renderstyle"] = "translucent";
+        match.Fields["locknumber"] = 3;
+        match.Fields["comment"] = "door";
+        match.Fields["portal"] = "red";
+
+        var differentAlpha = AddLine(map, sector, new Vector2D(0, 128), new Vector2D(64, 128), "STARTAN3");
+        differentAlpha.Fields["alpha"] = 1.0;
+        differentAlpha.Fields["renderstyle"] = "Translucent";
+        differentAlpha.Fields["locknumber"] = 3;
+        differentAlpha.Fields["comment"] = "door";
+        differentAlpha.Fields["portal"] = "blue";
+
+        var linedefOptions = new LinedefSimilarityOptions { Fields = false };
+
+        Assert.Equal(1, SelectSimilar.SelectLinedefs(map, linedefOptions));
+        Assert.True(match.Selected);
+        Assert.False(differentAlpha.Selected);
+    }
+
+    [Fact]
+    public void SelectLinedefsCanIgnoreUdbManagedFieldsWhenDisabled()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var source = AddLine(map, sector, new Vector2D(0, 0), new Vector2D(64, 0), "STARTAN3");
+        source.Selected = true;
+        source.Fields["alpha"] = 0.5;
+        source.Fields["comment"] = "door";
+
+        var target = AddLine(map, sector, new Vector2D(0, 64), new Vector2D(64, 64), "STARTAN3");
+        target.Fields["alpha"] = 1.0;
+        target.Fields["comment"] = "window";
+
+        var linedefOptions = new LinedefSimilarityOptions
+        {
+            Alpha = false,
+            Comment = false,
+            Fields = false,
+        };
+
+        Assert.Equal(1, SelectSimilar.SelectLinedefs(map, linedefOptions));
+        Assert.True(target.Selected);
+    }
+
+    [Fact]
     public void SelectVerticesMatchesUdmfHeightsAndCustomFields()
     {
         var map = new MapSet();
@@ -254,6 +313,10 @@ public class SelectSimilarTests
         Assert.Contains("private static VertexSimilarityOptions SavedVertexOptions { get; set; } = new();", body, StringComparison.Ordinal);
         Assert.Contains("_vertexZFloor = AddCheckBox(\"Vertex floor height\", SavedVertexOptions.ZFloor);", body, StringComparison.Ordinal);
         Assert.Contains("_linedefAction = AddCheckBox(\"Action\", SavedLinedefOptions.Action);", body, StringComparison.Ordinal);
+        Assert.Contains("_linedefAlpha = AddCheckBox(\"Alpha\", SavedLinedefOptions.Alpha);", body, StringComparison.Ordinal);
+        Assert.Contains("_linedefRenderStyle = AddCheckBox(\"Render style\", SavedLinedefOptions.RenderStyle);", body, StringComparison.Ordinal);
+        Assert.Contains("_linedefLockNumber = AddCheckBox(\"Lock number\", SavedLinedefOptions.LockNumber);", body, StringComparison.Ordinal);
+        Assert.Contains("_linedefComment = AddCheckBox(\"Comment\", SavedLinedefOptions.Comment);", body, StringComparison.Ordinal);
         Assert.Contains("_sidedefUpperTexture = AddCheckBox(\"Upper texture\", SavedSidedefOptions.UpperTexture);", body, StringComparison.Ordinal);
         Assert.Contains("_thingType = AddCheckBox(\"Type\", SavedThingOptions.Type);", body, StringComparison.Ordinal);
         Assert.Contains("_thingConversation = AddCheckBox(\"Conversation ID\", SavedThingOptions.Conversation);", body, StringComparison.Ordinal);

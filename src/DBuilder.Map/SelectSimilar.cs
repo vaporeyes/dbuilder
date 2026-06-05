@@ -42,6 +42,10 @@ public sealed class LinedefSimilarityOptions
     public bool Activation { get; init; } = true;
     public bool Tags { get; init; } = true;
     public bool Flags { get; init; } = true;
+    public bool Alpha { get; init; } = true;
+    public bool RenderStyle { get; init; } = true;
+    public bool LockNumber { get; init; } = true;
+    public bool Comment { get; init; } = true;
     public bool Fields { get; init; } = true;
 }
 
@@ -143,6 +147,10 @@ public static class SelectSimilar
         if (linedefOptions.Tags && !TagsMatch(source.Tags, target.Tags)) return false;
         if (linedefOptions.Arguments && !ArgsMatch(source.Args, target.Args, source.Fields, target.Fields)) return false;
         if (linedefOptions.Flags && (source.Flags != target.Flags || !SetMatches(source.UdmfFlags, target.UdmfFlags))) return false;
+        if (linedefOptions.Alpha && !FieldValueMatches(source.Fields, target.Fields, "alpha")) return false;
+        if (linedefOptions.RenderStyle && !FieldValueMatches(source.Fields, target.Fields, "renderstyle")) return false;
+        if (linedefOptions.LockNumber && !FieldValueMatches(source.Fields, target.Fields, "locknumber")) return false;
+        if (linedefOptions.Comment && !FieldValueMatches(source.Fields, target.Fields, "comment")) return false;
         if (linedefOptions.Fields && !FieldsMatch(source.Fields, target.Fields)) return false;
 
         return SidedefsMatch(sidedefOptions, source.Front, target.Front) ||
