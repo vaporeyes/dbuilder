@@ -2915,25 +2915,26 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map3d.move-forward", "Move Forward", "Menu")]
-    [InlineData("map3d.moveforward", "Move Forward", "Menu")]
-    [InlineData("map3d.move-backward", "Move Backward", "Menu")]
-    [InlineData("map3d.movebackward", "Move Backward", "Menu")]
-    [InlineData("map3d.move-left", "Move Left (strafe)", "Menu")]
-    [InlineData("map3d.moveleft", "Move Left (strafe)", "Menu")]
-    [InlineData("map3d.move-right", "Move Right (strafe)", "Menu")]
-    [InlineData("map3d.moveright", "Move Right (strafe)", "Menu")]
-    [InlineData("map3d.move-up", "Move Up", "Menu")]
-    [InlineData("map3d.moveup", "Move Up", "Menu")]
-    [InlineData("map3d.move-down", "Move Down", "Menu")]
-    [InlineData("map3d.movedown", "Move Down", "Menu")]
-    public void VisualCameraMovementCommandsMatchUdbActionSurface(string commandId, string title, string gesture)
+    [InlineData("map3d.move-forward", "Move Forward", "Menu", "Moves the camera forward in 3D Visual Mode. Use in combination with Shift for double the speed.")]
+    [InlineData("map3d.moveforward", "Move Forward", "Menu", "Moves the camera forward in 3D Visual Mode. Use in combination with Shift for double the speed.")]
+    [InlineData("map3d.move-backward", "Move Backward", "Menu", "Moves the camera backward in 3D Visual Mode. Use in combination with Shift for double the speed.")]
+    [InlineData("map3d.movebackward", "Move Backward", "Menu", "Moves the camera backward in 3D Visual Mode. Use in combination with Shift for double the speed.")]
+    [InlineData("map3d.move-left", "Move Left (strafe)", "Menu", "Strafes the camera left in 3D Visual Mode. Use in combination with Shift for double the speed.")]
+    [InlineData("map3d.moveleft", "Move Left (strafe)", "Menu", "Strafes the camera left in 3D Visual Mode. Use in combination with Shift for double the speed.")]
+    [InlineData("map3d.move-right", "Move Right (strafe)", "Menu", "Strafes the camera right in 3D Visual Mode. Use in combination with Shift for double the speed.")]
+    [InlineData("map3d.moveright", "Move Right (strafe)", "Menu", "Strafes the camera right in 3D Visual Mode. Use in combination with Shift for double the speed.")]
+    [InlineData("map3d.move-up", "Move Up", "Menu", "Moves the camera up in 3D Visual Mode. Use in combination with Shift for double the speed.")]
+    [InlineData("map3d.moveup", "Move Up", "Menu", "Moves the camera up in 3D Visual Mode. Use in combination with Shift for double the speed.")]
+    [InlineData("map3d.move-down", "Move Down", "Menu", "Moves the camera down in 3D Visual Mode. Use in combination with Shift for double the speed.")]
+    [InlineData("map3d.movedown", "Move Down", "Menu", "Moves the camera down in 3D Visual Mode. Use in combination with Shift for double the speed.")]
+    public void VisualCameraMovementCommandsMatchUdbActionSurface(string commandId, string title, string gesture, string description)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
         Assert.Equal(gesture, command.DefaultGesture);
+        Assert.Equal(description, command.Description);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
