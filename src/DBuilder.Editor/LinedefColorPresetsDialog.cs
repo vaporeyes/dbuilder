@@ -71,8 +71,14 @@ public sealed class LinedefColorPresetsDialog : Window
         add.Click += (_, _) => AddPreset();
         var remove = new Button { Content = "Remove", MinWidth = 72 };
         remove.Click += (_, _) => RemovePreset();
+        var up = new Button { Content = "Up", MinWidth = 54 };
+        up.Click += (_, _) => MovePreset(-1);
+        var down = new Button { Content = "Down", MinWidth = 62 };
+        down.Click += (_, _) => MovePreset(1);
         buttons.Children.Add(add);
         buttons.Children.Add(remove);
+        buttons.Children.Add(up);
+        buttons.Children.Add(down);
         DockPanel.SetDock(buttons, Dock.Bottom);
         left.Children.Add(buttons);
         left.Children.Add(_list);
@@ -142,6 +148,19 @@ public sealed class LinedefColorPresetsDialog : Window
         if (_presets.Count == 0) _presets.AddRange(LinedefColorPresetModel.DefaultPresets);
         RefreshList();
         _list.SelectedIndex = Math.Min(index, _presets.Count - 1);
+    }
+
+    private void MovePreset(int offset)
+    {
+        StoreCurrentFields();
+        int index = _list.SelectedIndex;
+        var moved = LinedefColorPresetModel.MovePreset(_presets, index, offset);
+        if (ReferenceEquals(moved, _presets)) return;
+
+        _presets.Clear();
+        _presets.AddRange(moved);
+        RefreshList();
+        _list.SelectedIndex = index + offset;
     }
 
     private void ResetDefaults()

@@ -34,6 +34,9 @@ public sealed class MapControlCommandTests
         Assert.Contains("LinedefColorPresetModel.ParseFlags(_restrictedFlags.Text)", body, StringComparison.Ordinal);
         Assert.Contains("LinedefColorPresetModel.DefaultPresets", body, StringComparison.Ordinal);
         Assert.Contains("Title = LinedefColorPresetModel.DialogTitle;", body, StringComparison.Ordinal);
+        Assert.Contains("up.Click += (_, _) => MovePreset(-1);", body, StringComparison.Ordinal);
+        Assert.Contains("down.Click += (_, _) => MovePreset(1);", body, StringComparison.Ordinal);
+        Assert.Contains("LinedefColorPresetModel.MovePreset(_presets, index, offset)", body, StringComparison.Ordinal);
     }
 
     [Theory]

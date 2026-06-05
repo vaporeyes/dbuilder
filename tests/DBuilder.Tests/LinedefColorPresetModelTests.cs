@@ -12,6 +12,37 @@ public class LinedefColorPresetModelTests
     public void DialogTitleMatchesUdbPresetForm()
         => Assert.Equal("Linedef Color Presets", LinedefColorPresetModel.DialogTitle);
 
+    [Fact]
+    public void MovePresetSwapsWithRequestedNeighbor()
+    {
+        var presets = new[]
+        {
+            new LinedefColorPreset("First", 1),
+            new LinedefColorPreset("Second", 2),
+            new LinedefColorPreset("Third", 3),
+        };
+
+        IReadOnlyList<LinedefColorPreset> movedUp = LinedefColorPresetModel.MovePreset(presets, index: 1, offset: -1);
+        IReadOnlyList<LinedefColorPreset> movedDown = LinedefColorPresetModel.MovePreset(presets, index: 1, offset: 1);
+
+        Assert.Equal(new[] { "Second", "First", "Third" }, movedUp.Select(preset => preset.Name));
+        Assert.Equal(new[] { "First", "Third", "Second" }, movedDown.Select(preset => preset.Name));
+    }
+
+    [Fact]
+    public void MovePresetLeavesInvalidMovesUnchanged()
+    {
+        var presets = new[]
+        {
+            new LinedefColorPreset("First", 1),
+            new LinedefColorPreset("Second", 2),
+        };
+
+        Assert.Same(presets, LinedefColorPresetModel.MovePreset(presets, index: 0, offset: -1));
+        Assert.Same(presets, LinedefColorPresetModel.MovePreset(presets, index: 1, offset: 1));
+        Assert.Same(presets, LinedefColorPresetModel.MovePreset(presets, index: -1, offset: 1));
+    }
+
     private static Linedef Line(int action = 0, int activation = 0, params string[] flags)
     {
         var line = new Linedef(

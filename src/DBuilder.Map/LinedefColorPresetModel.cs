@@ -40,6 +40,17 @@ public static class LinedefColorPresetModel
             ? presets
             : DefaultPresets;
 
+    public static IReadOnlyList<LinedefColorPreset> MovePreset(IReadOnlyList<LinedefColorPreset> presets, int index, int offset)
+    {
+        int target = index + offset;
+        if (index < 0 || index >= presets.Count || target < 0 || target >= presets.Count)
+            return presets;
+
+        var moved = presets.ToList();
+        (moved[index], moved[target]) = (moved[target], moved[index]);
+        return moved;
+    }
+
     public static string FormatColor(int color)
         => unchecked((uint)color).ToString("X8", CultureInfo.InvariantCulture);
 
