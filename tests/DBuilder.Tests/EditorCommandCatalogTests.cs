@@ -151,6 +151,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
@@ -1579,17 +1580,23 @@ public class EditorCommandCatalogTests
     [Fact]
     public void ToggleCommentsCommandMatchesUdbActionSurface()
     {
-        AssertKeyOnlyMap2DCommand("map2d.toggle-comments", "Toggle Comments");
-        AssertKeyOnlyMap2DCommand("map2d.togglecomments", "Toggle Comments");
+        AssertKeyOnlyMap2DCommand(
+            "map2d.toggle-comments",
+            "Toggle Comments",
+            "Toggles rendering of comment icons in Sectors, Things and Linedefs modes (UDMF only).");
+        AssertKeyOnlyMap2DCommand(
+            "map2d.togglecomments",
+            "Toggle Comments",
+            "Toggles rendering of comment icons in Sectors, Things and Linedefs modes (UDMF only).");
     }
 
     [Theory]
-    [InlineData("map2d.toggle-fixed-things-scale", "Toggle Fixed Things Scale")]
-    [InlineData("map2d.togglefixedthingsscale", "Toggle Fixed Things Scale")]
-    [InlineData("map2d.toggle-always-show-vertices", "Toggle Always Show Vertices")]
-    [InlineData("map2d.togglealwaysshowvertices", "Toggle Always Show Vertices")]
-    public void ViewToggleCommandsMatchUdbActionSurface(string commandId, string title)
-        => AssertKeyOnlyMap2DCommand(commandId, title);
+    [InlineData("map2d.toggle-fixed-things-scale", "Toggle Fixed Things Scale", "When enabled, Things will no longer be scaled based on current zoom level in Classic modes.")]
+    [InlineData("map2d.togglefixedthingsscale", "Toggle Fixed Things Scale", "When enabled, Things will no longer be scaled based on current zoom level in Classic modes.")]
+    [InlineData("map2d.toggle-always-show-vertices", "Toggle Always Show Vertices", "When enabled, vertices will always be drawn, regardless of the current mode.")]
+    [InlineData("map2d.togglealwaysshowvertices", "Toggle Always Show Vertices", "When enabled, vertices will always be drawn, regardless of the current mode.")]
+    public void ViewToggleCommandsMatchUdbActionSurface(string commandId, string title, string description)
+        => AssertKeyOnlyMap2DCommand(commandId, title, description);
 
     [Theory]
     [InlineData("map2d.view-mode-wireframe", "View Wireframe", "This sets the view mode to Wireframe. This shows only the map elements without any sector filling.")]
@@ -1644,6 +1651,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Toggle Full Brightness", command.Title);
+        Assert.Equal("Toggles the use of sector brightness on and off. When sector brightness is off, the world is displayed fully bright, without lighting effects.", command.Description);
         Assert.Equal("B", command.DefaultGesture);
         Assert.Equal(scope, command.Scope);
         Assert.True(command.AllowKeys);
@@ -1680,6 +1688,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Toggle Highlight", command.Title);
+        Assert.Equal("Toggles the highlight of the targeted and selected objects.", command.Description);
         Assert.Equal("H", command.DefaultGesture);
         Assert.Equal(scope, command.Scope);
         Assert.True(command.AllowKeys);
@@ -1687,7 +1696,7 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowScroll);
     }
 
-    private static void AssertKeyOnlyMap2DCommand(string commandId, string title)
+    private static void AssertKeyOnlyMap2DCommand(string commandId, string title, string description = "")
     {
         var command = EditorCommandCatalog.Find(commandId);
 
