@@ -208,6 +208,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Normalize configurable shortcut aliases for PgUp and PgDn keys.
   - [x] Normalize configurable shortcut aliases for the Ins key.
   - [x] Normalize configurable shortcut aliases for the Bksp key.
+  - [x] Normalize configurable shortcut aliases for word-form numpad operator keys.
 - [ ] Port command hints and contextual help.
   - [x] Generate status and info-panel command hints from effective command bindings.
   - [x] Show thing placement command hints when entering Things mode.

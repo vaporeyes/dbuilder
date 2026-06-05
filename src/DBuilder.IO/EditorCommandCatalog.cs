@@ -1144,10 +1144,15 @@ public static class EditorCommandCatalog
         if (key.Equals("Spacebar", StringComparison.OrdinalIgnoreCase)) return "Space";
         if (key.Equals("SpaceKey", StringComparison.OrdinalIgnoreCase)) return "Space";
         if (key.Equals("NumPad+", StringComparison.OrdinalIgnoreCase)) return "Add";
+        if (key.Equals("NumPadPlus", StringComparison.OrdinalIgnoreCase)) return "Add";
         if (key.Equals("NumPad-", StringComparison.OrdinalIgnoreCase)) return "Subtract";
+        if (key.Equals("NumPadMinus", StringComparison.OrdinalIgnoreCase)) return "Subtract";
         if (key.Equals("NumPad.", StringComparison.OrdinalIgnoreCase)) return "Decimal";
+        if (key.Equals("NumPadDecimal", StringComparison.OrdinalIgnoreCase)) return "Decimal";
         if (key.Equals("NumPad*", StringComparison.OrdinalIgnoreCase)) return "Multiply";
+        if (key.Equals("NumPadMultiply", StringComparison.OrdinalIgnoreCase)) return "Multiply";
         if (key.Equals("NumPad/", StringComparison.OrdinalIgnoreCase)) return "Divide";
+        if (key.Equals("NumPadDivide", StringComparison.OrdinalIgnoreCase)) return "Divide";
         if (key.Length == 4
             && key.StartsWith("Num", StringComparison.OrdinalIgnoreCase)
             && char.IsDigit(key[3]))

@@ -3192,11 +3192,14 @@ public class EditorCommandCatalogTests
     public void ParseOverrideTextReadsUdbStylePunctuationAndNumpadKeys()
     {
         var overrides = EditorCommandCatalog.ParseOverrideText(
-            "map2d.fit=~; map2d.zoom-in=NumPad+; map2d.zoom-out=NumPad-; map3d.brightness-up=]; map3d.brightness-down=+; window.status-history=Oem1");
+            "map2d.fit=~; map2d.zoom-in=NumPadPlus; map2d.zoom-out=NumPadMinus; map3d.scale-up=NumPadDecimal; map3d.scale-down=NumPadMultiply; map3d.select-texture=NumPadDivide; map3d.brightness-up=]; map3d.brightness-down=+; window.status-history=Oem1");
 
         Assert.Contains(overrides, b => b.CommandId == "map2d.fit" && b.Key == "OemTilde");
         Assert.Contains(overrides, b => b.CommandId == "map2d.zoom-in" && b.Key == "Add");
         Assert.Contains(overrides, b => b.CommandId == "map2d.zoom-out" && b.Key == "Subtract");
+        Assert.Contains(overrides, b => b.CommandId == "map3d.scale-up" && b.Key == "Decimal");
+        Assert.Contains(overrides, b => b.CommandId == "map3d.scale-down" && b.Key == "Multiply");
+        Assert.Contains(overrides, b => b.CommandId == "map3d.select-texture" && b.Key == "Divide");
         Assert.Contains(overrides, b => b.CommandId == "map3d.brightness-up" && b.Key == "OemCloseBrackets");
         Assert.Contains(overrides, b => b.CommandId == "map3d.brightness-down" && b.Key == "OemPlus");
         Assert.Contains(overrides, b => b.CommandId == "window.status-history" && b.Key == "OemSemicolon");
