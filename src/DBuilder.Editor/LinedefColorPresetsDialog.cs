@@ -30,7 +30,7 @@ public sealed class LinedefColorPresetsDialog : Window
         _presets = LinedefColorPresetModel.NormalizedPresets(presets).Select(preset => preset with { }).ToList();
         ResultPresets = _presets;
 
-        Title = LinedefColorPresetModel.ConfigureActionTitle;
+        Title = LinedefColorPresetModel.DialogTitle;
         Width = 720;
         Height = 460;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;

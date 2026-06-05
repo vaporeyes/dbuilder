@@ -8,6 +8,10 @@ namespace DBuilder.Tests;
 
 public class LinedefColorPresetModelTests
 {
+    [Fact]
+    public void DialogTitleMatchesUdbPresetForm()
+        => Assert.Equal("Linedef Color Presets", LinedefColorPresetModel.DialogTitle);
+
     private static Linedef Line(int action = 0, int activation = 0, params string[] flags)
     {
         var line = new Linedef(

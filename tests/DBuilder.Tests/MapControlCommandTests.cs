@@ -33,6 +33,7 @@ public sealed class MapControlCommandTests
         Assert.Contains("LinedefColorPresetModel.ParseFlags(_flags.Text)", body, StringComparison.Ordinal);
         Assert.Contains("LinedefColorPresetModel.ParseFlags(_restrictedFlags.Text)", body, StringComparison.Ordinal);
         Assert.Contains("LinedefColorPresetModel.DefaultPresets", body, StringComparison.Ordinal);
+        Assert.Contains("Title = LinedefColorPresetModel.DialogTitle;", body, StringComparison.Ordinal);
     }
 
     [Theory]
