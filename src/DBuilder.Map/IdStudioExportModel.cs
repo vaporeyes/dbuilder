@@ -46,8 +46,50 @@ public sealed record IdStudioExportFormState(
     int MapTextureExportCount,
     int AllTextureExportCount,
     string MapTextureCountText,
-    string AllTextureCountText)
+    string AllTextureCountText,
+    string Title,
+    string ModFolderLabel,
+    string FileNameLabel,
+    string TransformationsText,
+    string DownscaleLabel,
+    string XShiftLabel,
+    string YShiftLabel,
+    string ZShiftLabel,
+    string ExportTexturesText,
+    string MapTexturesOnlyText,
+    string AllTexturesText,
+    string TextureExportWarningText,
+    string DevelopmentWarningText,
+    string ConversionWarningText,
+    string ExportButtonText,
+    string CancelButtonText,
+    string InvalidMapNameTitle,
+    string InvalidMapNameMessage,
+    string SuccessTitle,
+    string SuccessMessage)
 {
+    public const string TitleText = "Export to idStudio";
+    public const string ModFolderLabelText = "Mod Folder:";
+    public const string FileNameLabelText = "File Name:";
+    public const string TransformationsTextValue = "Transformations";
+    public const string DownscaleLabelText = "Downscale:";
+    public const string XShiftLabelText = "X Shift:";
+    public const string YShiftLabelText = "Y Shift:";
+    public const string ZShiftLabelText = "Z Shift:";
+    public const string ExportTexturesTextValue = "Export Textures";
+    public const string MapTexturesOnlyTextValue = "Map Textures Only";
+    public const string AllTexturesTextValue = "All Textures";
+    public const string TextureExportWarningTextValue = "Exporting textures may take some time.";
+    public const string DevelopmentWarningTextValue = "This tool is still in development";
+    public const string ConversionWarningTextValue = "Not all map features may convert correctly.";
+    public const string ExportButtonTextValue = "Export";
+    public const string CancelButtonTextValue = "Cancel";
+    public const string InvalidMapNameTitleText = "Invalid Map Name";
+    public const string InvalidMapNameMessageText =
+        "Map names must be all lowercase, numbers and underscores only. First char must be letter.";
+    public const string SuccessTitleText = "idStudio Exporter";
+    public const string SuccessMessageText = "Map exported successfully";
+
     public static IdStudioExportFormState FromMap(
         MapSet map,
         string mapFilePath,
@@ -72,7 +114,27 @@ public sealed record IdStudioExportFormState(
             mapTextureCount,
             allTextureExportCount,
             FormatTextureCount(mapTextureCount),
-            FormatTextureCount(allTextureExportCount));
+            FormatTextureCount(allTextureExportCount),
+            TitleText,
+            ModFolderLabelText,
+            FileNameLabelText,
+            TransformationsTextValue,
+            DownscaleLabelText,
+            XShiftLabelText,
+            YShiftLabelText,
+            ZShiftLabelText,
+            ExportTexturesTextValue,
+            MapTexturesOnlyTextValue,
+            AllTexturesTextValue,
+            TextureExportWarningTextValue,
+            DevelopmentWarningTextValue,
+            ConversionWarningTextValue,
+            ExportButtonTextValue,
+            CancelButtonTextValue,
+            InvalidMapNameTitleText,
+            InvalidMapNameMessageText,
+            SuccessTitleText,
+            SuccessMessageText);
     }
 
     public static string FormatTextureCount(int imageCount)

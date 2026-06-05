@@ -57,6 +57,42 @@ public class IdStudioExportModelTests
         Assert.Equal(17, state.AllTextureExportCount);
         Assert.Equal("6 TGA images and 6 material2 decls will be created.", state.MapTextureCountText);
         Assert.Equal("17 TGA images and 17 material2 decls will be created.", state.AllTextureCountText);
+        Assert.Equal("Export to idStudio", state.Title);
+        Assert.Equal("Mod Folder:", state.ModFolderLabel);
+        Assert.Equal("File Name:", state.FileNameLabel);
+        Assert.Equal("Transformations", state.TransformationsText);
+        Assert.Equal("Downscale:", state.DownscaleLabel);
+        Assert.Equal("X Shift:", state.XShiftLabel);
+        Assert.Equal("Y Shift:", state.YShiftLabel);
+        Assert.Equal("Z Shift:", state.ZShiftLabel);
+        Assert.Equal("Export Textures", state.ExportTexturesText);
+        Assert.Equal("Map Textures Only", state.MapTexturesOnlyText);
+        Assert.Equal("All Textures", state.AllTexturesText);
+        Assert.Equal("Exporting textures may take some time.", state.TextureExportWarningText);
+        Assert.Equal("This tool is still in development", state.DevelopmentWarningText);
+        Assert.Equal("Not all map features may convert correctly.", state.ConversionWarningText);
+        Assert.Equal("Export", state.ExportButtonText);
+        Assert.Equal("Cancel", state.CancelButtonText);
+        Assert.Equal("Invalid Map Name", state.InvalidMapNameTitle);
+        Assert.Equal(
+            "Map names must be all lowercase, numbers and underscores only. First char must be letter.",
+            state.InvalidMapNameMessage);
+        Assert.Equal("idStudio Exporter", state.SuccessTitle);
+        Assert.Equal("Map exported successfully", state.SuccessMessage);
+    }
+
+    [Fact]
+    public void EditorIdStudioDialogUsesSharedUdbMetadata()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/IdStudioExportDialog.cs"));
+
+        Assert.Contains("IdStudioExportFormState.TitleText", body, StringComparison.Ordinal);
+        Assert.Contains("state?.ModFolderLabel", body, StringComparison.Ordinal);
+        Assert.Contains("state?.FileNameLabel", body, StringComparison.Ordinal);
+        Assert.Contains("state?.DownscaleLabel", body, StringComparison.Ordinal);
+        Assert.Contains("state?.XShiftLabel", body, StringComparison.Ordinal);
+        Assert.Contains("state?.ExportTexturesText", body, StringComparison.Ordinal);
+        Assert.Contains("state?.AllTexturesText", body, StringComparison.Ordinal);
     }
 
     [Fact]

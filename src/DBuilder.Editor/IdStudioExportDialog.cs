@@ -22,28 +22,29 @@ public sealed class IdStudioExportDialog : PropertyDialog
 
     public IdStudioExportDialog(IdStudioExportFormState state)
         : this(
+            state,
             state.DefaultOptions,
             $"Map textures: {state.MapTextureCountText}\nAll textures: {state.AllTextureCountText}")
     {
     }
 
     public IdStudioExportDialog(IdStudioExportOptions options)
-        : this(options, "Exports the current map as idStudio refmap and material files.")
+        : this(null, options, "Exports the current map as idStudio refmap and material files.")
     {
     }
 
-    private IdStudioExportDialog(IdStudioExportOptions options, string liveLabel)
-        : base("Export idStudio", liveLabel)
+    private IdStudioExportDialog(IdStudioExportFormState? state, IdStudioExportOptions options, string liveLabel)
+        : base(state?.Title ?? IdStudioExportFormState.TitleText, liveLabel)
     {
         ResultOptions = options;
-        _modPath = AddField("Mod path", options.ModPath);
-        _mapName = AddField("Map name", options.MapName);
-        _downscale = AddField("Downscale", options.Downscale.ToString(CultureInfo.InvariantCulture));
-        _xShift = AddField("X shift", options.XShift.ToString(CultureInfo.InvariantCulture));
-        _yShift = AddField("Y shift", options.YShift.ToString(CultureInfo.InvariantCulture));
-        _zShift = AddField("Z shift", options.ZShift.ToString(CultureInfo.InvariantCulture));
-        _exportTextures = AddCheckBox("Export textures", options.ExportTextures);
-        _exportAllTextures = AddCheckBox("Export all textures", options.ExportAllTextures);
+        _modPath = AddField(state?.ModFolderLabel ?? IdStudioExportFormState.ModFolderLabelText, options.ModPath);
+        _mapName = AddField(state?.FileNameLabel ?? IdStudioExportFormState.FileNameLabelText, options.MapName);
+        _downscale = AddField(state?.DownscaleLabel ?? IdStudioExportFormState.DownscaleLabelText, options.Downscale.ToString(CultureInfo.InvariantCulture));
+        _xShift = AddField(state?.XShiftLabel ?? IdStudioExportFormState.XShiftLabelText, options.XShift.ToString(CultureInfo.InvariantCulture));
+        _yShift = AddField(state?.YShiftLabel ?? IdStudioExportFormState.YShiftLabelText, options.YShift.ToString(CultureInfo.InvariantCulture));
+        _zShift = AddField(state?.ZShiftLabel ?? IdStudioExportFormState.ZShiftLabelText, options.ZShift.ToString(CultureInfo.InvariantCulture));
+        _exportTextures = AddCheckBox(state?.ExportTexturesText ?? IdStudioExportFormState.ExportTexturesTextValue, options.ExportTextures);
+        _exportAllTextures = AddCheckBox(state?.AllTexturesText ?? IdStudioExportFormState.AllTexturesTextValue, options.ExportAllTextures);
     }
 
     protected override void OnConfirm()
