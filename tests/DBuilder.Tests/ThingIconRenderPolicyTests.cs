@@ -8,7 +8,7 @@ namespace DBuilder.Tests;
 public sealed class ThingIconRenderPolicyTests
 {
     [Fact]
-    public void UsesCompactMarkersAtMapScaleWhenThingSizeIsFixed()
+    public void UsesCompactMarkersAtOverviewScaleWhenThingSizeIsFixed()
     {
         Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
             ThingIconRenderPolicy.CompactMarkerScaleThreshold,
@@ -25,10 +25,10 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
-    public void UsesCompactMarkersAtOverviewZoomWithoutFixedThingScale()
+    public void KeepsSpritesAtCloseZoomWithoutFixedThingScale()
     {
-        Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
-            viewScale: 0.2,
+        Assert.False(ThingIconRenderPolicy.UseCompactMarkers(
+            viewScale: ThingIconRenderPolicy.CompactMarkerScaleThreshold - 0.01,
             fixedThingsScale: false,
             thingArrows: false));
     }
@@ -36,12 +36,12 @@ public sealed class ThingIconRenderPolicyTests
     [Fact]
     public void UsesCompactMarkersBeforeSpritesCrowdAtOverviewScale()
     {
-        Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
-            viewScale: 0.03,
+        Assert.False(ThingIconRenderPolicy.UseCompactMarkers(
+            viewScale: 0.5,
             fixedThingsScale: false,
             thingArrows: false));
         Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
-            viewScale: 0.1,
+            viewScale: 2.0,
             fixedThingsScale: false,
             thingArrows: false));
     }
@@ -102,8 +102,8 @@ public sealed class ThingIconRenderPolicyTests
         Assert.True(ThingIconRenderPolicy.UseOverviewMarkers(
             ThingIconRenderPolicy.OverviewMarkerScaleThreshold,
             thingArrows: false));
-        Assert.True(ThingIconRenderPolicy.UseOverviewMarkers(
-            viewScale: 0.3,
+        Assert.False(ThingIconRenderPolicy.UseOverviewMarkers(
+            viewScale: 0.5,
             thingArrows: false));
         Assert.False(ThingIconRenderPolicy.UseOverviewMarkers(
             ThingIconRenderPolicy.OverviewMarkerScaleThreshold - 0.01,
@@ -155,7 +155,7 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
-    public void OverviewCullingStartsBeforeCompactMarkers()
+    public void OverviewCullingStartsWithCompactMarkers()
     {
         Assert.True(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(
             ThingIconRenderPolicy.OverlapCullScaleThreshold,
@@ -163,7 +163,7 @@ public sealed class ThingIconRenderPolicyTests
         Assert.False(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(
             ThingIconRenderPolicy.OverlapCullScaleThreshold - 0.01,
             thingArrows: false));
-        Assert.True(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(
+        Assert.False(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(
             ThingIconRenderPolicy.CompactMarkerScaleThreshold - 0.01,
             thingArrows: true));
         Assert.True(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(
