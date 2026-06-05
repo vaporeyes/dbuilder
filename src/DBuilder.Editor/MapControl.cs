@@ -4681,9 +4681,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_thingDirVb != null)
         {
             var dv = new System.Collections.Generic.List<FlatVertex>();
+            bool compactThingMarkers = ThingIconRenderPolicy.UseCompactMarkers(_zoom, _fixedThingsScale, _thingArrows);
             if (!_thingArrows)
             {
-                double tickLen = ThingMarkerSize(18);
+                double tickLen = ThingMarkerSize(ThingIconRenderPolicy.DirectionTickBaseSize(compactThingMarkers));
                 foreach (var t in _map.Things)
                 {
                     if (ThingHidden2D(t)) continue;
@@ -4708,7 +4709,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_thingsVb != null)
         {
             var tv = new System.Collections.Generic.List<FlatVertex>();
-            double s = ThingMarkerSize(10);
+            bool compactThingMarkers = ThingIconRenderPolicy.UseCompactMarkers(_zoom, _fixedThingsScale, _thingArrows);
+            double s = ThingMarkerSize(ThingIconRenderPolicy.MarkerBaseSize(compactThingMarkers));
             Gldefs? gldefs = _resources?.GetGldefs();
             foreach (var t in _map.Things)
             {
@@ -4721,7 +4723,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 }
 
                 ThingBillboardDisplay? display = ThingBillboardDisplayPlanner.Plan(_gameConfig?.GetThing(t.Type), _resources);
-                if (display != null && GetSpriteTexture(display.SpriteName) is { })
+                if (!compactThingMarkers && display != null && GetSpriteTexture(display.SpriteName) is { })
                 {
                     ImageData img = display.Image;
                     int sc = ThingBillboardTint(t, gldefs);
@@ -8857,6 +8859,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         _zoom = Math.Clamp(_zoom * factor, 0.02, 200);
         MatchGridSizeToDisplayScale();
+        _geometryDirty = true;
         _soundLeakDirty = true;
         _wadAuthorDirty = true;
         RequestNextFrameRendering();
