@@ -1418,16 +1418,17 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Insert vertex or thing", command.Title);
+        Assert.Equal("Creates a new item depending on the editing mode you are in.", command.Description);
         Assert.Equal("I", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.NotNull(udbAlias);
         Assert.Equal("Insert Item", udbAlias.Title);
+        Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal("I", udbAlias.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, udbAlias.Scope);
         Assert.True(udbAlias.AllowKeys);
         Assert.True(udbAlias.AllowMouse);
         Assert.True(udbAlias.AllowScroll);
-        Assert.Equal("Creates a new item depending on the editing mode you are in.", udbAlias.Description);
     }
 
     [Theory]
