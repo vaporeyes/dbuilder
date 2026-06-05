@@ -65,6 +65,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Record Tag Range warning branches as warning status entries.
   - [x] Record color picker warning branches as warning status entries.
   - [x] Record export blocked and failure branches as warning status entries.
+  - [x] Record idStudio export blocked branches as warning status entries.
   - [x] Add testable Status History header formatting with singular and plural labels.
 - [ ] Port recent file and recent map behavior to match UDB.
   - [x] Persist and reopen specific recent maps from WAD and PK3 archives.

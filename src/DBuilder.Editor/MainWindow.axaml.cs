@@ -6217,13 +6217,13 @@ public partial class MainWindow : Window
         IReadOnlyList<string> errors = ValidateIdStudioExportOptions(options);
         if (errors.Count > 0)
         {
-            SetStatus("idStudio export blocked: " + string.Join(" ", errors));
+            SetStatus("idStudio export blocked: " + string.Join(" ", errors), StatusHistoryKind.Warning);
             return;
         }
 
         if (options.ExportTextures && _resources is null)
         {
-            SetStatus("idStudio export blocked: load resources before exporting textures.");
+            SetStatus("idStudio export blocked: load resources before exporting textures.", StatusHistoryKind.Warning);
             return;
         }
 

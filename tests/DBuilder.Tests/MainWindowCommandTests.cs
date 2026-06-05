@@ -1042,6 +1042,8 @@ public sealed class MainWindowCommandTests
         Assert.Contains("SetStatus(\"Object export blocked: \" + string.Join(\" \", errors), StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
         Assert.Contains("SetStatus(\"Object export blocked: load resources before exporting textures.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
         Assert.Contains("SetStatus(\"Object export failed: no geometry was generated.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(\"idStudio export blocked: \" + string.Join(\" \", errors), StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(\"idStudio export blocked: load resources before exporting textures.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
         Assert.Contains("SetStatus(preflight.Warning ?? \"OBJ export failed.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
         Assert.Contains("SetStatus(\"Wavefront export blocked: \" + string.Join(\" \", errors), StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
         Assert.Contains("SetStatus(\"Wavefront export blocked: load resources before exporting textures.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
