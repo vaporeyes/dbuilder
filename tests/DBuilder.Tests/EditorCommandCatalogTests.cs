@@ -1456,6 +1456,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Align Things to Nearest Linedef", command.Title);
+        Assert.Equal("Aligns selected things to the nearest linedef.", command.Description);
         Assert.Equal("Ctrl/Cmd+Shift+A", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -2494,6 +2495,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Split Linedefs", command.Title);
+        Assert.Equal("Splits the selected linedefs in the middle, or splits the highlighted linedef at the mouse position.", command.Description);
         Assert.Equal("Right-click", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
