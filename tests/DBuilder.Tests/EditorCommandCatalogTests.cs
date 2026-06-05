@@ -1288,6 +1288,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Fit To Screen", command.Title);
+        Assert.Equal("Zooms out the map and centers it to make it completely fit in the screen, giving a high overview of the map.", command.Description);
         Assert.Equal("R", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);

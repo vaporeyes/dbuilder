@@ -331,7 +331,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.zoomin", "Zoom In", "+", EditorCommandScope.Map2D, AllowScroll: true, Repeat: true, Description: "Zooms in on the map at the current mouse location."),
         new EditorCommandDescriptor("map2d.zoom-out", "Zoom Out", "-", EditorCommandScope.Map2D, AllowScroll: true, Repeat: true, Description: "Zooms out on the map from the current mouse location."),
         new EditorCommandDescriptor("map2d.zoomout", "Zoom Out", "-", EditorCommandScope.Map2D, AllowScroll: true, Repeat: true, Description: "Zooms out on the map from the current mouse location."),
-        new EditorCommandDescriptor("map2d.centerinscreen", "Fit To Screen", "R", EditorCommandScope.Map2D, AllowScroll: true),
+        new EditorCommandDescriptor("map2d.centerinscreen", "Fit To Screen", "R", EditorCommandScope.Map2D, AllowScroll: true, Description: "Zooms out the map and centers it to make it completely fit in the screen, giving a high overview of the map."),
         new EditorCommandDescriptor("map2d.scrollwest", "Scroll West", "Menu", EditorCommandScope.Map2D, AllowScroll: true, Repeat: true),
         new EditorCommandDescriptor("map2d.scrolleast", "Scroll East", "Menu", EditorCommandScope.Map2D, AllowScroll: true, Repeat: true),
         new EditorCommandDescriptor("map2d.scrollnorth", "Scroll North", "Menu", EditorCommandScope.Map2D, AllowScroll: true, Repeat: true),
