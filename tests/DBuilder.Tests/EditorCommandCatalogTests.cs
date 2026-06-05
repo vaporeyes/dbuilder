@@ -3114,6 +3114,31 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void ExpandHintTemplateReplacesUdbStyleActionTokensWithShortcuts()
+    {
+        var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]
+        {
+            new EditorShortcutBinding("map2d.draw-sector", EditorCommandScope.Map2D, "F6"),
+        });
+
+        string hint = EditorCommandCatalog.ExpandHintTemplate(
+            "Press <k>map2d.draw-sector</k> or <k>map2d.insert</k>.",
+            bindings);
+
+        Assert.Equal("Press F6 or I / Insert.", hint);
+    }
+
+    [Fact]
+    public void ExpandHintTemplateLeavesUnknownAndUnclosedTokensUnchanged()
+    {
+        string hint = EditorCommandCatalog.ExpandHintTemplate(
+            "Press <k>missing.command</k> then <k>map2d.draw-sector.",
+            EditorCommandCatalog.DefaultShortcuts);
+
+        Assert.Equal("Press <k>missing.command</k> then <k>map2d.draw-sector.", hint);
+    }
+
+    [Fact]
     public void CommandToolTipAppendsEffectiveGestureWhenBound()
     {
         var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]

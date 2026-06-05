@@ -206,6 +206,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port command hints and contextual help.
   - [x] Generate status and info-panel command hints from effective command bindings.
   - [x] Show thing placement command hints when entering Things mode.
+  - [x] Expand UDB-style `<k>action</k>` hint tokens from effective command bindings.
   - [x] Show ignored shortcut modifiers in the Help shortcut reference.
   - [x] Show stable action ids in the Help shortcut reference.
   - [x] Show UDB-style action descriptions in the Help shortcut reference.

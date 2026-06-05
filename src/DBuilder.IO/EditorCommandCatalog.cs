@@ -840,6 +840,31 @@ public static class EditorCommandCatalog
     public static string CommandHints(IReadOnlyList<EditorShortcutBinding> bindings, params string[] commandIds)
         => string.Join("; ", commandIds.Select(commandId => CommandHint(commandId, bindings)));
 
+    public static string ExpandHintTemplate(string text, IReadOnlyList<EditorShortcutBinding> bindings)
+    {
+        const string startToken = "<k>";
+        const string endToken = "</k>";
+        int start = text.IndexOf(startToken, StringComparison.OrdinalIgnoreCase);
+        while (start >= 0)
+        {
+            int end = text.IndexOf(endToken, start + startToken.Length, StringComparison.OrdinalIgnoreCase);
+            if (end < 0) break;
+            string commandId = text.Substring(start + startToken.Length, end - start - startToken.Length);
+            var command = Find(commandId);
+            if (command is null)
+            {
+                start = text.IndexOf(startToken, end + endToken.Length, StringComparison.OrdinalIgnoreCase);
+                continue;
+            }
+
+            string replacement = GestureText(commandId, bindings);
+            text = text.Substring(0, start) + replacement + text.Substring(end + endToken.Length);
+            start = text.IndexOf(startToken, start + replacement.Length, StringComparison.OrdinalIgnoreCase);
+        }
+
+        return text;
+    }
+
     public static string CommandToolTip(string label, string commandId, IReadOnlyList<EditorShortcutBinding> bindings)
     {
         string gesture = GestureText(commandId, bindings);
