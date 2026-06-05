@@ -2422,13 +2422,13 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("map2d.draw-rectangle", "Start Rectangle Drawing", "Ctrl/Cmd+Shift+D", "Starts drawing rectangle. Increase/Decrease Subdivision Level and Increase/Decrease Corners Bevel actions are available in this mode.")]
-    [InlineData("map2d.drawlinesmode", "Start Drawing", "Ctrl/Cmd+D", "")]
+    [InlineData("map2d.drawlinesmode", "Start Drawing", "Ctrl/Cmd+D", "Starts drawing lines. See the Drawing category for actions available during drawing mode.")]
     [InlineData("map2d.drawrectanglemode", "Start Rectangle Drawing", "Ctrl/Cmd+Shift+D", "Starts drawing rectangle. Increase/Decrease Subdivision Level and Increase/Decrease Corners Bevel actions are available in this mode.")]
     [InlineData("map2d.draw-ellipse", "Start Ellipse Drawing", "Alt+Shift+D", "Starts drawing ellipse. Increase/Decrease Subdivision Level and Increase/Decrease Corners Bevel actions are available in this mode.")]
     [InlineData("map2d.drawellipsemode", "Start Ellipse Drawing", "Alt+Shift+D", "Starts drawing ellipse. Increase/Decrease Subdivision Level and Increase/Decrease Corners Bevel actions are available in this mode.")]
     [InlineData("map2d.draw-curve", "Start Curve Drawing", "Ctrl/Cmd+Alt+D", "Starts drawing a curve. Increase/Decrease Subdivision Level actions are available in this mode.")]
     [InlineData("map2d.drawcurvemode", "Start Curve Drawing", "Ctrl/Cmd+Alt+D", "Starts drawing a curve. Increase/Decrease Subdivision Level actions are available in this mode.")]
-    [InlineData("map2d.curvelinesmode", "Curve Linedefs", "Shift+C", "")]
+    [InlineData("map2d.curvelinesmode", "Curve Linedefs", "Shift+C", "Curves the selected linedefs with a given number of vertices and distance from the line.")]
     [InlineData("map2d.draw-grid", "Start Grid Drawing", "Menu", "Starts drawing a grid. Increase/Decrease Subdivision Level and Increase/Decrease Corners Bevel actions are available in this mode.")]
     [InlineData("map2d.drawgridmode", "Start Grid Drawing", "Menu", "Starts drawing a grid. Increase/Decrease Subdivision Level and Increase/Decrease Corners Bevel actions are available in this mode.")]
     public void ShapeDrawCommandsMatchUdbActionSurface(string id, string title, string gesture, string description)
