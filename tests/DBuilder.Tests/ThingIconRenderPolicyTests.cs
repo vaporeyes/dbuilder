@@ -107,6 +107,7 @@ public sealed class ThingIconRenderPolicyTests
             ThingIconRenderPolicy.OverviewCullCellPixels - 0.01));
         Assert.Equal(1, ThingIconRenderPolicy.OverviewCullCell(
             ThingIconRenderPolicy.OverviewCullCellPixels));
+        Assert.Equal(24.0, ThingIconRenderPolicy.OverviewCullCellPixels);
     }
 
     [Fact]
