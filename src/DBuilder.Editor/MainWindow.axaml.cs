@@ -1930,9 +1930,9 @@ public partial class MainWindow : Window
 
     private void OnCut(object? sender, RoutedEventArgs e)
     {
-        if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
+        if (_map is null || _undo is null) { SetStatus("No map loaded.", StatusHistoryKind.Warning); return; }
         int selected = CountSelection();
-        if (selected == 0) { SetStatus("Nothing selected to cut."); return; }
+        if (selected == 0) { SetStatus("Nothing selected to cut.", StatusHistoryKind.Warning); return; }
 
         MapView.CopySelection();
         CreateUndo("Cut selection");
@@ -1951,7 +1951,7 @@ public partial class MainWindow : Window
     {
         if (_map is null)
         {
-            SetStatus("No map loaded.");
+            SetStatus("No map loaded.", StatusHistoryKind.Warning);
             MapView.Focus();
             return;
         }
@@ -1973,7 +1973,7 @@ public partial class MainWindow : Window
     {
         if (_map is null)
         {
-            SetStatus("No map loaded.");
+            SetStatus("No map loaded.", StatusHistoryKind.Warning);
             MapView.Focus();
             return;
         }
@@ -1983,7 +1983,7 @@ public partial class MainWindow : Window
             : MapView.BuildPastePropertiesOptionsForCurrentMode();
         if (!options.IsAvailable)
         {
-            SetStatus(options.StatusMessage ?? PastePropertiesOptionsModel.NoCopiedPropertiesMessage);
+            SetStatus(options.StatusMessage ?? PastePropertiesOptionsModel.NoCopiedPropertiesMessage, StatusHistoryKind.Warning);
             MapView.Focus();
             return;
         }
@@ -2011,8 +2011,8 @@ public partial class MainWindow : Window
 
     private void OnDuplicate(object? sender, RoutedEventArgs e)
     {
-        if (_map is null) { SetStatus("No map loaded."); return; }
-        if (CountSelection() == 0) { SetStatus("Nothing selected to duplicate."); return; }
+        if (_map is null) { SetStatus("No map loaded.", StatusHistoryKind.Warning); return; }
+        if (CountSelection() == 0) { SetStatus("Nothing selected to duplicate.", StatusHistoryKind.Warning); return; }
 
         RunClipboardEdit(MapView.DuplicateSelection());
     }
@@ -2028,7 +2028,7 @@ public partial class MainWindow : Window
     {
         if (_map is null || _undo is null) return;
         int sel = _map.SelectedVerticesCount + _map.SelectedLinedefsCount + _map.SelectedSectorsCount + _map.SelectedThingsCount;
-        if (sel == 0) { SetStatus("Nothing selected to delete."); return; }
+        if (sel == 0) { SetStatus("Nothing selected to delete.", StatusHistoryKind.Warning); return; }
         CreateUndo("Delete selection");
         int removed = _map.DeleteSelection();
         _map.BuildIndexes();
