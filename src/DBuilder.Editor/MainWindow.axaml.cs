@@ -3225,7 +3225,7 @@ public partial class MainWindow : Window
 
     private async void ExportTagExplorer(string contents)
     {
-        if (string.IsNullOrEmpty(contents)) { SetStatus("No Tag Explorer entries to export."); return; }
+        if (string.IsNullOrEmpty(contents)) { SetStatus("No Tag Explorer entries to export.", StatusHistoryKind.Warning); return; }
 
         var top = GetTopLevel(this);
         if (top?.StorageProvider == null) return;
@@ -3287,7 +3287,7 @@ public partial class MainWindow : Window
                 focus = (line.Start.Position + line.End.Position) * 0.5;
                 break;
             default:
-                SetStatus("Tag Explorer entry no longer exists.");
+                SetStatus("Tag Explorer entry no longer exists.", StatusHistoryKind.Warning);
                 return;
         }
 
@@ -3472,7 +3472,7 @@ public partial class MainWindow : Window
         IReadOnlyList<IFielded> elements = CurrentCommentSelection();
         if (elements.Count == 0)
         {
-            SetStatus($"Select one or more {MapView.CurrentEditMode.ToString().ToLowerInvariant()} first.");
+            SetStatus($"Select one or more {MapView.CurrentEditMode.ToString().ToLowerInvariant()} first.", StatusHistoryKind.Warning);
             return;
         }
 
@@ -3641,7 +3641,7 @@ public partial class MainWindow : Window
     // Opens a non-modal panel to show/hide thing categories in the 2D view.
     private void OnThingFilter(object? sender, RoutedEventArgs e)
     {
-        if (_config is null || _config.Things.Count == 0) { SetStatus("Load a game config to filter thing categories."); return; }
+        if (_config is null || _config.Things.Count == 0) { SetStatus("Load a game config to filter thing categories.", StatusHistoryKind.Warning); return; }
         var cats = new List<string>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var t in _config.Things.Values)
