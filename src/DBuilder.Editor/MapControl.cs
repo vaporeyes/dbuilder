@@ -3518,7 +3518,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
 
         EditBegun?.Invoke("Match Brightness");
-        VisualBrightnessMatchResult result = VisualBrightnessMatch.Apply(targetBrightness, _sel3D, target, _gameConfig);
+        VisualBrightnessMatchResult result = VisualBrightnessMatch.Apply(targetBrightness, _sel3D, target, _gameConfig, CurrentMapInfo());
         _geo3DDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();

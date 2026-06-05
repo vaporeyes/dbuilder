@@ -859,6 +859,17 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void MatchBrightnessUsesCurrentMapInfoForLightFogLikeUdb()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private void MatchBrightness3D()", StringComparison.Ordinal);
+        int applyIndex = body.IndexOf("VisualBrightnessMatch.Apply(targetBrightness, _sel3D, target, _gameConfig, CurrentMapInfo())", methodIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(applyIndex > methodIndex);
+    }
+
+    [Fact]
     public void GridRenderingCommandControlsVisibleGridOnly()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));

@@ -47,7 +47,8 @@ public static class VisualBrightnessMatch
         int targetBrightness,
         IEnumerable<VisualHit> selection,
         VisualHit highlighted,
-        GameConfiguration? config)
+        GameConfiguration? config,
+        MapInfoEntry? mapInfo = null)
     {
         VisualHit[] selected = selection.ToArray();
         int brightness = Math.Clamp(targetBrightness, 0, 255);
@@ -71,7 +72,7 @@ public static class VisualBrightnessMatch
                     Sidedef? side = HitSidedef(hit);
                     if (side?.Sector == null) break;
                     WriteSidedefLightValue(side, brightness);
-                    SidedefFogTools.UpdateLightFogFlag(side, mapInfo: null, config);
+                    SidedefFogTools.UpdateLightFogFlag(side, mapInfo, config);
                     changed++;
                     break;
             }

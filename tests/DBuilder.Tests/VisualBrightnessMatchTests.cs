@@ -63,6 +63,27 @@ public class VisualBrightnessMatchTests
     }
 
     [Fact]
+    public void WallMatchBrightnessUpdatesLightFogUsingMapInfo()
+    {
+        var target = new Sector { Brightness = 120 };
+        target.SetIntegerField("lightfloor", 40);
+        var side = Sidedef(new Sector { Brightness = 144 });
+        var mapInfo = new MapInfoEntry { FadeColor = (1, 2, 3), FogDensity = 255 };
+
+        Assert.True(VisualBrightnessMatch.TryReadTargetBrightness(FloorHit(target), out int brightness, out _));
+
+        VisualBrightnessMatch.Apply(
+            brightness,
+            [WallHit(side)],
+            FloorHit(target),
+            config: null,
+            mapInfo);
+
+        Assert.Equal(16, side.GetIntegerField("light"));
+        Assert.True(side.IsFlagSet("lightfog"));
+    }
+
+    [Fact]
     public void StatusUsesSelectedCountEvenWhenHighlightedSurfaceIsSkippedLikeUdb()
     {
         var target = new Sector { Brightness = 120 };
