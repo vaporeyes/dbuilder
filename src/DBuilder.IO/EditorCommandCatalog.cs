@@ -318,7 +318,7 @@ public static class EditorCommandCatalog
 
         new EditorCommandDescriptor("map2d.select", "Select element", "Click", EditorCommandScope.Map2D, DisregardShift: true, DisregardAccelerator: true, DisregardAlt: true),
         new EditorCommandDescriptor("map2d.classicselect", "Select", "Click", EditorCommandScope.Map2D, DisregardShift: true, DisregardAccelerator: true, DisregardAlt: true, Description: "Selects the highlighted item. Also allows selection by dragging a rectangle. Hold shift while dragging a rectangle to toggle additive or normal selection. Hold Ctrl to enable subtractive selection. Hold Ctrl-Shift to intersect with current selection."),
-        new EditorCommandDescriptor("map2d.classicpaintselect", "Paint Selection", "Menu", EditorCommandScope.Map2D, AllowScroll: false, DisregardShift: true, DisregardAccelerator: true, DisregardAlt: true),
+        new EditorCommandDescriptor("map2d.classicpaintselect", "Paint Selection", "Menu", EditorCommandScope.Map2D, AllowScroll: false, DisregardShift: true, DisregardAccelerator: true, DisregardAlt: true, Description: "Selects or deselects items by dragging the mouse. Hold shift while dragging to toggle additive selection. Hold Ctrl while dragging to enable subtractive selection"),
         new EditorCommandDescriptor("map2d.box-select", "Box-select or move a grabbed vertex/thing", "Left-drag", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.pan", "Pan the view", "Right-drag", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.pan_view", "Pan View", "Menu", EditorCommandScope.Map2D, AllowScroll: false, Description: "Pans the map in the direction of the mouse while held down."),

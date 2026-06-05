@@ -3031,6 +3031,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Paint Selection", command.Title);
+        Assert.Equal("Selects or deselects items by dragging the mouse. Hold shift while dragging to toggle additive selection. Hold Ctrl while dragging to enable subtractive selection", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
