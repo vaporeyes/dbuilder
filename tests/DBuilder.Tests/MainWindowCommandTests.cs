@@ -843,6 +843,8 @@ public sealed class MainWindowCommandTests
         Assert.Contains("bool hasSelectedThingInThingsMode = hasSelectedThing && MapView.CurrentEditMode == MapControl.EditMode.Things;", body, StringComparison.Ordinal);
         Assert.Contains("SetEnabled(hasSelectedThingInThingsMode, AlignThingsToWallMenuItem);\n        SetEnabled(hasSelectedThingInThingsMode, FilterSelectedThingsMenuItem);", body, StringComparison.Ordinal);
         Assert.Contains("if (MapView.CurrentEditMode != MapControl.EditMode.Things)", body, StringComparison.Ordinal);
+        Assert.Contains("IReadOnlyDictionary<int, int> selectedTypeCounts = ThingSelectionFilter.SelectedTypeCounts(_map);", body, StringComparison.Ordinal);
+        Assert.Contains("var dlg = new FilterSelectedThingsDialog(selectedTypeCounts, _config);", body, StringComparison.Ordinal);
         Assert.Contains("SetStatus(\"Filter Selected Things is only available in Things mode.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
         Assert.Contains("\"window.filter-selected-things\" or \"window.filterselectedthings\" => FilterSelectedThingsMenuItem", body, StringComparison.Ordinal);
     }

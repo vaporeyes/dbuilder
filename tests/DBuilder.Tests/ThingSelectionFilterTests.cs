@@ -23,6 +23,22 @@ public class ThingSelectionFilterTests
     }
 
     [Fact]
+    public void SelectedTypeCountsReturnsSortedSelectedThingTypeCounts()
+    {
+        var map = new MapSet();
+        AddThing(map, 3004, selected: true);
+        AddThing(map, 1, selected: false);
+        AddThing(map, 3001, selected: true);
+        AddThing(map, 3004, selected: true);
+
+        IReadOnlyDictionary<int, int> counts = ThingSelectionFilter.SelectedTypeCounts(map);
+
+        Assert.Equal([3001, 3004], counts.Keys);
+        Assert.Equal(1, counts[3001]);
+        Assert.Equal(2, counts[3004]);
+    }
+
+    [Fact]
     public void KeepSelectedTypesDeselectsSelectedThingsWithOtherTypes()
     {
         var map = new MapSet();

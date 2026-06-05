@@ -2375,8 +2375,8 @@ public partial class MainWindow : Window
 
         if (_map.SelectedThingsCount == 0) { SetStatus("This action requires a selection!", StatusHistoryKind.Warning); return; }
 
-        IReadOnlyList<int> selectedTypes = ThingSelectionFilter.SelectedTypes(_map);
-        var dlg = new FilterSelectedThingsDialog(selectedTypes, _config);
+        IReadOnlyDictionary<int, int> selectedTypeCounts = ThingSelectionFilter.SelectedTypeCounts(_map);
+        var dlg = new FilterSelectedThingsDialog(selectedTypeCounts, _config);
         if (await dlg.ShowDialog<bool>(this))
         {
             CreateUndo("Filter selected things");

@@ -16,6 +16,14 @@ public static class ThingSelectionFilter
             .ToList();
     }
 
+    public static IReadOnlyDictionary<int, int> SelectedTypeCounts(MapSet map)
+    {
+        return map.GetSelectedThings()
+            .GroupBy(thing => thing.Type)
+            .OrderBy(group => group.Key)
+            .ToDictionary(group => group.Key, group => group.Count());
+    }
+
     public static int KeepSelectedTypes(MapSet map, IEnumerable<int> allowedTypes)
     {
         var allowed = new HashSet<int>(allowedTypes);

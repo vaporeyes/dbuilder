@@ -1152,6 +1152,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port things filter behavior fully.
   - [x] Add UI-independent things filter evaluator.
   - [x] Integrate configured things filters into the existing thing filter window.
+  - [x] Show selected thing type counts in the Filter Selected Things dialog like UDB.
   - [x] Match UDB strict custom field type checks in things filters.
   - [x] Ignore cross-format unknown thing flag fields when evaluating things filters.
   - [x] Adjust things filter criteria by UDB map-format interface capabilities.
