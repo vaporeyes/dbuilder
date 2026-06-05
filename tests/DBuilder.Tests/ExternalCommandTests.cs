@@ -43,6 +43,23 @@ public class ExternalCommandTests
     }
 
     [Fact]
+    public void BuildInvocationsAppendsUdbStyleLaunchArguments()
+    {
+        var settings = new ExternalCommandSettings
+        {
+            Commands = "\"/tools/pre command\" --flag\npost",
+        };
+
+        var invocations = ExternalCommand.BuildInvocations(settings, "\"/tmp/test map.wad\" extra");
+
+        Assert.Equal(2, invocations.Count);
+        Assert.Equal("/tools/pre command", invocations[0].FileName);
+        Assert.Equal(new[] { "--flag", "/tmp/test map.wad", "extra" }, invocations[0].Arguments);
+        Assert.Equal("post", invocations[1].FileName);
+        Assert.Equal(new[] { "/tmp/test map.wad", "extra" }, invocations[1].Arguments);
+    }
+
+    [Fact]
     public void BuildInvocationsSkipsBlankCommands()
     {
         var settings = new ExternalCommandSettings { Commands = " \r\n\t" };

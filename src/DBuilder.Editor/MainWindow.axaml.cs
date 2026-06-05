@@ -4573,15 +4573,6 @@ public partial class MainWindow : Window
     private void OnTestMap(object? sender, RoutedEventArgs e)
     {
         if (_map is null || _mapMarker is null) { SetStatus("No map loaded to test."); return; }
-        if (_mapOptions?.TestPreCommand is { } preCommand)
-        {
-            var preResult = ExternalCommand.Run(preCommand, "Before test map");
-            if (!preResult.Success)
-            {
-                SetStatus(preResult.Message);
-                return;
-            }
-        }
 
         // Source port: env, else settings, else a standard GZDoom install.
         string? port = Environment.GetEnvironmentVariable("DBUILDER_TESTPORT");
@@ -4614,6 +4605,16 @@ public partial class MainWindow : Window
             string temp = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"dbuilder_test_{_mapMarker}.wad");
             System.IO.File.WriteAllBytes(temp, bytes);
 
+            if (_mapOptions?.TestPreCommand is { } preCommand)
+            {
+                var preResult = ExternalCommand.Run(preCommand, "Before test map", temp);
+                if (!preResult.Success)
+                {
+                    SetStatus(preResult.Message);
+                    return;
+                }
+            }
+
             string template = Environment.GetEnvironmentVariable("DBUILDER_TESTPORT_ARGS")
                 ?? TestArgsTemplate();
             var args = SourcePort.BuildArgs(template, iwad!, temp, _mapMarker, TestResourcePaths());
@@ -4621,7 +4622,7 @@ public partial class MainWindow : Window
             System.Diagnostics.Process.Start(SourcePort.CreateStartInfo(port!, args));
             if (_mapOptions?.TestPostCommand is { } postCommand)
             {
-                var postResult = ExternalCommand.Run(postCommand, "After test map");
+                var postResult = ExternalCommand.Run(postCommand, "After test map", temp);
                 if (!postResult.Success)
                 {
                     SetStatus(postResult.Message);

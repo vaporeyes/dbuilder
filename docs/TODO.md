@@ -98,6 +98,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Expose adjacent visual vertex slope handle selection in the Settings dialog.
 - [ ] Port pre-command and post-command support.
   - [x] Execute configured before/after Test Map commands.
+  - [x] Pass the temporary Test Map WAD path to before/after Test Map commands.
   - [x] Execute configured before/after Reload Resources commands.
 - [ ] Port game testing flow with configurable source ports.
   - [x] Use loaded game configuration test parameter templates when no user override is set.

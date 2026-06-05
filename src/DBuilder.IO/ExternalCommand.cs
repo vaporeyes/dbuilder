@@ -37,20 +37,28 @@ public static class ExternalCommandLaunch
 public static class ExternalCommand
 {
     public static List<ExternalCommandInvocation> BuildInvocations(ExternalCommandSettings settings)
+        => BuildInvocations(settings, "");
+
+    public static List<ExternalCommandInvocation> BuildInvocations(ExternalCommandSettings settings, string arguments)
     {
         var result = new List<ExternalCommandInvocation>();
+        var extraArguments = SplitArguments(arguments);
         foreach (string line in CommandLines(settings.Commands))
         {
             var tokens = SplitArguments(line);
             if (tokens.Count == 0) continue;
+            if (extraArguments.Count > 0) tokens.AddRange(extraArguments);
             result.Add(new ExternalCommandInvocation(tokens[0], tokens.GetRange(1, tokens.Count - 1), settings.WorkingDirectory));
         }
         return result;
     }
 
     public static ExternalCommandResult Run(ExternalCommandSettings settings, string label)
+        => Run(settings, label, "");
+
+    public static ExternalCommandResult Run(ExternalCommandSettings settings, string label, string arguments)
     {
-        var invocations = BuildInvocations(settings);
+        var invocations = BuildInvocations(settings, arguments);
         if (invocations.Count == 0) return ExternalCommandResult.Ok($"{label}: no command configured.");
 
         foreach (var invocation in invocations)

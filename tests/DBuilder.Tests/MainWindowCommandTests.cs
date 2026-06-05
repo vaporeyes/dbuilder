@@ -1020,6 +1020,16 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void TestMapPassesTemporaryWadToPreAndPostCommands()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("System.IO.File.WriteAllBytes(temp, bytes);", body, StringComparison.Ordinal);
+        Assert.Contains("ExternalCommand.Run(preCommand, \"Before test map\", temp)", body, StringComparison.Ordinal);
+        Assert.Contains("ExternalCommand.Run(postCommand, \"After test map\", temp)", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SoundPropagationColorUpdatesRefreshActiveSoundEnvironmentOverlay()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
