@@ -1442,6 +1442,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Apply visual culling to 3D thing billboard drawing.
 - [ ] Port visual camera behavior.
   - [x] Add UDB-style Move Camera to Cursor visual action with 64-unit target offset.
+  - [x] Add raw UDB move camera to cursor action alias to shortcut metadata and dispatch.
   - [x] Add UDB-style visual Toggle Gravity action alias.
   - [x] Add UDB-style held visual camera movement action ids for WASD and Q/E.
   - [x] Add UDB-style held Orbit visual action with target-centered camera movement.

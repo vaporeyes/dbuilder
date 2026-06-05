@@ -702,6 +702,7 @@ public sealed class MapControlCommandTests
     [InlineData("map3d.copyselection", "CopyVisualThingSelection3D()")]
     [InlineData("map3d.cutselection", "CutVisualThingSelection3D()")]
     [InlineData("map3d.pasteselection", "PasteVisualThingSelection3D()")]
+    [InlineData("map3d.movecameratocursor", "MoveCameraToCursor()")]
     [InlineData("map3d.applycamerarotationtothings", "ApplyCameraRotationToSelectedThings3D()")]
     [InlineData("map3d.thingaligntowall", "AlignSelectedVisualThingsToWall3D()")]
     [InlineData("map3d.showvisualthings", "CycleVisualThings3D()")]

@@ -6183,6 +6183,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 RequestNextFrameRendering();
                 return true;
             case "map3d.move-camera-to-cursor":
+            case "map3d.movecameratocursor":
                 MoveCameraToCursor();
                 return true;
             case "map3d.move-thing-left":

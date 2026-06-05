@@ -502,6 +502,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map3d.togglegravity", "Toggle Gravity", "G", EditorCommandScope.Map3D, AllowScroll: true),
         new EditorCommandDescriptor("map3d.walk-mode", "Toggle walk mode (gravity)", "G", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.move-camera-to-cursor", "Move Camera to Cursor", "Menu", EditorCommandScope.Map3D),
+        new EditorCommandDescriptor("map3d.movecameratocursor", "Move Camera to Cursor", "Menu", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.move-thing-left", "Move Thing Left", "Menu", EditorCommandScope.Map3D, AllowScroll: true, Repeat: true),
         new EditorCommandDescriptor("map3d.move-thing-right", "Move Thing Right", "Menu", EditorCommandScope.Map3D, AllowScroll: true, Repeat: true),
         new EditorCommandDescriptor("map3d.move-thing-forward", "Move Thing Forward", "Menu", EditorCommandScope.Map3D, AllowScroll: true, Repeat: true),

@@ -1844,6 +1844,7 @@ public class EditorCommandCatalogTests
             ["map3d.arch-between-handles"] = "Arch Between Slope Handles",
             ["map3d.archbetweenhandles"] = "Arch Between Slope Handles",
             ["map3d.move-camera-to-cursor"] = "Move Camera to Cursor",
+            ["map3d.movecameratocursor"] = "Move Camera to Cursor",
         };
 
         foreach ((string commandId, string title) in expected)
