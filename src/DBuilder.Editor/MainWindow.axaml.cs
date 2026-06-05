@@ -4358,7 +4358,8 @@ public partial class MainWindow : Window
             return;
         }
 
-        SetStatus($"Editing mode help: {MapView.CurrentEditMode}");
+        string topic = EditModeHelpModel.TopicForMode(MapView.CurrentEditMode.ToString());
+        SetStatus(EditModeHelpModel.StatusText(topic));
         MapView.Focus();
     }
 

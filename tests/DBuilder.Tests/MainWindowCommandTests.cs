@@ -1746,6 +1746,8 @@ public sealed class MainWindowCommandTests
         Assert.Contains("case \"window.reference-manual\": OnReferenceManual(this, new RoutedEventArgs()); return true;", code, StringComparison.Ordinal);
         Assert.Contains("SetStatus(ReferenceManualModel.StatusText(ReferenceManualModel.IntroductionTopic));", code, StringComparison.Ordinal);
         Assert.Contains("case \"window.edit-mode-help\": OnEditModeHelp(this, new RoutedEventArgs()); return true;", code, StringComparison.Ordinal);
+        Assert.Contains("string topic = EditModeHelpModel.TopicForMode(MapView.CurrentEditMode.ToString());", code, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(EditModeHelpModel.StatusText(topic));", code, StringComparison.Ordinal);
         Assert.Contains("EditModeHelpMenuItem,", code, StringComparison.Ordinal);
     }
 
