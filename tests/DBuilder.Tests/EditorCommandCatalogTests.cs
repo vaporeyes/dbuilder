@@ -1315,16 +1315,17 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map2d.scrollwest", "Scroll West")]
-    [InlineData("map2d.scrolleast", "Scroll East")]
-    [InlineData("map2d.scrollnorth", "Scroll North")]
-    [InlineData("map2d.scrollsouth", "Scroll South")]
-    public void ScrollCommandsMatchUdbActionSurface(string commandId, string title)
+    [InlineData("map2d.scrollwest", "Scroll West", "Scrolls the 2D map view to the left.")]
+    [InlineData("map2d.scrolleast", "Scroll East", "Scrolls the 2D map view to the right.")]
+    [InlineData("map2d.scrollnorth", "Scroll North", "Scrolls the 2D map view up.")]
+    [InlineData("map2d.scrollsouth", "Scroll South", "Scrolls the 2D map view down.")]
+    public void ScrollCommandsMatchUdbActionSurface(string commandId, string title, string description)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
