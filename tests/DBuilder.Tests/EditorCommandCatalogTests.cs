@@ -3422,24 +3422,42 @@ public class EditorCommandCatalogTests
     [Theory]
     [InlineData("map3d.align-texture-x", "Align texture X", "A")]
     [InlineData("map3d.align-texture-y", "Align texture Y", "Shift+A")]
-    [InlineData("map3d.visual-auto-align", "Auto-align Textures X and Y", "Ctrl/Cmd+A")]
-    [InlineData("map3d.visualautoalign", "Auto-align Textures X and Y", "Ctrl/Cmd+A")]
-    [InlineData("map3d.visual-auto-align-x", "Auto-align Textures X", "Menu")]
-    [InlineData("map3d.visualautoalignx", "Auto-align Textures X", "Menu")]
-    [InlineData("map3d.visual-auto-align-y", "Auto-align Textures Y", "Menu")]
-    [InlineData("map3d.visualautoaligny", "Auto-align Textures Y", "Menu")]
-    [InlineData("map3d.visual-auto-align-to-selection", "Auto-align Textures to Selection (X and Y)", "Menu")]
-    [InlineData("map3d.visualautoaligntoselection", "Auto-align Textures to Selection (X and Y)", "Menu")]
-    [InlineData("map3d.visual-auto-align-to-selection-x", "Auto-align Textures to Selection (X)", "Menu")]
-    [InlineData("map3d.visualautoaligntoselectionx", "Auto-align Textures to Selection (X)", "Menu")]
-    [InlineData("map3d.visual-auto-align-to-selection-y", "Auto-align Textures to Selection (Y)", "Menu")]
-    [InlineData("map3d.visualautoaligntoselectiony", "Auto-align Textures to Selection (Y)", "Menu")]
-    public void VisualAutoAlignCommandsMatchUdbActionSurface(string id, string title, string gesture)
+    public void VisualTextureAlignCommandsMatchLocalActionSurface(string id, string title, string gesture)
     {
         var command = EditorCommandCatalog.Find(id);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(gesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
+
+        Assert.Equal("map3d.visualautoalign", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "A", accelerator: true));
+    }
+
+    [Theory]
+    [InlineData("map3d.visual-auto-align", "Auto-align Textures X and Y", "Ctrl/Cmd+A", "Automatically aligns the neighbouring textures X and Y offsets until another texture is encountered.")]
+    [InlineData("map3d.visualautoalign", "Auto-align Textures X and Y", "Ctrl/Cmd+A", "Automatically aligns the neighbouring textures X and Y offsets until another texture is encountered.")]
+    [InlineData("map3d.visual-auto-align-x", "Auto-align Textures X", "Menu", "Automatically aligns the neighbouring textures X offsets until another texture is encountered.")]
+    [InlineData("map3d.visualautoalignx", "Auto-align Textures X", "Menu", "Automatically aligns the neighbouring textures X offsets until another texture is encountered.")]
+    [InlineData("map3d.visual-auto-align-y", "Auto-align Textures Y", "Menu", "Automatically aligns the neighbouring textures Y offsets until another texture is encountered. The Y alignment only takes the ceiling height for each sidedef into account.")]
+    [InlineData("map3d.visualautoaligny", "Auto-align Textures Y", "Menu", "Automatically aligns the neighbouring textures Y offsets until another texture is encountered. The Y alignment only takes the ceiling height for each sidedef into account.")]
+    [InlineData("map3d.visual-auto-align-to-selection", "Auto-align Textures to Selection (X and Y)", "Menu", "Automatically aligns the neighbouring textures X and Y offsets to selected sidedefs until another texture is encountered.")]
+    [InlineData("map3d.visualautoaligntoselection", "Auto-align Textures to Selection (X and Y)", "Menu", "Automatically aligns the neighbouring textures X and Y offsets to selected sidedefs until another texture is encountered.")]
+    [InlineData("map3d.visual-auto-align-to-selection-x", "Auto-align Textures to Selection (X)", "Menu", "Automatically aligns the neighbouring textures X offsets to selected sidedefs until another texture is encountered.")]
+    [InlineData("map3d.visualautoaligntoselectionx", "Auto-align Textures to Selection (X)", "Menu", "Automatically aligns the neighbouring textures X offsets to selected sidedefs until another texture is encountered.")]
+    [InlineData("map3d.visual-auto-align-to-selection-y", "Auto-align Textures to Selection (Y)", "Menu", "Automatically aligns the neighbouring textures Y offsets to selected sidedefs until another texture is encountered.")]
+    [InlineData("map3d.visualautoaligntoselectiony", "Auto-align Textures to Selection (Y)", "Menu", "Automatically aligns the neighbouring textures Y offsets to selected sidedefs until another texture is encountered.")]
+    public void VisualAutoAlignCommandsMatchUdbActionSurface(string id, string title, string gesture, string description)
+    {
+        var command = EditorCommandCatalog.Find(id);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal(gesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
