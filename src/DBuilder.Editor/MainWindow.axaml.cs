@@ -1527,6 +1527,7 @@ public partial class MainWindow : Window
             case "window.map-options": OnMapOptions(this, new RoutedEventArgs()); return true;
             case "window.snap-selection-to-grid": OnSnapSelectionToGrid(this, new RoutedEventArgs()); return true;
             case "window.game-configurations": OnLoadConfig(this, new RoutedEventArgs()); return true;
+            case "window.configuration": OnLoadConfig(this, new RoutedEventArgs()); return true;
             case "window.preferences": OnSettings(this, new RoutedEventArgs()); return true;
             case "window.exit": OnExit(this, new RoutedEventArgs()); return true;
             case "window.reference-manual": OnReferenceManual(this, new RoutedEventArgs()); return true;
@@ -1542,6 +1543,7 @@ public partial class MainWindow : Window
             case "window.go-to-coordinates": OnGoToCoordinates(this, new RoutedEventArgs()); return true;
             case "window.status-history": OnStatusHistory(this, new RoutedEventArgs()); return true;
             case "window.show-errors": OnErrorLog(this, new RoutedEventArgs()); return true;
+            case "window.showerrors": OnErrorLog(this, new RoutedEventArgs()); return true;
             case "window.browse-wall-textures": OnBrowseWallTextures(this, new RoutedEventArgs()); return true;
             case "window.browse-flats": OnBrowseFlats(this, new RoutedEventArgs()); return true;
             case "window.browse-floor-flats": OnBrowseFloorFlats(this, new RoutedEventArgs()); return true;
@@ -4238,7 +4240,7 @@ public partial class MainWindow : Window
             "window.save-as-format" => SaveAsFormatMenuItem,
             "window.map-options" => MapOptionsMenuItem,
             "window.snap-selection-to-grid" => SnapSelectionToGridMenuItem,
-            "window.game-configurations" => LoadGameConfigMenuItem,
+            "window.game-configurations" or "window.configuration" => LoadGameConfigMenuItem,
             "window.preferences" => SettingsMenuItem,
             "window.exit" => ExitMenuItem,
             "window.view-used-tags" => TagStatisticsMenuItem,
@@ -4247,7 +4249,7 @@ public partial class MainWindow : Window
             "window.view-thing-types" => ThingStatisticsMenuItem,
             "window.center-on-coordinates" or "window.go-to-coordinates" => GoToCoordinatesMenuItem,
             "window.status-history" => StatusHistoryMenuItem,
-            "window.show-errors" => ErrorLogMenuItem,
+            "window.show-errors" or "window.showerrors" => ErrorLogMenuItem,
             "window.browse-wall-textures" => BrowseWallTexturesMenuItem,
             "window.browse-flats" => BrowseFlatsMenuItem,
             "window.browse-floor-flats" => BrowseFloorFlatsMenuItem,

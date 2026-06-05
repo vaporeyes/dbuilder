@@ -53,6 +53,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port error logging and error display behavior.
   - [x] Write caught editor workflow failures and unhandled exceptions to app-data error logs.
   - [x] Expose recent error log and crash report files from the View menu.
+  - [x] Add UDB-style showerrors action alias.
 - [ ] Port toast, status, and notification behavior.
   - [x] Keep a bounded status history and expose it from the View menu.
   - [x] Add status history clearing from the history window.
@@ -295,6 +296,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add stable UDB action ids for Reload Resources and Grid Setup.
   - [x] Add stable UDB action ids for file actions and Map Options.
   - [x] Add stable UDB action ids for Preferences, Game Configurations, and Snap Selection to Grid.
+  - [x] Add raw UDB configuration action alias for Game Configurations.
   - [x] Add stable UDB action ids for Help shortcuts and About.
   - [x] Add searchable, collapsible organization to the Help shortcuts reference.
   - [x] Add stable UDB action id for Things Filters setup.

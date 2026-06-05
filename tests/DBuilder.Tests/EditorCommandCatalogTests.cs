@@ -336,6 +336,7 @@ public class EditorCommandCatalogTests
     [InlineData("window.map-options", "Map Options", "Menu")]
     [InlineData("window.snap-selection-to-grid", "Snap Selected Map Elements to Grid", "Menu")]
     [InlineData("window.game-configurations", "Game Configurations", "Menu")]
+    [InlineData("window.configuration", "Game Configurations", "Menu")]
     [InlineData("window.preferences", "Preferences", "Menu")]
     [InlineData("window.exit", "Exit", "Menu")]
     [InlineData("window.reference-manual", "Reference Manual", "Menu")]
@@ -379,6 +380,7 @@ public class EditorCommandCatalogTests
     public void ShowErrorsCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("window.show-errors");
+        var udbAlias = EditorCommandCatalog.Find("window.showerrors");
 
         Assert.NotNull(command);
         Assert.Equal("Show Errors and Warnings", command.Title);
@@ -387,6 +389,9 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.False(command.AllowScroll);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Fact]

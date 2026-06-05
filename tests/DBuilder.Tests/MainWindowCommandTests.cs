@@ -15,6 +15,7 @@ public sealed class MainWindowCommandTests
     [InlineData("window.add-resource", "OnAddResource")]
     [InlineData("window.add-resource-directory", "OnAddResourceDirectory")]
     [InlineData("window.save-as-format", "OnSaveAsFormat")]
+    [InlineData("window.configuration", "OnLoadConfig")]
     [InlineData("window.exit", "OnExit")]
     [InlineData("window.reference-manual", "OnReferenceManual")]
     [InlineData("window.edit-mode-help", "OnEditModeHelp")]
@@ -173,6 +174,7 @@ public sealed class MainWindowCommandTests
     [InlineData("window.blockmapexplorermode", "OnBlockmapExplorer")]
     [InlineData("window.rejectexplorermode", "OnRejectViewer")]
     [InlineData("window.rejectexplorercolorconfiguration", "OnRejectExplorerColors")]
+    [InlineData("window.showerrors", "OnErrorLog")]
     [InlineData("window.nodesviewermode", "OnNodesViewer")]
     [InlineData("window.soundpropagationmode", "OnSoundPropagation")]
     [InlineData("window.soundenvironmentmode", "OnSoundEnvironments")]
@@ -1430,9 +1432,9 @@ public sealed class MainWindowCommandTests
         Assert.Contains("\"window.save\" or \"window.save-map\" => SaveMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.map-options\" => MapOptionsMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.snap-selection-to-grid\" => SnapSelectionToGridMenuItem", code, StringComparison.Ordinal);
-        Assert.Contains("\"window.game-configurations\" => LoadGameConfigMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.game-configurations\" or \"window.configuration\" => LoadGameConfigMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.exit\" => ExitMenuItem", code, StringComparison.Ordinal);
-        Assert.Contains("\"window.show-errors\" => ErrorLogMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.show-errors\" or \"window.showerrors\" => ErrorLogMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.model-render-all\" => ModelRenderAllMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.next-model-render-mode\" => NextModelRenderModeMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.toggle-3d-floors\" => Toggle3DFloorsMenuItem", code, StringComparison.Ordinal);
