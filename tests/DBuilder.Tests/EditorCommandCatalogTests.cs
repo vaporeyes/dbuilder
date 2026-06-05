@@ -2226,6 +2226,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Apply Camera Rotation To Things", command.Title);
+        Assert.Equal("Applies the Visual Mode's current camera pitch and yaw to the selected things.", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -2235,8 +2236,10 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(commandAlias);
         Assert.Equal(command.Title, commandAlias.Title);
+        Assert.Equal(command.Description, commandAlias.Description);
         Assert.NotNull(udbCommandAlias);
         Assert.Equal(command.Title, udbCommandAlias.Title);
+        Assert.Equal(command.Description, udbCommandAlias.Description);
 
         var lookThrough = EditorCommandCatalog.Find("map3d.look-through-selection");
         var lookThroughAlias = EditorCommandCatalog.Find("map3d.look-through-thing");
@@ -2244,6 +2247,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(lookThrough);
         Assert.Equal("Look Through Selection", lookThrough.Title);
+        Assert.Equal("Places visual camera at the same position as selected thing and rotates it to match thing's angle.", lookThrough.Description);
         Assert.Equal("Y", lookThrough.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, lookThrough.Scope);
         Assert.True(lookThrough.AllowKeys);
@@ -2253,9 +2257,11 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(lookThroughAlias);
         Assert.Equal(lookThrough.Title, lookThroughAlias.Title);
+        Assert.Equal(lookThrough.Description, lookThroughAlias.Description);
         Assert.Equal(lookThrough.DefaultGesture, lookThroughAlias.DefaultGesture);
         Assert.NotNull(udbLookThroughAlias);
         Assert.Equal(lookThrough.Title, udbLookThroughAlias.Title);
+        Assert.Equal(lookThrough.Description, udbLookThroughAlias.Description);
         Assert.Equal(lookThrough.DefaultGesture, udbLookThroughAlias.DefaultGesture);
 
         var align = EditorCommandCatalog.Find("map3d.thing-align-to-wall");
@@ -2264,6 +2270,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(align);
         Assert.Equal("Align Things to Nearest Linedef", align.Title);
+        Assert.Equal("Aligns selected things to the nearest linedef.", align.Description);
         Assert.Equal("Ctrl/Cmd+Shift+A", align.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, align.Scope);
         Assert.True(align.AllowKeys);
@@ -2273,9 +2280,11 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(alignAlias);
         Assert.Equal(align.Title, alignAlias.Title);
+        Assert.Equal(align.Description, alignAlias.Description);
         Assert.Equal(align.DefaultGesture, alignAlias.DefaultGesture);
         Assert.NotNull(udbAlignAlias);
         Assert.Equal(align.Title, udbAlignAlias.Title);
+        Assert.Equal(align.Description, udbAlignAlias.Description);
         Assert.Equal(align.DefaultGesture, udbAlignAlias.DefaultGesture);
 
         var showThings = EditorCommandCatalog.Find("map3d.show-visual-things");
@@ -2283,6 +2292,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(showThings);
         Assert.Equal("Show Things", showThings.Title);
+        Assert.Equal("Cycles through the different ways the things are shown in Visual Mode.", showThings.Description);
         Assert.Equal(EditorCommandScope.Map3D, showThings.Scope);
         Assert.True(showThings.AllowKeys);
         Assert.True(showThings.AllowMouse);
@@ -2290,6 +2300,7 @@ public class EditorCommandCatalogTests
         Assert.False(showThings.Repeat);
         Assert.NotNull(udbShowThings);
         Assert.Equal(showThings.Title, udbShowThings.Title);
+        Assert.Equal(showThings.Description, udbShowThings.Description);
         Assert.Equal(showThings.DefaultGesture, udbShowThings.DefaultGesture);
     }
 
