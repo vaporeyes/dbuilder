@@ -4712,7 +4712,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             var tv = new System.Collections.Generic.List<FlatVertex>();
             bool compactThingMarkers = ThingIconRenderPolicy.UseCompactMarkers(_zoom, _fixedThingsScale, _thingArrows);
             bool overviewThingMarkers = ThingIconRenderPolicy.UseOverviewMarkers(_zoom, _thingArrows);
-            double s = ThingMarkerSize(ThingIconRenderPolicy.MarkerBaseSize(compactThingMarkers, overviewThingMarkers));
+            bool farOverviewThingMarkers = ThingIconRenderPolicy.UseFarOverviewMarkers(_zoom, _thingArrows);
+            double s = ThingMarkerSize(ThingIconRenderPolicy.MarkerBaseSize(
+                compactThingMarkers,
+                overviewThingMarkers,
+                farOverviewThingMarkers));
             Gldefs? gldefs = _resources?.GetGldefs();
             System.Collections.Generic.HashSet<(int X, int Y)>? overviewCells = null;
             if (ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(_zoom, _thingArrows))
@@ -5023,8 +5027,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         double screenX = (position.x - _camX) / scale + Bounds.Width * 0.5;
         double screenY = Bounds.Height * 0.5 - (position.y - _camY) / scale;
         return (
-            ThingIconRenderPolicy.OverviewCullCell(screenX),
-            ThingIconRenderPolicy.OverviewCullCell(screenY));
+            ThingIconRenderPolicy.OverviewCullCell(screenX, _zoom, _thingArrows),
+            ThingIconRenderPolicy.OverviewCullCell(screenY, _zoom, _thingArrows));
     }
 
     // Classic 16-colour console palette used by the .cfg thing category "color" index.

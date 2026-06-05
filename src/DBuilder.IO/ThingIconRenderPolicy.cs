@@ -10,8 +10,11 @@ public static class ThingIconRenderPolicy
     public const double ThingSpriteShrink = 2.0;
     public const double MinimumThingScreenRadius = 1.5;
     public const double OverviewMarkerScaleThreshold = 0.25;
+    public const double FarOverviewMarkerScaleThreshold = 2.0;
+    public const double FarOverviewMarkerBaseSize = 1.25;
     public const double OverviewMarkerBaseSize = 2.0;
     public const double OverviewCullCellPixels = 96.0;
+    public const double FarOverviewCullCellPixels = 160.0;
     public const double CompactMarkerBaseSize = 4.0;
     public const double RegularMarkerBaseSize = 10.0;
     public const double CompactDirectionTickBaseSize = 7.0;
@@ -23,6 +26,9 @@ public static class ThingIconRenderPolicy
     public static bool UseOverviewMarkers(double viewScale, bool thingArrows)
         => !thingArrows && viewScale >= OverviewMarkerScaleThreshold;
 
+    public static bool UseFarOverviewMarkers(double viewScale, bool thingArrows)
+        => !thingArrows && viewScale >= FarOverviewMarkerScaleThreshold;
+
     public static bool ShouldDrawDirectionTicks(double viewScale, bool thingArrows)
         => !thingArrows && viewScale < CompactMarkerScaleThreshold;
 
@@ -32,6 +38,12 @@ public static class ThingIconRenderPolicy
     public static int OverviewCullCell(double screenCoordinate)
         => (int)Math.Floor(screenCoordinate / OverviewCullCellPixels);
 
+    public static int OverviewCullCell(double screenCoordinate, double viewScale, bool thingArrows)
+        => (int)Math.Floor(screenCoordinate / OverviewCullCellPixelsFor(viewScale, thingArrows));
+
+    public static double OverviewCullCellPixelsFor(double viewScale, bool thingArrows)
+        => UseFarOverviewMarkers(viewScale, thingArrows) ? FarOverviewCullCellPixels : OverviewCullCellPixels;
+
     public static bool ShouldRenderThing(double mapRadius, double viewScale, bool fixedThingsScale, bool fixedSize = false)
         => ProjectedThingScreenRadius(mapRadius, viewScale, fixedThingsScale, fixedSize) >= MinimumThingScreenRadius;
 
@@ -40,6 +52,9 @@ public static class ThingIconRenderPolicy
 
     public static double MarkerBaseSize(bool compactMarkers, bool overviewMarkers)
         => overviewMarkers ? OverviewMarkerBaseSize : MarkerBaseSize(compactMarkers);
+
+    public static double MarkerBaseSize(bool compactMarkers, bool overviewMarkers, bool farOverviewMarkers)
+        => farOverviewMarkers ? FarOverviewMarkerBaseSize : MarkerBaseSize(compactMarkers, overviewMarkers);
 
     public static double DirectionTickBaseSize(bool compactMarkers)
         => compactMarkers ? CompactDirectionTickBaseSize : RegularDirectionTickBaseSize;

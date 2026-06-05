@@ -85,6 +85,22 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
+    public void FarOverviewMarkersUseSparseFootprint()
+    {
+        Assert.True(ThingIconRenderPolicy.UseFarOverviewMarkers(
+            ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
+            thingArrows: false));
+        Assert.False(ThingIconRenderPolicy.UseFarOverviewMarkers(
+            ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
+            thingArrows: true));
+        Assert.True(ThingIconRenderPolicy.MarkerBaseSize(
+                compactMarkers: true,
+                overviewMarkers: true,
+                farOverviewMarkers: true)
+            < ThingIconRenderPolicy.MarkerBaseSize(compactMarkers: true, overviewMarkers: true));
+    }
+
+    [Fact]
     public void OverviewMarkersSuppressDirectionTicks()
     {
         Assert.False(ThingIconRenderPolicy.ShouldDrawDirectionTicks(
@@ -123,6 +139,28 @@ public sealed class ThingIconRenderPolicyTests
         Assert.Equal(1, ThingIconRenderPolicy.OverviewCullCell(
             ThingIconRenderPolicy.OverviewCullCellPixels));
         Assert.Equal(96.0, ThingIconRenderPolicy.OverviewCullCellPixels);
+    }
+
+    [Fact]
+    public void FarOverviewCullsWithLargerScreenCells()
+    {
+        Assert.Equal(96.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
+            ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold - 0.01,
+            thingArrows: false));
+        Assert.Equal(160.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
+            ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
+            thingArrows: false));
+        Assert.Equal(96.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
+            ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
+            thingArrows: true));
+        Assert.Equal(0, ThingIconRenderPolicy.OverviewCullCell(
+            ThingIconRenderPolicy.FarOverviewCullCellPixels - 0.01,
+            ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
+            thingArrows: false));
+        Assert.Equal(1, ThingIconRenderPolicy.OverviewCullCell(
+            ThingIconRenderPolicy.FarOverviewCullCellPixels,
+            ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
+            thingArrows: false));
     }
 
     [Fact]
