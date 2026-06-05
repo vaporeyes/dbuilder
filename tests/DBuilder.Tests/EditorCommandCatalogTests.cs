@@ -1257,7 +1257,7 @@ public class EditorCommandCatalogTests
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.False(command.AllowMouse);
-        Assert.True(command.AllowScroll);
+        Assert.False(command.AllowScroll);
         Assert.False(command.Repeat);
     }
 
