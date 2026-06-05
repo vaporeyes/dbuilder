@@ -10,7 +10,7 @@ namespace DBuilder.Editor;
 
 public sealed class SettingsWindow : PropertyDialog
 {
-    private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _statusHistoryLimit, _shortcutOverrides;
+    private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _statusHistoryLimit, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _mergeGeometryMode, _pasteTagMode;
     private readonly CheckBox _autoClearSidedefTextures, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _pasteRemoveActions;
     private readonly bool _drawLineShowGuidelines;
@@ -21,7 +21,7 @@ public sealed class SettingsWindow : PropertyDialog
     private readonly int _drawCurveSegmentLength;
     private readonly DrawGridModeSettings _drawGridSettings;
 
-    public string? ConfigDir, TestPort, TestIwad, TestPortArgs, NodeBuilderPath, NodeBuilderArgs, UdbScriptExternalEditor;
+    public string? ConfigDir, TestPort, TestIwad, TestPortArgs, TestAdditionalParameters, NodeBuilderPath, NodeBuilderArgs, UdbScriptExternalEditor;
     public int? MaxRecentFiles;
     public bool AutoClearSidedefTextures;
     public bool DynamicGridSize;
@@ -54,6 +54,7 @@ public sealed class SettingsWindow : PropertyDialog
         _testPort  = AddField("Test source port", s.TestPort ?? "");
         _testIwad  = AddField("Test IWAD", s.TestIwad ?? "");
         _testArgs  = AddField("Test port args", s.TestPortArgs ?? "");
+        _testAdditionalParameters = AddField("Test additional parameters", s.TestAdditionalParameters ?? "");
         _nodePath  = AddField("Node builder", s.NodeBuilderPath ?? "");
         _nodeArgs  = AddField("Node builder args", s.NodeBuilderArgs ?? "");
         _udbScriptExternalEditor = AddFieldWithButton(
@@ -112,6 +113,7 @@ public sealed class SettingsWindow : PropertyDialog
         TestPort = NullIfBlank(_testPort.Text);
         TestIwad = NullIfBlank(_testIwad.Text);
         TestPortArgs = NullIfBlank(_testArgs.Text);
+        TestAdditionalParameters = NullIfBlank(_testAdditionalParameters.Text);
         NodeBuilderPath = NullIfBlank(_nodePath.Text);
         NodeBuilderArgs = NullIfBlank(_nodeArgs.Text);
         UdbScriptExternalEditor = UdbScriptPreferencesModel.AcceptExternalEditorPath(_udbScriptExternalEditor.Text ?? "")?.Value?.ToString();

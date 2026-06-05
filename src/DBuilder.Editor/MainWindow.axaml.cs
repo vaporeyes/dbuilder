@@ -1310,6 +1310,7 @@ public partial class MainWindow : Window
         _settings.TestPort = dlg.TestPort;
         _settings.TestIwad = dlg.TestIwad;
         _settings.TestPortArgs = dlg.TestPortArgs;
+        _settings.TestAdditionalParameters = dlg.TestAdditionalParameters;
         _settings.NodeBuilderPath = dlg.NodeBuilderPath;
         _settings.NodeBuilderArgs = dlg.NodeBuilderArgs;
         _settings.UdbScriptExternalEditor = dlg.UdbScriptExternalEditor;
@@ -4750,7 +4751,13 @@ public partial class MainWindow : Window
 
             string template = Environment.GetEnvironmentVariable("DBUILDER_TESTPORT_ARGS")
                 ?? TestArgsTemplate();
-            var args = SourcePort.BuildArgs(template, iwad!, temp, _mapMarker, TestResourcePaths());
+            var args = SourcePort.BuildArgs(
+                template,
+                iwad!,
+                temp,
+                _mapMarker,
+                TestResourcePaths(),
+                additionalParameters: _settings.TestAdditionalParameters);
 
             System.Diagnostics.Process.Start(SourcePort.CreateStartInfo(port!, args));
             if (_mapOptions?.TestPostCommand is { } postCommand)

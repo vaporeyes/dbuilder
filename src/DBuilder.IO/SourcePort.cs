@@ -25,7 +25,8 @@ public static class SourcePort
         string map,
         IEnumerable<string>? additionalFiles = null,
         bool testMonsters = true,
-        int skill = 3)
+        int skill = 3,
+        string? additionalParameters = null)
     {
         var (l, l1, l2) = WarpTokens(map);
         string additional = BuildAdditionalFiles(additionalFiles);
@@ -35,16 +36,7 @@ public static class SourcePort
             .Replace("\"%AP\"", additional)
             .Replace("%AP", additional);
 
-        var tokens = new List<string>();
-        var cur = new StringBuilder();
-        bool inQuote = false, has = false;
-        foreach (char ch in template)
-        {
-            if (ch == '"') { inQuote = !inQuote; has = true; }
-            else if (char.IsWhiteSpace(ch) && !inQuote) { if (has) { tokens.Add(cur.ToString()); cur.Clear(); has = false; } }
-            else { cur.Append(ch); has = true; }
-        }
-        if (has) tokens.Add(cur.ToString());
+        var tokens = SplitArguments(template);
 
         for (int i = tokens.Count - 1; i >= 0; i--)
         {
@@ -63,6 +55,8 @@ public static class SourcePort
             if (token.Length == 0) tokens.RemoveAt(i);
             else tokens[i] = token;
         }
+        if (!string.IsNullOrWhiteSpace(additionalParameters))
+            tokens.AddRange(SplitArguments(additionalParameters));
         return tokens;
     }
 
@@ -89,6 +83,21 @@ public static class SourcePort
 
     private static string Quote(string value)
         => "\"" + value.Replace("\"", "\\\"") + "\"";
+
+    private static List<string> SplitArguments(string template)
+    {
+        var tokens = new List<string>();
+        var cur = new StringBuilder();
+        bool inQuote = false, has = false;
+        foreach (char ch in template)
+        {
+            if (ch == '"') { inQuote = !inQuote; has = true; }
+            else if (char.IsWhiteSpace(ch) && !inQuote) { if (has) { tokens.Add(cur.ToString()); cur.Clear(); has = false; } }
+            else { cur.Append(ch); has = true; }
+        }
+        if (has) tokens.Add(cur.ToString());
+        return tokens;
+    }
 
     private static string NormalizeUdbTokens(string template)
         => template.Replace("%f", "%F")

@@ -27,6 +27,7 @@ public sealed class Settings
     public string? NodeBuilderArgs { get; set; }
     public string? TestPort { get; set; }
     public string? TestPortArgs { get; set; }
+    public string? TestAdditionalParameters { get; set; }
     public string? TestIwad { get; set; }
     public string? UdbScriptExternalEditor { get; set; }
     public Dictionary<string, object?> UdbScriptSettings { get; set; } = new(StringComparer.Ordinal);

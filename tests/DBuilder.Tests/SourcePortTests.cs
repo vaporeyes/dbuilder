@@ -86,6 +86,15 @@ public class SourcePortTests
     }
 
     [Fact]
+    public void UdbAdditionalParametersAppendAfterTemplateArguments()
+    {
+        var args = SourcePort.BuildArgs("-file \"%F\" +map %L",
+            "doom2.wad", "edit.wad", "MAP01", additionalParameters: "+set test_value \"value with spaces\" -host 2");
+
+        Assert.Equal(new[] { "-file", "edit.wad", "+map", "MAP01", "+set", "test_value", "value with spaces", "-host", "2" }, args);
+    }
+
+    [Fact]
     public void UdbVanillaMapxxTemplateBuildsTwoDigitWarp()
     {
         var args = SourcePort.BuildArgs("-warp %L1%L2", "doom2.wad", "edit.wad", "MAP11");

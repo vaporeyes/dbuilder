@@ -19,6 +19,19 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesTestAdditionalParameters()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("TestAdditionalParameters", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddField(\"Test additional parameters\", s.TestAdditionalParameters ?? \"\")", body, StringComparison.Ordinal);
+        Assert.Contains("TestAdditionalParameters = NullIfBlank(_testAdditionalParameters.Text);", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.TestAdditionalParameters = dlg.TestAdditionalParameters;", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesAlphaBasedTextureHighlightingPreference()
     {
         Type type = typeof(SettingsWindow);

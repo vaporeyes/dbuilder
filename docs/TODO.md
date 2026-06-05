@@ -111,6 +111,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match UDB-style `%L1` and `%L2` numeric group extraction.
   - [x] Expand UDB-style `%S` Test Map tokens from the requested skill.
   - [x] Add UDB-style Test Map skill menu model for with-monsters and no-monsters launches.
+  - [x] Append UDB-style additional Test Map parameters after the converted launch template.
 - [ ] Port node-builder discovery, configuration, and execution flow.
   - [x] Load UDB node-builder configuration profiles and apply save/test profile parameters.
   - [x] Strip stale nodebuilder lumps and verify required output lumps before accepting nodebuilder results.

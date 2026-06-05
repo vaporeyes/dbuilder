@@ -1091,6 +1091,14 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void TestMapPassesAdditionalParametersToLaunchArguments()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("additionalParameters: _settings.TestAdditionalParameters", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SoundPropagationColorUpdatesRefreshActiveSoundEnvironmentOverlay()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
