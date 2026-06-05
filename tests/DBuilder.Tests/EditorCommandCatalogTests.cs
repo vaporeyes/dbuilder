@@ -2979,36 +2979,37 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map3d.move-texture-left-1", "Move Texture Left by 1")]
-    [InlineData("map3d.movetextureleft", "Move Texture Left by 1")]
-    [InlineData("map3d.move-texture-right-1", "Move Texture Right by 1")]
-    [InlineData("map3d.movetextureright", "Move Texture Right by 1")]
-    [InlineData("map3d.move-texture-up-1", "Move Texture Up by 1")]
-    [InlineData("map3d.movetextureup", "Move Texture Up by 1")]
-    [InlineData("map3d.move-texture-down-1", "Move Texture Down by 1")]
-    [InlineData("map3d.movetexturedown", "Move Texture Down by 1")]
-    [InlineData("map3d.move-texture-left-8", "Move Texture Left by 8")]
-    [InlineData("map3d.movetextureleft8", "Move Texture Left by 8")]
-    [InlineData("map3d.move-texture-right-8", "Move Texture Right by 8")]
-    [InlineData("map3d.movetextureright8", "Move Texture Right by 8")]
-    [InlineData("map3d.move-texture-up-8", "Move Texture Up by 8")]
-    [InlineData("map3d.movetextureup8", "Move Texture Up by 8")]
-    [InlineData("map3d.move-texture-down-8", "Move Texture Down by 8")]
-    [InlineData("map3d.movetexturedown8", "Move Texture Down by 8")]
-    [InlineData("map3d.move-texture-left-grid", "Move Texture Left by Grid Size")]
-    [InlineData("map3d.movetextureleftgs", "Move Texture Left by Grid Size")]
-    [InlineData("map3d.move-texture-right-grid", "Move Texture Right by Grid Size")]
-    [InlineData("map3d.movetexturerightgs", "Move Texture Right by Grid Size")]
-    [InlineData("map3d.move-texture-up-grid", "Move Texture Up by Grid Size")]
-    [InlineData("map3d.movetextureupgs", "Move Texture Up by Grid Size")]
-    [InlineData("map3d.move-texture-down-grid", "Move Texture Down by Grid Size")]
-    [InlineData("map3d.movetexturedowngs", "Move Texture Down by Grid Size")]
-    public void VisualTextureOffsetStepCommandsMatchUdbActionSurface(string id, string title)
+    [InlineData("map3d.move-texture-left-1", "Move Texture Left by 1", "Moves the offset of the targeted or selected textures to the left by 1 pixel.")]
+    [InlineData("map3d.movetextureleft", "Move Texture Left by 1", "Moves the offset of the targeted or selected textures to the left by 1 pixel.")]
+    [InlineData("map3d.move-texture-right-1", "Move Texture Right by 1", "Moves the offset of the targeted or selected textures to the right by 1 pixel.")]
+    [InlineData("map3d.movetextureright", "Move Texture Right by 1", "Moves the offset of the targeted or selected textures to the right by 1 pixel.")]
+    [InlineData("map3d.move-texture-up-1", "Move Texture Up by 1", "Moves the offset of the targeted or selected textures up by 1 pixel.")]
+    [InlineData("map3d.movetextureup", "Move Texture Up by 1", "Moves the offset of the targeted or selected textures up by 1 pixel.")]
+    [InlineData("map3d.move-texture-down-1", "Move Texture Down by 1", "Moves the offset of the targeted or selected textures down by 1 pixel.")]
+    [InlineData("map3d.movetexturedown", "Move Texture Down by 1", "Moves the offset of the targeted or selected textures down by 1 pixel.")]
+    [InlineData("map3d.move-texture-left-8", "Move Texture Left by 8", "Moves the offset of the targeted or selected textures to the left by 8 pixels.")]
+    [InlineData("map3d.movetextureleft8", "Move Texture Left by 8", "Moves the offset of the targeted or selected textures to the left by 8 pixels.")]
+    [InlineData("map3d.move-texture-right-8", "Move Texture Right by 8", "Moves the offset of the targeted or selected textures to the right by 8 pixels.")]
+    [InlineData("map3d.movetextureright8", "Move Texture Right by 8", "Moves the offset of the targeted or selected textures to the right by 8 pixels.")]
+    [InlineData("map3d.move-texture-up-8", "Move Texture Up by 8", "Moves the offset of the targeted or selected textures up by 8 pixels.")]
+    [InlineData("map3d.movetextureup8", "Move Texture Up by 8", "Moves the offset of the targeted or selected textures up by 8 pixels.")]
+    [InlineData("map3d.move-texture-down-8", "Move Texture Down by 8", "Moves the offset of the targeted or selected textures down by 8 pixels.")]
+    [InlineData("map3d.movetexturedown8", "Move Texture Down by 8", "Moves the offset of the targeted or selected textures down by 8 pixels.")]
+    [InlineData("map3d.move-texture-left-grid", "Move Texture Left by Grid Size", "Moves the offset of the targeted or selected textures to the left by current grid size.")]
+    [InlineData("map3d.movetextureleftgs", "Move Texture Left by Grid Size", "Moves the offset of the targeted or selected textures to the left by current grid size.")]
+    [InlineData("map3d.move-texture-right-grid", "Move Texture Right by Grid Size", "Moves the offset of the targeted or selected textures to the right by current grid size.")]
+    [InlineData("map3d.movetexturerightgs", "Move Texture Right by Grid Size", "Moves the offset of the targeted or selected textures to the right by current grid size.")]
+    [InlineData("map3d.move-texture-up-grid", "Move Texture Up by Grid Size", "Moves the offset of the targeted or selected textures up by current grid size.")]
+    [InlineData("map3d.movetextureupgs", "Move Texture Up by Grid Size", "Moves the offset of the targeted or selected textures up by current grid size.")]
+    [InlineData("map3d.move-texture-down-grid", "Move Texture Down by Grid Size", "Moves the offset of the targeted or selected textures down by current grid size.")]
+    [InlineData("map3d.movetexturedowngs", "Move Texture Down by Grid Size", "Moves the offset of the targeted or selected textures down by current grid size.")]
+    public void VisualTextureOffsetStepCommandsMatchUdbActionSurface(string id, string title, string description)
     {
         var command = EditorCommandCatalog.Find(id);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
