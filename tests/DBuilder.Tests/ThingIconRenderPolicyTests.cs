@@ -60,6 +60,33 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
+    public void OverviewMarkersUseSmallestScreenFootprint()
+    {
+        Assert.True(ThingIconRenderPolicy.UseOverviewMarkers(
+            ThingIconRenderPolicy.OverviewMarkerScaleThreshold,
+            thingArrows: false));
+        Assert.False(ThingIconRenderPolicy.UseOverviewMarkers(
+            ThingIconRenderPolicy.OverviewMarkerScaleThreshold,
+            thingArrows: true));
+        Assert.True(ThingIconRenderPolicy.MarkerBaseSize(compactMarkers: true, overviewMarkers: true)
+            < ThingIconRenderPolicy.MarkerBaseSize(compactMarkers: true));
+    }
+
+    [Fact]
+    public void OverviewMarkersSuppressDirectionTicks()
+    {
+        Assert.False(ThingIconRenderPolicy.ShouldDrawDirectionTicks(
+            ThingIconRenderPolicy.OverviewMarkerScaleThreshold,
+            thingArrows: false));
+        Assert.True(ThingIconRenderPolicy.ShouldDrawDirectionTicks(
+            ThingIconRenderPolicy.OverviewMarkerScaleThreshold - 0.01,
+            thingArrows: false));
+        Assert.False(ThingIconRenderPolicy.ShouldDrawDirectionTicks(
+            ThingIconRenderPolicy.OverviewMarkerScaleThreshold - 0.01,
+            thingArrows: true));
+    }
+
+    [Fact]
     public void SpriteHalfSizeUsesThingRadiusInsteadOfRawSpritePixels()
     {
         var (halfWidth, halfHeight) = ThingIconRenderPolicy.SpriteHalfSize(

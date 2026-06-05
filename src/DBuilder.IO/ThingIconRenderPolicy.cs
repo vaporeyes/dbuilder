@@ -8,6 +8,8 @@ public static class ThingIconRenderPolicy
     public const double CompactMarkerScaleThreshold = 0.25;
     public const double FixedThingScreenRadius = 48.0;
     public const double ThingSpriteShrink = 2.0;
+    public const double OverviewMarkerScaleThreshold = 1.0;
+    public const double OverviewMarkerBaseSize = 2.0;
     public const double CompactMarkerBaseSize = 4.0;
     public const double RegularMarkerBaseSize = 10.0;
     public const double CompactDirectionTickBaseSize = 7.0;
@@ -16,8 +18,17 @@ public static class ThingIconRenderPolicy
     public static bool UseCompactMarkers(double viewScale, bool fixedThingsScale, bool thingArrows)
         => !thingArrows && viewScale >= CompactMarkerScaleThreshold;
 
+    public static bool UseOverviewMarkers(double viewScale, bool thingArrows)
+        => !thingArrows && viewScale >= OverviewMarkerScaleThreshold;
+
+    public static bool ShouldDrawDirectionTicks(double viewScale, bool thingArrows)
+        => !thingArrows && viewScale < OverviewMarkerScaleThreshold;
+
     public static double MarkerBaseSize(bool compactMarkers)
         => compactMarkers ? CompactMarkerBaseSize : RegularMarkerBaseSize;
+
+    public static double MarkerBaseSize(bool compactMarkers, bool overviewMarkers)
+        => overviewMarkers ? OverviewMarkerBaseSize : MarkerBaseSize(compactMarkers);
 
     public static double DirectionTickBaseSize(bool compactMarkers)
         => compactMarkers ? CompactDirectionTickBaseSize : RegularDirectionTickBaseSize;

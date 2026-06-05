@@ -4681,9 +4681,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_thingDirVb != null)
         {
             var dv = new System.Collections.Generic.List<FlatVertex>();
-            bool compactThingMarkers = ThingIconRenderPolicy.UseCompactMarkers(_zoom, _fixedThingsScale, _thingArrows);
-            if (!_thingArrows)
+            if (ThingIconRenderPolicy.ShouldDrawDirectionTicks(_zoom, _thingArrows))
             {
+                bool compactThingMarkers = ThingIconRenderPolicy.UseCompactMarkers(_zoom, _fixedThingsScale, _thingArrows);
                 double tickLen = ThingMarkerSize(ThingIconRenderPolicy.DirectionTickBaseSize(compactThingMarkers));
                 foreach (var t in _map.Things)
                 {
@@ -4710,7 +4710,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         {
             var tv = new System.Collections.Generic.List<FlatVertex>();
             bool compactThingMarkers = ThingIconRenderPolicy.UseCompactMarkers(_zoom, _fixedThingsScale, _thingArrows);
-            double s = ThingMarkerSize(ThingIconRenderPolicy.MarkerBaseSize(compactThingMarkers));
+            bool overviewThingMarkers = ThingIconRenderPolicy.UseOverviewMarkers(_zoom, _thingArrows);
+            double s = ThingMarkerSize(ThingIconRenderPolicy.MarkerBaseSize(compactThingMarkers, overviewThingMarkers));
             Gldefs? gldefs = _resources?.GetGldefs();
             foreach (var t in _map.Things)
             {
