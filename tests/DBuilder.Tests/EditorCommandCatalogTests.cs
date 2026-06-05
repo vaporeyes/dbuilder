@@ -3134,6 +3134,29 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void ParseOverrideTextReadsLineAndCommaSeparatedCommandGestures()
+    {
+        var overrides = EditorCommandCatalog.ParseOverrideText("""
+            window.save=F5
+            map2d.fit=Shift+R, map3d.brightness-down=[
+            """);
+
+        Assert.Contains(overrides, b => b.CommandId == "window.save" && b.Key == "F5");
+        Assert.Contains(overrides, b => b.CommandId == "map2d.fit" && b.Key == "R" && b.Shift);
+        Assert.Contains(overrides, b => b.CommandId == "map3d.brightness-down" && b.Key == "OemOpenBrackets");
+    }
+
+    [Fact]
+    public void ParseOverrideTextKeepsCommaShortcutKeys()
+    {
+        var overrides = EditorCommandCatalog.ParseOverrideText("map2d.fit=,");
+
+        var binding = Assert.Single(overrides);
+        Assert.Equal("map2d.fit", binding.CommandId);
+        Assert.Equal("OemComma", binding.Key);
+    }
+
+    [Fact]
     public void ParseOverrideTextReadsUdbStylePunctuationAndNumpadKeys()
     {
         var overrides = EditorCommandCatalog.ParseOverrideText(

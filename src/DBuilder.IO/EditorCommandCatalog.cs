@@ -951,7 +951,7 @@ public static class EditorCommandCatalog
         if (string.IsNullOrWhiteSpace(text)) return result;
 
         var byId = All.ToDictionary(command => command.Id, StringComparer.Ordinal);
-        foreach (string rawEntry in text.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        foreach (string rawEntry in SplitOverrideEntries(text, byId))
         {
             int equals = rawEntry.IndexOf('=');
             if (equals <= 0 || equals == rawEntry.Length - 1) continue;
@@ -964,6 +964,36 @@ public static class EditorCommandCatalog
         }
 
         return result;
+    }
+
+    private static IEnumerable<string> SplitOverrideEntries(string text, IReadOnlyDictionary<string, EditorCommandDescriptor> commandsById)
+    {
+        int start = 0;
+        for (int i = 0; i < text.Length; i++)
+        {
+            char ch = text[i];
+            bool separator = ch is ';' or '\r' or '\n' || ch == ',' && NextEntryStartsWithCommandId(text, i + 1, commandsById);
+            if (!separator) continue;
+
+            string entry = text[start..i].Trim();
+            if (entry.Length > 0) yield return entry;
+            start = i + 1;
+        }
+
+        string finalEntry = text[start..].Trim();
+        if (finalEntry.Length > 0) yield return finalEntry;
+    }
+
+    private static bool NextEntryStartsWithCommandId(string text, int start, IReadOnlyDictionary<string, EditorCommandDescriptor> commandsById)
+    {
+        int idStart = start;
+        while (idStart < text.Length && char.IsWhiteSpace(text[idStart])) idStart++;
+
+        int equals = text.IndexOf('=', idStart);
+        if (equals < 0) return false;
+
+        string candidate = text[idStart..equals].Trim();
+        return candidate.Length > 0 && commandsById.ContainsKey(candidate);
     }
 
     public static bool TryParseGesture(string commandId, EditorCommandScope scope, string gesture, out EditorShortcutBinding binding)

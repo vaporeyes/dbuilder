@@ -144,6 +144,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Resolve the explicit Properties command through a stable command id.
 - [ ] Port configurable key bindings.
   - [x] Persist shortcut overrides and merge them with default command bindings.
+  - [x] Parse line and comma separated shortcut overrides while preserving comma shortcut keys.
   - [x] Show effective shortcut bindings in the shortcuts reference window.
   - [x] Edit shortcut overrides from the settings dialog using stable command ids.
   - [x] Filter Help shortcut sections to commands with effective shortcut bindings.
