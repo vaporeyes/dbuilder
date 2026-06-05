@@ -206,7 +206,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.toggle-automap-textured-hidden-sector", "Toggle Selected Sector Textured Hidden", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.sector-color", "Sector Color", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.dynamic-light-color", "Dynamic Light Color", "Menu", EditorCommandScope.Window, AllowScroll: true),
-        new EditorCommandDescriptor("window.togglelightpannel", "Open Color Picker", "K", EditorCommandScope.Window, AllowScroll: false),
+        new EditorCommandDescriptor("window.togglelightpannel", "Open Color Picker", "K", EditorCommandScope.Window, AllowScroll: false, Description: "Select dynamic light thing(s) or sector(s), then use this panel to set light properties quickly."),
         new EditorCommandDescriptor("window.cancel-draw", "Cancel draw mode", "Esc", EditorCommandScope.Window, Description: "Cancels the current action and switches back to normal editing mode."),
         new EditorCommandDescriptor("window.toggle-auto-clear-sidedef-textures", "Auto Clear Sidedef Textures", "Menu", EditorCommandScope.Window, AllowScroll: true, Description: "Toggles automatic removal of sidedef textures when floor or ceiling height is changed or when geometry is drawn, copied or pasted."),
         new EditorCommandDescriptor("window.toggleautoclearsidetextures", "Auto Clear Sidedef Textures", "Menu", EditorCommandScope.Window, AllowScroll: true, Description: "Toggles automatic removal of sidedef textures when floor or ceiling height is changed or when geometry is drawn, copied or pasted."),

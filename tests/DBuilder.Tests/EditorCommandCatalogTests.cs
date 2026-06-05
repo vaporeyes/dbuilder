@@ -626,6 +626,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Open Color Picker", command.Title);
+        Assert.Equal("Select dynamic light thing(s) or sector(s), then use this panel to set light properties quickly.", command.Description);
         Assert.Equal("K", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
