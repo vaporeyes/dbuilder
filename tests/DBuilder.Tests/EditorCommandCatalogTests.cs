@@ -2108,6 +2108,21 @@ public class EditorCommandCatalogTests
         }
     }
 
+    [Theory]
+    [InlineData("map3d.toggle-visual-sidedef-slope-picking", "Toggles picking visual sidedef slope handles.")]
+    [InlineData("map3d.togglevisualslopepicking", "Toggles picking visual sidedef slope handles.")]
+    [InlineData("map3d.toggle-visual-vertex-slope-picking", "Toggles picking visual vertex slope handles.")]
+    [InlineData("map3d.togglevisualvertexslopepicking", "Toggles picking visual vertex slope handles.")]
+    [InlineData("map3d.toggle-visual-vertex-slope-adjacent-selection", "Toggles selection of adjacent visual vertex slopes, so that selecting one visual vertex slope handle will select all adjacent visual vertex slope handles.")]
+    [InlineData("map3d.togglevisualvertexslopeadjacentselection", "Toggles selection of adjacent visual vertex slopes, so that selecting one visual vertex slope handle will select all adjacent visual vertex slope handles.")]
+    public void VisualSlopePickingCommandsMatchUdbDescriptions(string id, string description)
+    {
+        var command = EditorCommandCatalog.Find(id);
+
+        Assert.NotNull(command);
+        Assert.Equal(description, command.Description);
+    }
+
     [Fact]
     public void VisualThingMovementCommandsMatchUdbActionSurface()
     {
@@ -3178,6 +3193,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Toggle Slope", command.Title);
+        Assert.Equal("Toggles Slope for selected surfaces. Select or highlight upper/lower walls to add a slope. Select or highlight floors or ceilings to remove slope.", command.Description);
         Assert.Equal("Alt+S", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -3186,6 +3202,7 @@ public class EditorCommandCatalogTests
         Assert.False(command.Repeat);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
@@ -3270,6 +3287,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Toggle Enhanced Rendering Effects", command.Title);
+        Assert.Equal("Toggles enhanced rendering effects (slopes, 3D-floors, dynamic lights, fog, sky etc.) in Visual mode.", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -3278,6 +3296,7 @@ public class EditorCommandCatalogTests
         Assert.False(command.Repeat);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
@@ -3285,15 +3304,21 @@ public class EditorCommandCatalogTests
     public void VisualClassicRenderingCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map3d.toggle-classic-rendering");
+        var udbAlias = EditorCommandCatalog.Find("map3d.toggleclassicrendering");
 
         Assert.NotNull(command);
         Assert.Equal("Toggle classic rendering", command.Title);
+        Assert.Equal("When enabled, attempts to simulate classic Doom rendering with banded light and palettized textures.", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.False(command.AllowScroll);
         Assert.False(command.Repeat);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.Description, udbAlias.Description);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Theory]
@@ -3317,9 +3342,11 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
+    [InlineData("map3d.toggle-slope", "map3d.toggleslope")]
     [InlineData("map3d.toggle-models-rendering", "map3d.gztogglemodels")]
     [InlineData("map3d.toggle-dynamic-lights-rendering", "map3d.toggledynamiclightsrendering")]
     [InlineData("map3d.toggle-dynamic-lights-rendering", "map3d.gztogglelights")]
+    [InlineData("map3d.toggle-enhanced-rendering-effects", "map3d.gztoggleenhancedrendering")]
     [InlineData("map3d.toggle-classic-rendering", "map3d.toggleclassicrendering")]
     [InlineData("map3d.toggle-fog-rendering", "map3d.togglefogrendering")]
     [InlineData("map3d.toggle-fog-rendering", "map3d.gztogglefog")]
