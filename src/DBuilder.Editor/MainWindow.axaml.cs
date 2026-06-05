@@ -5022,10 +5022,10 @@ public partial class MainWindow : Window
         RejectExplorerEngageDecision decision = RejectExplorerModel.EngageDecision(validation);
         if (!decision.CanEngage)
         {
-            SetStatus($"{decision.Title}: {decision.Message}");
+            SetStatus($"{decision.Title}: {decision.Message}", decision.IsWarning ? StatusHistoryKind.Warning : StatusHistoryKind.Info);
             return;
         }
-        if (decision.IsWarning) SetStatus($"{decision.Title}: {decision.Message}");
+        if (decision.IsWarning) SetStatus($"{decision.Title}: {decision.Message}", StatusHistoryKind.Warning);
 
         RejectTable? reject = validation.CanUse ? RejectTable.Parse(bytes ?? Array.Empty<byte>(), _map.Sectors.Count) : null;
         int? target = sel.Count == 1 ? sel[0].Index : null;

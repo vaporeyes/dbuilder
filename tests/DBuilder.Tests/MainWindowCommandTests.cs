@@ -649,8 +649,8 @@ public sealed class MainWindowCommandTests
         Assert.Equal(-1, directWadIndex);
         Assert.Contains("RejectExplorerEngageDecision decision = RejectExplorerModel.EngageDecision(validation);", body, StringComparison.Ordinal);
         Assert.Contains("if (!decision.CanEngage)", body, StringComparison.Ordinal);
-        Assert.Contains("SetStatus($\"{decision.Title}: {decision.Message}\");", body, StringComparison.Ordinal);
-        Assert.Contains("if (decision.IsWarning) SetStatus($\"{decision.Title}: {decision.Message}\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus($\"{decision.Title}: {decision.Message}\", decision.IsWarning ? StatusHistoryKind.Warning : StatusHistoryKind.Info);", body, StringComparison.Ordinal);
+        Assert.Contains("if (decision.IsWarning) SetStatus($\"{decision.Title}: {decision.Message}\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
     }
 
     [Fact]
