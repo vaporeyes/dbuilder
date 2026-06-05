@@ -2306,12 +2306,13 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Dissolve Item", command.Title);
-        Assert.Equal("Backspace", command.DefaultGesture);
+        Assert.Equal("Ctrl/Cmd+Delete", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
-        Assert.Equal("map2d.dissolveitem", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Back"));
+        Assert.Equal("map2d.dissolveitem", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Delete", accelerator: true));
+        Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Back"));
     }
 
     [Fact]
