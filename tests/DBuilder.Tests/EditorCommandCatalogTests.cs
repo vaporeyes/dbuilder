@@ -2104,30 +2104,31 @@ public class EditorCommandCatalogTests
     [Fact]
     public void VisualModeCommandsMatchUdbActionSurface()
     {
-        var expected = new Dictionary<string, string>
+        var expected = new Dictionary<string, (string Title, string Description)>
         {
-            ["map3d.toggle-visual-sidedef-slope-picking"] = "Toggle Visual Sidedef Slope Picking",
-            ["map3d.togglevisualslopepicking"] = "Toggle Visual Sidedef Slope Picking",
-            ["map3d.toggle-visual-vertex-slope-picking"] = "Toggle Visual Vertex Slope Picking",
-            ["map3d.togglevisualvertexslopepicking"] = "Toggle Visual Vertex Slope Picking",
-            ["map3d.toggle-visual-vertex-slope-adjacent-selection"] = "Toggle Adjacent Visual Vertex Slope Selection",
-            ["map3d.togglevisualvertexslopeadjacentselection"] = "Toggle Adjacent Visual Vertex Slope Selection",
-            ["map3d.reset-slope"] = "Reset Plane Slope",
-            ["map3d.resetslope"] = "Reset Plane Slope",
-            ["map3d.slope-between-handles"] = "Slope Between Handles",
-            ["map3d.slopebetweenhandles"] = "Slope Between Handles",
-            ["map3d.arch-between-handles"] = "Arch Between Slope Handles",
-            ["map3d.archbetweenhandles"] = "Arch Between Slope Handles",
-            ["map3d.move-camera-to-cursor"] = "Move Camera to Cursor",
-            ["map3d.movecameratocursor"] = "Move Camera to Cursor",
+            ["map3d.toggle-visual-sidedef-slope-picking"] = ("Toggle Visual Sidedef Slope Picking", "Toggles picking visual sidedef slope handles."),
+            ["map3d.togglevisualslopepicking"] = ("Toggle Visual Sidedef Slope Picking", "Toggles picking visual sidedef slope handles."),
+            ["map3d.toggle-visual-vertex-slope-picking"] = ("Toggle Visual Vertex Slope Picking", "Toggles picking visual vertex slope handles."),
+            ["map3d.togglevisualvertexslopepicking"] = ("Toggle Visual Vertex Slope Picking", "Toggles picking visual vertex slope handles."),
+            ["map3d.toggle-visual-vertex-slope-adjacent-selection"] = ("Toggle Adjacent Visual Vertex Slope Selection", "Toggles selection of adjacent visual vertex slopes, so that selecting one visual vertex slope handle will select all adjacent visual vertex slope handles."),
+            ["map3d.togglevisualvertexslopeadjacentselection"] = ("Toggle Adjacent Visual Vertex Slope Selection", "Toggles selection of adjacent visual vertex slopes, so that selecting one visual vertex slope handle will select all adjacent visual vertex slope handles."),
+            ["map3d.reset-slope"] = ("Reset Plane Slope", "Resets UDMF slope applied to a floor/ceiling."),
+            ["map3d.resetslope"] = ("Reset Plane Slope", "Resets UDMF slope applied to a floor/ceiling."),
+            ["map3d.slope-between-handles"] = ("Slope Between Handles", "Slopes the selected floors and ceilings between the selected slope handles."),
+            ["map3d.slopebetweenhandles"] = ("Slope Between Handles", "Slopes the selected floors and ceilings between the selected slope handles."),
+            ["map3d.arch-between-handles"] = ("Arch Between Slope Handles", "Arches the selected floors and ceilings between the selected slope handles."),
+            ["map3d.archbetweenhandles"] = ("Arch Between Slope Handles", "Arches the selected floors and ceilings between the selected slope handles."),
+            ["map3d.move-camera-to-cursor"] = ("Move Camera to Cursor", "Place the camera nearby the point at the cursor."),
+            ["map3d.movecameratocursor"] = ("Move Camera to Cursor", "Place the camera nearby the point at the cursor."),
         };
 
-        foreach ((string commandId, string title) in expected)
+        foreach ((string commandId, (string title, string description)) in expected)
         {
             var command = EditorCommandCatalog.Find(commandId);
 
             Assert.NotNull(command);
             Assert.Equal(title, command.Title);
+            Assert.Equal(description, command.Description);
             Assert.Equal("Menu", command.DefaultGesture);
             Assert.Equal(EditorCommandScope.Map3D, command.Scope);
             Assert.True(command.AllowKeys);
@@ -2180,14 +2181,14 @@ public class EditorCommandCatalogTests
             ["map3d.movethingfwd"] = ("Move Thing Forward", true, true, "Moves selected Things away from camera in Visual Modes."),
             ["map3d.move-thing-backward"] = ("Move Thing Backward", true, true, "Moves selected Things closer to camera in Visual Modes."),
             ["map3d.movethingback"] = ("Move Thing Backward", true, true, "Moves selected Things closer to camera in Visual Modes."),
-            ["map3d.insert-item"] = ("Insert Item", true, false, ""),
-            ["map3d.insertitem"] = ("Insert Item", true, false, ""),
-            ["map3d.copy-selection"] = ("Copy Selection", false, false, ""),
-            ["map3d.copyselection"] = ("Copy Selection", false, false, ""),
-            ["map3d.cut-selection"] = ("Cut Selection", false, false, ""),
-            ["map3d.cutselection"] = ("Cut Selection", false, false, ""),
-            ["map3d.paste-selection"] = ("Paste Selection", false, false, ""),
-            ["map3d.pasteselection"] = ("Paste Selection", false, false, ""),
+            ["map3d.insert-item"] = ("Insert Item", true, false, "Creates a new item depending on the editing mode you are in."),
+            ["map3d.insertitem"] = ("Insert Item", true, false, "Creates a new item depending on the editing mode you are in."),
+            ["map3d.copy-selection"] = ("Copy Selection", false, false, "Copies the current selection to the clipboard."),
+            ["map3d.copyselection"] = ("Copy Selection", false, false, "Copies the current selection to the clipboard."),
+            ["map3d.cut-selection"] = ("Cut Selection", false, false, "Copies the current selection to the clipboard and removes it from the map."),
+            ["map3d.cutselection"] = ("Cut Selection", false, false, "Copies the current selection to the clipboard and removes it from the map."),
+            ["map3d.paste-selection"] = ("Paste Selection", false, false, "Pastes the current contents of the clipboard into the map as a new selection."),
+            ["map3d.pasteselection"] = ("Paste Selection", false, false, "Pastes the current contents of the clipboard into the map as a new selection."),
             ["map3d.place-thing-at-cursor"] = ("Move Thing to Cursor Location", false, false, "Moves selected Things to cursor location preserving relative offsets in Visual Modes."),
             ["map3d.placethingatcursor"] = ("Move Thing to Cursor Location", false, false, "Moves selected Things to cursor location preserving relative offsets in Visual Modes."),
             ["map3d.rotate-thing-clockwise"] = ("Rotate Thing Clockwise", true, true, "Rotates selected or highlighted things clockwise. Also rotates floor/ceiling textures in UDMF map format, and rotates the selection in Edit Selection mode."),
@@ -2950,6 +2951,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Orbit", command.Title);
+        Assert.Equal("When held, the mouse will orbit the camera around the point at the cursor, rather than look around.", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
