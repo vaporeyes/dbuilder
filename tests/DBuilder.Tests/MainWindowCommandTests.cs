@@ -1316,6 +1316,13 @@ public sealed class MainWindowCommandTests
         Assert.Contains("Watermark = \"Search commands\"", palette, StringComparison.Ordinal);
         Assert.Contains("Text = \"No results found\"", palette, StringComparison.Ordinal);
         Assert.Contains("Key.Enter", palette, StringComparison.Ordinal);
+        Assert.Contains("Key.Down", palette, StringComparison.Ordinal);
+        Assert.Contains("Key.Up", palette, StringComparison.Ordinal);
+        Assert.Contains("Key.PageDown", palette, StringComparison.Ordinal);
+        Assert.Contains("Key.PageUp", palette, StringComparison.Ordinal);
+        Assert.Contains("MoveSelection(CommandPaletteModel.MaxItems - 1, wrap: false)", palette, StringComparison.Ordinal);
+        Assert.Contains("MoveSelection(-CommandPaletteModel.MaxItems + 1, wrap: false)", palette, StringComparison.Ordinal);
+        Assert.Contains("SelectedUsableRow", palette, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ToggleAutomapSecretLineMenuItem, \"Toggle Selected Line Secret\", \"window.toggle-automap-secret-line\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ExportObjectMenuItem, \"Export Object OBJ\", \"window.export-object\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ExportImageMenuItem, \"Export Image PNG\", \"window.export-image\");", code, StringComparison.Ordinal);

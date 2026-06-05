@@ -259,6 +259,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Treat hidden parent menus as unavailable command palette actions.
   - [x] Match UDB command palette usable and unavailable group labels.
   - [x] Match UDB command palette no-results text.
+  - [x] Match UDB command palette keyboard navigation.
   - [x] Reflect core undo, archive, tool, and Help command availability in command palette usable actions.
   - [x] Reflect view, model rendering, and explorer command availability in command palette usable actions.
   - [x] Reflect prefab, gradient, automap, and maintenance command availability in command palette usable actions.

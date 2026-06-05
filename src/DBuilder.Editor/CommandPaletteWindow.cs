@@ -29,7 +29,8 @@ public sealed class CommandPaletteWindow : Window
         MinHeight = 34,
     };
 
-    private CommandPaletteRow? _firstUsableRow;
+    private CommandPaletteRow[] _usableRows = [];
+    private int _selectedUsableIndex;
 
     public CommandPaletteWindow(
         IReadOnlyList<EditorShortcutBinding> bindings,
@@ -80,13 +81,42 @@ public sealed class CommandPaletteWindow : Window
 
     private Control SearchBar()
     {
-        _search.TextChanged += (_, _) => RebuildGroups(_search.Text);
+        _search.TextChanged += (_, _) =>
+        {
+            _selectedUsableIndex = 0;
+            RebuildGroups(_search.Text);
+        };
         _search.KeyDown += (_, e) =>
         {
-            if (e.Key == Key.Enter && _firstUsableRow is { } row)
+            switch (e.Key)
             {
-                e.Handled = true;
-                RunCommand(row.Command.Id);
+                case Key.Escape:
+                    e.Handled = true;
+                    Close();
+                    break;
+                case Key.Down:
+                    e.Handled = true;
+                    MoveSelection(1, wrap: true);
+                    break;
+                case Key.Up:
+                    e.Handled = true;
+                    MoveSelection(-1, wrap: true);
+                    break;
+                case Key.PageDown:
+                    e.Handled = true;
+                    MoveSelection(CommandPaletteModel.MaxItems - 1, wrap: false);
+                    break;
+                case Key.PageUp:
+                    e.Handled = true;
+                    MoveSelection(-CommandPaletteModel.MaxItems + 1, wrap: false);
+                    break;
+                case Key.Enter:
+                    if (SelectedUsableRow is { } row)
+                    {
+                        e.Handled = true;
+                        RunCommand(row.Command.Id);
+                    }
+                    break;
             }
         };
 
@@ -109,13 +139,18 @@ public sealed class CommandPaletteWindow : Window
             text,
             _recentCommandIds);
 
-        _firstUsableRow = groups
+        _usableRows = groups
             .SelectMany(group => group.Rows)
-            .FirstOrDefault(row => row.IsUsable);
+            .Where(row => row.IsUsable)
+            .ToArray();
+        if (_selectedUsableIndex >= _usableRows.Length)
+            _selectedUsableIndex = Math.Max(0, _usableRows.Length - 1);
+
         _groups.Children.Clear();
 
+        int usableOrdinal = 0;
         foreach (var group in groups)
-            _groups.Children.Add(Group(group));
+            _groups.Children.Add(Group(group, ref usableOrdinal));
 
         if (_groups.Children.Count == 0)
             _groups.Children.Add(new TextBlock { Text = "No results found", Foreground = MutedBrush, Margin = new Avalonia.Thickness(2, 12) });
@@ -126,11 +161,16 @@ public sealed class CommandPaletteWindow : Window
             : $"{matchCount} commands matched";
     }
 
-    private Control Group(CommandPaletteGroup group)
+    private Control Group(CommandPaletteGroup group, ref int usableOrdinal)
     {
         var rows = new StackPanel { Orientation = Orientation.Vertical, Spacing = 2 };
         for (int i = 0; i < group.Rows.Count; i++)
-            rows.Children.Add(Row(group.Rows[i], i));
+        {
+            var row = group.Rows[i];
+            bool selected = row.IsUsable && usableOrdinal == _selectedUsableIndex;
+            rows.Children.Add(Row(row, i, selected));
+            if (row.IsUsable) usableOrdinal++;
+        }
 
         return new StackPanel
         {
@@ -151,7 +191,7 @@ public sealed class CommandPaletteWindow : Window
         };
     }
 
-    private Control Row(CommandPaletteRow row, int index)
+    private Control Row(CommandPaletteRow row, int index, bool selected)
     {
         var grid = new Grid
         {
@@ -207,10 +247,35 @@ public sealed class CommandPaletteWindow : Window
 
         return new Border
         {
-            Background = index % 2 == 0 ? Brushes.Transparent : RowBrush,
+            Background = selected ? Brushes.DodgerBlue : index % 2 == 0 ? Brushes.Transparent : RowBrush,
             CornerRadius = new Avalonia.CornerRadius(2),
             Child = button,
         };
+    }
+
+    private CommandPaletteRow? SelectedUsableRow
+        => _selectedUsableIndex >= 0 && _selectedUsableIndex < _usableRows.Length
+            ? _usableRows[_selectedUsableIndex]
+            : null;
+
+    private void MoveSelection(int delta, bool wrap)
+    {
+        if (_usableRows.Length == 0) return;
+
+        int next = _selectedUsableIndex + delta;
+        if (wrap)
+        {
+            if (next < 0) next = _usableRows.Length - 1;
+            else if (next >= _usableRows.Length) next = 0;
+        }
+        else
+        {
+            next = Math.Clamp(next, 0, _usableRows.Length - 1);
+        }
+
+        if (next == _selectedUsableIndex) return;
+        _selectedUsableIndex = next;
+        RebuildGroups(_search.Text);
     }
 
     private void RunCommand(string commandId)
