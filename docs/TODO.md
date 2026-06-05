@@ -548,6 +548,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Preserve existing Hexen `BEHAVIOR` bytes during save-back.
   - [x] Block save-back when a map rename target already exists.
   - [x] Reject blank map marker validation before default-marker fallback.
+  - [x] Pass active game configuration through save-back map marker renames.
 - [ ] Add round-trip tests using maps from Doom, Doom II, Heretic, Hexen, Boom, MBF, ZDoom, and GZDoom formats.
 
 ## Resource And Data Management

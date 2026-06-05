@@ -979,8 +979,8 @@ public sealed class MainWindowCommandTests
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
 
-        Assert.Contains("if (!WadMaps.RenameMap(dst, _sourceMapMarker, marker))", body, StringComparison.Ordinal);
-        Assert.Contains("SetStatus($\"Save blocked: target map {marker} already exists.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("if (!WadMaps.RenameMap(dst, _sourceMapMarker, marker, _config))", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus($\"Save blocked: target map {marker} is unavailable.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
     }
 
     [Fact]

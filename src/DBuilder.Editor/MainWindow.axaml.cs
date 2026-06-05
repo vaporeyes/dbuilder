@@ -1213,9 +1213,9 @@ public partial class MainWindow : Window
                     if (!string.IsNullOrEmpty(_sourceMapMarker)
                         && !string.Equals(_sourceMapMarker, marker, StringComparison.OrdinalIgnoreCase))
                     {
-                        if (!WadMaps.RenameMap(dst, _sourceMapMarker, marker))
+                        if (!WadMaps.RenameMap(dst, _sourceMapMarker, marker, _config))
                         {
-                            SetStatus($"Save blocked: target map {marker} already exists.", StatusHistoryKind.Warning);
+                            SetStatus($"Save blocked: target map {marker} is unavailable.", StatusHistoryKind.Warning);
                             return;
                         }
                     }
