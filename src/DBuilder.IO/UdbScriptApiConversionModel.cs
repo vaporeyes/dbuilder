@@ -3742,6 +3742,16 @@ public sealed class UdbScriptMapWrapper
         return sidedef == null ? null : new UdbScriptSidedefWrapper(sidedef, map, grid, highlightedObject, mapFormat, config);
     }
 
+    public UdbScriptSidedefWrapper[] getSelectedOrHighlightedSidedefs()
+    {
+        ThrowIfDisposed("getSelectedOrHighlightedSidedefs");
+        UdbScriptSidedefWrapper[] selected = getSelectedSidedefs();
+        if (selected.Length > 0) return selected;
+
+        UdbScriptSidedefWrapper? highlighted = getHighlightedSidedef();
+        return highlighted == null ? Array.Empty<UdbScriptSidedefWrapper>() : new[] { highlighted };
+    }
+
     public UdbScriptLinedefWrapper[] getSelectedOrHighlightedLinedefs()
     {
         ThrowIfDisposed("getSelectedOrHighlightedLinedefs");

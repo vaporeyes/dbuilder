@@ -1993,12 +1993,16 @@ localsidedeftextureoffsets = true;
         var selectedLine = map.AddLinedef(map.AddVertex(new Vector2D(0, 64)), map.AddVertex(new Vector2D(32, 64)));
         var highlightedLine = map.AddLinedef(map.AddVertex(new Vector2D(64, 64)), map.AddVertex(new Vector2D(96, 64)));
         selectedLine.Selected = true;
+        var selectedSide = map.AddSidedef(selectedLine, isFront: true, selectedSector);
+        var highlightedSide = map.AddSidedef(highlightedLine, isFront: true, highlightedSector);
+        selectedSide.Selected = true;
         var wrapper = new UdbScriptMapWrapper(map, highlightedObject: highlightedVertex);
 
         Assert.Same(selectedVertex, Assert.Single(wrapper.getSelectedOrHighlightedVertices()).Vertex);
         Assert.Same(selectedThing, Assert.Single(new UdbScriptMapWrapper(map, highlightedObject: highlightedThing).getSelectedOrHighlightedThings()).Thing);
         Assert.Same(selectedSector, Assert.Single(new UdbScriptMapWrapper(map, highlightedObject: highlightedSector).getSelectedOrHighlightedSectors()).Sector);
         Assert.Same(selectedLine, Assert.Single(new UdbScriptMapWrapper(map, highlightedObject: highlightedLine).getSelectedOrHighlightedLinedefs()).Linedef);
+        Assert.Same(selectedSide, Assert.Single(new UdbScriptMapWrapper(map, highlightedObject: highlightedSide).getSelectedOrHighlightedSidedefs()).Sidedef);
     }
 
     [Fact]
@@ -2012,6 +2016,7 @@ localsidedeftextureoffsets = true;
         Assert.Same(thing, Assert.Single(new UdbScriptMapWrapper(map, highlightedObject: thing).getSelectedOrHighlightedThings()).Thing);
         Assert.Same(first, Assert.Single(new UdbScriptMapWrapper(map, highlightedObject: first).getSelectedOrHighlightedSectors()).Sector);
         Assert.Same(shared, Assert.Single(new UdbScriptMapWrapper(map, highlightedObject: shared).getSelectedOrHighlightedLinedefs()).Linedef);
+        Assert.Same(shared.Front, Assert.Single(new UdbScriptMapWrapper(map, highlightedObject: shared.Front).getSelectedOrHighlightedSidedefs()).Sidedef);
     }
 
     [Fact]
