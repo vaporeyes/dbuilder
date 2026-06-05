@@ -1722,6 +1722,7 @@ public class MapAnalysisTests
         var fix = Assert.Single(issue.Fixes);
 
         Assert.Equal("Thing 0 has unknown type (99999).", issue.Message);
+        Assert.Equal("This thing has unknown type (it's not defined in DECORATE or current game configuration).", issue.Description);
         Assert.Equal("Delete Thing", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.DoesNotContain(thing, map.Things);
@@ -1749,6 +1750,7 @@ public class MapAnalysisTests
         var fix = Assert.Single(issue.Fixes);
         Assert.Same(thing, issue.Target);
         Assert.Equal("Thing 0 (Old Torch) at 50, 50 is obsolete.", issue.Message);
+        Assert.Equal("This thing is marked as obsolete in DECORATE: Use ReplacementThing instead", issue.Description);
         Assert.Equal("Delete Thing", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.DoesNotContain(thing, map.Things);
@@ -1836,6 +1838,7 @@ public class MapAnalysisTests
             fix => Assert.Equal("Apply default flags", fix.Label));
         Assert.Same(thing, issue.Target);
         Assert.Equal("Thing 0 (Former Human) is unused. Thing is not used in any skill level.", issue.Message);
+        Assert.Equal("This thing won't be shown in any game mode.", issue.Description);
         Assert.True(issue.Fixes[1].Apply(map));
         Assert.Contains("skill1", thing.UdmfFlags);
         Assert.Contains("skill2", thing.UdmfFlags);
@@ -1869,6 +1872,7 @@ public class MapAnalysisTests
         var fix = Assert.Single(issue.Fixes);
         Assert.Same(thing, issue.Target);
         Assert.Equal("Thing 0 (Former Human) is outside the map at -32, 50", issue.Message);
+        Assert.Equal("This thing is completely outside the map.", issue.Description);
         Assert.Equal("Delete Thing", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.DoesNotContain(thing, map.Things);
@@ -1916,6 +1920,7 @@ public class MapAnalysisTests
         var fix = Assert.Single(issue.Fixes);
         Assert.Same(thing, issue.Target);
         Assert.Equal("Thing 0 (Former Human) is stuck in linedef 0 at 64, 64", issue.Message);
+        Assert.Equal("This thing is stuck in a wall (single-sided line) and will likely not be able to move around.", issue.Description);
         Assert.Equal("Delete Thing", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.DoesNotContain(thing, map.Things);
@@ -1980,6 +1985,7 @@ public class MapAnalysisTests
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.ThingStuckInThing);
         Assert.Same(first, issue.Target);
         Assert.Equal("Thing 0 (Former Human) is stuck in thing 1 (Former Human) at 64, 64", issue.Message);
+        Assert.Equal("This thing is stuck in another thing. Both will likely not be able to move around.", issue.Description);
         Assert.Collection(issue.Fixes,
             fix => Assert.Equal("Delete 1-st Thing", fix.Label),
             fix => Assert.Equal("Delete 2-nd Thing", fix.Label));

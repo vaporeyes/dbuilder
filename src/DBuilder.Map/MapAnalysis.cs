@@ -353,6 +353,18 @@ public static class MapAnalysis
         "This sector uses unknown effect. This can potentially cause gameplay issues.";
     private const string MissingActivationDescription =
         "This linedef has an assigned action, but no way to activate it has been set.";
+    private const string UnknownThingDescription =
+        "This thing has unknown type (it's not defined in DECORATE or current game configuration).";
+    private const string ObsoleteThingDefaultDescription =
+        "This thing is marked as obsolete in DECORATE. You should probably replace or delete it.";
+    private const string UnusedThingDescription =
+        "This thing won't be shown in any game mode.";
+    private const string ThingOutsideMapDescription =
+        "This thing is completely outside the map.";
+    private const string ThingStuckInLinedefDescription =
+        "This thing is stuck in a wall (single-sided line) and will likely not be able to move around.";
+    private const string ThingStuckInThingDescription =
+        "This thing is stuck in another thing. Both will likely not be able to move around.";
 
     public static MapAnalysisModeDescriptor ModeDescriptor { get; } = new(
         "Map Analysis Mode",
@@ -831,7 +843,8 @@ public static class MapAnalysis
                 var t = map.Things[i];
                 if (!ctx.ThingTypeKnown(t.Type))
                     issues.Add(DeleteThingIssue(MapIssueKind.UnknownThingType, t, ctx.EditThing,
-                        $"Thing {i} has unknown type ({t.Type})."));
+                        $"Thing {i} has unknown type ({t.Type}).",
+                        UnknownThingDescription));
             }
 
         if (ctx.ThingObsoleteMessage != null)
@@ -841,7 +854,8 @@ public static class MapAnalysis
                 string? message = ctx.ThingObsoleteMessage(t.Type);
                 if (!string.IsNullOrWhiteSpace(message))
                     issues.Add(DeleteThingIssue(MapIssueKind.ObsoleteThingType, t, ctx.EditThing,
-                        $"Thing {ThingDisplay(ctx, t, i)} at {Coordinate(t.Position.x)}, {Coordinate(t.Position.y)} is obsolete."));
+                        $"Thing {ThingDisplay(ctx, t, i)} at {Coordinate(t.Position.x)}, {Coordinate(t.Position.y)} is obsolete.",
+                        ObsoleteThingDescription(message)));
             }
 
         CheckThingsOutsideMap(map, ctx, issues);
@@ -1122,6 +1136,11 @@ public static class MapAnalysis
     private static string UnknownThingScriptDescription(bool namedScript)
         => $"This thing references unknown ACS script {(namedScript ? "name" : "number")}.";
 
+    private static string ObsoleteThingDescription(string message)
+        => string.IsNullOrEmpty(message)
+            ? ObsoleteThingDefaultDescription
+            : "This thing is marked as obsolete in DECORATE: " + message;
+
     private static void CheckThingsOutsideMap(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
     {
         if (ctx.ThingErrorCheck == null) return;
@@ -1140,8 +1159,9 @@ public static class MapAnalysis
 
             bool outside = l.SideOfLine(t.Position) <= 0.0 ? l.Front == null : l.Back == null;
             if (outside)
-                issues.Add(DeleteThingIssue(MapIssueKind.ThingOutsideMap, t,
-                    $"Thing {ThingDisplay(ctx, t, i)} is outside the map at {Coordinate(t.Position.x)}, {Coordinate(t.Position.y)}"));
+                issues.Add(DeleteThingIssue(MapIssueKind.ThingOutsideMap, t, null,
+                    $"Thing {ThingDisplay(ctx, t, i)} is outside the map at {Coordinate(t.Position.x)}, {Coordinate(t.Position.y)}",
+                    ThingOutsideMapDescription));
         }
     }
 
@@ -1169,8 +1189,9 @@ public static class MapAnalysis
                 SegmentIntersectsRect(l.Start.Position, l.End.Position, left, right, top, bottom))
             {
                 stuck = true;
-                issues.Add(DeleteThingIssue(MapIssueKind.ThingStuckInLinedef, thing,
-                    $"Thing {ThingDisplay(ctx, thing, thingIndex)} is stuck in linedef {lineIndex} at {Coordinate(thing.Position.x)}, {Coordinate(thing.Position.y)}"));
+                issues.Add(DeleteThingIssue(MapIssueKind.ThingStuckInLinedef, thing, null,
+                    $"Thing {ThingDisplay(ctx, thing, thingIndex)} is stuck in linedef {lineIndex} at {Coordinate(thing.Position.x)}, {Coordinate(thing.Position.y)}",
+                    ThingStuckInLinedefDescription));
             }
         }
 
@@ -1266,6 +1287,7 @@ public static class MapAnalysis
     private static MapIssue UnusedThingIssue(Thing thing, IReadOnlyList<string> defaultFlags, string message)
         => new(MapIssueSeverity.Warning, MapIssueKind.UnusedThing, message)
         {
+            Description = UnusedThingDescription,
             Target = thing,
             Focus = thing.Position,
             Fixes = new[]
@@ -1290,6 +1312,7 @@ public static class MapAnalysis
     private static MapIssue ThingStuckInThingIssue(Thing first, Thing second, string message)
         => new(MapIssueSeverity.Warning, MapIssueKind.ThingStuckInThing, message)
         {
+            Description = ThingStuckInThingDescription,
             Target = first,
             RelatedTargets = new[] { second },
             Focus = first.Position,
