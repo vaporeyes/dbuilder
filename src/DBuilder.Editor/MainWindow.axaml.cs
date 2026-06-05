@@ -1147,14 +1147,14 @@ public partial class MainWindow : Window
     // Prompts for a target map format and saves a converted copy (flags translated via the game config).
     private async void OnSaveAsFormat(object? sender, RoutedEventArgs e)
     {
-        if (_map is null) { SetStatus("Nothing to save."); return; }
+        if (_map is null) { SetStatus("Nothing to save.", StatusHistoryKind.Warning); return; }
         var dlg = new FormatPickerDialog(_mapFormat);
         if (await dlg.ShowDialog<bool>(this)) await DoSave(dlg.ResultFormat, forcePicker: true);
     }
 
     private async System.Threading.Tasks.Task DoSave(MapFormat targetFormat, bool forcePicker = false)
     {
-        if (_map is null) { SetStatus("Nothing to save."); return; }
+        if (_map is null) { SetStatus("Nothing to save.", StatusHistoryKind.Warning); return; }
         string? outPath = !forcePicker && _wadPath is not null && targetFormat == _mapFormat ? _wadPath : null;
         if (outPath is null)
         {
@@ -1249,7 +1249,7 @@ public partial class MainWindow : Window
 
     private async void OnMapOptions(object? sender, RoutedEventArgs e)
     {
-        if (_map is null) { SetStatus("No map loaded."); return; }
+        if (_map is null) { SetStatus("No map loaded.", StatusHistoryKind.Warning); return; }
         _mapOptions ??= new MapOptions { CurrentName = _mapMarker ?? "MAP01" };
         SyncMapOptionsToView();
         var dlg = new MapOptionsDialog(
