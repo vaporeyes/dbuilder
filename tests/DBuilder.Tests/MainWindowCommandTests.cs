@@ -1114,7 +1114,11 @@ public sealed class MainWindowCommandTests
 
         Assert.Contains("Header=\"_Grid\" x:Name=\"GridMenuItem\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Header=\"_Show Grid\" x:Name=\"ToggleGridRenderingMenuItem\" ToggleType=\"CheckBox\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"ToggleGridRenderingButton\" Click=\"OnToggleGridRendering\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"ToggleSnapToGridButton\" Click=\"OnToggleSnapToGrid\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"ToggleDynamicGridSizeButton\" Click=\"OnToggleDynamicGridSize\"", xaml, StringComparison.Ordinal);
         Assert.Contains("ThingFilterMenuItem, GridMenuItem, GridSetupMenuItem, SmartGridTransformMenuItem,", code, StringComparison.Ordinal);
+        Assert.Contains("ToggleGridRenderingButton, ToggleSnapToGridButton, ToggleDynamicGridSizeButton, AutoMergeButton, SplitJoinedSectorsButton, AutoClearSidedefTexturesButton", code, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -1127,7 +1131,14 @@ public sealed class MainWindowCommandTests
         Assert.Contains("SetStatus(MapView.ToggleGridRendering());", code, StringComparison.Ordinal);
         Assert.Contains("_settings.RenderGrid = MapView.RenderGridEnabled;", code, StringComparison.Ordinal);
         Assert.Contains("SaveSettings();", code, StringComparison.Ordinal);
+        Assert.Contains("UpdateCommandCheckedState();", code, StringComparison.Ordinal);
         Assert.Contains("SetChecked(ToggleGridRenderingMenuItem, MapView.RenderGridEnabled);", code, StringComparison.Ordinal);
+        Assert.Contains("ToggleGridRenderingButton.IsChecked = MapView.RenderGridEnabled;", code, StringComparison.Ordinal);
+        Assert.Contains("ToggleSnapToGridButton.IsChecked = MapView.SnapToGridEnabled;", code, StringComparison.Ordinal);
+        Assert.Contains("ToggleDynamicGridSizeButton.IsChecked = MapView.DynamicGridSizeEnabled;", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ToggleGridRenderingButton, \"Render Grid\", \"map2d.togglegrid\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ToggleSnapToGridButton, \"Snap to Grid\", \"map2d.togglesnap\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ToggleDynamicGridSizeButton, \"Dynamic Grid Size\", \"map2d.toggledynamicgrid\");", code, StringComparison.Ordinal);
         Assert.Contains("\"map2d.toggle-grid-rendering\" or \"map2d.togglegrid\" => ToggleGridRenderingMenuItem", code, StringComparison.Ordinal);
     }
 
@@ -1623,12 +1634,21 @@ public sealed class MainWindowCommandTests
 
         Assert.Contains("x:Name=\"AutoMergeMenuItem\" ToggleType=\"CheckBox\" Click=\"OnToggleAutoMerge\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"SplitJoinedSectorsMenuItem\" ToggleType=\"CheckBox\" Click=\"OnToggleSplitJoinedSectors\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"AutoMergeButton\" Click=\"OnToggleAutoMerge\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"SplitJoinedSectorsButton\" Click=\"OnToggleSplitJoinedSectors\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"AutoClearSidedefTexturesButton\" Click=\"OnToggleAutoClearSidedefTextures\"", xaml, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(AutoMergeMenuItem, \"Snap to Geometry\", \"window.toggleautomerge\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(SplitJoinedSectorsMenuItem, \"Split Joined Sectors\", \"window.togglejoinedsectorssplitting\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(AutoMergeButton, \"Snap to Geometry\", \"window.toggleautomerge\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(SplitJoinedSectorsButton, \"Split Joined Sectors\", \"window.togglejoinedsectorssplitting\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(AutoClearSidedefTexturesButton, \"Auto Clear Sidedef Textures\", \"window.toggle-auto-clear-sidedef-textures\");", code, StringComparison.Ordinal);
         Assert.Contains("case \"window.toggleautomerge\": OnToggleAutoMerge(this, new RoutedEventArgs()); return true;", code, StringComparison.Ordinal);
         Assert.Contains("case \"window.togglejoinedsectorssplitting\": OnToggleSplitJoinedSectors(this, new RoutedEventArgs()); return true;", code, StringComparison.Ordinal);
         Assert.Contains("SetChecked(AutoMergeMenuItem, _settings.AutoMerge);", code, StringComparison.Ordinal);
         Assert.Contains("SetChecked(SplitJoinedSectorsMenuItem, _settings.SplitJoinedSectors);", code, StringComparison.Ordinal);
+        Assert.Contains("AutoMergeButton.IsChecked = _settings.AutoMerge;", code, StringComparison.Ordinal);
+        Assert.Contains("SplitJoinedSectorsButton.IsChecked = _settings.SplitJoinedSectors;", code, StringComparison.Ordinal);
+        Assert.Contains("AutoClearSidedefTexturesButton.IsChecked = _settings.AutoClearSidedefTextures;", code, StringComparison.Ordinal);
         Assert.Contains("_settings.AutoMerge = !_settings.AutoMerge;", code, StringComparison.Ordinal);
         Assert.Contains("_settings.SplitJoinedSectors = !_settings.SplitJoinedSectors;", code, StringComparison.Ordinal);
         Assert.Contains("SetStatus(\"Snap to geometry is \" + (_settings.AutoMerge ? \"ENABLED\" : \"DISABLED\"));", code, StringComparison.Ordinal);

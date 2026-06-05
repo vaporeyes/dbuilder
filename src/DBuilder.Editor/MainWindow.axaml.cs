@@ -506,6 +506,12 @@ public partial class MainWindow : Window
         SetShortcutToolTip(DrawRectangleButton, "Draw Rectangle", "map2d.draw-rectangle");
         SetShortcutToolTip(DrawEllipseButton, "Draw Ellipse", "map2d.draw-ellipse");
         SetShortcutToolTip(DrawGridButton, "Draw Grid", "map2d.draw-grid");
+        SetShortcutToolTip(ToggleGridRenderingButton, "Render Grid", "map2d.togglegrid");
+        SetShortcutToolTip(ToggleSnapToGridButton, "Snap to Grid", "map2d.togglesnap");
+        SetShortcutToolTip(ToggleDynamicGridSizeButton, "Dynamic Grid Size", "map2d.toggledynamicgrid");
+        SetShortcutToolTip(AutoMergeButton, "Snap to Geometry", "window.toggleautomerge");
+        SetShortcutToolTip(SplitJoinedSectorsButton, "Split Joined Sectors", "window.togglejoinedsectorssplitting");
+        SetShortcutToolTip(AutoClearSidedefTexturesButton, "Auto Clear Sidedef Textures", "window.toggle-auto-clear-sidedef-textures");
         SetShortcutToolTip(CheckMapButton, "Check Map", "window.check-map");
         SetShortcutToolTip(CleanUpGeometryButton, "Clean Up Geometry", "window.clean-up-geometry");
         SetShortcutToolTip(ReloadResourcesButton, "Reload Resources", "window.reload-resources");
@@ -3756,6 +3762,7 @@ public partial class MainWindow : Window
     {
         SetStatus(MapView.ToggleSnapToGrid());
         UpdateStatusDetails();
+        UpdateCommandCheckedState();
         MapView.Focus();
     }
 
@@ -3764,6 +3771,7 @@ public partial class MainWindow : Window
         SetStatus(MapView.ToggleGridRendering());
         _settings.RenderGrid = MapView.RenderGridEnabled;
         SaveSettings();
+        UpdateCommandCheckedState();
         MapView.Focus();
     }
 
@@ -3773,6 +3781,7 @@ public partial class MainWindow : Window
         _settings.DynamicGridSize = MapView.DynamicGridSizeEnabled;
         SaveSettings();
         UpdateStatusDetails();
+        UpdateCommandCheckedState();
         MapView.Focus();
     }
 
@@ -7473,7 +7482,8 @@ public partial class MainWindow : Window
             ExportObjectMenuItem, ExportImageMenuItem, ExportWavefrontMenuItem, ExportIdStudioMenuItem, RejectViewerMenuItem, CloseMapButton, SaveAsMenuItem, SaveAsFormatMenuItem,
             FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
             SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,
-            DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, DrawGridButton, CheckMapButton,
+            DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, DrawGridButton,
+            ToggleGridRenderingButton, ToggleSnapToGridButton, ToggleDynamicGridSizeButton, AutoMergeButton, SplitJoinedSectorsButton, AutoClearSidedefTexturesButton, CheckMapButton,
             CleanUpGeometryButton, TestMapButton, TestMapFromViewButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplyJitterButton, ApplyDirectionalShadingButton, ApplySlopeArchButton, ApplySlopesButton, SectorColorButton, DynamicLightColorButton, TagRangeButton, LinedefColorPresetsButton, ImportObjTerrainButton, WadAuthorModeButton);
         SetEnabled(canSave, SaveMenuItem, SaveButton);
         SetEnabled(canInsertPreviousPrefab, InsertPreviousPrefabMenuItem);
@@ -7589,6 +7599,12 @@ public partial class MainWindow : Window
         SetChecked(ToggleGridRenderingMenuItem, MapView.RenderGridEnabled);
         SetChecked(ToggleSnapToGridMenuItem, MapView.SnapToGridEnabled);
         SetChecked(ToggleDynamicGridSizeMenuItem, MapView.DynamicGridSizeEnabled);
+        ToggleGridRenderingButton.IsChecked = MapView.RenderGridEnabled;
+        ToggleSnapToGridButton.IsChecked = MapView.SnapToGridEnabled;
+        ToggleDynamicGridSizeButton.IsChecked = MapView.DynamicGridSizeEnabled;
+        AutoMergeButton.IsChecked = _settings.AutoMerge;
+        SplitJoinedSectorsButton.IsChecked = _settings.SplitJoinedSectors;
+        AutoClearSidedefTexturesButton.IsChecked = _settings.AutoClearSidedefTextures;
         SetChecked(ToggleBlockmapMenuItem, MapView.ShowBlockmap);
         SetChecked(ToggleNodesMenuItem, MapView.ShowNodes);
         SetChecked(ImageExampleMenuItem, MapView.ImageExampleMode);
