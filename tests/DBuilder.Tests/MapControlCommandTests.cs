@@ -35,8 +35,13 @@ public sealed class MapControlCommandTests
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
 
-        Assert.Contains("DefaultBrightness = _mapOptions?.CustomBrightness ?? 192,", body, StringComparison.Ordinal);
+        Assert.Contains("DefaultFloorHeight = 0,", body, StringComparison.Ordinal);
+        Assert.Contains("DefaultCeilingHeight = 128,", body, StringComparison.Ordinal);
+        Assert.Contains("DefaultBrightness = 192,", body, StringComparison.Ordinal);
         Assert.Contains("CustomBrightness = _mapOptions?.CustomBrightness ?? 192,", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("DefaultFloorHeight = _mapOptions?.CustomFloorHeight ?? 0,", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("DefaultCeilingHeight = _mapOptions?.CustomCeilingHeight ?? 128,", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("DefaultBrightness = _mapOptions?.CustomBrightness ?? 192,", body, StringComparison.Ordinal);
         Assert.DoesNotContain("DefaultBrightness = _mapOptions?.CustomBrightness ?? 160,", body, StringComparison.Ordinal);
     }
 

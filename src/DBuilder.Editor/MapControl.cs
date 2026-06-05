@@ -8330,9 +8330,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private Tools.SectorCreationOptions CreateSectorCreationOptions()
         => new()
         {
-            DefaultFloorHeight = _mapOptions?.CustomFloorHeight ?? 0,
-            DefaultCeilingHeight = _mapOptions?.CustomCeilingHeight ?? 128,
-            DefaultBrightness = _mapOptions?.CustomBrightness ?? 192,
+            DefaultFloorHeight = 0,
+            DefaultCeilingHeight = 128,
+            DefaultBrightness = 192,
             DefaultFloorTexture = FirstNonBlankOr("-", _mapOptions?.DefaultFloorTexture, _gameConfig?.DefaultFloorTexture),
             DefaultCeilingTexture = FirstNonBlankOr("-", _mapOptions?.DefaultCeilingTexture, _gameConfig?.DefaultCeilingTexture),
             DefaultHighTexture = FirstNonBlankOr("-", _mapOptions?.DefaultTopTexture),
