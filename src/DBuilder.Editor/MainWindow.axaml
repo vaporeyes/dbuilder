@@ -116,8 +116,8 @@
                 <MenuItem Header="_Transform selection" x:Name="TransformSelectionMenuItem">
                     <MenuItem Header="Flip Selection _Horizontally" x:Name="FlipHorizontalMenuItem" Click="OnFlipH" />
                     <MenuItem Header="Flip Selection _Vertically" x:Name="FlipVerticalMenuItem" Click="OnFlipV" />
-                    <MenuItem Header="Rotate 90 C_W" x:Name="RotateCwMenuItem" Click="OnRotateCW" />
-                    <MenuItem Header="Rotate 90 CC_W" x:Name="RotateCcwMenuItem" Click="OnRotateCCW" />
+                    <MenuItem Header="Rotate C_lockwise" x:Name="RotateCwMenuItem" Click="OnRotateCW" />
+                    <MenuItem Header="Rotate C_ounterclockwise" x:Name="RotateCcwMenuItem" Click="OnRotateCCW" />
                     <MenuItem Header="Scale _Up" x:Name="ScaleUpMenuItem" Click="OnScaleUp" />
                     <MenuItem Header="Scale _Down" x:Name="ScaleDownMenuItem" Click="OnScaleDown" />
                 </MenuItem>

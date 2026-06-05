@@ -973,10 +973,10 @@ public class EditorCommandCatalogTests
     [InlineData("window.flipselectionh", "Flip Selection Horizontally", "Flips the selection in Edit Selection mode horizontally.")]
     [InlineData("window.flip-selection-vertical", "Flip Selection Vertically", "Flips the selection in Edit Selection mode vertically.")]
     [InlineData("window.flipselectionv", "Flip Selection Vertically", "Flips the selection in Edit Selection mode vertically.")]
-    [InlineData("window.rotate-selection-cw", "Rotate 90 CW")]
-    [InlineData("window.rotateclockwise", "Rotate 90 CW")]
-    [InlineData("window.rotate-selection-ccw", "Rotate 90 CCW")]
-    [InlineData("window.rotatecounterclockwise", "Rotate 90 CCW")]
+    [InlineData("window.rotate-selection-cw", "Rotate Clockwise", "Rotates selected or highlighted things clockwise. Also rotates floor/ceiling textures in UDMF map format, and rotates the selection in Edit Selection mode.")]
+    [InlineData("window.rotateclockwise", "Rotate Clockwise", "Rotates selected or highlighted things clockwise. Also rotates floor/ceiling textures in UDMF map format, and rotates the selection in Edit Selection mode.")]
+    [InlineData("window.rotate-selection-ccw", "Rotate Counterclockwise", "Rotates selected or highlighted things counterclockwise. Also rotates floor/ceiling textures in UDMF map format, and rotates the selection in Edit Selection mode.")]
+    [InlineData("window.rotatecounterclockwise", "Rotate Counterclockwise", "Rotates selected or highlighted things counterclockwise. Also rotates floor/ceiling textures in UDMF map format, and rotates the selection in Edit Selection mode.")]
     [InlineData("window.moveselectionup", "Move Selection Up by Grid Size")]
     [InlineData("window.moveselectiondown", "Move Selection Down by Grid Size")]
     [InlineData("window.moveselectionleft", "Move Selection Left by Grid Size")]
@@ -986,19 +986,32 @@ public class EditorCommandCatalogTests
     public void WindowTransformSelectionCommandsMatchUdbActionSurface(string commandId, string title, string? description = null)
     {
         var command = EditorCommandCatalog.Find(commandId);
+        bool isRotateClockwise = commandId.Contains("rotate-selection-cw", StringComparison.Ordinal)
+            || commandId.Contains("rotateclockwise", StringComparison.Ordinal);
+        bool isRotateCounterclockwise = commandId.Contains("rotate-selection-ccw", StringComparison.Ordinal)
+            || commandId.Contains("rotatecounterclockwise", StringComparison.Ordinal);
+        bool isRotate = isRotateClockwise || isRotateCounterclockwise;
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
         if (description != null) Assert.Equal(description, command.Description);
-        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(
+            isRotateClockwise ? "Ctrl/Cmd+Shift+ScrollUp" :
+            isRotateCounterclockwise ? "Ctrl/Cmd+Shift+ScrollDown" :
+            "Menu",
+            command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
-        Assert.True(command.AllowMouse);
+        Assert.Equal(!isRotate, command.AllowMouse);
         Assert.Equal(
             commandId.StartsWith("window.moveselection", StringComparison.Ordinal)
                 || commandId.StartsWith("window.flip-selection", StringComparison.Ordinal)
-                || commandId.StartsWith("window.flipselection", StringComparison.Ordinal),
+                || commandId.StartsWith("window.flipselection", StringComparison.Ordinal)
+                || isRotate,
             command.AllowScroll);
+        Assert.Equal(
+            commandId.StartsWith("window.moveselection", StringComparison.Ordinal) || isRotate,
+            command.Repeat);
     }
 
     [Theory]

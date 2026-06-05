@@ -326,8 +326,8 @@ public partial class MainWindow : Window
         SetShortcutToolTip(LowerBrightness8MenuItem, "Decrease Brightness by 8", "map2d.lowerbrightness8");
         SetShortcutToolTip(FlipHorizontalMenuItem, "Flip Selection Horizontally", "window.flip-selection-horizontal");
         SetShortcutToolTip(FlipVerticalMenuItem, "Flip Selection Vertically", "window.flip-selection-vertical");
-        SetShortcutToolTip(RotateCwMenuItem, "Rotate 90 CW", "window.rotate-selection-cw");
-        SetShortcutToolTip(RotateCcwMenuItem, "Rotate 90 CCW", "window.rotate-selection-ccw");
+        SetShortcutToolTip(RotateCwMenuItem, "Rotate Clockwise", "window.rotate-selection-cw");
+        SetShortcutToolTip(RotateCcwMenuItem, "Rotate Counterclockwise", "window.rotate-selection-ccw");
         SetShortcutToolTip(ScaleUpMenuItem, "Scale Up", "window.scale-selection-up");
         SetShortcutToolTip(ScaleDownMenuItem, "Scale Down", "window.scale-selection-down");
         SetShortcutToolTip(SelectSingleSidedMenuItem, "Select Single-sided", "map2d.selectsinglesided");
@@ -2896,8 +2896,8 @@ public partial class MainWindow : Window
 
     private void OnFlipH(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.FlipHorizontal, "Flip horizontal");
     private void OnFlipV(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.FlipVertical, "Flip vertical");
-    private void OnRotateCW(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.RotateCW, "Rotate 90 CW");
-    private void OnRotateCCW(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.RotateCCW, "Rotate 90 CCW");
+    private void OnRotateCW(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.RotateCW, "Rotate Clockwise");
+    private void OnRotateCCW(object? sender, RoutedEventArgs e) => Transform(SelectionTransform.Op.RotateCCW, "Rotate Counterclockwise");
     private void OnMoveSelectionUp(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.MoveSelectionByGridSize(0, 1));
     private void OnMoveSelectionDown(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.MoveSelectionByGridSize(0, -1));
     private void OnMoveSelectionLeft(object? sender, RoutedEventArgs e) => RunCursorEdit(MapView.MoveSelectionByGridSize(-1, 0));
