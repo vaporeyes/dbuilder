@@ -65,6 +65,7 @@ public partial class MainWindow : Window
     private readonly string _settingsPath = Settings.DefaultPath;
     private IReadOnlyList<EditorShortcutBinding> _shortcutBindings = EditorCommandCatalog.DefaultShortcuts;
     private readonly HashSet<string> _pressedWindowShortcuts = new(StringComparer.Ordinal);
+    private readonly List<string> _recentCommandPaletteCommands = new();
     private bool _syncingAutomapControls;
     private CommentsPanelWindow? _commentsPanel;
     private UndoRedoPanelWindow? _undoRedoPanel;
@@ -3976,8 +3977,11 @@ public partial class MainWindow : Window
 
     private void OnOpenCommandPalette(object? sender, RoutedEventArgs e)
     {
-        SetStatus("Command Palette is not available yet.");
-        MapView.Focus();
+        new CommandPaletteWindow(
+            _shortcutBindings,
+            PaletteUsableCommandIds(),
+            _recentCommandPaletteCommands,
+            RunCommandFromPalette).Show(this);
     }
 
     private void OnEditModeHelp(object? sender, RoutedEventArgs e)
@@ -3993,6 +3997,27 @@ public partial class MainWindow : Window
     }
 
     private void OnShortcuts(object? sender, RoutedEventArgs e) => new ShortcutsWindow(_shortcutBindings).Show(this);
+
+    private IReadOnlySet<string> PaletteUsableCommandIds()
+        => EditorCommandCatalog.All
+            .Where(command => command.Scope == EditorCommandScope.Window)
+            .Select(command => command.Id)
+            .ToHashSet(StringComparer.Ordinal);
+
+    private void RunCommandFromPalette(string commandId)
+    {
+        if (!RunWindowCommand(commandId))
+        {
+            SetStatus($"Command unavailable: {commandId}");
+            MapView.Focus();
+            return;
+        }
+
+        _recentCommandPaletteCommands.Remove(commandId);
+        _recentCommandPaletteCommands.Insert(0, commandId);
+        if (_recentCommandPaletteCommands.Count > CommandPaletteModel.MaxRecentCommands)
+            _recentCommandPaletteCommands.RemoveRange(CommandPaletteModel.MaxRecentCommands, _recentCommandPaletteCommands.Count - CommandPaletteModel.MaxRecentCommands);
+    }
 
     // ---- Map loading ----
 

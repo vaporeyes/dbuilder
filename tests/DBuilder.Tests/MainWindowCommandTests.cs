@@ -993,6 +993,7 @@ public sealed class MainWindowCommandTests
     {
         string code = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
         string xaml = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml"));
+        string palette = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/CommandPaletteWindow.cs"));
 
         Assert.Contains("x:Name=\"ApplyJitterMenuItem\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"ApplyDirectionalShadingMenuItem\"", xaml, StringComparison.Ordinal);
@@ -1005,6 +1006,12 @@ public sealed class MainWindowCommandTests
         Assert.Contains("SetShortcutToolTip(CommandPaletteMenuItem, \"Open Command Palette\", \"window.open-command-palette\");", code, StringComparison.Ordinal);
         Assert.Contains("case \"window.open-command-palette\": OnOpenCommandPalette(this, new RoutedEventArgs()); return true;", code, StringComparison.Ordinal);
         Assert.Contains("case \"window.opencommandpalette\": OnOpenCommandPalette(this, new RoutedEventArgs()); return true;", code, StringComparison.Ordinal);
+        Assert.Contains("new CommandPaletteWindow(", code, StringComparison.Ordinal);
+        Assert.Contains("_recentCommandPaletteCommands", code, StringComparison.Ordinal);
+        Assert.Contains("RunCommandFromPalette", code, StringComparison.Ordinal);
+        Assert.Contains("CommandPaletteModel.BuildGroups", palette, StringComparison.Ordinal);
+        Assert.Contains("Watermark = \"Search commands\"", palette, StringComparison.Ordinal);
+        Assert.Contains("Key.Enter", palette, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ToggleAutomapSecretLineMenuItem, \"Toggle Selected Line Secret\", \"window.toggle-automap-secret-line\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ExportObjectMenuItem, \"Export Object OBJ\", \"window.export-object\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ExportImageMenuItem, \"Export Image PNG\", \"window.export-image\");", code, StringComparison.Ordinal);
