@@ -653,6 +653,45 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void ScriptCompileFlowCompletesWhenCompilerErrorsWereReportedLikeUdb()
+    {
+        var compilerError = new ScriptCompilerError("Expected semicolon", "/maps/project/scripts.acs", 4);
+
+        var completion = ScriptCompileFlow.CompleteCompile(
+            new[] { compilerError },
+            "/tmp/dbuilder_compile/tmp123",
+            outputFileExists: false);
+
+        Assert.True(completion.Success);
+        Assert.Equal(new[] { compilerError }, completion.Errors);
+    }
+
+    [Fact]
+    public void ScriptCompileFlowCompletesWhenOutputFileExistsLikeUdb()
+    {
+        var completion = ScriptCompileFlow.CompleteCompile(
+            Array.Empty<ScriptCompilerError>(),
+            "/tmp/dbuilder_compile/tmp123",
+            outputFileExists: true);
+
+        Assert.True(completion.Success);
+        Assert.Empty(completion.Errors);
+    }
+
+    [Fact]
+    public void ScriptCompileFlowFailsWhenOutputFileIsMissingWithoutCompilerErrorsLikeUdb()
+    {
+        var completion = ScriptCompileFlow.CompleteCompile(
+            Array.Empty<ScriptCompilerError>(),
+            "/tmp/dbuilder_compile/tmp123",
+            outputFileExists: false);
+
+        var error = Assert.Single(completion.Errors);
+        Assert.False(completion.Success);
+        Assert.Equal("Output file \"/tmp/dbuilder_compile/tmp123\" doesn't exist.", error.Description);
+    }
+
+    [Fact]
     public void ScriptCompileFlowRemapsDirectoryTempInputErrorsLikeUdb()
     {
         var error = new ScriptCompilerError("Unknown function", "/tmp/dbuilder_compile/library.acs", 4);

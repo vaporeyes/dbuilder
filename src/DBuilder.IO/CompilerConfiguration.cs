@@ -38,6 +38,8 @@ public sealed record ScriptCompileTarget(string TargetPath, string ErrorMessage 
     public bool Success => ErrorMessage.Length == 0;
 }
 
+public sealed record ScriptCompileCompletion(bool Success, IReadOnlyList<ScriptCompilerError> Errors);
+
 public sealed record AcsCompilePreflightResult(
     bool ShouldCompile,
     string LibraryName,
@@ -170,6 +172,17 @@ public static class ScriptCompileFlow
 
     public static ScriptCompilerError MissingOutputFileError(string outputPath)
         => new("Output file \"" + outputPath + "\" doesn't exist.");
+
+    public static ScriptCompileCompletion CompleteCompile(
+        IEnumerable<ScriptCompilerError> compilerErrors,
+        string outputPath,
+        bool outputFileExists)
+    {
+        var errors = compilerErrors.ToList();
+        if (errors.Count > 0) return new ScriptCompileCompletion(true, errors);
+        if (outputFileExists) return new ScriptCompileCompletion(true, Array.Empty<ScriptCompilerError>());
+        return new ScriptCompileCompletion(false, new[] { MissingOutputFileError(outputPath) });
+    }
 
     public static IReadOnlyList<ScriptCompileIncludeCopy> BuildIncludeCopyPlan(
         IEnumerable<string> includes,
