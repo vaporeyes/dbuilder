@@ -4328,6 +4328,7 @@ public partial class MainWindow : Window
             "window.test-map-from-view" or "window.testmapfromview" => TestMapFromViewMenuItem,
             "window.things-filters-setup" => ThingFilterMenuItem,
             "window.reload-resources" => ReloadResourcesMenuItem,
+            "window.open-command-palette" or "window.opencommandpalette" => CommandPaletteMenuItem,
             "window.grid-setup" => GridSetupMenuItem,
             "window.usdf-conversations" or "window.usdf-dialog-editor" or "window.opendialogeditor" => UsdfConversationsMenuItem,
             "window.import-obj-terrain" or "window.importobjasterrain" => ImportObjTerrainMenuItem,
