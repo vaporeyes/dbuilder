@@ -673,6 +673,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private DrawCurveModeSettings _drawCurveSettings = new();
     private DrawGridModeSettings _drawGridSettings = new();
     private AutomapModeSettings _automapSettings = new();
+    private IReadOnlyList<LinedefColorPreset> _linedefColorPresets = LinedefColorPresetModel.DefaultPresets;
     private ThreeDFloorControlSectorAreaSettings _threeDFloorControlSectorAreaSettings = new();
     public ShapeKind CurrentShape => _shapeKind;
 
@@ -714,6 +715,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _automapSettings = (value ?? new AutomapModeSettings()).Normalized();
             if (!AutomapMode) return;
             UpdateAutomapHighlight(_cursorWorld, CurrentAutomapModifiers());
+            _geometryDirty = true;
+            RequestNextFrameRendering();
+        }
+    }
+
+    public IReadOnlyList<LinedefColorPreset> LinedefColorPresets
+    {
+        get => _linedefColorPresets;
+        set
+        {
+            _linedefColorPresets = LinedefColorPresetModel.NormalizedPresets(value);
             _geometryDirty = true;
             RequestNextFrameRendering();
         }
@@ -5035,7 +5047,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if ((l.Front?.Sector?.Selected ?? false) || (l.Back?.Sector?.Selected ?? false))
             return unchecked((int)0xff00ccff);                                   // cyan
         bool twoSided = l.Front != null && l.Back != null;
-        if (LinedefColorPresetModel.TryGetColor(l, LinedefColorPresetModel.DefaultPresets, _mapFormat == MapFormat.Udmf, out int presetColor))
+        if (LinedefColorPresetModel.TryGetColor(l, _linedefColorPresets, _mapFormat == MapFormat.Udmf, out int presetColor))
             return twoSided ? LinedefColorPresetModel.WithAlpha(presetColor, LinedefColorPresetModel.DefaultDoubleSidedAlpha) : presetColor;
         return twoSided ? unchecked((int)0xff8090a0) : unchecked((int)0xffe0e0e0);
     }

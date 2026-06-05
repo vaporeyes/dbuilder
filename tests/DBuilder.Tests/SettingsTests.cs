@@ -339,6 +339,17 @@ public class SettingsTests
                     ShowLocks: false,
                     ShowTextures: false,
                     ColorPreset: AutomapColorPreset.Strife),
+                LinedefColorPresets = new()
+                {
+                    new LinedefColorPreset(
+                        "Locked",
+                        unchecked((int)0xff112233),
+                        Action: 11,
+                        Activation: LinedefColorPresetModel.AnyActivation,
+                        Flags: new[] { "secret" },
+                        RestrictedFlags: new[] { "dontdraw" },
+                        Enabled: true),
+                },
                 ThreeDFloorControlSectorAreaSettings = new ThreeDFloorControlSectorAreaSettings(
                     UseCustomTagRange: true,
                     FirstTag: 2000,
@@ -487,6 +498,14 @@ public class SettingsTests
             Assert.False(loaded.AutomapSettings.ShowTextures);
             Assert.Equal(AutomapColorPreset.Strife, loaded.AutomapSettings.ColorPreset);
             Assert.Equal(AutomapColorPreset.Strife, loaded.NormalizedAutomapSettings.ColorPreset);
+            LinedefColorPreset colorPreset = Assert.Single(loaded.NormalizedLinedefColorPresets);
+            Assert.Equal("Locked", colorPreset.Name);
+            Assert.Equal(unchecked((int)0xff112233), colorPreset.Color);
+            Assert.Equal(11, colorPreset.Action);
+            Assert.Equal(LinedefColorPresetModel.AnyActivation, colorPreset.Activation);
+            Assert.Equal(new[] { "secret" }, colorPreset.RequiredFlags);
+            Assert.Equal(new[] { "dontdraw" }, colorPreset.DisallowedFlags);
+            Assert.True(colorPreset.Enabled);
             Assert.True(loaded.NormalizedThreeDFloorControlSectorAreaSettings.UseCustomTagRange);
             Assert.Equal(2000, loaded.NormalizedThreeDFloorControlSectorAreaSettings.FirstTag);
             Assert.Equal(2050, loaded.NormalizedThreeDFloorControlSectorAreaSettings.LastTag);
@@ -730,6 +749,7 @@ public class SettingsTests
         Assert.Equal(new DrawGridModeSettings(), s.NormalizedDrawGridSettings);
         Assert.Equal(new EditSelectionModeSettings(), s.NormalizedEditSelectionSettings);
         Assert.Equal(new AutomapModeSettings(), s.NormalizedAutomapSettings);
+        Assert.Same(LinedefColorPresetModel.DefaultPresets, s.NormalizedLinedefColorPresets);
         Assert.Equal(new ThreeDFloorControlSectorAreaSettings(), s.NormalizedThreeDFloorControlSectorAreaSettings);
         Assert.Equal(new MakeDoorModeSettings(), s.NormalizedMakeDoorSettings);
         Assert.Equal(new TagRangeStoredOptions(), s.NormalizedTagRangeSettings);

@@ -95,6 +95,17 @@ public class LinedefColorPresetModelTests
     }
 
     [Fact]
+    public void NormalizedPresetsUseDefaultsWhenNoCustomPresetsExist()
+    {
+        Assert.Same(LinedefColorPresetModel.DefaultPresets, LinedefColorPresetModel.NormalizedPresets(null));
+        Assert.Same(LinedefColorPresetModel.DefaultPresets, LinedefColorPresetModel.NormalizedPresets([]));
+
+        var custom = new[] { new LinedefColorPreset("Custom", unchecked((int)0xff010203), Action: 11) };
+
+        Assert.Same(custom, LinedefColorPresetModel.NormalizedPresets(custom));
+    }
+
+    [Fact]
     public void WithAlphaPreservesColorChannels()
     {
         Assert.Equal(unchecked((int)0x40112233), LinedefColorPresetModel.WithAlpha(unchecked((int)0xff112233), 0x40));

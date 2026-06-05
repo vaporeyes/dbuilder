@@ -32,6 +32,11 @@ public static class LinedefColorPresetModel
         new("Any action", PaleGreenArgb, AnyAction, DefaultAnyActionActivation, Array.Empty<string>(), Array.Empty<string>(), true),
     ];
 
+    public static IReadOnlyList<LinedefColorPreset> NormalizedPresets(IReadOnlyList<LinedefColorPreset>? presets)
+        => presets is { Count: > 0 }
+            ? presets
+            : DefaultPresets;
+
     public static bool Matches(Linedef line, LinedefColorPreset preset, bool isUdmf = false)
     {
         ArgumentNullException.ThrowIfNull(line);

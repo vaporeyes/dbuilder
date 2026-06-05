@@ -65,6 +65,7 @@ public sealed class Settings
     public DrawGridModeSettings DrawGridSettings { get; set; } = new();
     public EditSelectionModeSettings EditSelectionSettings { get; set; } = new();
     public AutomapModeSettings AutomapSettings { get; set; } = new();
+    public List<LinedefColorPreset> LinedefColorPresets { get; set; } = new();
     public ThreeDFloorControlSectorAreaSettings ThreeDFloorControlSectorAreaSettings { get; set; } = new();
     public MakeDoorModeSettings MakeDoorSettings { get; set; } = new();
     public TagRangeStoredOptions TagRangeSettings { get; set; } = new();
@@ -164,6 +165,9 @@ public sealed class Settings
 
     public AutomapModeSettings NormalizedAutomapSettings =>
         (AutomapSettings ?? new AutomapModeSettings()).Normalized();
+
+    public IReadOnlyList<LinedefColorPreset> NormalizedLinedefColorPresets =>
+        LinedefColorPresetModel.NormalizedPresets(LinedefColorPresets);
 
     public ThreeDFloorControlSectorAreaSettings NormalizedThreeDFloorControlSectorAreaSettings =>
         ThreeDFloorControlSectorAreaSettings ?? new ThreeDFloorControlSectorAreaSettings();
@@ -359,6 +363,7 @@ public sealed class Settings
             settings.DrawGridSettings ??= new();
             settings.EditSelectionSettings ??= new();
             settings.AutomapSettings ??= new();
+            settings.LinedefColorPresets ??= new();
             settings.ThreeDFloorControlSectorAreaSettings ??= new();
             settings.MakeDoorSettings ??= new();
             settings.TagRangeSettings = TagRangeModel.NormalizeStoredOptions(settings.TagRangeSettings);

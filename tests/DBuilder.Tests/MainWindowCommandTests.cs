@@ -865,6 +865,14 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void StartupAppliesPersistedLinedefColorPresetsToMapView()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("MapView.LinedefColorPresets = _settings.NormalizedLinedefColorPresets;", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TagRangeCommandAvailabilityReflectsTaggableSelection()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));

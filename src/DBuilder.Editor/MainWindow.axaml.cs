@@ -218,6 +218,7 @@ public partial class MainWindow : Window
         MapView.DrawCurveSettings = _settings.NormalizedDrawCurveSettings;
         MapView.DrawGridSettings = _settings.NormalizedDrawGridSettings;
         MapView.AutomapSettings = _settings.NormalizedAutomapSettings;
+        MapView.LinedefColorPresets = _settings.NormalizedLinedefColorPresets;
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
         MapView.RenderGridEnabled = _settings.RenderGrid;
         MapView.DynamicGridSizeEnabled = _settings.DynamicGridSize;
