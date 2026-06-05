@@ -194,6 +194,8 @@ public sealed class ShortcutHelpModelTests
         Assert.Contains("private Control FilterBar()", body, StringComparison.Ordinal);
         Assert.Contains("Opened += (_, _) => _search.Focus();", body, StringComparison.Ordinal);
         Assert.Contains("Content = \"Clear\"", body, StringComparison.Ordinal);
+        Assert.Contains("e.Key != Key.Escape", body, StringComparison.Ordinal);
+        Assert.Contains("e.Handled = true;", body, StringComparison.Ordinal);
         Assert.Contains("Content = \"Expand All\"", body, StringComparison.Ordinal);
         Assert.Contains("Content = \"Collapse All\"", body, StringComparison.Ordinal);
         Assert.Contains("ColumnDefinitions = new ColumnDefinitions(\"Auto,*,Auto,Auto,Auto\")", body, StringComparison.Ordinal);

@@ -2,6 +2,7 @@
 // ABOUTME: Replaces the cluttered shortcut dump that used to fill the info panel.
 
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using DBuilder.IO;
@@ -85,6 +86,12 @@ public sealed class ShortcutsWindow : Window
             _searchExpandedOverride = null;
             _clearSearch.IsVisible = !string.IsNullOrWhiteSpace(_search.Text);
             RebuildSections(_search.Text);
+        };
+        _search.KeyDown += (_, e) =>
+        {
+            if (e.Key != Key.Escape || string.IsNullOrWhiteSpace(_search.Text)) return;
+            _search.Text = "";
+            e.Handled = true;
         };
         _clearSearch.Click += (_, _) =>
         {
