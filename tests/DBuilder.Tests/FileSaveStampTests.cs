@@ -127,6 +127,26 @@ public class FileSaveStampTests
     }
 
     [Fact]
+    public void CanWriteSourcePathBlocksChangedFiles()
+    {
+        Assert.True(FileSaveStamp.CanWriteSourcePath(null, null));
+        Assert.True(FileSaveStamp.CanWriteSourcePath(TempPath(), null));
+
+        string path = TempPath();
+        try
+        {
+            File.WriteAllText(path, "abc");
+            Assert.True(FileSaveStamp.TryRead(path, out var stamp));
+            Assert.True(FileSaveStamp.CanWriteSourcePath(path, stamp));
+
+            File.WriteAllText(path, "abcdef");
+
+            Assert.False(FileSaveStamp.CanWriteSourcePath(path, stamp));
+        }
+        finally { DeleteIfExists(path); }
+    }
+
+    [Fact]
     public void ExistingPathWriteBlockStatusReportsReadOnlyTargets()
     {
         Assert.Null(FileSaveStamp.ExistingPathWriteBlockStatus(null));

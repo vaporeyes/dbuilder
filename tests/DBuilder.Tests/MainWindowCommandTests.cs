@@ -729,7 +729,7 @@ public sealed class MainWindowCommandTests
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
 
-        Assert.Contains("bool canSave = hasMap && (_wadPath is null || FileSaveStamp.CanWriteExistingPath(_wadPath));", body, StringComparison.Ordinal);
+        Assert.Contains("bool canSave = hasMap && (_wadPath is null || FileSaveStamp.CanWriteSourcePath(_wadPath, _sourceWadStamp));", body, StringComparison.Ordinal);
         Assert.Contains("SetEnabled(canSave, SaveMenuItem, SaveButton);", body, StringComparison.Ordinal);
     }
 

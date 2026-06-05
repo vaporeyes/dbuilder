@@ -6971,7 +6971,7 @@ public partial class MainWindow : Window
         bool canBrowseCatalogs = hasMap && _config is not null;
         bool canBrowseAny = hasResources || canBrowseCatalogs;
         bool canReloadResources = _wadPath is not null && _mapOptions is not null;
-        bool canSave = hasMap && (_wadPath is null || FileSaveStamp.CanWriteExistingPath(_wadPath));
+        bool canSave = hasMap && (_wadPath is null || FileSaveStamp.CanWriteSourcePath(_wadPath, _sourceWadStamp));
         bool hasSelection = hasMap && CountSelection() > 0;
         bool hasCurrentModeSelection = hasMap && CountSelectionInCurrentMode() > 0;
         bool hasSingleCurrentModeSelection = hasMap && CountSelectionInCurrentMode() == 1;

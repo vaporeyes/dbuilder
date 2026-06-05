@@ -35,6 +35,9 @@ public readonly record struct FileSaveStamp(DateTime LastWriteTimeUtc, long Leng
     public static bool CanWriteExistingPath(string? path)
         => !IsReadOnly(path);
 
+    public static bool CanWriteSourcePath(string? path, FileSaveStamp? expected)
+        => CanWriteExistingPath(path) && !HasChanged(path, expected);
+
     public static string? ExistingPathWriteBlockStatus(string? path)
         => CanWriteExistingPath(path) ? null : ReadOnlyTargetSaveStatus;
 }
