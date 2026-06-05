@@ -11,9 +11,12 @@ public static class GridSetupDialogModel
     private const double RadiansPerDegree = Math.PI / 180.0;
 
     public static double ParseGridSize(string? text, double fallbackSize)
+        => ParseGridSize(text, fallbackSize, GridSetup.MinimumGridSize);
+
+    public static double ParseGridSize(string? text, double fallbackSize, double minimumSize)
     {
         double size = ParseDouble(text, fallbackSize);
-        return Math.Max(GridSetup.MinimumGridSize, size);
+        return Math.Max(minimumSize, size);
     }
 
     public static double ParseDouble(string? text, double fallback)

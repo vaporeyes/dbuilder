@@ -22,6 +22,7 @@ public sealed class GridSetupDialog : PropertyDialog
     private readonly TextBox _backgroundScaleX;
     private readonly TextBox _backgroundScaleY;
     private readonly ResourceManager? _resources;
+    private readonly double _minimumGridSize;
 
     public double ResultSize { get; private set; }
     public double ResultOriginX { get; private set; }
@@ -38,6 +39,7 @@ public sealed class GridSetupDialog : PropertyDialog
         : base("Grid Setup", "Grid size and transform affect drawing, movement and insertion snapping.")
     {
         _resources = resources;
+        _minimumGridSize = grid.MinimumSize;
         ResultSize = grid.GridSizeF;
         ResultOriginX = grid.GridOriginX;
         ResultOriginY = grid.GridOriginY;
@@ -66,7 +68,7 @@ public sealed class GridSetupDialog : PropertyDialog
 
     protected override void OnConfirm()
     {
-        ResultSize = GridSetupDialogModel.ParseGridSize(_size.Text, ResultSize);
+        ResultSize = GridSetupDialogModel.ParseGridSize(_size.Text, ResultSize, _minimumGridSize);
         ResultOriginX = GridSetupDialogModel.ParseDouble(_originX.Text, ResultOriginX);
         ResultOriginY = GridSetupDialogModel.ParseDouble(_originY.Text, ResultOriginY);
         ResultRotation = GridSetupDialogModel.ParseRotationDegrees(_rotation.Text, ResultRotation);

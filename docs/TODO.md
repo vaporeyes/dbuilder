@@ -1157,6 +1157,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Keep bracket grid stepping usable after oversized grid values.
   - [x] Add UDB-style align-grid, set-grid-origin, reset-grid, and smart-grid-transform actions.
   - [x] Add UDB-style dynamic grid size setting, toggle, shortcut, and zoom matching.
+  - [x] Preserve UDMF fractional grid sizes when confirming the grid setup dialog.
 - [ ] Port drawing behavior for sectors, lines, rectangles, ellipses, curves, and grids.
   - [x] Add menu commands for sector and lines-only drawing modes.
   - [x] Add menu commands for cursor insert and make-sector actions.

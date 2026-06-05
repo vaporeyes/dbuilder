@@ -23,6 +23,7 @@ public sealed class GridSetup
 
     public int GridSize { get; private set; }
     public double GridSizeF => gridSizeF;
+    public double MinimumSize => minimumGridSize;
     public double GridRotate { get; private set; }
     public double GridOriginX { get; private set; }
     public double GridOriginY { get; private set; }

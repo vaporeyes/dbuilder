@@ -123,6 +123,14 @@ public class GridSetupTests
     }
 
     [Fact]
+    public void DialogModelCanParseUdmfFractionalGridSize()
+    {
+        Assert.Equal(0.125, GridSetupDialogModel.ParseGridSize("0", 32.0, GridSetup.MinimumUdmfGridSize));
+        Assert.Equal(0.125, GridSetupDialogModel.ParseGridSize("0.125", 32.0, GridSetup.MinimumUdmfGridSize));
+        Assert.Equal(0.25, GridSetupDialogModel.ParseGridSize("0.25", 32.0, GridSetup.MinimumUdmfGridSize));
+    }
+
+    [Fact]
     public void DialogModelParsesNumericFieldsWithFallbacks()
     {
         Assert.Equal(-12.5, GridSetupDialogModel.ParseDouble("-12.5", 1.0));
@@ -149,6 +157,15 @@ public class GridSetupTests
 
         Assert.Contains("AddField(\"Rotation degrees\", GridSetupDialogModel.FormatRotationDegrees(grid.GridRotate))", body, StringComparison.Ordinal);
         Assert.Contains("ResultRotation = GridSetupDialogModel.ParseRotationDegrees(_rotation.Text, ResultRotation);", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GridSetupDialogUsesActiveGridMinimumWhenParsingSize()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/GridSetupDialog.cs"));
+
+        Assert.Contains("_minimumGridSize = grid.MinimumSize;", body, StringComparison.Ordinal);
+        Assert.Contains("ResultSize = GridSetupDialogModel.ParseGridSize(_size.Text, ResultSize, _minimumGridSize);", body, StringComparison.Ordinal);
     }
 
     [Fact]
