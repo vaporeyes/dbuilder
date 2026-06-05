@@ -4285,6 +4285,8 @@ public partial class MainWindow : Window
             "window.sound-propagation-mode" or "window.soundpropagationmode" => SoundPropagationMenuItem,
             "window.sound-environment-mode" or "window.soundenvironmentmode" => SoundEnvironmentsMenuItem,
             "window.sound-propagation-colors" or "window.soundpropagationcolorconfiguration" => SoundPropagationColorsMenuItem,
+            "window.applyjitter" => ApplyJitterMenuItem,
+            "window.applydirectionalshading" => ApplyDirectionalShadingMenuItem,
             "window.apply-slope-arch" => ApplySlopeArchMenuItem,
             "window.apply-slopes" => ApplySlopesMenuItem,
             "window.gradient-floor-heights" or "window.gradientfloors" => GradientFloorHeightsMenuItem,
@@ -7216,12 +7218,12 @@ public partial class MainWindow : Window
             DrawMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
             DrawRectangleMenuItem, DrawEllipseMenuItem, DrawGridMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
-            TestMapMenuItem, SoundPropagationMenuItem, SoundEnvironmentsMenuItem, BlockmapExplorerMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, SectorColorMenuItem, DynamicLightColorMenuItem, TagRangeMenuItem, ImageExampleMenuItem, ImportObjTerrainMenuItem,
+            TestMapMenuItem, SoundPropagationMenuItem, SoundEnvironmentsMenuItem, BlockmapExplorerMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplyJitterMenuItem, ApplyDirectionalShadingMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, SectorColorMenuItem, DynamicLightColorMenuItem, TagRangeMenuItem, ImageExampleMenuItem, ImportObjTerrainMenuItem,
             ExportObjectMenuItem, ExportImageMenuItem, ExportWavefrontMenuItem, ExportIdStudioMenuItem, RejectViewerMenuItem, CloseMapButton, SaveAsMenuItem, SaveAsFormatMenuItem,
             FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
             SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,
             DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, DrawGridButton, CheckMapButton,
-            CleanUpGeometryButton, TestMapButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplySlopeArchButton, ApplySlopesButton, SectorColorButton, DynamicLightColorButton, TagRangeButton, ImportObjTerrainButton, WadAuthorModeButton);
+            CleanUpGeometryButton, TestMapButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplyJitterButton, ApplyDirectionalShadingButton, ApplySlopeArchButton, ApplySlopesButton, SectorColorButton, DynamicLightColorButton, TagRangeButton, ImportObjTerrainButton, WadAuthorModeButton);
         SetEnabled(canSave, SaveMenuItem, SaveButton);
         SetEnabled(canInsertPreviousPrefab, InsertPreviousPrefabMenuItem);
         SetEnabled(canPlaceThings, PlaceThingsMenuItem);

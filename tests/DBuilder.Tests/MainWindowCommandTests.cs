@@ -1308,6 +1308,8 @@ public sealed class MainWindowCommandTests
         Assert.Contains("SetShortcutToolTip(GradientFloorHeightsMenuItem, \"Gradient Floor Heights\", \"window.gradient-floor-heights\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ApplyJitterMenuItem, \"Randomize\", \"window.applyjitter\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ApplyDirectionalShadingMenuItem, \"Apply Directional Shading\", \"window.applydirectionalshading\");", code, StringComparison.Ordinal);
+        Assert.Contains("ApplyJitterMenuItem, ApplyDirectionalShadingMenuItem, ApplySlopeArchMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("ApplyJitterButton, ApplyDirectionalShadingButton, ApplySlopeArchButton", code, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"CommandPaletteMenuItem\"", xaml, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(CommandPaletteMenuItem, \"Open Command Palette\", \"window.open-command-palette\");", code, StringComparison.Ordinal);
         Assert.Contains("case \"window.open-command-palette\": OnOpenCommandPalette(this, new RoutedEventArgs()); return true;", code, StringComparison.Ordinal);
@@ -1377,6 +1379,8 @@ public sealed class MainWindowCommandTests
         Assert.Contains("\"window.nodes-viewer\" or \"window.nodesviewermode\" => NodesViewerMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.sound-propagation-mode\" or \"window.soundpropagationmode\" => SoundPropagationMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.sound-environment-mode\" or \"window.soundenvironmentmode\" => SoundEnvironmentsMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.applyjitter\" => ApplyJitterMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.applydirectionalshading\" => ApplyDirectionalShadingMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.create-prefab\" => SavePrefabMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.insert-prefab-file\" => InsertPrefabMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.insert-previous-prefab\" => InsertPreviousPrefabMenuItem", code, StringComparison.Ordinal);
