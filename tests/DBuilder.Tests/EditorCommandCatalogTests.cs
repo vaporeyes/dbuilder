@@ -1639,14 +1639,15 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map2d.flooralignmode", "Floor Align Mode")]
-    [InlineData("map2d.ceilingalignmode", "Ceiling Align Mode")]
-    public void FlatAlignModeCommandsMatchUdbActionSurface(string commandId, string title)
+    [InlineData("map2d.flooralignmode", "Floor Align Mode", "Switches to the (G)ZDoom Floor Align mode.")]
+    [InlineData("map2d.ceilingalignmode", "Ceiling Align Mode", "Switches to the (G)ZDoom Ceiling Align mode.")]
+    public void FlatAlignModeCommandsMatchUdbActionSurface(string commandId, string title, string description)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
