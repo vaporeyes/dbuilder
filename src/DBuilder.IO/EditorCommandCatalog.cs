@@ -506,7 +506,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.finish-draw", "Finish Drawing", "Enter", EditorCommandScope.Map2D, AllowScroll: true, Description: "Finishes the drawing and creates the geometry."),
         new EditorCommandDescriptor("map2d.finishdraw", "Finish Drawing", "Enter", EditorCommandScope.Map2D, AllowScroll: true, Description: "Finishes the drawing and creates the geometry."),
         new EditorCommandDescriptor("map2d.acceptmode", "Accept Action", "Enter", EditorCommandScope.Map2D, AllowScroll: true, Description: "Accepts the changes in the current action and switches back to normal editing mode."),
-        new EditorCommandDescriptor("map2d.cancel-draw", "Cancel drawing", "Esc", EditorCommandScope.Map2D),
+        new EditorCommandDescriptor("map2d.cancel-draw", "Cancel drawing", "Esc", EditorCommandScope.Map2D, AllowScroll: true, Description: "Cancels the current action and switches back to normal editing mode."),
         new EditorCommandDescriptor("map2d.cancelmode", "Cancel Action", "Esc", EditorCommandScope.Map2D, AllowScroll: true, Description: "Cancels the current action and switches back to normal editing mode."),
         new EditorCommandDescriptor("map2d.toggle-3d", "Enter 3D mode", "Tab", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.gzdbvisualmode", "Visual Mode", "Q", EditorCommandScope.Map2D, AllowScroll: true, DisregardShift: true, DisregardAccelerator: true, Description: "Switches to the visual editing mode. Hold Shift key to invert 'Synhcronize selection between Visual and Classic modes' setting. Hold Control key to disable position synchronization when 'Synchronize camera position between 2D and 3D modes' Preferences option is enabled."),

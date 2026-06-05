@@ -2656,6 +2656,7 @@ public class EditorCommandCatalogTests
     [InlineData("map2d.finish-draw", "Finish Drawing", "Enter", "Finishes the drawing and creates the geometry.", false, false, false)]
     [InlineData("map2d.finishdraw", "Finish Drawing", "Enter", "Finishes the drawing and creates the geometry.", false, false, false)]
     [InlineData("map2d.acceptmode", "Accept Action", "Enter", "Accepts the changes in the current action and switches back to normal editing mode.", false, false, false)]
+    [InlineData("map2d.cancel-draw", "Cancel drawing", "Esc", "Cancels the current action and switches back to normal editing mode.", false, false, false)]
     [InlineData("map2d.cancelmode", "Cancel Action", "Esc", "Cancels the current action and switches back to normal editing mode.", false, false, false)]
     public void DrawSessionCommandsMatchUdbActionSurface(
         string id,
