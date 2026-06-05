@@ -34,9 +34,9 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
-    public void KeepsSpritesOnlyWhenZoomedInCloseEnoughForIconsToSeparate()
+    public void UsesCompactMarkersBeforeSpritesCrowdAtOverviewScale()
     {
-        Assert.False(ThingIconRenderPolicy.UseCompactMarkers(
+        Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
             viewScale: 0.1,
             fixedThingsScale: false,
             thingArrows: false));
@@ -153,8 +153,8 @@ public sealed class ThingIconRenderPolicyTests
         Assert.False(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(
             ThingIconRenderPolicy.CompactMarkerScaleThreshold - 0.01,
             thingArrows: false));
-        Assert.False(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(
-            ThingIconRenderPolicy.CompactMarkerScaleThreshold - 0.01,
+        Assert.True(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(
+            viewScale: 0.1,
             thingArrows: true));
         Assert.True(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(
             ThingIconRenderPolicy.CompactMarkerScaleThreshold,
