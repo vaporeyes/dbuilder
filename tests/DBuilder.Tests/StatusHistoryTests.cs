@@ -34,6 +34,13 @@ public class StatusHistoryTests
     }
 
     [Fact]
+    public void StatusBarFormatsSelectionCount()
+    {
+        Assert.Equal("Selected: 0", StatusBarModel.SelectionText(0));
+        Assert.Equal("Selected: 12", StatusBarModel.SelectionText(12));
+    }
+
+    [Fact]
     public void StatusBarFormatsCoordinatesAsWholeMapUnits()
     {
         Assert.Equal("13 , -8", StatusBarModel.CoordinateText(12.6, -7.5));

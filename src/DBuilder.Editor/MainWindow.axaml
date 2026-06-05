@@ -462,12 +462,13 @@
 
         <!-- Status bar -->
         <Border Grid.Row="4" Background="#181c24" Padding="6,3">
-            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto">
                 <TextBlock Grid.Column="0" x:Name="StatusText" Text="Ready" Foreground="#c0c8d0" />
                 <TextBlock Grid.Column="1" x:Name="ConfigText" Text="Config: -" Foreground="#c0c8d0" Margin="12,0,0,0" />
                 <TextBlock Grid.Column="2" x:Name="ModeText" Text="Mode: -" Foreground="#c0c8d0" Margin="12,0,0,0" />
                 <TextBlock Grid.Column="3" x:Name="GridText" Text="Grid: -" Foreground="#c0c8d0" Margin="12,0,0,0" />
-                <TextBlock Grid.Column="4" x:Name="CoordText" Text="" Foreground="#c0c8d0" Margin="12,0,0,0" />
+                <TextBlock Grid.Column="4" x:Name="SelectedText" Text="Selected: 0" Foreground="#c0c8d0" Margin="12,0,0,0" />
+                <TextBlock Grid.Column="5" x:Name="CoordText" Text="" Foreground="#c0c8d0" Margin="12,0,0,0" />
             </Grid>
         </Border>
 

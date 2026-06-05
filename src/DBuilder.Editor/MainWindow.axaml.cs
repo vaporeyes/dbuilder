@@ -6927,10 +6927,15 @@ public partial class MainWindow : Window
             MapView.InDrawMode);
         var grid = MapView.GridSetupSnapshot();
         GridText.Text = StatusBarModel.GridText(MapView.SnapToGridEnabled, grid.GridSizeF);
+        int selected = _map is null
+            ? 0
+            : _map.SelectedVerticesCount + _map.SelectedLinedefsCount + _map.SelectedSidedefsCount + _map.SelectedSectorsCount + _map.SelectedThingsCount;
+        SelectedText.Text = StatusBarModel.SelectionText(selected);
     }
 
     private void UpdateInfo()
     {
+        UpdateStatusDetails();
         UpdateCommandAvailability();
         if (_map is null) { ShowText(InfoSummaryPanelModel.NoMapLoadedText()); PreviewPanel.Children.Clear(); return; }
         InfoPanelSelectionCounts counts = InfoSummaryPanelModel.SelectionCounts(_map);
