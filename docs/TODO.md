@@ -143,6 +143,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Append UDB-style additional Test Map parameters after the converted launch template.
   - [x] Honor persisted Test Map skill and no-monsters launch selections.
   - [x] Expose UDB-style Test Map skill and no-monsters selections in the Tools menu.
+  - [x] Expose the Test Map from current position action in the Tools menu.
 - [ ] Port node-builder discovery, configuration, and execution flow.
   - [x] Load UDB node-builder configuration profiles and apply save/test profile parameters.
   - [x] Strip stale nodebuilder lumps and verify required output lumps before accepting nodebuilder results.

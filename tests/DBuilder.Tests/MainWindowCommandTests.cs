@@ -1404,6 +1404,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("\"window.toggle-automap-textured-hidden-sector\" => ToggleAutomapTexturedHiddenSectorMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.toggle-auto-clear-sidedef-textures\" => AutoClearSidedefTexturesMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.undo-redo-panel\" => UndoRedoPanelMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.test-map-from-view\" or \"window.testmapfromview\" => TestMapFromViewMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.things-filters-setup\" => ThingFilterMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.reference-manual\" => ReferenceManualMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.edit-mode-help\" => EditModeHelpMenuItem", code, StringComparison.Ordinal);
@@ -1446,7 +1447,11 @@ public sealed class MainWindowCommandTests
     public void TestMapMenuExposesSkillSelectionEntries()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        string xaml = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml"));
 
+        Assert.Contains("x:Name=\"TestMapFromViewMenuItem\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(TestMapFromViewMenuItem, \"Test map from current position\", \"window.testmapfromview\");", body, StringComparison.Ordinal);
+        Assert.Contains("TestMapMenuItem, TestMapFromViewMenuItem, SoundPropagationMenuItem", body, StringComparison.Ordinal);
         Assert.Contains("private void RebuildTestMapMenu()", body, StringComparison.Ordinal);
         Assert.Contains("TestMapMenuModel.Build(skills, _settings.NormalizedTestSkill, _settings.TestMonsters)", body, StringComparison.Ordinal);
         Assert.Contains("ToggleType = MenuItemToggleType.CheckBox", body, StringComparison.Ordinal);

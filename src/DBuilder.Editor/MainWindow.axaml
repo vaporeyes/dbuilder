@@ -238,6 +238,7 @@
                 <MenuItem Header="_Clean Up Geometry" x:Name="CleanUpGeometryMenuItem" Click="OnCleanUpGeometry" />
                 <MenuItem Header="_Reload Resources" x:Name="ReloadResourcesMenuItem" Click="OnReloadResources" />
                 <MenuItem Header="_Test Map" x:Name="TestMapMenuItem" Click="OnTestMap" />
+                <MenuItem Header="Test Map from Current _Position" x:Name="TestMapFromViewMenuItem" Click="OnTestMapFromView" />
                 <MenuItem Header="Command _Palette..." x:Name="CommandPaletteMenuItem" Click="OnOpenCommandPalette" />
                 <MenuItem Header="_Scripts..." x:Name="UdbScriptDockerMenuItem" Click="OnUdbScriptDocker" />
                 <MenuItem Header="Sound _Propagation" x:Name="SoundPropagationMenuItem" Click="OnSoundPropagation" />

@@ -421,6 +421,7 @@ public partial class MainWindow : Window
         SetShortcutToolTip(CleanUpGeometryMenuItem, "Clean Up Geometry", "window.clean-up-geometry");
         SetShortcutToolTip(ReloadResourcesMenuItem, "Reload Resources", "window.reload-resources");
         SetShortcutToolTip(TestMapMenuItem, "Test Map", "window.test-map");
+        SetShortcutToolTip(TestMapFromViewMenuItem, "Test map from current position", "window.testmapfromview");
         SetShortcutToolTip(CommandPaletteMenuItem, "Open Command Palette", "window.open-command-palette");
         SetShortcutToolTip(UdbScriptDockerMenuItem, "Scripts", "window.udbscripts");
         SetShortcutToolTip(SoundPropagationMenuItem, "Sound Propagation", "window.sound-propagation-mode");
@@ -4321,7 +4322,7 @@ public partial class MainWindow : Window
             "window.check-map" or "window.errorcheckmode" => CheckMapMenuItem,
             "window.clean-up-geometry" => CleanUpGeometryMenuItem,
             "window.test-map" => TestMapMenuItem,
-            "window.test-map-from-view" or "window.testmapfromview" => TestMapMenuItem,
+            "window.test-map-from-view" or "window.testmapfromview" => TestMapFromViewMenuItem,
             "window.things-filters-setup" => ThingFilterMenuItem,
             "window.reload-resources" => ReloadResourcesMenuItem,
             "window.grid-setup" => GridSetupMenuItem,
@@ -7226,7 +7227,7 @@ public partial class MainWindow : Window
             DrawMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
             DrawRectangleMenuItem, DrawEllipseMenuItem, DrawGridMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
-            TestMapMenuItem, SoundPropagationMenuItem, SetLeakFinderStartMenuItem, SetLeakFinderEndMenuItem, SoundEnvironmentsMenuItem, BlockmapExplorerMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplyJitterMenuItem, ApplyDirectionalShadingMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, SectorColorMenuItem, DynamicLightColorMenuItem, ToggleLightPanelMenuItem, TagRangeMenuItem, ImageExampleMenuItem, ImportObjTerrainMenuItem,
+            TestMapMenuItem, TestMapFromViewMenuItem, SoundPropagationMenuItem, SetLeakFinderStartMenuItem, SetLeakFinderEndMenuItem, SoundEnvironmentsMenuItem, BlockmapExplorerMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplyJitterMenuItem, ApplyDirectionalShadingMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, SectorColorMenuItem, DynamicLightColorMenuItem, ToggleLightPanelMenuItem, TagRangeMenuItem, ImageExampleMenuItem, ImportObjTerrainMenuItem,
             ExportObjectMenuItem, ExportImageMenuItem, ExportWavefrontMenuItem, ExportIdStudioMenuItem, RejectViewerMenuItem, CloseMapButton, SaveAsMenuItem, SaveAsFormatMenuItem,
             FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
             SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,
