@@ -1128,6 +1128,10 @@ public static class EditorCommandCatalog
         if (key.Equals("RButton", StringComparison.OrdinalIgnoreCase)) return EditorPointerInput.RightButton;
         if (key.Equals("XButton1", StringComparison.OrdinalIgnoreCase)) return EditorPointerInput.ExtendedButton1;
         if (key.Equals("XButton2", StringComparison.OrdinalIgnoreCase)) return EditorPointerInput.ExtendedButton2;
+        if (key.Equals("MScrollUp", StringComparison.OrdinalIgnoreCase)) return EditorPointerInput.ScrollUp;
+        if (key.Equals("MScrollDown", StringComparison.OrdinalIgnoreCase)) return EditorPointerInput.ScrollDown;
+        if (key.Equals("MScrollLeft", StringComparison.OrdinalIgnoreCase)) return EditorPointerInput.ScrollLeft;
+        if (key.Equals("MScrollRight", StringComparison.OrdinalIgnoreCase)) return EditorPointerInput.ScrollRight;
 
         return key switch
         {

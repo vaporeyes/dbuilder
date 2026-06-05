@@ -3279,6 +3279,29 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void ParseOverrideTextReadsUdbInternalMouseScrollKeys()
+    {
+        var overrides = EditorCommandCatalog.ParseOverrideText(
+            "map2d.zoom-in=MScrollUp; map2d.zoom-out=MScrollDown; map2d.fit=Ctrl+MScrollLeft; map3d.roll-clockwise=Alt+MScrollRight");
+
+        Assert.Contains(overrides, b => b.CommandId == "map2d.zoom-in" && b.Key == EditorPointerInput.ScrollUp);
+        Assert.Contains(overrides, b => b.CommandId == "map2d.zoom-out" && b.Key == EditorPointerInput.ScrollDown);
+        Assert.Contains(overrides, b => b.CommandId == "map2d.fit" && b.Key == EditorPointerInput.ScrollLeft && b.Accelerator);
+        Assert.Contains(overrides, b => b.CommandId == "map3d.roll-clockwise" && b.Key == EditorPointerInput.ScrollRight && b.Alt);
+    }
+
+    [Fact]
+    public void UdbInternalMouseScrollAliasesResolveToStableScrollKeys()
+    {
+        var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]
+        {
+            new EditorShortcutBinding("map2d.zoom-in", EditorCommandScope.Map2D, "MScrollUp"),
+        });
+
+        Assert.Equal("map2d.zoom-in", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Map2D, EditorPointerInput.ScrollUp));
+    }
+
+    [Fact]
     public void SpecialKeyAliasesResolveToAvaloniaKeyNames()
     {
         var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]
