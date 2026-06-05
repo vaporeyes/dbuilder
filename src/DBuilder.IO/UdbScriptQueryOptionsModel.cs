@@ -156,7 +156,7 @@ public sealed class UdbScriptQueryOptionsModel
 
     public bool SetValue(string name, object value)
     {
-        int index = options.FindIndex(option => option.Name == name);
+        int index = options.FindLastIndex(option => option.Name == name);
         if (index == -1)
             return false;
 

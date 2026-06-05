@@ -278,7 +278,7 @@ public class UdbScriptQueryOptionsModelTests
     }
 
     [Fact]
-    public void ClearRemovesOptionsAndDuplicateNamesReturnLastValue()
+    public void ClearRemovesOptionsAndDuplicateNamesReturnLastEditedValue()
     {
         var model = new UdbScriptQueryOptionsModel();
 
@@ -287,6 +287,11 @@ public class UdbScriptQueryOptionsModelTests
 
         Assert.Equal(2, model.Options.Count);
         Assert.Equal(128, model.GetScriptOptions()["size"]);
+
+        Assert.True(model.SetValue("size", 256));
+        Assert.Equal(64, model.Options[0].Value);
+        Assert.Equal(256, model.Options[1].Value);
+        Assert.Equal(256, model.GetScriptOptions()["size"]);
 
         model.Clear();
 

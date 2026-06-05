@@ -1778,6 +1778,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript QueryOptions option row metadata.
   - [x] Add UDBScript QueryOptions prompt UI metadata.
   - [x] Add UDBScript QueryOptions paused query result plan.
+  - [x] Apply QueryOptions duplicate-name edits to the last returned option.
   - [x] Add UDBScript QueryOptions editor dialog and runner prompt hook.
   - [x] Add UDBScript script options grid UI metadata.
   - [x] Add UDBScript script options editor dialog surface.
@@ -2223,6 +2224,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript QueryOptions option row metadata.
 - [x] Add UDBScript QueryOptions prompt UI metadata.
 - [x] Add UDBScript QueryOptions paused query result plan.
+- [x] Apply QueryOptions duplicate-name edits to the last returned option.
 - [x] Add UDBScript QueryOptions editor dialog and runner prompt hook.
 - [x] Add UDBScript script options grid UI metadata.
 - [x] Add UDBScript script options editor dialog surface.
