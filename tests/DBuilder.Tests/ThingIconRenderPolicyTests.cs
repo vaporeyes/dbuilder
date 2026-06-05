@@ -37,6 +37,10 @@ public sealed class ThingIconRenderPolicyTests
     public void UsesCompactMarkersBeforeSpritesCrowdAtOverviewScale()
     {
         Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
+            viewScale: 0.05,
+            fixedThingsScale: false,
+            thingArrows: false));
+        Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
             viewScale: 0.1,
             fixedThingsScale: false,
             thingArrows: false));
