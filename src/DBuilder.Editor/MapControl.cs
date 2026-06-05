@@ -7558,14 +7558,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         if (_map == null) return "No map loaded.";
         if (_gameConfig == null) return "No game configuration loaded.";
-        if (_map.SelectedThingsCount == 0)
+        IReadOnlyList<Thing> things = _map.GetSelectedThings();
+        if (things.Count == 0 && _editMode == EditMode.Things && NearestVisibleThing(_cursorWorld, 12 * _zoom) is { } highlighted)
+            things = new[] { highlighted };
+
+        if (things.Count == 0)
         {
             const string message = "This action requires a selection!";
             Picked?.Invoke(message);
             return message;
         }
 
-        bool hasEligible = _map.GetSelectedThings().Any(thing =>
+        bool hasEligible = things.Any(thing =>
             ThingWallAlignment.IsAlignable(_gameConfig.GetThing(thing.Type)?.RenderMode ?? ThingRenderMode.Normal));
         if (!hasEligible)
         {
@@ -7574,8 +7578,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return message;
         }
 
-        EditBegun?.Invoke(_map.SelectedThingsCount == 1 ? "Align thing" : $"Align {_map.SelectedThingsCount} things");
-        ThingWallAlignmentResult result = ThingWallAlignment.AlignSelectedToNearestWalls(_map, _gameConfig);
+        EditBegun?.Invoke(things.Count == 1 ? "Align thing" : $"Align {things.Count} things");
+        ThingWallAlignmentResult result = ThingWallAlignment.AlignThingsToNearestWalls(_map, _gameConfig, things);
         MarkGeometryDirty();
         Changed?.Invoke();
         Picked?.Invoke(result.Message);

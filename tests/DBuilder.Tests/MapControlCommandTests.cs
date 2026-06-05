@@ -786,6 +786,23 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void AlignThingsToWallUsesHighlightedThingLikeUdb()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("public string AlignSelectedThingsToWall()", StringComparison.Ordinal);
+        int selectedIndex = body.IndexOf("IReadOnlyList<Thing> things = _map.GetSelectedThings();", methodIndex, StringComparison.Ordinal);
+        int highlightedIndex = body.IndexOf("things.Count == 0 && _editMode == EditMode.Things && NearestVisibleThing(_cursorWorld, 12 * _zoom)", methodIndex, StringComparison.Ordinal);
+        int eligibleIndex = body.IndexOf("bool hasEligible = things.Any(thing =>", methodIndex, StringComparison.Ordinal);
+        int alignIndex = body.IndexOf("ThingWallAlignment.AlignThingsToNearestWalls(_map, _gameConfig, things)", methodIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(selectedIndex > methodIndex);
+        Assert.True(highlightedIndex > selectedIndex);
+        Assert.True(eligibleIndex > highlightedIndex);
+        Assert.True(alignIndex > eligibleIndex);
+    }
+
+    [Fact]
     public void GridRenderingCommandControlsVisibleGridOnly()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
