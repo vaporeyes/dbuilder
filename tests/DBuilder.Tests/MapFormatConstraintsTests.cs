@@ -55,6 +55,43 @@ public class MapFormatConstraintsTests
     }
 
     [Fact]
+    public void BinaryThingCoordinatesValidateAgainstSerializedTruncation()
+    {
+        var map = SquareMap();
+        map.Things[0].Position = new Vector2D(32767.9, -32768.9);
+        map.Things[0].Height = 32767.9;
+
+        var issues = MapFormatConstraints.Validate(map, MapFormat.Hexen);
+
+        Assert.Empty(issues);
+    }
+
+    [Fact]
+    public void BinaryThingCoordinatesRejectTruncatedValuesOutsideRange()
+    {
+        var map = SquareMap();
+        map.Things[0].Position = new Vector2D(32768.1, -32769.1);
+        map.Things[0].Height = 32768.1;
+
+        var fields = MapFormatConstraints.Validate(map, MapFormat.Hexen).Select(v => v.Field).ToArray();
+
+        Assert.Contains("things[0].x", fields);
+        Assert.Contains("things[0].y", fields);
+        Assert.Contains("things[0].height", fields);
+    }
+
+    [Fact]
+    public void UdmfThingCoordinatesKeepRoundedValidation()
+    {
+        var map = SquareMap();
+        map.Things[0].Position = new Vector2D(32767.9, 0);
+
+        var violation = Assert.Single(MapFormatConstraints.Validate(map, MapFormat.Udmf));
+
+        Assert.Equal("things[0].x", violation.Field);
+    }
+
+    [Fact]
     public void HexenAllowsActionArgsAndThingActionWithinByteRange()
     {
         var map = SquareMap();

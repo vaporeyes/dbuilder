@@ -55,9 +55,9 @@ public static class MapFormatConstraints
         for (int i = 0; i < map.Things.Count; i++)
         {
             var thing = map.Things[i];
-            Check(issues, $"things[{i}].x", RoundToInt(thing.Position.x), limits.MinCoordinate, limits.MaxCoordinate);
-            Check(issues, $"things[{i}].y", RoundToInt(thing.Position.y), limits.MinCoordinate, limits.MaxCoordinate);
-            Check(issues, $"things[{i}].height", RoundToInt(thing.Height), limits.MinThingHeight, limits.MaxThingHeight);
+            Check(issues, $"things[{i}].x", BinaryFormatValue(format, thing.Position.x), limits.MinCoordinate, limits.MaxCoordinate);
+            Check(issues, $"things[{i}].y", BinaryFormatValue(format, thing.Position.y), limits.MinCoordinate, limits.MaxCoordinate);
+            Check(issues, $"things[{i}].height", format == MapFormat.Hexen ? TruncateToInt(thing.Height) : RoundToInt(thing.Height), limits.MinThingHeight, limits.MaxThingHeight);
             Check(issues, $"things[{i}].angle", thing.Angle, limits.MinThingAngle, limits.MaxThingAngle);
             Check(issues, $"things[{i}].type", thing.Type, limits.MinThingType, limits.MaxThingType);
             Check(issues, $"things[{i}].flags", thing.Flags, 0, limits.MaxThingFlags);
@@ -91,6 +91,16 @@ public static class MapFormatConstraints
         if (value > int.MaxValue) return int.MaxValue;
         return (int)System.Math.Round(value);
     }
+
+    private static int TruncateToInt(double value)
+    {
+        if (value < int.MinValue) return int.MinValue;
+        if (value > int.MaxValue) return int.MaxValue;
+        return (int)value;
+    }
+
+    private static int BinaryFormatValue(MapFormat format, double value)
+        => format == MapFormat.Udmf ? RoundToInt(value) : TruncateToInt(value);
 
     private sealed record Limits(
         int MaxVertices,

@@ -473,6 +473,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Write unsigned Doom-format binary ids and references above signed-short range.
   - [x] Reject incomplete required vertex and sector references during Doom-format writes.
   - [x] Round Doom-format binary vertex coordinates during writes like UDB.
+  - [x] Validate Doom-format thing coordinates against UDB binary truncation.
 - [ ] Complete Hexen-format map loader parity.
   - [x] Skip invalid and zero-length Hexen-format linedefs during load.
   - [x] Materialize Hexen-format sidedefs from valid linedef references instead of as standalone orphans.
@@ -485,6 +486,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Reject incomplete required vertex references during Hexen-format writes.
   - [x] Reject incomplete sidedef sector references during Hexen-format writes.
   - [x] Round Hexen-format binary vertex coordinates during writes like UDB.
+  - [x] Validate Hexen-format thing coordinates and heights against UDB binary truncation.
 - [ ] Complete UDMF map loader parity.
   - [x] Skip invalid, zero-length, and near-zero UDMF linedefs during load.
   - [x] Skip UDMF sidedefs with invalid sector references while preserving original sidedef indices.
