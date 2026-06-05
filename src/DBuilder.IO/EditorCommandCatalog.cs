@@ -41,8 +41,8 @@ public static class EditorCommandCatalog
 {
     public static IReadOnlyList<EditorCommandDescriptor> All { get; } = new[]
     {
-        new EditorCommandDescriptor("window.undo", "Undo", "Ctrl/Cmd+Z", EditorCommandScope.Window, Description: "Restores the current map as it was before last action(s) performed."),
-        new EditorCommandDescriptor("window.redo", "Redo", "Ctrl/Cmd+Y", EditorCommandScope.Window, Description: "Repeats the action(s) performed before Undo was used."),
+        new EditorCommandDescriptor("window.undo", "Undo", "Ctrl/Cmd+Z", EditorCommandScope.Window, AllowScroll: true, Description: "Restores the current map as it was before last action(s) performed."),
+        new EditorCommandDescriptor("window.redo", "Redo", "Ctrl/Cmd+Y", EditorCommandScope.Window, AllowScroll: true, Description: "Repeats the action(s) performed before Undo was used."),
         new EditorCommandDescriptor("window.new-map", "New Map", "Menu", EditorCommandScope.Window, AllowMouse: false, Description: "Starts with a new, empty workspace to begin drawing a map from scratch."),
         new EditorCommandDescriptor("window.newmap", "New Map", "Menu", EditorCommandScope.Window, AllowMouse: false, Description: "Starts with a new, empty workspace to begin drawing a map from scratch."),
         new EditorCommandDescriptor("window.open-map", "Open Map", "Menu", EditorCommandScope.Window, AllowMouse: false, Description: "Opens an existing map from WAD file for viewing or modifying."),

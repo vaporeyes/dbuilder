@@ -144,6 +144,23 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
+    [InlineData("window.undo", "Undo", "Ctrl/Cmd+Z", "Restores the current map as it was before last action(s) performed.")]
+    [InlineData("window.redo", "Redo", "Ctrl/Cmd+Y", "Repeats the action(s) performed before Undo was used.")]
+    public void UndoRedoCommandsMatchUdbActionSurface(string commandId, string title, string gesture, string description)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
+        Assert.Equal(gesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+    }
+
+    [Theory]
     [InlineData("window.toggleautomerge", "Snap to Geometry", "Toggles snapping to the nearest vertex or linedef for map elements that are being dragged.")]
     [InlineData("window.togglejoinedsectorssplitting", "Split Joined Sectors", "When enabled, joined sectors adjacent to drawn lines will be split.")]
     public void GeometryToggleCommandsMatchUdbActionSurface(string commandId, string title, string description)
