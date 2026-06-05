@@ -1535,12 +1535,34 @@ public sealed class MainWindowCommandTests
         Assert.Contains("\"window.toggle-automap-secret-line\" => ToggleAutomapSecretLineMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.toggle-automap-textured-hidden-sector\" => ToggleAutomapTexturedHiddenSectorMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.toggle-auto-clear-sidedef-textures\" => AutoClearSidedefTexturesMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.toggleautomerge\" => AutoMergeMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.togglejoinedsectorssplitting\" => SplitJoinedSectorsMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.undo-redo-panel\" => UndoRedoPanelMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.test-map-from-view\" or \"window.testmapfromview\" => TestMapFromViewMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.things-filters-setup\" or \"window.thingsfilterssetup\" => ThingFilterMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.open-command-palette\" or \"window.opencommandpalette\" => CommandPaletteMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.reference-manual\" => ReferenceManualMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.edit-mode-help\" => EditModeHelpMenuItem", code, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GeometryToggleCommandsUpdatePersistedSettings()
+    {
+        string code = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        string xaml = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml"));
+
+        Assert.Contains("x:Name=\"AutoMergeMenuItem\" ToggleType=\"CheckBox\" Click=\"OnToggleAutoMerge\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"SplitJoinedSectorsMenuItem\" ToggleType=\"CheckBox\" Click=\"OnToggleSplitJoinedSectors\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(AutoMergeMenuItem, \"Snap to Geometry\", \"window.toggleautomerge\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(SplitJoinedSectorsMenuItem, \"Split Joined Sectors\", \"window.togglejoinedsectorssplitting\");", code, StringComparison.Ordinal);
+        Assert.Contains("case \"window.toggleautomerge\": OnToggleAutoMerge(this, new RoutedEventArgs()); return true;", code, StringComparison.Ordinal);
+        Assert.Contains("case \"window.togglejoinedsectorssplitting\": OnToggleSplitJoinedSectors(this, new RoutedEventArgs()); return true;", code, StringComparison.Ordinal);
+        Assert.Contains("SetChecked(AutoMergeMenuItem, _settings.AutoMerge);", code, StringComparison.Ordinal);
+        Assert.Contains("SetChecked(SplitJoinedSectorsMenuItem, _settings.SplitJoinedSectors);", code, StringComparison.Ordinal);
+        Assert.Contains("_settings.AutoMerge = !_settings.AutoMerge;", code, StringComparison.Ordinal);
+        Assert.Contains("_settings.SplitJoinedSectors = !_settings.SplitJoinedSectors;", code, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(\"Snap to geometry is \" + (_settings.AutoMerge ? \"ENABLED\" : \"DISABLED\"));", code, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(\"Joined sectors splitting is \" + (_settings.SplitJoinedSectors ? \"ENABLED\" : \"DISABLED\"));", code, StringComparison.Ordinal);
     }
 
     [Fact]

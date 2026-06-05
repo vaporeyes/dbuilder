@@ -303,6 +303,8 @@ public class SettingsTests
                 },
                 MaxRecentFiles = 12,
                 AutoClearSidedefTextures = false,
+                AutoMerge = false,
+                SplitJoinedSectors = true,
                 AlphaBasedTextureHighlighting = false,
                 SelectAdjacentVisualVertexSlopeHandles = true,
                 RenderGrid = false,
@@ -435,6 +437,8 @@ public class SettingsTests
             Assert.Equal(12, loaded.MaxRecentFiles);
             Assert.Equal(12, loaded.NormalizedMaxRecentFiles);
             Assert.False(loaded.AutoClearSidedefTextures);
+            Assert.False(loaded.AutoMerge);
+            Assert.True(loaded.SplitJoinedSectors);
             Assert.False(loaded.AlphaBasedTextureHighlighting);
             Assert.True(loaded.SelectAdjacentVisualVertexSlopeHandles);
             Assert.False(loaded.RenderGrid);

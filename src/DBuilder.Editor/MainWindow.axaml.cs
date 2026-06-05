@@ -344,6 +344,8 @@ public partial class MainWindow : Window
         SetShortcutToolTip(AlignThingsToWallMenuItem, "Align Things to Wall", "window.align-things-to-wall");
         SetShortcutToolTip(ApplyLightFogFlagMenuItem, "Apply 'lightfog' Flag", "map2d.apply-lightfog-flag");
         SetShortcutToolTip(AutoClearSidedefTexturesMenuItem, "Auto Clear Sidedef Textures", "window.toggle-auto-clear-sidedef-textures");
+        SetShortcutToolTip(AutoMergeMenuItem, "Snap to Geometry", "window.toggleautomerge");
+        SetShortcutToolTip(SplitJoinedSectorsMenuItem, "Split Joined Sectors", "window.togglejoinedsectorssplitting");
         SetShortcutToolTip(FindReplaceMenuItem, "Find and Replace", "window.find-replace");
         SetShortcutToolTip(PropertiesMenuItem, "Properties", "window.properties");
         SetShortcutToolTip(FlagsMenuItem, "Flags", "window.flags");
@@ -1378,6 +1380,8 @@ public partial class MainWindow : Window
         _settings.UdbScriptExternalEditor = dlg.UdbScriptExternalEditor;
         _settings.MaxRecentFiles = dlg.MaxRecentFiles;
         _settings.AutoClearSidedefTextures = dlg.AutoClearSidedefTextures;
+        _settings.AutoMerge = dlg.AutoMerge;
+        _settings.SplitJoinedSectors = dlg.SplitJoinedSectors;
         _settings.DynamicGridSize = dlg.DynamicGridSize;
         _settings.UseHighlight = dlg.UseHighlight;
         _settings.AlphaBasedTextureHighlighting = dlg.AlphaBasedTextureHighlighting;
@@ -1685,6 +1689,8 @@ public partial class MainWindow : Window
             case "window.dynamic-light-color": OnDynamicLightColor(this, new RoutedEventArgs()); return true;
             case "window.togglelightpannel": OnToggleLightPanel(this, new RoutedEventArgs()); return true;
             case "window.toggle-auto-clear-sidedef-textures": OnToggleAutoClearSidedefTextures(this, new RoutedEventArgs()); return true;
+            case "window.toggleautomerge": OnToggleAutoMerge(this, new RoutedEventArgs()); return true;
+            case "window.togglejoinedsectorssplitting": OnToggleSplitJoinedSectors(this, new RoutedEventArgs()); return true;
             case "window.undo-redo-panel": OnUndoRedoPanel(this, new RoutedEventArgs()); return true;
             case "window.check-map": OnCheckMap(this, new RoutedEventArgs()); return true;
             case "window.errorcheckmode": OnCheckMap(this, new RoutedEventArgs()); return true;
@@ -4418,6 +4424,8 @@ public partial class MainWindow : Window
             "window.dynamic-light-color" => DynamicLightColorMenuItem,
             "window.togglelightpannel" => ToggleLightPanelMenuItem,
             "window.toggle-auto-clear-sidedef-textures" => AutoClearSidedefTexturesMenuItem,
+            "window.toggleautomerge" => AutoMergeMenuItem,
+            "window.togglejoinedsectorssplitting" => SplitJoinedSectorsMenuItem,
             "window.undo-redo-panel" => UndoRedoPanelMenuItem,
             "window.check-map" or "window.errorcheckmode" => CheckMapMenuItem,
             "window.clean-up-geometry" => CleanUpGeometryMenuItem,
@@ -7420,6 +7428,8 @@ public partial class MainWindow : Window
         bool drawGrid = MapView.CurrentShape == MapControl.ShapeKind.Grid;
 
         SetChecked(AutoClearSidedefTexturesMenuItem, _settings.AutoClearSidedefTextures);
+        SetChecked(AutoMergeMenuItem, _settings.AutoMerge);
+        SetChecked(SplitJoinedSectorsMenuItem, _settings.SplitJoinedSectors);
         SetChecked(InfoPanelMenuItem, InfoPanel.IsVisible);
         SetChecked(VerticesModeMenuItem, verticesMode);
         SetChecked(LinedefsModeMenuItem, linedefsMode);
@@ -7523,6 +7533,22 @@ public partial class MainWindow : Window
         SaveSettings();
         UpdateCommandCheckedState();
         SetStatus("Auto removal of unused sidedef textures is " + (_settings.AutoClearSidedefTextures ? "ENABLED" : "DISABLED"));
+    }
+
+    private void OnToggleAutoMerge(object? sender, RoutedEventArgs e)
+    {
+        _settings.AutoMerge = !_settings.AutoMerge;
+        SaveSettings();
+        UpdateCommandCheckedState();
+        SetStatus("Snap to geometry is " + (_settings.AutoMerge ? "ENABLED" : "DISABLED"));
+    }
+
+    private void OnToggleSplitJoinedSectors(object? sender, RoutedEventArgs e)
+    {
+        _settings.SplitJoinedSectors = !_settings.SplitJoinedSectors;
+        SaveSettings();
+        UpdateCommandCheckedState();
+        SetStatus("Joined sectors splitting is " + (_settings.SplitJoinedSectors ? "ENABLED" : "DISABLED"));
     }
 
     private bool HasArgs => _mapFormat != MapFormat.Doom;

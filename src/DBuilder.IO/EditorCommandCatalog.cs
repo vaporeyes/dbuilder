@@ -210,6 +210,8 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.cancel-draw", "Cancel draw mode", "Esc", EditorCommandScope.Window, Description: "Cancels the current action and switches back to normal editing mode."),
         new EditorCommandDescriptor("window.toggle-auto-clear-sidedef-textures", "Auto Clear Sidedef Textures", "Menu", EditorCommandScope.Window, Description: "Toggles automatic removal of sidedef textures when floor or ceiling height is changed or when geometry is drawn, copied or pasted."),
         new EditorCommandDescriptor("window.toggleautoclearsidetextures", "Auto Clear Sidedef Textures", "Menu", EditorCommandScope.Window, Description: "Toggles automatic removal of sidedef textures when floor or ceiling height is changed or when geometry is drawn, copied or pasted."),
+        new EditorCommandDescriptor("window.toggleautomerge", "Snap to Geometry", "Menu", EditorCommandScope.Window, AllowScroll: true, Description: "Toggles snapping to the nearest vertex or linedef for map elements that are being dragged."),
+        new EditorCommandDescriptor("window.togglejoinedsectorssplitting", "Split Joined Sectors", "Menu", EditorCommandScope.Window, AllowScroll: true, Description: "When enabled, joined sectors adjacent to drawn lines will be split."),
         new EditorCommandDescriptor("window.undo-redo-panel", "Undo / Redo Panel", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.check-map", "Check Map", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.errorcheckmode", "Map Analysis Mode", "F4", EditorCommandScope.Window, AllowScroll: true),

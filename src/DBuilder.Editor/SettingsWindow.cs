@@ -14,7 +14,7 @@ public sealed class SettingsWindow : PropertyDialog
 
     private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _testSkill, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _statusHistoryLimit, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _mergeGeometryMode, _pasteTagMode;
-    private readonly CheckBox _testMonsters, _autoClearSidedefTextures, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _pasteRemoveActions;
+    private readonly CheckBox _testMonsters, _autoClearSidedefTextures, _autoMerge, _splitJoinedSectors, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _pasteRemoveActions;
     private readonly bool _drawLineShowGuidelines;
     private readonly int _drawRectangleSubdivisions, _drawRectangleBevelWidth;
     private readonly bool _drawRectangleShowGuidelines;
@@ -28,6 +28,8 @@ public sealed class SettingsWindow : PropertyDialog
     public int? TestSkill;
     public bool TestMonsters;
     public bool AutoClearSidedefTextures;
+    public bool AutoMerge;
+    public bool SplitJoinedSectors;
     public bool DynamicGridSize;
     public bool UseHighlight;
     public bool AlphaBasedTextureHighlighting;
@@ -86,6 +88,8 @@ public sealed class SettingsWindow : PropertyDialog
         _drawCurveSegmentLength = s.NormalizedDrawCurveSettings.SegmentLength;
         _drawGridSettings = s.NormalizedDrawGridSettings;
         _autoClearSidedefTextures = AddCheckBox("Auto-clear sidedef textures", s.AutoClearSidedefTextures);
+        _autoMerge = AddCheckBox("Snap to geometry", s.AutoMerge);
+        _splitJoinedSectors = AddCheckBox("Split joined sectors", s.SplitJoinedSectors);
         _dynamicGridSize = AddCheckBox("Dynamic grid size", s.DynamicGridSize);
         _drawLineContinuousDrawing = AddCheckBox("Draw lines continuously", s.NormalizedDrawLineSettings.ContinuousDrawing);
         _drawLineAutoCloseDrawing = AddCheckBox("Auto-close drawn lines", s.NormalizedDrawLineSettings.AutoCloseDrawing);
@@ -132,6 +136,8 @@ public sealed class SettingsWindow : PropertyDialog
         MaxRecentFiles = Settings.AcceptMaxRecentFilesText(_maxRecentFiles.Text);
         StatusHistoryLimit = Settings.AcceptStatusHistoryLimitText(_statusHistoryLimit.Text);
         AutoClearSidedefTextures = _autoClearSidedefTextures.IsChecked == true;
+        AutoMerge = _autoMerge.IsChecked == true;
+        SplitJoinedSectors = _splitJoinedSectors.IsChecked == true;
         DynamicGridSize = _dynamicGridSize.IsChecked == true;
         UseHighlight = _useHighlight.IsChecked == true;
         AlphaBasedTextureHighlighting = _alphaBasedTextureHighlighting.IsChecked == true;

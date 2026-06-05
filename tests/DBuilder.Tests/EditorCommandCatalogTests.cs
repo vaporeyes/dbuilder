@@ -142,6 +142,24 @@ public class EditorCommandCatalogTests
         Assert.Equal(command.CategoryTitle, udbAlias.CategoryTitle);
     }
 
+    [Theory]
+    [InlineData("window.toggleautomerge", "Snap to Geometry", "Toggles snapping to the nearest vertex or linedef for map elements that are being dragged.")]
+    [InlineData("window.togglejoinedsectorssplitting", "Split Joined Sectors", "When enabled, joined sectors adjacent to drawn lines will be split.")]
+    public void GeometryToggleCommandsMatchUdbActionSurface(string commandId, string title, string description)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
+        Assert.Equal(description, command.Description);
+    }
+
     [Fact]
     public void MakeDoorCommandMatchesUdbActionSurface()
     {

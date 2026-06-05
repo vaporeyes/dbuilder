@@ -319,6 +319,23 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesGeometryTogglePreferences()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("AutoMerge", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("SplitJoinedSectors", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCheckBox(\"Snap to geometry\", s.AutoMerge)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Split joined sectors\", s.SplitJoinedSectors)", body, StringComparison.Ordinal);
+        Assert.Contains("AutoMerge = _autoMerge.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("SplitJoinedSectors = _splitJoinedSectors.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.AutoMerge = dlg.AutoMerge;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.SplitJoinedSectors = dlg.SplitJoinedSectors;", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesAdjacentVisualVertexSlopeHandlePreference()
     {
         Type type = typeof(SettingsWindow);

@@ -139,6 +139,8 @@
                 <MenuItem Header="Align _Things to Wall" x:Name="AlignThingsToWallMenuItem" Click="OnAlignThingsToWall" />
                 <MenuItem Header="Update '_lightfog' Flag" x:Name="ApplyLightFogFlagMenuItem" Click="OnApplyLightFogFlag" />
                 <MenuItem Header="Auto _Clear Sidedef Textures" x:Name="AutoClearSidedefTexturesMenuItem" ToggleType="CheckBox" Click="OnToggleAutoClearSidedefTextures" />
+                <MenuItem Header="Snap to _Geometry" x:Name="AutoMergeMenuItem" ToggleType="CheckBox" Click="OnToggleAutoMerge" />
+                <MenuItem Header="Split _Joined Sectors" x:Name="SplitJoinedSectorsMenuItem" ToggleType="CheckBox" Click="OnToggleSplitJoinedSectors" />
                 <MenuItem Header="_Find &amp; Replace..." x:Name="FindReplaceMenuItem" Click="OnFindReplace" />
                 <MenuItem Header="_Properties..." x:Name="PropertiesMenuItem" Click="OnEditProperties" />
                 <MenuItem Header="_Flags..." x:Name="FlagsMenuItem" Click="OnFlags" />
