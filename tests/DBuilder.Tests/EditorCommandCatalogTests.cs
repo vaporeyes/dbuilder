@@ -3329,6 +3329,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Toggle Model Rendering Mode", command.Title);
+        Assert.Equal("Cycles through all models rendering modes in Classic and Visual modes.", command.Description);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
     }
 
