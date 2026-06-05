@@ -2034,6 +2034,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style managed Thing field matching to Select Similar options.
   - [x] Add UDB-style managed Linedef field matching to Select Similar options.
   - [x] Add UDB-style managed Sidedef field matching to Select Similar options.
+  - [x] Add UDB-style managed Sector field matching to Select Similar options.
 - [ ] Port texture fitting behavior.
   - [x] Add UDB-style UDMF sidedef texture fit scale and offset field helper.
   - [x] Add UDB-style connected-surface UDMF sidedef texture fit calculations.

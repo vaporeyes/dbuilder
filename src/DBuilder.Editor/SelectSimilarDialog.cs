@@ -22,11 +22,47 @@ public sealed class SelectSimilarDialog : PropertyDialog
     private readonly CheckBox? _sectorCeilingHeight;
     private readonly CheckBox? _sectorFloorTexture;
     private readonly CheckBox? _sectorCeilingTexture;
+    private readonly CheckBox? _sectorFloorTextureOffsets;
+    private readonly CheckBox? _sectorCeilingTextureOffsets;
+    private readonly CheckBox? _sectorFloorTextureScale;
+    private readonly CheckBox? _sectorCeilingTextureScale;
+    private readonly CheckBox? _sectorFloorTextureRotation;
+    private readonly CheckBox? _sectorCeilingTextureRotation;
+    private readonly CheckBox? _sectorFloorAlpha;
+    private readonly CheckBox? _sectorCeilingAlpha;
+    private readonly CheckBox? _sectorFloorPortalAlpha;
+    private readonly CheckBox? _sectorCeilingPortalAlpha;
     private readonly CheckBox? _sectorBrightness;
+    private readonly CheckBox? _sectorFloorBrightness;
+    private readonly CheckBox? _sectorCeilingBrightness;
+    private readonly CheckBox? _sectorFloorRenderStyle;
+    private readonly CheckBox? _sectorCeilingRenderStyle;
+    private readonly CheckBox? _sectorFloorPortalRenderStyle;
+    private readonly CheckBox? _sectorCeilingPortalRenderStyle;
     private readonly CheckBox? _sectorSpecial;
     private readonly CheckBox? _sectorTags;
     private readonly CheckBox? _sectorSlopes;
     private readonly CheckBox? _sectorFlags;
+    private readonly CheckBox? _sectorFloorTerrain;
+    private readonly CheckBox? _sectorCeilingTerrain;
+    private readonly CheckBox? _sectorLightColor;
+    private readonly CheckBox? _sectorFadeColor;
+    private readonly CheckBox? _sectorFloorColor;
+    private readonly CheckBox? _sectorCeilingColor;
+    private readonly CheckBox? _sectorTopWallColor;
+    private readonly CheckBox? _sectorBottomWallColor;
+    private readonly CheckBox? _sectorSpritesColor;
+    private readonly CheckBox? _sectorFloorGlow;
+    private readonly CheckBox? _sectorCeilingGlow;
+    private readonly CheckBox? _sectorFogDensity;
+    private readonly CheckBox? _sectorDesaturation;
+    private readonly CheckBox? _sectorDamageType;
+    private readonly CheckBox? _sectorDamageAmount;
+    private readonly CheckBox? _sectorDamageInterval;
+    private readonly CheckBox? _sectorDamageLeakiness;
+    private readonly CheckBox? _sectorSoundSequence;
+    private readonly CheckBox? _sectorGravity;
+    private readonly CheckBox? _sectorComment;
     private readonly CheckBox? _sectorFields;
     private readonly CheckBox? _linedefAction;
     private readonly CheckBox? _linedefArguments;
@@ -95,12 +131,48 @@ public sealed class SelectSimilarDialog : PropertyDialog
                 _sectorCeilingHeight = AddCheckBox("Ceiling height", SavedSectorOptions.CeilingHeight);
                 _sectorFloorTexture = AddCheckBox("Floor texture", SavedSectorOptions.FloorTexture);
                 _sectorCeilingTexture = AddCheckBox("Ceiling texture", SavedSectorOptions.CeilingTexture);
+                _sectorFloorTextureOffsets = AddCheckBox("Floor texture offsets", SavedSectorOptions.FloorTextureOffsets);
+                _sectorCeilingTextureOffsets = AddCheckBox("Ceiling texture offsets", SavedSectorOptions.CeilingTextureOffsets);
+                _sectorFloorTextureScale = AddCheckBox("Floor texture scale", SavedSectorOptions.FloorTextureScale);
+                _sectorCeilingTextureScale = AddCheckBox("Ceiling texture scale", SavedSectorOptions.CeilingTextureScale);
+                _sectorFloorTextureRotation = AddCheckBox("Floor texture rotation", SavedSectorOptions.FloorTextureRotation);
+                _sectorCeilingTextureRotation = AddCheckBox("Ceiling texture rotation", SavedSectorOptions.CeilingTextureRotation);
+                _sectorFloorAlpha = AddCheckBox("Floor alpha", SavedSectorOptions.FloorAlpha);
+                _sectorCeilingAlpha = AddCheckBox("Ceiling alpha", SavedSectorOptions.CeilingAlpha);
+                _sectorFloorPortalAlpha = AddCheckBox("Floor portal alpha", SavedSectorOptions.FloorPortalAlpha);
+                _sectorCeilingPortalAlpha = AddCheckBox("Ceiling portal alpha", SavedSectorOptions.CeilingPortalAlpha);
                 _sectorBrightness = AddCheckBox("Sector brightness", SavedSectorOptions.Brightness);
+                _sectorFloorBrightness = AddCheckBox("Floor brightness", SavedSectorOptions.FloorBrightness);
+                _sectorCeilingBrightness = AddCheckBox("Ceiling brightness", SavedSectorOptions.CeilingBrightness);
+                _sectorFloorRenderStyle = AddCheckBox("Floor render style", SavedSectorOptions.FloorRenderStyle);
+                _sectorCeilingRenderStyle = AddCheckBox("Ceiling render style", SavedSectorOptions.CeilingRenderStyle);
+                _sectorFloorPortalRenderStyle = AddCheckBox("Floor portal render style", SavedSectorOptions.FloorPortalRenderStyle);
+                _sectorCeilingPortalRenderStyle = AddCheckBox("Ceiling portal render style", SavedSectorOptions.CeilingPortalRenderStyle);
                 _sectorSpecial = AddCheckBox("Effect", SavedSectorOptions.Special);
                 _sectorTags = AddCheckBox("Tags", SavedSectorOptions.Tags);
                 _sectorSlopes = AddCheckBox("Slopes", SavedSectorOptions.Slopes);
                 _sectorFlags = AddCheckBox("Flags", SavedSectorOptions.Flags);
+                _sectorFloorTerrain = AddCheckBox("Floor terrain", SavedSectorOptions.FloorTerrain);
+                _sectorCeilingTerrain = AddCheckBox("Ceiling terrain", SavedSectorOptions.CeilingTerrain);
+                _sectorLightColor = AddCheckBox("Light color", SavedSectorOptions.LightColor);
+                _sectorFadeColor = AddCheckBox("Fade color", SavedSectorOptions.FadeColor);
+                _sectorFloorColor = AddCheckBox("Floor color", SavedSectorOptions.FloorColor);
+                _sectorCeilingColor = AddCheckBox("Ceiling color", SavedSectorOptions.CeilingColor);
+                _sectorTopWallColor = AddCheckBox("Top wall color", SavedSectorOptions.TopWallColor);
+                _sectorBottomWallColor = AddCheckBox("Bottom wall color", SavedSectorOptions.BottomWallColor);
+                _sectorSpritesColor = AddCheckBox("Sprites color", SavedSectorOptions.SpritesColor);
+                _sectorFloorGlow = AddCheckBox("Floor glow", SavedSectorOptions.FloorGlow);
+                _sectorCeilingGlow = AddCheckBox("Ceiling glow", SavedSectorOptions.CeilingGlow);
+                _sectorFogDensity = AddCheckBox("Fog density", SavedSectorOptions.FogDensity);
+                _sectorDesaturation = AddCheckBox("Desaturation", SavedSectorOptions.Desaturation);
+                _sectorDamageType = AddCheckBox("Damage type", SavedSectorOptions.DamageType);
+                _sectorDamageAmount = AddCheckBox("Damage amount", SavedSectorOptions.DamageAmount);
+                _sectorDamageInterval = AddCheckBox("Damage interval", SavedSectorOptions.DamageInterval);
+                _sectorDamageLeakiness = AddCheckBox("Damage leakiness", SavedSectorOptions.DamageLeakiness);
+                _sectorSoundSequence = AddCheckBox("Sound sequence", SavedSectorOptions.SoundSequence);
+                _sectorGravity = AddCheckBox("Gravity", SavedSectorOptions.Gravity);
                 _sectorFields = AddCheckBox("Custom fields", SavedSectorOptions.Fields);
+                _sectorComment = AddCheckBox("Comment", SavedSectorOptions.Comment);
                 break;
             case MapControl.EditMode.Linedefs:
                 _linedefAction = AddCheckBox("Action", SavedLinedefOptions.Action);
@@ -173,11 +245,47 @@ public sealed class SelectSimilarDialog : PropertyDialog
                     CeilingHeight = Checked(_sectorCeilingHeight),
                     FloorTexture = Checked(_sectorFloorTexture),
                     CeilingTexture = Checked(_sectorCeilingTexture),
+                    FloorTextureOffsets = Checked(_sectorFloorTextureOffsets),
+                    CeilingTextureOffsets = Checked(_sectorCeilingTextureOffsets),
+                    FloorTextureScale = Checked(_sectorFloorTextureScale),
+                    CeilingTextureScale = Checked(_sectorCeilingTextureScale),
+                    FloorTextureRotation = Checked(_sectorFloorTextureRotation),
+                    CeilingTextureRotation = Checked(_sectorCeilingTextureRotation),
+                    FloorAlpha = Checked(_sectorFloorAlpha),
+                    CeilingAlpha = Checked(_sectorCeilingAlpha),
+                    FloorPortalAlpha = Checked(_sectorFloorPortalAlpha),
+                    CeilingPortalAlpha = Checked(_sectorCeilingPortalAlpha),
                     Brightness = Checked(_sectorBrightness),
+                    FloorBrightness = Checked(_sectorFloorBrightness),
+                    CeilingBrightness = Checked(_sectorCeilingBrightness),
+                    FloorRenderStyle = Checked(_sectorFloorRenderStyle),
+                    CeilingRenderStyle = Checked(_sectorCeilingRenderStyle),
+                    FloorPortalRenderStyle = Checked(_sectorFloorPortalRenderStyle),
+                    CeilingPortalRenderStyle = Checked(_sectorCeilingPortalRenderStyle),
                     Special = Checked(_sectorSpecial),
                     Tags = Checked(_sectorTags),
                     Slopes = Checked(_sectorSlopes),
                     Flags = Checked(_sectorFlags),
+                    FloorTerrain = Checked(_sectorFloorTerrain),
+                    CeilingTerrain = Checked(_sectorCeilingTerrain),
+                    LightColor = Checked(_sectorLightColor),
+                    FadeColor = Checked(_sectorFadeColor),
+                    FloorColor = Checked(_sectorFloorColor),
+                    CeilingColor = Checked(_sectorCeilingColor),
+                    TopWallColor = Checked(_sectorTopWallColor),
+                    BottomWallColor = Checked(_sectorBottomWallColor),
+                    SpritesColor = Checked(_sectorSpritesColor),
+                    FloorGlow = Checked(_sectorFloorGlow),
+                    CeilingGlow = Checked(_sectorCeilingGlow),
+                    FogDensity = Checked(_sectorFogDensity),
+                    Desaturation = Checked(_sectorDesaturation),
+                    DamageType = Checked(_sectorDamageType),
+                    DamageAmount = Checked(_sectorDamageAmount),
+                    DamageInterval = Checked(_sectorDamageInterval),
+                    DamageLeakiness = Checked(_sectorDamageLeakiness),
+                    SoundSequence = Checked(_sectorSoundSequence),
+                    Gravity = Checked(_sectorGravity),
+                    Comment = Checked(_sectorComment),
                     Fields = Checked(_sectorFields),
                 };
                 SavedSectorOptions = SectorOptions;

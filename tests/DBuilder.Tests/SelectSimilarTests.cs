@@ -189,6 +189,55 @@ public class SelectSimilarTests
     }
 
     [Fact]
+    public void SelectSectorsMatchesUdbManagedFieldsIndependentlyFromCustomFields()
+    {
+        var map = new MapSet();
+        var source = map.AddSector();
+        source.Selected = true;
+        SetSectorManagedFields(source);
+        source.Fields["portal"] = "blue";
+
+        var match = map.AddSector();
+        SetSectorManagedFields(match);
+        match.Fields["portal"] = "red";
+
+        var differentGravity = map.AddSector();
+        SetSectorManagedFields(differentGravity);
+        differentGravity.Fields["gravity"] = 0.75;
+        differentGravity.Fields["portal"] = "blue";
+
+        var options = new SectorSimilarityOptions { Fields = false };
+
+        Assert.Equal(1, SelectSimilar.SelectSectors(map, options));
+        Assert.True(match.Selected);
+        Assert.False(differentGravity.Selected);
+    }
+
+    [Fact]
+    public void SelectSectorsCanIgnoreUdbManagedFieldsWhenDisabled()
+    {
+        var map = new MapSet();
+        var source = map.AddSector();
+        source.Selected = true;
+        source.Fields["lightcolor"] = 0x335577;
+        source.Fields["comment"] = "yard";
+
+        var target = map.AddSector();
+        target.Fields["lightcolor"] = 0x775533;
+        target.Fields["comment"] = "hall";
+
+        var options = new SectorSimilarityOptions
+        {
+            LightColor = false,
+            Comment = false,
+            Fields = false,
+        };
+
+        Assert.Equal(1, SelectSimilar.SelectSectors(map, options));
+        Assert.True(target.Selected);
+    }
+
+    [Fact]
     public void SelectLinedefsMatchesLinedefAndAnySidedefPair()
     {
         var map = new MapSet();
@@ -362,6 +411,10 @@ public class SelectSimilarTests
 
         Assert.Contains("private static VertexSimilarityOptions SavedVertexOptions { get; set; } = new();", body, StringComparison.Ordinal);
         Assert.Contains("_vertexZFloor = AddCheckBox(\"Vertex floor height\", SavedVertexOptions.ZFloor);", body, StringComparison.Ordinal);
+        Assert.Contains("_sectorFloorTextureOffsets = AddCheckBox(\"Floor texture offsets\", SavedSectorOptions.FloorTextureOffsets);", body, StringComparison.Ordinal);
+        Assert.Contains("_sectorFloorBrightness = AddCheckBox(\"Floor brightness\", SavedSectorOptions.FloorBrightness);", body, StringComparison.Ordinal);
+        Assert.Contains("_sectorFloorGlow = AddCheckBox(\"Floor glow\", SavedSectorOptions.FloorGlow);", body, StringComparison.Ordinal);
+        Assert.Contains("_sectorComment = AddCheckBox(\"Comment\", SavedSectorOptions.Comment);", body, StringComparison.Ordinal);
         Assert.Contains("_linedefAction = AddCheckBox(\"Action\", SavedLinedefOptions.Action);", body, StringComparison.Ordinal);
         Assert.Contains("_linedefAlpha = AddCheckBox(\"Alpha\", SavedLinedefOptions.Alpha);", body, StringComparison.Ordinal);
         Assert.Contains("_linedefRenderStyle = AddCheckBox(\"Render style\", SavedLinedefOptions.RenderStyle);", body, StringComparison.Ordinal);
@@ -394,6 +447,54 @@ public class SelectSimilarTests
         var side = map.AddSidedef(line, isFront: true, sector);
         side.MidTexture = middleTexture;
         return line;
+    }
+
+    private static void SetSectorManagedFields(Sector sector)
+    {
+        sector.Fields["xpanningfloor"] = 1;
+        sector.Fields["ypanningfloor"] = 2;
+        sector.Fields["xpanningceiling"] = 3;
+        sector.Fields["ypanningceiling"] = 4;
+        sector.Fields["xscalefloor"] = 1.0;
+        sector.Fields["yscalefloor"] = 1.5;
+        sector.Fields["xscaleceiling"] = 0.75;
+        sector.Fields["yscaleceiling"] = 0.5;
+        sector.Fields["rotationfloor"] = 45;
+        sector.Fields["rotationceiling"] = 90;
+        sector.Fields["alphafloor"] = 0.5;
+        sector.Fields["alphaceiling"] = 0.75;
+        sector.Fields["portal_floor_alpha"] = 0.25;
+        sector.Fields["portal_ceil_alpha"] = 0.35;
+        sector.Fields["lightfloor"] = 144;
+        sector.Fields["lightfloorabsolute"] = true;
+        sector.Fields["lightceiling"] = 176;
+        sector.Fields["lightceilingabsolute"] = false;
+        sector.Fields["renderstylefloor"] = "Translucent";
+        sector.Fields["renderstyleceiling"] = "Add";
+        sector.Fields["portal_floor_overlaytype"] = "Alpha";
+        sector.Fields["portal_ceil_overlaytype"] = "Add";
+        sector.Fields["floorterrain"] = "mud";
+        sector.Fields["ceilingterrain"] = "stone";
+        sector.Fields["lightcolor"] = 0x336699;
+        sector.Fields["fadecolor"] = 0x112233;
+        sector.Fields["color_floor"] = 0x445566;
+        sector.Fields["color_ceiling"] = 0x665544;
+        sector.Fields["color_walltop"] = 0x123456;
+        sector.Fields["color_wallbottom"] = 0x654321;
+        sector.Fields["color_sprites"] = 0x888888;
+        sector.Fields["floorglowcolor"] = 0x00ff00;
+        sector.Fields["floorglowheight"] = 24;
+        sector.Fields["ceilingglowcolor"] = 0xff0000;
+        sector.Fields["ceilingglowheight"] = 32;
+        sector.Fields["fogdensity"] = 64;
+        sector.Fields["desaturation"] = 0.25;
+        sector.Fields["damagetype"] = "Fire";
+        sector.Fields["damageamount"] = 5;
+        sector.Fields["damageinterval"] = 32;
+        sector.Fields["leakiness"] = 128;
+        sector.Fields["soundsequence"] = "Water";
+        sector.Fields["gravity"] = 0.5;
+        sector.Fields["comment"] = "yard";
     }
 
     private static void SetSidedefManagedFields(Sidedef side)
