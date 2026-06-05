@@ -441,7 +441,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.remove-first-draw-point", "Remove First Vertex", "Ctrl/Cmd+Backspace", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.removefirstpoint", "Remove First Vertex", "Ctrl/Cmd+Backspace", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.insert", "Insert vertex or thing", "I", EditorCommandScope.Map2D),
-        new EditorCommandDescriptor("map2d.insertitem", "Insert vertex or thing", "I", EditorCommandScope.Map2D),
+        new EditorCommandDescriptor("map2d.insertitem", "Insert Item", "I", EditorCommandScope.Map2D, AllowScroll: true, Description: "Creates a new item depending on the editing mode you are in."),
         new EditorCommandDescriptor("map2d.placevisualstart", "Place Visual Mode Camera", "Ctrl/Cmd+W", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.place-things", "Place Things", "Menu", EditorCommandScope.Map2D, AllowMouse: false),
         new EditorCommandDescriptor("map2d.placethings", "Place Things", "Menu", EditorCommandScope.Map2D, AllowMouse: false),

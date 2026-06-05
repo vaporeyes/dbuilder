@@ -1359,8 +1359,27 @@ public class EditorCommandCatalogTests
         Assert.Equal("map2d.syncedthingedit", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "T", shift: true));
     }
 
+    [Fact]
+    public void InsertItemAliasMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.insert");
+        var udbAlias = EditorCommandCatalog.Find("map2d.insertitem");
+
+        Assert.NotNull(command);
+        Assert.Equal("Insert vertex or thing", command.Title);
+        Assert.Equal("I", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.NotNull(udbAlias);
+        Assert.Equal("Insert Item", udbAlias.Title);
+        Assert.Equal("I", udbAlias.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, udbAlias.Scope);
+        Assert.True(udbAlias.AllowKeys);
+        Assert.True(udbAlias.AllowMouse);
+        Assert.True(udbAlias.AllowScroll);
+        Assert.Equal("Creates a new item depending on the editing mode you are in.", udbAlias.Description);
+    }
+
     [Theory]
-    [InlineData("map2d.insert", "map2d.insertitem", "Insert vertex or thing", "I")]
     [InlineData("map2d.point-thing-to-cursor", "map2d.thinglookatcursor", "Point Thing to Cursor", "Shift+L")]
     public void ClassicThingActionAliasesMatchUdbActionSurface(string id, string udbId, string title, string gesture)
     {
@@ -3606,7 +3625,7 @@ public class EditorCommandCatalogTests
             "map2d.draw-sector",
             "map2d.insertitem");
 
-        Assert.Equal("D Draw sector; I / Insert Insert vertex or thing", hints);
+        Assert.Equal("D Draw sector; I / Insert Insert Item", hints);
     }
 
     [Fact]
