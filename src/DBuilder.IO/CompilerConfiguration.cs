@@ -173,6 +173,9 @@ public static class ScriptCompileFlow
     public static ScriptCompilerError MissingOutputFileError(string outputPath)
         => new("Output file \"" + outputPath + "\" doesn't exist.");
 
+    public static ScriptCompilerError CompilerInitializationError(Exception error)
+        => new("Unable to initialize compiler. " + error.GetType().Name + ": " + error.Message);
+
     public static ScriptCompileCompletion CompleteCompile(
         IEnumerable<ScriptCompilerError> compilerErrors,
         string outputPath,

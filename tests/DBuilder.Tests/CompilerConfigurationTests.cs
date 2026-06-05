@@ -653,6 +653,17 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void ScriptCompileFlowReportsCompilerInitializationFailuresLikeUdb()
+    {
+        var error = ScriptCompileFlow.CompilerInitializationError(
+            new InvalidOperationException("Unknown compiler interface"));
+
+        Assert.Equal("Unable to initialize compiler. InvalidOperationException: Unknown compiler interface", error.Description);
+        Assert.Equal("", error.FileName);
+        Assert.Equal(-1, error.LineNumber);
+    }
+
+    [Fact]
     public void ScriptCompileFlowCompletesWhenCompilerErrorsWereReportedLikeUdb()
     {
         var compilerError = new ScriptCompilerError("Expected semicolon", "/maps/project/scripts.acs", 4);
