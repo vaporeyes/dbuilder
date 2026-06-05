@@ -3038,9 +3038,9 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map3d.texture-copy-offsets", "map3d.copy-offsets", "map3d.texturecopyoffsets", "Copy Offsets")]
-    [InlineData("map3d.texture-paste-offsets", "map3d.paste-offsets", "map3d.texturepasteoffsets", "Paste Offsets")]
-    public void VisualTextureOffsetClipboardAliasesMatchUdbActionSurface(string id, string legacyId, string udbId, string title)
+    [InlineData("map3d.texture-copy-offsets", "map3d.copy-offsets", "map3d.texturecopyoffsets", "Copy Offsets", "Copies the targeted texture offsets for pasting.")]
+    [InlineData("map3d.texture-paste-offsets", "map3d.paste-offsets", "map3d.texturepasteoffsets", "Paste Offsets", "Pastes the copied texture offsets onto the targeted or selected walls.")]
+    public void VisualTextureOffsetClipboardAliasesMatchUdbActionSurface(string id, string legacyId, string udbId, string title, string description)
     {
         var command = EditorCommandCatalog.Find(id);
         var legacyAlias = EditorCommandCatalog.Find(legacyId);
@@ -3048,6 +3048,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -3057,9 +3058,11 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(legacyAlias);
         Assert.Equal(command.Title, legacyAlias.Title);
+        Assert.Equal(command.Description, legacyAlias.Description);
         Assert.Equal(command.DefaultGesture, legacyAlias.DefaultGesture);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
@@ -3072,6 +3075,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Select Texture", command.Title);
+        Assert.Equal("Opens the texture browser to select a texture for the targeted or selected walls, floors or ceilings.", command.Description);
         Assert.Equal("T", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -3081,16 +3085,18 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(legacyAlias);
         Assert.Equal(command.Title, legacyAlias.Title);
+        Assert.Equal(command.Description, legacyAlias.Description);
         Assert.Equal(command.AllowScroll, legacyAlias.AllowScroll);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Theory]
-    [InlineData("map3d.texture-copy", "map3d.copy-texture", "map3d.texturecopy", "Copy Texture", "C")]
-    [InlineData("map3d.texture-paste", "map3d.apply-texture", "map3d.texturepaste", "Paste Texture", "V")]
-    public void VisualTextureClipboardCommandsMatchUdbActionSurface(string id, string legacyId, string udbId, string title, string gesture)
+    [InlineData("map3d.texture-copy", "map3d.copy-texture", "map3d.texturecopy", "Copy Texture", "C", "Copies the targeted texture or flat for pasting.")]
+    [InlineData("map3d.texture-paste", "map3d.apply-texture", "map3d.texturepaste", "Paste Texture", "V", "Pastes the copied texture onto the targeted or selected walls, floors or ceilings.")]
+    public void VisualTextureClipboardCommandsMatchUdbActionSurface(string id, string legacyId, string udbId, string title, string gesture, string description)
     {
         var command = EditorCommandCatalog.Find(id);
         var legacyAlias = EditorCommandCatalog.Find(legacyId);
@@ -3098,6 +3104,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal(gesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -3107,9 +3114,11 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(legacyAlias);
         Assert.Equal(command.Title, legacyAlias.Title);
+        Assert.Equal(command.Description, legacyAlias.Description);
         Assert.Equal(command.DefaultGesture, legacyAlias.DefaultGesture);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
@@ -3121,6 +3130,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Paste Texture Flood-Fill", command.Title);
+        Assert.Equal("This allows you to flood-fill all adjacent textures or flats that are identical to the original with the copied texture.", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -3129,6 +3139,7 @@ public class EditorCommandCatalogTests
         Assert.False(command.Repeat);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal("Shift+MButton", udbAlias.DefaultGesture);
         Assert.Equal("map3d.floodfilltextures", EditorCommandCatalog.ResolveShortcut(
             EditorCommandScope.Map3D,
