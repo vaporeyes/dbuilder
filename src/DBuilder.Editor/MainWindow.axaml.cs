@@ -2367,6 +2367,12 @@ public partial class MainWindow : Window
     private async void OnFilterSelectedThings(object? sender, RoutedEventArgs e)
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
+        if (MapView.CurrentEditMode != MapControl.EditMode.Things)
+        {
+            SetStatus("Filter Selected Things is only available in Things mode.", StatusHistoryKind.Warning);
+            return;
+        }
+
         if (_map.SelectedThingsCount == 0) { SetStatus("This action requires a selection!", StatusHistoryKind.Warning); return; }
 
         IReadOnlyList<int> selectedTypes = ThingSelectionFilter.SelectedTypes(_map);
@@ -7170,6 +7176,7 @@ public partial class MainWindow : Window
         bool hasSelectedSector = _map?.SelectedSectorsCount > 0;
         bool hasSelectedAutomapTarget = hasSelectedLinedef || hasSelectedSector;
         bool hasSelectedThing = _map?.SelectedThingsCount > 0;
+        bool hasSelectedThingInThingsMode = hasSelectedThing && MapView.CurrentEditMode == MapControl.EditMode.Things;
         bool hasSelectedInternalDynamicLight = _map is not null && ColorPickerModel.HasInternalDynamicLightSelection(_map.GetSelectedThings());
         bool canPlaceThings = hasMap && MapView.CurrentEditMode is MapControl.EditMode.Vertices or MapControl.EditMode.Linedefs or MapControl.EditMode.Sectors;
         bool canApplyLightFogFlag = hasMap && _mapFormat == MapFormat.Udmf;
@@ -7261,7 +7268,8 @@ public partial class MainWindow : Window
             ScaleUpMenuItem, ScaleDownMenuItem);
         SetEnabled(canAlignTextures, AlignTexturesMenuItem);
         SetEnabled(hasSelectedLinedefWithFront, AlignHorizontalMenuItem, AlignVerticalMenuItem, FitSelectedTexturesMenuItem);
-        SetEnabled(hasSelectedThing, AlignThingsToWallMenuItem, FilterSelectedThingsMenuItem);
+        SetEnabled(hasSelectedThing, AlignThingsToWallMenuItem);
+        SetEnabled(hasSelectedThingInThingsMode, FilterSelectedThingsMenuItem);
         SetEnabled(canEditSectorColor, SectorColorMenuItem, SectorColorButton);
         SetEnabled(hasSelectedInternalDynamicLight, DynamicLightColorMenuItem, DynamicLightColorButton);
         SetEnabled(hasTagRangeSelection, TagRangeMenuItem, TagRangeButton);
