@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using DBuilder.Geometry;
 using DBuilder.Map;
 
@@ -548,6 +549,26 @@ public class ToolsTraceTests
     }
 
     [Fact]
+    public void FindPotentialSectorUsesUdbVertexScanTieBreak()
+    {
+        var map = new MapSet();
+        Vertex a = map.AddVertex(new Vector2D(100, 100));
+        Vertex b = map.AddVertex(new Vector2D(100, 50));
+        Vertex c = map.AddVertex(new Vector2D(70, 40));
+        Linedef firstCandidate = map.AddLinedef(a, b);
+        Linedef tiedCandidate = map.AddLinedef(b, c);
+        map.BuildIndexes();
+
+        var method = typeof(Tools).GetMethod("FindRightwardScanLine", BindingFlags.NonPublic | BindingFlags.Static);
+        Assert.NotNull(method);
+
+        var scanLine = (Linedef?)method!.Invoke(null, new object[] { map, new Vector2D(60, 50) });
+
+        Assert.NotSame(firstCandidate, scanLine);
+        Assert.Same(tiedCandidate, scanLine);
+    }
+
+    [Fact]
     public void FindPotentialSectorSimpleSquareHasNoHoles()
     {
         var (map, lines) = BuildPolygon(new[]
@@ -557,6 +578,15 @@ public class ToolsTraceTests
         var path = Tools.FindPotentialSectorAt(map, new Vector2D(50, 50));
         Assert.NotNull(path);
         Assert.Equal(4, path!.Count);
+    }
+
+    private static List<Linedef> Ring(MapSet map, Vector2D[] pts)
+    {
+        var vertices = pts.Select(p => map.AddVertex(p)).ToList();
+        var lines = new List<Linedef>();
+        for (int i = 0; i < vertices.Count; i++)
+            lines.Add(map.AddLinedef(vertices[i], vertices[(i + 1) % vertices.Count]));
+        return lines;
     }
 
     [Fact]

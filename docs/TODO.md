@@ -419,6 +419,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style loop sector creation through traced sides.
 - [ ] Port full trace path behavior for linedefs and sidedefs.
   - [x] Add UDB-style closest path overload for explicit end linedef side.
+  - [x] Add UDB-style outer-loop rightward scan candidate tie-break behavior.
 - [ ] Port curve tools and interpolation behavior fully.
   - [x] Handle zero-step direct Bezier curve generation safely.
 - [ ] Port robust triangulation behavior for all known UDB map shapes.

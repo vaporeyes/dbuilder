@@ -688,16 +688,7 @@ public static class Tools
             foreach (var ecv in poly)
                 if (ecv.Position.x > rightmost.x) rightmost = ecv.Position;
 
-            var scan = new Line2D(rightmost, new Vector2D(RightBoundary, rightmost.y));
-            Linedef? foundline = null;
-            double foundu = double.MaxValue;
-            foreach (var ld in map.Linedefs)
-            {
-                if (scan.GetIntersection(ld.Start.Position.x, ld.Start.Position.y, ld.End.Position.x, ld.End.Position.y, out double u_ray, out double _))
-                {
-                    if (u_ray > 0.00001 && u_ray < foundu) { foundu = u_ray; foundline = ld; }
-                }
-            }
+            Linedef? foundline = FindRightwardScanLine(map, rightmost);
             if (foundline == null) return null;
 
             // Continue tracing the found line on the side facing back toward our region (the rightmost vertex).
@@ -705,6 +696,66 @@ public static class Tools
             scanline = foundline;
         }
         return null;
+    }
+
+    private static Linedef? FindRightwardScanLine(MapSet map, Vector2D pos)
+    {
+        var scan = new Line2D(pos, new Vector2D(RightBoundary, pos.y));
+        Linedef? foundline = null;
+        double foundu = double.MaxValue;
+        double foundDistance = double.MaxValue;
+        foreach (var line in map.Linedefs)
+        {
+            if (!ScanCandidateCrossesRightwardRay(line, pos)) continue;
+            if (!scan.GetIntersection(line.Start.Position.x, line.Start.Position.y, line.End.Position.x, line.End.Position.y, out double _, out double u_ray)) continue;
+            if (u_ray * (RightBoundary - pos.x) <= 0.00001) continue;
+
+            if (u_ray < foundu)
+            {
+                foundu = u_ray;
+                foundline = line;
+                foundDistance = line.DistanceTo(pos, true);
+            }
+            else if (foundline != null && Math.Round(u_ray, 4) == Math.Round(foundu, 4))
+            {
+                double lineDistance = line.DistanceTo(pos, true);
+                if (GetRelativeAngle(line, pos, out double lineAngle) &&
+                    GetRelativeAngle(foundline, pos, out double foundAngle) &&
+                    lineAngle < foundAngle &&
+                    lineDistance < foundDistance)
+                {
+                    foundline = line;
+                    foundDistance = lineDistance;
+                }
+            }
+        }
+
+        return foundline;
+    }
+
+    private static bool ScanCandidateCrossesRightwardRay(Linedef line, Vector2D pos)
+    {
+        return (line.Start.Position.x > pos.x || line.End.Position.x > pos.x) &&
+            ((line.Start.Position.y >= pos.y && line.End.Position.y <= pos.y) ||
+                (line.Start.Position.y <= pos.y && line.End.Position.y >= pos.y));
+    }
+
+    private static bool GetRelativeAngle(Linedef line, Vector2D pos, out double result)
+    {
+        if (line.Start.Position.y == pos.y)
+        {
+            result = Angle2D.GetAngle(pos, line.Start.Position, line.End.Position);
+            return true;
+        }
+
+        if (line.End.Position.y == pos.y)
+        {
+            result = Angle2D.GetAngle(pos, line.End.Position, line.Start.Position);
+            return true;
+        }
+
+        result = double.MaxValue;
+        return false;
     }
 
     // Finds hole loops fully inside the outer polygon and appends their sides to alllines (UDB FindInnerLines).
