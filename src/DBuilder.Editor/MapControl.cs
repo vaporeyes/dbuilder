@@ -6238,12 +6238,16 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 SmartGridTransform();
                 return true;
             case "map2d.grid-down":
-            case "map2d.griddec":
                 ChangeGridSize(larger: false);
                 return true;
-            case "map2d.grid-up":
-            case "map2d.gridinc":
+            case "map2d.griddec":
                 ChangeGridSize(larger: true);
+                return true;
+            case "map2d.grid-up":
+                ChangeGridSize(larger: true);
+                return true;
+            case "map2d.gridinc":
+                ChangeGridSize(larger: false);
                 return true;
             case "map2d.finish-draw":
             case "map2d.finishdraw":

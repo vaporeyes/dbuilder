@@ -724,8 +724,8 @@ public sealed class MapControlCommandTests
     [InlineData("map2d.setgridorigintovertex", "SetGridOriginToSelectedVertex()")]
     [InlineData("map2d.resetgrid", "ResetGridTransform()")]
     [InlineData("map2d.smartgridtransform", "SmartGridTransform()")]
-    [InlineData("map2d.griddec", "ChangeGridSize(larger: false)")]
-    [InlineData("map2d.gridinc", "ChangeGridSize(larger: true)")]
+    [InlineData("map2d.griddec", "ChangeGridSize(larger: true)")]
+    [InlineData("map2d.gridinc", "ChangeGridSize(larger: false)")]
     public void UdbClassicActionAliasesAreDispatched(string commandId, string handlerCall)
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
