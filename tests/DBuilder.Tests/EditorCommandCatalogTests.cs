@@ -1321,20 +1321,21 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map2d.align-grid-to-linedef", "Align Grid to Selected Linedef")]
-    [InlineData("map2d.aligngridtolinedef", "Align Grid to Selected Linedef")]
-    [InlineData("map2d.set-grid-origin-to-vertex", "Set Grid Origin to Selected Vertex")]
-    [InlineData("map2d.setgridorigintovertex", "Set Grid Origin to Selected Vertex")]
-    [InlineData("map2d.reset-grid-transform", "Reset Grid Transform")]
-    [InlineData("map2d.resetgrid", "Reset Grid Transform")]
-    [InlineData("map2d.smart-grid-transform", "Smart Grid Transform")]
-    [InlineData("map2d.smartgridtransform", "Smart Grid Transform")]
-    public void GridTransformCommandsMatchUdbActionSurface(string commandId, string title)
+    [InlineData("map2d.align-grid-to-linedef", "Align Grid to Selected Linedef", "Rotates and repositions the grid so that the selected linedef is along the X-axis.")]
+    [InlineData("map2d.aligngridtolinedef", "Align Grid to Selected Linedef", "Rotates and repositions the grid so that the selected linedef is along the X-axis.")]
+    [InlineData("map2d.set-grid-origin-to-vertex", "Set Grid Origin to Selected Vertex", "Repositions the grid so that the selected vertex is at the origin.")]
+    [InlineData("map2d.setgridorigintovertex", "Set Grid Origin to Selected Vertex", "Repositions the grid so that the selected vertex is at the origin.")]
+    [InlineData("map2d.reset-grid-transform", "Reset Grid Transform", "Resets the grid to the default coordinate system.")]
+    [InlineData("map2d.resetgrid", "Reset Grid Transform", "Resets the grid to the default coordinate system.")]
+    [InlineData("map2d.smart-grid-transform", "Smart Grid Transform", "Sets grid transformation based on the selected elements. Vertex selected: set grid origin to that vertex. Linedef selected: align grid to that linedef. Nothing selected: reset grid transformation to the default coordinate system.")]
+    [InlineData("map2d.smartgridtransform", "Smart Grid Transform", "Sets grid transformation based on the selected elements. Vertex selected: set grid origin to that vertex. Linedef selected: align grid to that linedef. Nothing selected: reset grid transformation to the default coordinate system.")]
+    public void GridTransformCommandsMatchUdbActionSurface(string commandId, string title, string description)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
