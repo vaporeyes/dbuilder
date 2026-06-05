@@ -2537,11 +2537,17 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("map3d.move-forward", "Move Forward", "Menu")]
+    [InlineData("map3d.moveforward", "Move Forward", "Menu")]
     [InlineData("map3d.move-backward", "Move Backward", "Menu")]
+    [InlineData("map3d.movebackward", "Move Backward", "Menu")]
     [InlineData("map3d.move-left", "Move Left (strafe)", "Menu")]
+    [InlineData("map3d.moveleft", "Move Left (strafe)", "Menu")]
     [InlineData("map3d.move-right", "Move Right (strafe)", "Menu")]
+    [InlineData("map3d.moveright", "Move Right (strafe)", "Menu")]
     [InlineData("map3d.move-up", "Move Up", "Menu")]
+    [InlineData("map3d.moveup", "Move Up", "Menu")]
     [InlineData("map3d.move-down", "Move Down", "Menu")]
+    [InlineData("map3d.movedown", "Move Down", "Menu")]
     public void VisualCameraMovementCommandsMatchUdbActionSurface(string commandId, string title, string gesture)
     {
         var command = EditorCommandCatalog.Find(commandId);

@@ -5793,11 +5793,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private static bool IsFlyMovementCommand(string commandId) => commandId is
         "map3d.move-forward" or
+        "map3d.moveforward" or
         "map3d.move-backward" or
+        "map3d.movebackward" or
         "map3d.move-left" or
+        "map3d.moveleft" or
         "map3d.move-right" or
+        "map3d.moveright" or
         "map3d.move-up" or
-        "map3d.move-down";
+        "map3d.moveup" or
+        "map3d.move-down" or
+        "map3d.movedown";
 
     private static bool IsHeldMapCommand(string commandId)
         => IsFlyMovementCommand(commandId) || commandId is "map3d.orbit" or "map2d.classicpaintselect";
@@ -5841,11 +5847,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 Toggle3DMode();
                 return true;
             case "map3d.move-forward":
+            case "map3d.moveforward":
             case "map3d.move-backward":
+            case "map3d.movebackward":
             case "map3d.move-left":
+            case "map3d.moveleft":
             case "map3d.move-right":
+            case "map3d.moveright":
             case "map3d.move-up":
+            case "map3d.moveup":
             case "map3d.move-down":
+            case "map3d.movedown":
             case "map3d.orbit":
                 _heldMapCommands.Add(commandId);
                 return true;
@@ -6868,10 +6880,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         var flatFwd = new Vector3((float)Math.Cos(_yaw), (float)Math.Sin(_yaw), 0);
         var right = new Vector3((float)Math.Sin(_yaw), -(float)Math.Cos(_yaw), 0);
-        if (_heldKeys.Contains(Key.W) || _heldMapCommands.Contains("map3d.move-forward")) _cam3DPos += flatFwd * move;
-        if (_heldKeys.Contains(Key.S) || _heldMapCommands.Contains("map3d.move-backward")) _cam3DPos -= flatFwd * move;
-        if (_heldKeys.Contains(Key.D) || _heldMapCommands.Contains("map3d.move-right")) _cam3DPos += right * move;
-        if (_heldKeys.Contains(Key.A) || _heldMapCommands.Contains("map3d.move-left")) _cam3DPos -= right * move;
+        if (_heldKeys.Contains(Key.W) || _heldMapCommands.Contains("map3d.move-forward") || _heldMapCommands.Contains("map3d.moveforward")) _cam3DPos += flatFwd * move;
+        if (_heldKeys.Contains(Key.S) || _heldMapCommands.Contains("map3d.move-backward") || _heldMapCommands.Contains("map3d.movebackward")) _cam3DPos -= flatFwd * move;
+        if (_heldKeys.Contains(Key.D) || _heldMapCommands.Contains("map3d.move-right") || _heldMapCommands.Contains("map3d.moveright")) _cam3DPos += right * move;
+        if (_heldKeys.Contains(Key.A) || _heldMapCommands.Contains("map3d.move-left") || _heldMapCommands.Contains("map3d.moveleft")) _cam3DPos -= right * move;
 
         if (_walkMode)
         {
@@ -6883,8 +6895,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
         else
         {
-            if (_heldKeys.Contains(Key.E) || _heldMapCommands.Contains("map3d.move-up")) _cam3DPos.Z += move;
-            if (_heldKeys.Contains(Key.Q) || _heldMapCommands.Contains("map3d.move-down")) _cam3DPos.Z -= move;
+            if (_heldKeys.Contains(Key.E) || _heldMapCommands.Contains("map3d.move-up") || _heldMapCommands.Contains("map3d.moveup")) _cam3DPos.Z += move;
+            if (_heldKeys.Contains(Key.Q) || _heldMapCommands.Contains("map3d.move-down") || _heldMapCommands.Contains("map3d.movedown")) _cam3DPos.Z -= move;
         }
     }
 

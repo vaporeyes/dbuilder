@@ -1445,6 +1445,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add raw UDB move camera to cursor action alias to shortcut metadata and dispatch.
   - [x] Add UDB-style visual Toggle Gravity action alias.
   - [x] Add UDB-style held visual camera movement action ids for WASD and Q/E.
+  - [x] Add raw UDB held visual camera movement aliases to shortcut metadata and dispatch.
   - [x] Add UDB-style held Orbit visual action with target-centered camera movement.
 - [ ] Port visual geometry behavior.
   - [x] Add UDB-style visual floor, ceiling, and thing height step action metadata and dispatch.

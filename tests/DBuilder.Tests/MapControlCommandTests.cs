@@ -749,6 +749,22 @@ public sealed class MapControlCommandTests
     }
 
     [Theory]
+    [InlineData("map3d.moveforward", "map3d.move-forward")]
+    [InlineData("map3d.movebackward", "map3d.move-backward")]
+    [InlineData("map3d.moveleft", "map3d.move-left")]
+    [InlineData("map3d.moveright", "map3d.move-right")]
+    [InlineData("map3d.moveup", "map3d.move-up")]
+    [InlineData("map3d.movedown", "map3d.move-down")]
+    public void UdbVisualCameraMovementAliasesAreHeldCommands(string aliasCommandId, string canonicalCommandId)
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains($"\"{aliasCommandId}\"", body, StringComparison.Ordinal);
+        Assert.Contains($"case \"{aliasCommandId}\":", body, StringComparison.Ordinal);
+        Assert.Contains($"_heldMapCommands.Contains(\"{canonicalCommandId}\") || _heldMapCommands.Contains(\"{aliasCommandId}\")", body, StringComparison.Ordinal);
+    }
+
+    [Theory]
     [InlineData("map3d.scaleup", "ChangeVisualScale3D(1, 1)")]
     [InlineData("map3d.scaledown", "ChangeVisualScale3D(-1, -1)")]
     [InlineData("map3d.scaleupx", "ChangeVisualScale3D(1, 0)")]
