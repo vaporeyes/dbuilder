@@ -730,8 +730,11 @@ public sealed class MapControlCommandTests
     public void CurveLinedefsWarningMatchesUdbText()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("public string CurveSelectedLinedefs()", StringComparison.Ordinal);
+        int warningIndex = body.IndexOf("const string message = \"This action requres a selection!\";", methodIndex, StringComparison.Ordinal);
 
-        Assert.Contains("const string message = \"This action requres a selection!\";", body, StringComparison.Ordinal);
+        Assert.True(methodIndex >= 0);
+        Assert.True(warningIndex > methodIndex);
     }
 
     [Fact]
