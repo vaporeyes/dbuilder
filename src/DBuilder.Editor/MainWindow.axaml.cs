@@ -5959,7 +5959,7 @@ public partial class MainWindow : Window
         if (_map is null) { SetStatus("No map loaded."); return; }
         var sel = _map.GetSelectedSectors();
         if (sel.Count == 2) { ShowSoundLeakPath(sel[0], sel[1]); return; }
-        if (sel.Count != 1) { SetStatus("Select one sector to trace sound propagation, or two sectors to find a sound leak path."); return; }
+        if (sel.Count != 1) { SetStatus("Select one sector to trace sound propagation, or two sectors to find a sound leak path.", StatusHistoryKind.Warning); return; }
 
         bool udmf = _mapFormat == MapFormat.Udmf;
         var reach = SoundPropagation.Reachable(_map, sel[0], udmf: udmf);
@@ -5985,7 +5985,7 @@ public partial class MainWindow : Window
         if (!sectors.Contains(destination))
         {
             MapView.SetSoundLeakPath(null);
-            SetStatus("Sound can not travel between the two selected sectors.");
+            SetStatus("Sound can not travel between the two selected sectors.", StatusHistoryKind.Warning);
             return;
         }
 
@@ -6004,9 +6004,9 @@ public partial class MainWindow : Window
             (sourcePosition.x + destinationPosition.x) * 0.5,
             (sourcePosition.y + destinationPosition.y) * 0.5));
         UpdateInfo();
-        SetStatus(path == null
-            ? "No sound leak path found between the two selected sectors."
-            : path.StatusText);
+        SetStatus(
+            path == null ? "No sound leak path found between the two selected sectors." : path.StatusText,
+            path == null ? StatusHistoryKind.Warning : StatusHistoryKind.Info);
     }
 
     private void OnSetLeakFinderStart(object? sender, RoutedEventArgs e)
@@ -6021,9 +6021,9 @@ public partial class MainWindow : Window
         var sectors = _map.GetSelectedSectors();
         if (sectors.Count != 1)
         {
-            SetStatus(startMarker
-                ? "Select one sector to set the sound leak start."
-                : "Select one sector to set the sound leak end.");
+            SetStatus(
+                startMarker ? "Select one sector to set the sound leak start." : "Select one sector to set the sound leak end.",
+                StatusHistoryKind.Warning);
             return;
         }
 
@@ -6156,7 +6156,7 @@ public partial class MainWindow : Window
     {
         if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
         var sectors = _map.GetSelectedSectors();
-        if (sectors.Count == 0) { SetStatus("Select one or more sectors to make doors."); return; }
+        if (sectors.Count == 0) { SetStatus("Select one or more sectors to make doors.", StatusHistoryKind.Warning); return; }
 
         var defaults = new MakeDoorOptions
         {
@@ -6180,7 +6180,7 @@ public partial class MainWindow : Window
         MakeDoorOptions options = dlg.ResultOptions;
         if (string.IsNullOrWhiteSpace(options.DoorTexture))
         {
-            SetStatus("Choose a door texture before making a door.");
+            SetStatus("Choose a door texture before making a door.", StatusHistoryKind.Warning);
             MapView.Focus();
             return;
         }

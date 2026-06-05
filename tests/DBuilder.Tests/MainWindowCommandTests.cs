@@ -1158,6 +1158,19 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void SoundAndDoorGuardsUseWarningStatusKind()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("SetStatus(\"Select one sector to trace sound propagation, or two sectors to find a sound leak path.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(\"Sound can not travel between the two selected sectors.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("path == null ? StatusHistoryKind.Warning : StatusHistoryKind.Info", body, StringComparison.Ordinal);
+        Assert.Contains("startMarker ? \"Select one sector to set the sound leak start.\" : \"Select one sector to set the sound leak end.\",\n                StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(\"Select one or more sectors to make doors.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(\"Choose a door texture before making a door.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void EditMenuTooltipsRefreshFromEffectiveShortcutBindings()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
