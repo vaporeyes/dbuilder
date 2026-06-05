@@ -119,7 +119,10 @@ public struct Line2D
 
     public static double GetDistanceToLineSq(Vector2D v1, Vector2D v2, Vector2D p, bool bounded)
     {
-        double u = ((p.x - v1.x) * (v2.x - v1.x) + (p.y - v1.y) * (v2.y - v1.y)) / GetLengthSq(v2.x - v1.x, v2.y - v1.y);
+        double lengthSq = GetLengthSq(v2.x - v1.x, v2.y - v1.y);
+        if (lengthSq == 0.0) return Vector2D.DistanceSq(v1, p);
+
+        double u = ((p.x - v1.x) * (v2.x - v1.x) + (p.y - v1.y) * (v2.y - v1.y)) / lengthSq;
 
         if (bounded)
         {
@@ -135,7 +138,10 @@ public struct Line2D
 
     public static double GetNearestOnLine(Vector2D v1, Vector2D v2, Vector2D p)
     {
-        return ((p.x - v1.x) * (v2.x - v1.x) + (p.y - v1.y) * (v2.y - v1.y)) / GetLengthSq(v2.x - v1.x, v2.y - v1.y);
+        double lengthSq = GetLengthSq(v2.x - v1.x, v2.y - v1.y);
+        if (lengthSq == 0.0) return 0.0;
+
+        return ((p.x - v1.x) * (v2.x - v1.x) + (p.y - v1.y) * (v2.y - v1.y)) / lengthSq;
     }
 
     public static Vector2D GetNearestPointOnLine(Vector2D v1, Vector2D v2, Vector2D p, bool bounded)

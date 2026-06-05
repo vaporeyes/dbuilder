@@ -116,6 +116,24 @@ public class Line2DTests
     }
 
     [Fact]
+    public void DegenerateLineDistanceUsesStartPointDistance()
+    {
+        var line = new Line2D(3, 4, 3, 4);
+
+        Assert.Equal(25, Line2D.GetDistanceToLineSq(line.v1, line.v2, new Vector2D(6, 8), bounded: true), Epsilon);
+        Assert.Equal(5, line.GetDistanceToLine(new Vector2D(6, 8), bounded: false), Epsilon);
+    }
+
+    [Fact]
+    public void NearestOnDegenerateLineReturnsStartParameter()
+    {
+        var line = new Line2D(3, 4, 3, 4);
+
+        Assert.Equal(0, Line2D.GetNearestOnLine(line.v1, line.v2, new Vector2D(6, 8)), Epsilon);
+        Assert.Equal(0, line.GetNearestOnLine(new Vector2D(6, 8)), Epsilon);
+    }
+
+    [Fact]
     public void TransformRoundTrip()
     {
         // Forward: (x+off)*scale. Inverse: x*invScale + invOff. To round-trip we need invOff = -off and invScale = 1/scale.
