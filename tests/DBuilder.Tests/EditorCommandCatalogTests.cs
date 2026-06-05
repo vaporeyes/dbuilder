@@ -1340,10 +1340,12 @@ public class EditorCommandCatalogTests
     {
         var command = EditorCommandCatalog.Find("map2d.place-things");
         var udbAlias = EditorCommandCatalog.Find("map2d.placethings");
+        const string Description = "Creates things of given type and places them inside of selected sectors or on top of selected vertices.";
 
         Assert.NotNull(command);
         Assert.Equal("Place Things", command.Title);
         Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(Description, command.Description);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.False(command.AllowMouse);
@@ -1351,6 +1353,7 @@ public class EditorCommandCatalogTests
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
+        Assert.Equal(Description, udbAlias.Description);
     }
 
     [Fact]
@@ -1361,6 +1364,7 @@ public class EditorCommandCatalogTests
         Assert.NotNull(command);
         Assert.Equal("Place Visual Mode Camera", command.Title);
         Assert.Equal("Ctrl/Cmd+W", command.DefaultGesture);
+        Assert.Equal("Places a new, or moves the existing, Visual Mode start thing to the mouse position. This thing will keep track where you left Visual Mode so that you return to Visual Mode in the same location.", command.Description);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
@@ -1376,6 +1380,7 @@ public class EditorCommandCatalogTests
         Assert.NotNull(command);
         Assert.Equal("Synchronized Things Editing", command.Title);
         Assert.Equal("Shift+T", command.DefaultGesture);
+        Assert.Equal("When enabled, things selection/dragging will be synchronized to sector selection/dragging in Sectors mode. Selected things will be dragged when dragging linedefs in Linedefs mode. Deleting sectors will delete selected things in Sectors mode.", command.Description);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
@@ -1404,8 +1409,8 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map2d.point-thing-to-cursor", "map2d.thinglookatcursor", "Point Thing to Cursor", "Shift+L")]
-    public void ClassicThingActionAliasesMatchUdbActionSurface(string id, string udbId, string title, string gesture)
+    [InlineData("map2d.point-thing-to-cursor", "map2d.thinglookatcursor", "Point Thing to Cursor", "Shift+L", "Points selected things to cursor position. Hold Ctrl to point away from cursor.")]
+    public void ClassicThingActionAliasesMatchUdbActionSurface(string id, string udbId, string title, string gesture, string description)
     {
         var command = EditorCommandCatalog.Find(id);
         var udbAlias = EditorCommandCatalog.Find(udbId);
@@ -1413,10 +1418,12 @@ public class EditorCommandCatalogTests
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
         Assert.Equal(gesture, command.DefaultGesture);
+        Assert.Equal(description, command.Description);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
+        Assert.Equal(command.Description, udbAlias.Description);
     }
 
     [Fact]
@@ -2592,20 +2599,21 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map2d.draw-point", "Draw Vertex", "Menu", true, true, true)]
-    [InlineData("map2d.drawpoint", "Draw Vertex", "Menu", true, true, true)]
-    [InlineData("map2d.remove-draw-point", "Remove Last Vertex", "Menu", false, false, false)]
-    [InlineData("map2d.removepoint", "Remove Last Vertex", "Menu", false, false, false)]
-    [InlineData("map2d.remove-first-draw-point", "Remove First Vertex", "Ctrl/Cmd+Backspace", false, false, false)]
-    [InlineData("map2d.removefirstpoint", "Remove First Vertex", "Ctrl/Cmd+Backspace", false, false, false)]
-    [InlineData("map2d.finish-draw", "Finish Drawing", "Enter", false, false, false)]
-    [InlineData("map2d.finishdraw", "Finish Drawing", "Enter", false, false, false)]
-    [InlineData("map2d.acceptmode", "Accept Action", "Enter", false, false, false)]
-    [InlineData("map2d.cancelmode", "Cancel Action", "Esc", false, false, false)]
+    [InlineData("map2d.draw-point", "Draw Vertex", "Menu", "Draws a vertex at the mousecursor position.", true, true, true)]
+    [InlineData("map2d.drawpoint", "Draw Vertex", "Menu", "Draws a vertex at the mousecursor position.", true, true, true)]
+    [InlineData("map2d.remove-draw-point", "Remove Last Vertex", "Menu", "Removes the last drawn vertex from the drawing session.", false, false, false)]
+    [InlineData("map2d.removepoint", "Remove Last Vertex", "Menu", "Removes the last drawn vertex from the drawing session.", false, false, false)]
+    [InlineData("map2d.remove-first-draw-point", "Remove First Vertex", "Ctrl/Cmd+Backspace", "Removes the first drawn vertex from the drawing session.", false, false, false)]
+    [InlineData("map2d.removefirstpoint", "Remove First Vertex", "Ctrl/Cmd+Backspace", "Removes the first drawn vertex from the drawing session.", false, false, false)]
+    [InlineData("map2d.finish-draw", "Finish Drawing", "Enter", "", false, false, false)]
+    [InlineData("map2d.finishdraw", "Finish Drawing", "Enter", "", false, false, false)]
+    [InlineData("map2d.acceptmode", "Accept Action", "Enter", "", false, false, false)]
+    [InlineData("map2d.cancelmode", "Cancel Action", "Esc", "", false, false, false)]
     public void DrawSessionCommandsMatchUdbActionSurface(
         string id,
         string title,
         string gesture,
+        string? description,
         bool disregardShift,
         bool disregardAccelerator,
         bool disregardAlt)
@@ -2615,6 +2623,7 @@ public class EditorCommandCatalogTests
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
         Assert.Equal(gesture, command.DefaultGesture);
+        Assert.Equal(description, command.Description);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
