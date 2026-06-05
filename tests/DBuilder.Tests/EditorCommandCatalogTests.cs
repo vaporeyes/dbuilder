@@ -1831,16 +1831,17 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("window.udbscripts", "Scripts")]
-    [InlineData("window.udbscriptexecute", "Execute Script")]
-    [InlineData("window.udbscriptexecuteslot1", "Execute Script Slot 1")]
-    [InlineData("window.udbscriptexecuteslot30", "Execute Script Slot 30")]
-    public void UdbScriptCommandsMatchUdbActionSurface(string commandId, string title)
+    [InlineData("window.udbscripts", "Scripts", "Opens the script browser")]
+    [InlineData("window.udbscriptexecute", "Execute Script", "Executes a script")]
+    [InlineData("window.udbscriptexecuteslot1", "Execute Script Slot 1", "execute script in slot 1")]
+    [InlineData("window.udbscriptexecuteslot30", "Execute Script Slot 30", "execute script in slot 30")]
+    public void UdbScriptCommandsMatchUdbActionSurface(string commandId, string title, string description)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
