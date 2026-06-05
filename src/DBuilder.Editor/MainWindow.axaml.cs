@@ -316,8 +316,8 @@ public partial class MainWindow : Window
         SetShortcutToolTip(MergeGeometryClassicMenuItem, "Merge Dragged Vertices Only", "window.geomergeclassic");
         SetShortcutToolTip(MergeGeometryMergeMenuItem, "Merge Dragged Geometry", "window.geomerge");
         SetShortcutToolTip(MergeGeometryReplaceMenuItem, "Replace with Dragged Geometry", "window.georeplace");
-        SetShortcutToolTip(JoinSectorsMenuItem, "Join sectors", "window.join-sectors");
-        SetShortcutToolTip(MergeSectorsMenuItem, "Merge sectors", "window.merge-sectors");
+        SetShortcutToolTip(JoinSectorsMenuItem, "Join Sectors", "window.join-sectors");
+        SetShortcutToolTip(MergeSectorsMenuItem, "Merge Sectors", "window.merge-sectors");
         SetShortcutToolTip(LowerFloor8MenuItem, "Lower Floor by 8 mp", "map2d.lowerfloor8");
         SetShortcutToolTip(RaiseFloor8MenuItem, "Raise Floor by 8 mp", "map2d.raisefloor8");
         SetShortcutToolTip(LowerCeiling8MenuItem, "Lower Ceiling by 8 mp", "map2d.lowerceiling8");

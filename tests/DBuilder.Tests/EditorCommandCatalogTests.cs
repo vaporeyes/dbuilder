@@ -948,18 +948,19 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("window.stitch-geometry", "Stitch geometry")]
-    [InlineData("window.geomergeclassic", "Merge Dragged Vertices Only")]
-    [InlineData("window.geomerge", "Merge Dragged Geometry")]
-    [InlineData("window.georeplace", "Replace with Dragged Geometry")]
-    [InlineData("window.join-sectors", "Join sectors")]
-    [InlineData("window.merge-sectors", "Merge sectors")]
-    public void WindowGeometryEditCommandsMatchUdbActionSurface(string commandId, string title)
+    [InlineData("window.stitch-geometry", "Stitch geometry", null)]
+    [InlineData("window.geomergeclassic", "Merge Dragged Vertices Only", null)]
+    [InlineData("window.geomerge", "Merge Dragged Geometry", null)]
+    [InlineData("window.georeplace", "Replace with Dragged Geometry", null)]
+    [InlineData("window.join-sectors", "Join Sectors", "Joins two or more selected sectors together and keeps all linedefs.")]
+    [InlineData("window.merge-sectors", "Merge Sectors", "Joins two or more selected sectors together and removes the shared linedefs.")]
+    public void WindowGeometryEditCommandsMatchUdbActionSurface(string commandId, string title, string? description = null)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        if (description != null) Assert.Equal(description, command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
