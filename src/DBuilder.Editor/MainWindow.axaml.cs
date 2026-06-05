@@ -3090,7 +3090,7 @@ public partial class MainWindow : Window
         int slot = UdbScriptDockerModel.SlotForScript(script, _udbScriptSlotAssignments);
         if (slot == 0)
         {
-            SetStatus($"UDBScript is not assigned to a slot: {script.Name}");
+            SetStatus($"UDBScript is not assigned to a slot: {script.Name}", StatusHistoryKind.Warning);
             return;
         }
 
@@ -3130,7 +3130,7 @@ public partial class MainWindow : Window
     {
         if (!System.IO.Directory.Exists(folderPath))
         {
-            SetStatus($"UDBScript folder not found: {folderPath}");
+            SetStatus($"UDBScript folder not found: {folderPath}", StatusHistoryKind.Warning);
             return;
         }
 
@@ -3192,7 +3192,7 @@ public partial class MainWindow : Window
     {
         if (script.Options.Count == 0)
         {
-            SetStatus($"UDBScript has no options: {script.Name}");
+            SetStatus($"UDBScript has no options: {script.Name}", StatusHistoryKind.Warning);
             return;
         }
 

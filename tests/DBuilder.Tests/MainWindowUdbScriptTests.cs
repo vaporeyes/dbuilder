@@ -60,4 +60,16 @@ public class MainWindowUdbScriptTests
         Assert.Contains("UdbScriptRunnerStatusKind.Ready => StatusHistoryKind.Ready", body, StringComparison.Ordinal);
         Assert.Contains("UdbScriptRunnerStatusKind.Warning => StatusHistoryKind.Warning", body, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void MainWindowRecordsUdbScriptUtilityGuardsAsWarnings()
+    {
+        string body = File.ReadAllText(Path.Combine(
+            AppContext.BaseDirectory,
+            "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("SetStatus($\"UDBScript is not assigned to a slot: {script.Name}\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus($\"UDBScript folder not found: {folderPath}\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus($\"UDBScript has no options: {script.Name}\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+    }
 }
