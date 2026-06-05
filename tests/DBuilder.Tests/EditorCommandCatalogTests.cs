@@ -787,6 +787,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Select Similar Map Elements", command.Title);
+        Assert.Equal("Selects map elements, similar to currently selected ones, based on a set of settings.", command.Description);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
@@ -794,6 +795,7 @@ public class EditorCommandCatalogTests
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
+        Assert.Equal(command.Description, udbAlias.Description);
     }
 
     [Fact]
@@ -804,6 +806,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Filter Selected Things", command.Title);
+        Assert.Equal("Opens a window, which lets you pick thing type(s) you want to leave selected.", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
@@ -812,6 +815,7 @@ public class EditorCommandCatalogTests
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
+        Assert.Equal(command.Description, udbAlias.Description);
     }
 
     [Fact]
@@ -855,6 +859,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Change Map Element Index", command.Title);
+        Assert.Equal("Changes the index of the highlighted or selected vertex, linedef, sector, or thing. Only works on a single map element. It will shift all indices between the old and new index.", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
@@ -863,6 +868,7 @@ public class EditorCommandCatalogTests
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
+        Assert.Equal(command.Description, udbAlias.Description);
     }
 
     [Theory]
