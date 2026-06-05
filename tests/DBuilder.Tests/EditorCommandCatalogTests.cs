@@ -1179,22 +1179,23 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map2d.toggle-grid-snap", "Toggle grid snap", "G", false)]
-    [InlineData("map2d.togglesnap", "Toggle grid snap", "G", false)]
-    [InlineData("map2d.grid-down", "Decrease grid size", "[", true)]
-    [InlineData("map2d.griddec", "Decrease grid size", "[", true)]
-    [InlineData("map2d.grid-up", "Increase grid size", "]", true)]
-    [InlineData("map2d.gridinc", "Increase grid size", "]", true)]
-    public void GridSizeAndSnapCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture, bool repeat)
+    [InlineData("map2d.toggle-grid-snap", "Snap to Grid", "G", false, "Toggles snapping to the grid for things and vertices that are being dragged.")]
+    [InlineData("map2d.togglesnap", "Snap to Grid", "G", false, "Toggles snapping to the grid for things and vertices that are being dragged.")]
+    [InlineData("map2d.grid-down", "Decrease grid size", "[", true, null)]
+    [InlineData("map2d.griddec", "Decrease grid size", "[", true, null)]
+    [InlineData("map2d.grid-up", "Increase grid size", "]", true, null)]
+    [InlineData("map2d.gridinc", "Increase grid size", "]", true, null)]
+    public void GridSizeAndSnapCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture, bool repeat, string? description = null)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        if (description != null) Assert.Equal(description, command.Description);
         Assert.Equal(defaultGesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
-        Assert.True(command.AllowMouse);
+        Assert.Equal(description == null, command.AllowMouse);
         Assert.False(command.AllowScroll);
         Assert.Equal(repeat, command.Repeat);
     }
@@ -1207,12 +1208,13 @@ public class EditorCommandCatalogTests
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
-        Assert.Equal("Show Grid", command.Title);
+        Assert.Equal("Toggle Grid", command.Title);
+        Assert.Equal("Toggles grid rendering in classic modes.", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.False(command.AllowMouse);
-        Assert.False(command.AllowScroll);
+        Assert.True(command.AllowScroll);
         Assert.False(command.Repeat);
     }
 

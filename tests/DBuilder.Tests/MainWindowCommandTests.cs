@@ -1113,7 +1113,7 @@ public sealed class MainWindowCommandTests
         string xaml = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml"));
 
         Assert.Contains("Header=\"_Grid\" x:Name=\"GridMenuItem\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("Header=\"_Show Grid\" x:Name=\"ToggleGridRenderingMenuItem\" ToggleType=\"CheckBox\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"_Toggle Grid\" x:Name=\"ToggleGridRenderingMenuItem\" ToggleType=\"CheckBox\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"ToggleGridRenderingButton\" Click=\"OnToggleGridRendering\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"ToggleSnapToGridButton\" Click=\"OnToggleSnapToGrid\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"ToggleDynamicGridSizeButton\" Click=\"OnToggleDynamicGridSize\"", xaml, StringComparison.Ordinal);
@@ -1136,7 +1136,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("ToggleGridRenderingButton.IsChecked = MapView.RenderGridEnabled;", code, StringComparison.Ordinal);
         Assert.Contains("ToggleSnapToGridButton.IsChecked = MapView.SnapToGridEnabled;", code, StringComparison.Ordinal);
         Assert.Contains("ToggleDynamicGridSizeButton.IsChecked = MapView.DynamicGridSizeEnabled;", code, StringComparison.Ordinal);
-        Assert.Contains("SetShortcutToolTip(ToggleGridRenderingButton, \"Render Grid\", \"map2d.togglegrid\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ToggleGridRenderingButton, \"Toggle Grid\", \"map2d.togglegrid\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ToggleSnapToGridButton, \"Snap to Grid\", \"map2d.togglesnap\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ToggleDynamicGridSizeButton, \"Dynamic Grid Size\", \"map2d.toggledynamicgrid\");", code, StringComparison.Ordinal);
         Assert.Contains("\"map2d.toggle-grid-rendering\" or \"map2d.togglegrid\" => ToggleGridRenderingMenuItem", code, StringComparison.Ordinal);
@@ -1549,8 +1549,8 @@ public sealed class MainWindowCommandTests
         Assert.Contains("SetShortcutToolTip(ThingFilterMenuItem, \"Configure Things Filters\", \"window.things-filters-setup\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(FilterSelectedThingsMenuItem, \"Filter Selected Things\", \"window.filter-selected-things\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(GridSetupMenuItem, \"Grid and Backdrop Setup\", \"window.grid-setup\");", code, StringComparison.Ordinal);
-        Assert.Contains("SetShortcutToolTip(ToggleGridRenderingMenuItem, \"Show Grid\", \"map2d.toggle-grid-rendering\");", code, StringComparison.Ordinal);
-        Assert.Contains("SetShortcutToolTip(ToggleSnapToGridMenuItem, \"Toggle grid snap\", \"map2d.toggle-grid-snap\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ToggleGridRenderingMenuItem, \"Toggle Grid\", \"map2d.toggle-grid-rendering\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ToggleSnapToGridMenuItem, \"Snap to Grid\", \"map2d.toggle-grid-snap\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(GridSizeUpMenuItem, \"Increase grid size\", \"map2d.grid-up\");", code, StringComparison.Ordinal);
     }
 

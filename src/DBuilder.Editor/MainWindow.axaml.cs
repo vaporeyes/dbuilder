@@ -411,8 +411,8 @@ public partial class MainWindow : Window
         SetShortcutToolTip(AlignGridToLinedefMenuItem, "Align Grid to Selected Linedef", "map2d.align-grid-to-linedef");
         SetShortcutToolTip(SetGridOriginToVertexMenuItem, "Set Grid Origin to Selected Vertex", "map2d.set-grid-origin-to-vertex");
         SetShortcutToolTip(ResetGridTransformMenuItem, "Reset Grid Transform", "map2d.reset-grid-transform");
-        SetShortcutToolTip(ToggleGridRenderingMenuItem, "Show Grid", "map2d.toggle-grid-rendering");
-        SetShortcutToolTip(ToggleSnapToGridMenuItem, "Toggle grid snap", "map2d.toggle-grid-snap");
+        SetShortcutToolTip(ToggleGridRenderingMenuItem, "Toggle Grid", "map2d.toggle-grid-rendering");
+        SetShortcutToolTip(ToggleSnapToGridMenuItem, "Snap to Grid", "map2d.toggle-grid-snap");
         SetShortcutToolTip(ToggleDynamicGridSizeMenuItem, "Dynamic Grid Size", "map2d.toggle-dynamic-grid-size");
         SetShortcutToolTip(GridSizeDownMenuItem, "Decrease grid size", "map2d.grid-down");
         SetShortcutToolTip(GridSizeUpMenuItem, "Increase grid size", "map2d.grid-up");
@@ -509,7 +509,7 @@ public partial class MainWindow : Window
         SetShortcutToolTip(DrawRectangleButton, "Draw Rectangle", "map2d.draw-rectangle");
         SetShortcutToolTip(DrawEllipseButton, "Draw Ellipse", "map2d.draw-ellipse");
         SetShortcutToolTip(DrawGridButton, "Draw Grid", "map2d.draw-grid");
-        SetShortcutToolTip(ToggleGridRenderingButton, "Render Grid", "map2d.togglegrid");
+        SetShortcutToolTip(ToggleGridRenderingButton, "Toggle Grid", "map2d.togglegrid");
         SetShortcutToolTip(ToggleSnapToGridButton, "Snap to Grid", "map2d.togglesnap");
         SetShortcutToolTip(ToggleDynamicGridSizeButton, "Dynamic Grid Size", "map2d.toggledynamicgrid");
         SetShortcutToolTip(AutoMergeButton, "Snap to Geometry", "window.toggleautomerge");
