@@ -1287,14 +1287,6 @@ internal abstract class FolderResourceReader : IResourceReader
         => extension.Equals(".png", StringComparison.OrdinalIgnoreCase)
            || extension.Equals(".lmp", StringComparison.OrdinalIgnoreCase);
 
-    protected static bool IsValidResourcePath(string path)
-    {
-        foreach (char c in path)
-            if (c is '"' or '<' or '>' or '|' || c < 32)
-                return false;
-        return true;
-    }
-
     public abstract void Dispose();
 }
 
@@ -1313,7 +1305,7 @@ internal sealed class Pk3ResourceReader : FolderResourceReader
         foreach (var e in zip.Entries)
         {
             if (e.FullName.EndsWith("/")) continue; // directory entry
-            if (!IsValidResourcePath(e.FullName)) continue;
+            if (!ArchivePath.IsValidResourcePath(e.FullName)) continue;
             var entry = e;
             bool isRootWad = IsRootWad(e.FullName);
             if (!isRootWad && ShouldSkipPath(e.FullName, config)) continue;
@@ -1380,7 +1372,7 @@ internal sealed class DirectoryResourceReader : FolderResourceReader
         {
             string rel = Path.GetRelativePath(root, path);
             string p = path;
-            if (!IsValidResourcePath(rel)) continue;
+            if (!ArchivePath.IsValidResourcePath(rel)) continue;
             if (IsRootWad(rel))
             {
                 nestedReaders.Add(new WadResourceReader(new WAD(path, openreadonly: true), owns: true, configProvider: this.configProvider));

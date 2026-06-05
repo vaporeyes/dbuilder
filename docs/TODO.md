@@ -594,6 +594,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Honor configured ignored directory names and ignored extensions when scanning PK3 resources.
   - [x] Skip files directly inside configured ignored PK3 directories like UDB.
   - [x] Skip PK3 entries with UDB-unsupported path characters.
+  - [x] Skip PK3 map archive entries with UDB-unsupported path characters.
   - [x] Include nested WAD map-info data after root PK3 map-info files like UDB.
   - [x] Load root base-game GLDEFS files before generic `GLDEFS` files and nested WAD GLDEFS like UDB.
 - [ ] Port directory reader behavior.

@@ -85,6 +85,7 @@ public static class Pk3Maps
         foreach (var entry in zip.Entries)
         {
             if (entry.FullName.EndsWith("/", StringComparison.Ordinal)) continue;
+            if (!ArchivePath.IsValidResourcePath(entry.FullName)) continue;
 
             string archivePath = archivePrefix.Length == 0
                 ? entry.FullName

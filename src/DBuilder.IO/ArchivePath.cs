@@ -16,4 +16,12 @@ internal static class ArchivePath
             || ext.Equals(".ipk3", StringComparison.OrdinalIgnoreCase)
             || ext.Equals(".ipk7", StringComparison.OrdinalIgnoreCase);
     }
+
+    public static bool IsValidResourcePath(string path)
+    {
+        foreach (char c in path)
+            if (c is '"' or '<' or '>' or '|' || c < 32)
+                return false;
+        return true;
+    }
 }

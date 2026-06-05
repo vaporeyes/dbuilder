@@ -147,6 +147,26 @@ maplumpnames
     }
 
     [Fact]
+    public void FindSkipsInvalidArchivePathCharactersLikeUdb()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("maps/BAD<.wad", BuildUdmfWad("MAP01")),
+            ("maps/map02.wad", BuildUdmfWad("MAP02")));
+
+        try
+        {
+            var entry = Assert.Single(Pk3Maps.Find(pk3));
+
+            Assert.Equal("maps/map02.wad", entry.ArchivePath);
+            Assert.Equal("MAP02", entry.Map.Name);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
+    [Fact]
     public void ReadsMapLumpFromEmbeddedWadEntry()
     {
         byte[] dialogue = Encoding.ASCII.GetBytes("conversation { actor = 3004; }");
