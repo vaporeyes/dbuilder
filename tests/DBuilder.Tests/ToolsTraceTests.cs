@@ -590,6 +590,19 @@ public class ToolsTraceTests
     }
 
     [Fact]
+    public void MakeSectorDefaultOptionsUseUdbSectorBrightness()
+    {
+        var map = new MapSet();
+        var lines = BuildSidelessSquare(map);
+        var sides = lines.Select(line => new LinedefSide(line, true)).ToList();
+
+        Sector? sector = Tools.MakeSector(map, sides);
+
+        Assert.NotNull(sector);
+        Assert.Equal(192, sector!.Brightness);
+    }
+
+    [Fact]
     public void MakeSectorCreatesMissingSidedefsWithDefaultOptions()
     {
         var map = new MapSet();

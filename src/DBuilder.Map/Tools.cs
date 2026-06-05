@@ -24,7 +24,7 @@ public static class Tools
     {
         public int DefaultFloorHeight { get; init; }
         public int DefaultCeilingHeight { get; init; } = 128;
-        public int DefaultBrightness { get; init; } = 160;
+        public int DefaultBrightness { get; init; } = 192;
         public string DefaultFloorTexture { get; init; } = "-";
         public string DefaultCeilingTexture { get; init; } = "-";
         public string DefaultHighTexture { get; init; } = "-";
@@ -37,7 +37,7 @@ public static class Tools
         public bool OverrideBrightness { get; init; }
         public int CustomFloorHeight { get; init; }
         public int CustomCeilingHeight { get; init; } = 128;
-        public int CustomBrightness { get; init; } = 160;
+        public int CustomBrightness { get; init; } = 192;
     }
 
     /// <summary>

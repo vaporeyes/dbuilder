@@ -31,6 +31,16 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void SectorCreationFallbackBrightnessMatchesUdbDefault()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("DefaultBrightness = _mapOptions?.CustomBrightness ?? 192,", body, StringComparison.Ordinal);
+        Assert.Contains("CustomBrightness = _mapOptions?.CustomBrightness ?? 192,", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("DefaultBrightness = _mapOptions?.CustomBrightness ?? 160,", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void LinedefRenderingUsesUdbColorPresetModel()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
