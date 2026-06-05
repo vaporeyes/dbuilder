@@ -974,7 +974,7 @@ public static class EditorCommandCatalog
     }
 
     public static string OverrideText(IEnumerable<EditorShortcutBinding> overrides)
-        => string.Join("; ", overrides.Select(binding => $"{binding.CommandId}={GestureText(binding)}"));
+        => string.Join("; ", overrides.Select(binding => $"{binding.CommandId}={OverrideGestureText(binding)}"));
 
     public static List<EditorShortcutBinding> ParseOverrideText(string? text)
     {
@@ -985,11 +985,17 @@ public static class EditorCommandCatalog
         foreach (string rawEntry in SplitOverrideEntries(text, byId))
         {
             int equals = rawEntry.IndexOf('=');
-            if (equals <= 0 || equals == rawEntry.Length - 1) continue;
+            if (equals <= 0) continue;
 
             string commandId = rawEntry[..equals].Trim();
             string gesture = rawEntry[(equals + 1)..].Trim();
             if (!byId.TryGetValue(commandId, out var command)) continue;
+            if (IsUnboundGesture(gesture))
+            {
+                result.Add(new EditorShortcutBinding(commandId, command.Scope, ""));
+                continue;
+            }
+
             if (!TryParseGesture(commandId, command.Scope, gesture, out var binding)) continue;
             result.Add(binding);
         }
@@ -1075,6 +1081,12 @@ public static class EditorCommandCatalog
            || part.Equals("LMenu", StringComparison.OrdinalIgnoreCase)
            || part.Equals("RMenu", StringComparison.OrdinalIgnoreCase);
 
+    private static bool IsUnboundGesture(string gesture)
+        => string.IsNullOrWhiteSpace(gesture)
+           || gesture.Equals("None", StringComparison.OrdinalIgnoreCase)
+           || gesture.Equals("Unbound", StringComparison.OrdinalIgnoreCase)
+           || gesture.Equals("-", StringComparison.OrdinalIgnoreCase);
+
     private static IEnumerable<string> SplitGestureParts(string gesture)
     {
         string text = gesture.Trim();
@@ -1132,6 +1144,9 @@ public static class EditorCommandCatalog
         EditorPointerInput.ExtendedButton2 => EditorPointerInput.ExtendedButton2,
         _ => key,
     };
+
+    private static string OverrideGestureText(EditorShortcutBinding binding)
+        => string.IsNullOrWhiteSpace(binding.Key) ? "None" : GestureText(binding);
 
     private static string ParseDisplayKey(string key)
     {
@@ -1237,14 +1252,14 @@ public static class EditorCommandCatalog
 
         var known = All.Select(command => command.Id).ToHashSet(StringComparer.Ordinal);
         var validOverrides = overrides
-            .Where(binding => known.Contains(binding.CommandId) && !string.IsNullOrWhiteSpace(binding.Key))
+            .Where(binding => known.Contains(binding.CommandId))
             .ToArray();
         if (validOverrides.Length == 0) return DefaultShortcuts;
 
         var replaced = validOverrides.Select(binding => binding.CommandId).ToHashSet(StringComparer.Ordinal);
         return DefaultShortcuts
             .Where(binding => !replaced.Contains(binding.CommandId))
-            .Concat(validOverrides)
+            .Concat(validOverrides.Where(binding => !string.IsNullOrWhiteSpace(binding.Key)))
             .ToArray();
     }
 

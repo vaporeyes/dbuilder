@@ -3024,11 +3024,22 @@ public class EditorCommandCatalogTests
         var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]
         {
             new EditorShortcutBinding("missing.command", EditorCommandScope.Window, "F5"),
-            new EditorShortcutBinding("window.save", EditorCommandScope.Window, ""),
         });
 
         Assert.Same(EditorCommandCatalog.DefaultShortcuts, bindings);
         Assert.Equal("window.save", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Window, "S", accelerator: true));
+    }
+
+    [Fact]
+    public void EffectiveShortcutsCanClearDefaultBindings()
+    {
+        var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]
+        {
+            new EditorShortcutBinding("window.save", EditorCommandScope.Window, ""),
+        });
+
+        Assert.Null(EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Window, "S", accelerator: true));
+        Assert.Equal("-", EditorCommandCatalog.GestureText("window.save", bindings));
     }
 
     [Fact]
@@ -3349,6 +3360,18 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void ParseOverrideTextReadsClearedShortcutOverrides()
+    {
+        var overrides = EditorCommandCatalog.ParseOverrideText(
+            "window.save=None; window.copy=Unbound; window.paste=-; window.delete=");
+
+        Assert.Contains(overrides, b => b.CommandId == "window.save" && b.Key == "");
+        Assert.Contains(overrides, b => b.CommandId == "window.copy" && b.Key == "");
+        Assert.Contains(overrides, b => b.CommandId == "window.paste" && b.Key == "");
+        Assert.Contains(overrides, b => b.CommandId == "window.delete" && b.Key == "");
+    }
+
+    [Fact]
     public void UdbInternalMouseScrollAliasesResolveToStableScrollKeys()
     {
         var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]
@@ -3411,7 +3434,7 @@ public class EditorCommandCatalogTests
     [Fact]
     public void ParseOverrideTextSkipsInvalidEntries()
     {
-        var overrides = EditorCommandCatalog.ParseOverrideText("missing.command=F5; window.save=; malformed");
+        var overrides = EditorCommandCatalog.ParseOverrideText("missing.command=F5; window.save=Ctrl; malformed");
 
         Assert.Empty(overrides);
     }
@@ -3423,6 +3446,7 @@ public class EditorCommandCatalogTests
         {
             new EditorShortcutBinding("window.save", EditorCommandScope.Window, "F5"),
             new EditorShortcutBinding("map2d.fit", EditorCommandScope.Map2D, "R", Shift: true),
+            new EditorShortcutBinding("window.copy", EditorCommandScope.Window, ""),
         };
 
         var parsed = EditorCommandCatalog.ParseOverrideText(EditorCommandCatalog.OverrideText(overrides));

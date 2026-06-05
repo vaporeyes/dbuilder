@@ -190,6 +190,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Explain accepted shortcut override syntax in the Settings dialog.
   - [x] Apply Help shortcut expand and collapse controls to filtered results.
   - [x] Show original default bindings for customized Help shortcut rows.
+  - [x] Support clearing default shortcuts from shortcut override text.
 - [ ] Port mouse input abstractions.
   - [x] Normalize wheel directions as UDB-style scroll command keys.
   - [x] Normalize mouse buttons as UDB-style button command keys.

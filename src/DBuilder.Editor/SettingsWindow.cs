@@ -10,7 +10,7 @@ namespace DBuilder.Editor;
 
 public sealed class SettingsWindow : PropertyDialog
 {
-    private const string ShortcutOverrideWatermark = "command.id=Shortcut; separate entries with semicolons, commas, or new lines";
+    private const string ShortcutOverrideWatermark = "command.id=Shortcut; use None to clear; separate entries with semicolons, commas, or new lines";
 
     private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _testSkill, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _statusHistoryLimit, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _mergeGeometryMode, _pasteTagMode;
