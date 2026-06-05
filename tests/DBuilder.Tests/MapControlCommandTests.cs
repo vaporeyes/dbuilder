@@ -629,6 +629,24 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void Map2DSelectCommandsUseCursorSelectionWithModifiers()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        int selectIndex = body.IndexOf("case \"map2d.select\":", StringComparison.Ordinal);
+        int classicIndex = body.IndexOf("case \"map2d.classicselect\":", selectIndex, StringComparison.Ordinal);
+        int handlerIndex = body.IndexOf("SelectAtCursor(modifiers);", classicIndex, StringComparison.Ordinal);
+        int methodIndex = body.IndexOf("private void SelectAtCursor(KeyModifiers modifiers)", StringComparison.Ordinal);
+
+        Assert.True(selectIndex >= 0);
+        Assert.True(classicIndex > selectIndex);
+        Assert.True(handlerIndex > classicIndex);
+        Assert.True(methodIndex >= 0);
+        Assert.Contains("SelectPointElementAt(_cursorWorld, additive)", body, StringComparison.Ordinal);
+        Assert.Contains("Pick(_cursorWorld, additive)", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Map2DEditPropertiesActionRequestsPropertyEditing()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));

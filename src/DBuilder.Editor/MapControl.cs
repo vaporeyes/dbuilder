@@ -6152,6 +6152,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.duplicate3dfloorgeometry":
                 DuplicateThreeDFloorGeometry();
                 return true;
+            case "map2d.select":
+            case "map2d.classicselect":
+                SelectAtCursor(modifiers);
+                return true;
             case "map2d.mode-vertices":
             case "map2d.verticesmode":
                 SetEditMode(EditMode.Vertices);
@@ -9029,6 +9033,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
         MarkGeometryDirty();
         Changed?.Invoke();
+    }
+
+    private void SelectAtCursor(KeyModifiers modifiers)
+    {
+        bool additive = modifiers.HasFlag(KeyModifiers.Shift);
+        if (!SelectPointElementAt(_cursorWorld, additive))
+            Pick(_cursorWorld, additive);
     }
 
     private Thing? NearestVisibleThing(Vec2D pos, double maxRange)
