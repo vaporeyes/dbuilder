@@ -1643,7 +1643,7 @@ public partial class MainWindow : Window
             case "window.gradient-ceiling-heights": OnGradientCeilingHeights(this, new RoutedEventArgs()); return true;
             case "window.gradientceilings": OnGradientCeilingHeights(this, new RoutedEventArgs()); return true;
             case "window.gradient-sector-brightness": OnGradientBrightness(this, new RoutedEventArgs()); return true;
-            case "window.gradientbrightness": OnGradientBrightness(this, new RoutedEventArgs()); return true;
+            case "window.gradientbrightness": OnGradientBrightnessUdbAlias(this, new RoutedEventArgs()); return true;
             case "window.gradient-floor-light": OnGradientFloorLight(this, new RoutedEventArgs()); return true;
             case "window.gradient-ceiling-light": OnGradientCeilingLight(this, new RoutedEventArgs()); return true;
             case "window.gradient-light-color": OnGradientLightColor(this, new RoutedEventArgs()); return true;
@@ -2712,6 +2712,18 @@ public partial class MainWindow : Window
     private void OnGradientFloorHeights(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.FloorHeight);
     private void OnGradientCeilingHeights(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.CeilingHeight);
     private void OnGradientBrightness(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.Brightness);
+
+    private void OnGradientBrightnessUdbAlias(object? sender, RoutedEventArgs e)
+    {
+        if (MapView.CurrentEditMode == MapControl.EditMode.Linedefs)
+        {
+            OnGradientLinedefBrightness(sender, e);
+            return;
+        }
+
+        OnGradientBrightness(sender, e);
+    }
+
     private void OnGradientFloorLight(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.FloorLight);
     private void OnGradientCeilingLight(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.CeilingLight);
     private void OnGradientLightColor(object? sender, RoutedEventArgs e) => ApplySectorGradient(SectorGradientTarget.LightColor);

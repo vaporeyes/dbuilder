@@ -69,7 +69,7 @@ public sealed class MainWindowCommandTests
     [InlineData("window.gradient-ceiling-heights", "OnGradientCeilingHeights")]
     [InlineData("window.gradientceilings", "OnGradientCeilingHeights")]
     [InlineData("window.gradient-sector-brightness", "OnGradientBrightness")]
-    [InlineData("window.gradientbrightness", "OnGradientBrightness")]
+    [InlineData("window.gradientbrightness", "OnGradientBrightnessUdbAlias")]
     [InlineData("window.gradient-floor-light", "OnGradientFloorLight")]
     [InlineData("window.gradient-ceiling-light", "OnGradientCeilingLight")]
     [InlineData("window.gradient-light-color", "OnGradientLightColor")]
@@ -119,6 +119,22 @@ public sealed class MainWindowCommandTests
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
         Assert.Contains($"case \"{commandId}\"", body, StringComparison.Ordinal);
         Assert.Contains($"{handlerName}(this, new RoutedEventArgs())", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void UdbGradientBrightnessAliasDispatchesByCurrentEditMode()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        int methodIndex = body.IndexOf("private void OnGradientBrightnessUdbAlias", StringComparison.Ordinal);
+        int linedefsCheck = body.IndexOf("MapView.CurrentEditMode == MapControl.EditMode.Linedefs", methodIndex, StringComparison.Ordinal);
+        int linedefHandler = body.IndexOf("OnGradientLinedefBrightness(sender, e);", methodIndex, StringComparison.Ordinal);
+        int sectorHandler = body.IndexOf("OnGradientBrightness(sender, e);", methodIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(linedefsCheck > methodIndex);
+        Assert.True(linedefHandler > linedefsCheck);
+        Assert.True(sectorHandler > linedefHandler);
     }
 
     [Fact]
