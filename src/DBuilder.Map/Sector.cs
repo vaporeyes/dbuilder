@@ -32,7 +32,7 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
     public int CeilHeight { get; set; }
     public string FloorTexture { get; set; } = "-";
     public string CeilTexture { get; set; } = "-";
-    public int Brightness { get; set; } = 160;
+    public int Brightness { get; set; } = 192;
     public int Special { get; set; }
 
     /// <summary>All tags (UDMF id + moreids). Authoritative; <see cref="Tag"/> is a convenience over the first entry.</summary>

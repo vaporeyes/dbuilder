@@ -51,6 +51,7 @@ public class MapEditingTests
         Assert.Same(sd, l.Front);
         Assert.Same(s, sd.Sector);
         Assert.Equal(0, s.Index);
+        Assert.Equal(192, s.Brightness);
     }
 
     [Fact]

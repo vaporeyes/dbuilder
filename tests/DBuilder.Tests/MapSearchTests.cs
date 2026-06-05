@@ -723,6 +723,7 @@ public class MapSearchTests
         map.Sectors[0].FloorHeight = -16;
         map.Sectors[1].FloorHeight = -16;
         map.Sectors[0].CeilHeight = 128;
+        map.Sectors[0].Brightness = 160;
         map.Sectors[1].Brightness = 192;
 
         Assert.Equal(2, MapSearch.Find(map, FindCategory.SectorFloorHeight, "-16").Count);
