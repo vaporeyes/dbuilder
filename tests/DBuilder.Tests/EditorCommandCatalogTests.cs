@@ -1992,10 +1992,10 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map2d.automapmode", "Automap mode", EditorCommandScope.Map2D, true, null)]
-    [InlineData("map2d.imageexamplemode", "Image Example", EditorCommandScope.Map2D, true, null)]
-    [InlineData("map2d.wadauthormode", "WadAuthor Mode", EditorCommandScope.Map2D, true, null)]
-    [InlineData("map2d.visplaneexplorermode", "Visplane Explorer Mode", EditorCommandScope.Map2D, false, null)]
+    [InlineData("map2d.automapmode", "Automap mode", EditorCommandScope.Map2D, true, "Displays the map as shown in Doom's automap")]
+    [InlineData("map2d.imageexamplemode", "Image Example", EditorCommandScope.Map2D, true, "Switches to the image example mode.")]
+    [InlineData("map2d.wadauthormode", "WadAuthor Mode", EditorCommandScope.Map2D, true, "Switches to WadAuthor editing mode.")]
+    [InlineData("map2d.visplaneexplorermode", "Visplane Explorer Mode", EditorCommandScope.Map2D, false, "Switches to the Visplane Explorer viewing mode.")]
     [InlineData("map2d.stairsectorbuildermode", "Stair Sector Builder Mode", EditorCommandScope.Map2D, true, "Switches to the stair sector builder mode.")]
     [InlineData("map2d.selectsectorsoutline", "Select Sectors Outline", EditorCommandScope.Map2D, true, "Selects the outline of all marked sectors, deselecting lines that are shared.")]
     [InlineData("window.rangetagselection", "Tag Range", EditorCommandScope.Window, true, "Allows giving a range of tags to a selection of sectors, linedefs or things.")]
