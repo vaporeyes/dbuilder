@@ -575,6 +575,8 @@ public sealed class MapControlCommandTests
     [InlineData("map2d.decreasesubdivlevel", "AdjustDrawSubdivision(increase: false)")]
     [InlineData("map2d.increasebevel", "AdjustDrawBevel(increase: true)")]
     [InlineData("map2d.decreasebevel", "AdjustDrawBevel(increase: false)")]
+    [InlineData("map2d.zoomin", "ZoomBy(0.8)")]
+    [InlineData("map2d.zoomout", "ZoomBy(1.25)")]
     [InlineData("map2d.drawlinesmode", "ToggleDrawMode(linesOnly: true)")]
     [InlineData("map2d.drawrectanglemode", "SetShapeMode(ShapeKind.Rectangle)")]
     [InlineData("map2d.drawellipsemode", "SetShapeMode(ShapeKind.Ellipse)")]

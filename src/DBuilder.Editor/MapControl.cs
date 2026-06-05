@@ -6169,9 +6169,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 MarkGeometryDirty();
                 return true;
             case "map2d.zoom-in":
+            case "map2d.zoomin":
                 ZoomBy(0.8);
                 return true;
             case "map2d.zoom-out":
+            case "map2d.zoomout":
                 ZoomBy(1.25);
                 return true;
             case "map3d.toggle-gravity":

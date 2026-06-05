@@ -1089,6 +1089,23 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
+    [InlineData("map2d.zoomin", "Zoom in", "+")]
+    [InlineData("map2d.zoomout", "Zoom out", "-")]
+    public void ZoomCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(defaultGesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.True(command.Repeat);
+    }
+
+    [Theory]
     [InlineData("map2d.align-grid-to-linedef", "Align Grid to Selected Linedef")]
     [InlineData("map2d.aligngridtolinedef", "Align Grid to Selected Linedef")]
     [InlineData("map2d.set-grid-origin-to-vertex", "Set Grid Origin to Selected Vertex")]
@@ -3078,6 +3095,8 @@ public class EditorCommandCatalogTests
     public void RepeatableCommandMetadataMatchesAdjustmentActions()
     {
         Assert.True(EditorCommandCatalog.IsRepeatable("map2d.zoom-in"));
+        Assert.True(EditorCommandCatalog.IsRepeatable("map2d.zoomin"));
+        Assert.True(EditorCommandCatalog.IsRepeatable("map2d.zoomout"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map2d.grid-up"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map2d.lower-floor-8"));
         Assert.True(EditorCommandCatalog.IsRepeatable("map2d.raise-brightness-8"));
