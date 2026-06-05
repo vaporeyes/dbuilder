@@ -28,7 +28,7 @@ public sealed class ThingIconRenderPolicyTests
     public void UsesCompactMarkersAtOverviewZoomWithoutFixedThingScale()
     {
         Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
-            viewScale: 1.0,
+            viewScale: 0.3,
             fixedThingsScale: false,
             thingArrows: false));
     }
