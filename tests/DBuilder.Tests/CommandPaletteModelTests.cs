@@ -41,12 +41,12 @@ public sealed class CommandPaletteModelTests
             UsableCommands,
             "open");
 
-        var usable = Assert.Single(groups, group => group.Title == "Usable");
+        var usable = Assert.Single(groups, group => group.Title == "Usable actions");
         Assert.Contains(usable.Rows, row => row.Command.Id == "window.open-map");
         Assert.Contains(usable.Rows, row => row.Command.Id == "window.open-command-palette");
         Assert.All(usable.Rows, row => Assert.True(row.IsUsable));
 
-        var unavailable = Assert.Single(groups, group => group.Title == "Unavailable");
+        var unavailable = Assert.Single(groups, group => group.Title == "Not usable in this context");
         Assert.Contains(unavailable.Rows, row => row.Command.Id == "window.opencommandpalette");
         Assert.All(unavailable.Rows, row => Assert.False(row.IsUsable));
         Assert.Equal(unavailable.Rows.OrderBy(row => row.Command.Title, StringComparer.Ordinal), unavailable.Rows);

@@ -53,8 +53,8 @@ public static class CommandPaletteModel
                 groups.Add(new CommandPaletteGroup("Recent", recentRows));
         }
 
-        AddSortedGroup(groups, "Usable", matchingRows.Where(row => row.IsUsable));
-        AddSortedGroup(groups, "Unavailable", matchingRows.Where(row => !row.IsUsable));
+        AddSortedGroup(groups, "Usable actions", matchingRows.Where(row => row.IsUsable));
+        AddSortedGroup(groups, "Not usable in this context", matchingRows.Where(row => !row.IsUsable));
         return groups;
     }
 
