@@ -14,7 +14,7 @@ public static class ThingIconRenderPolicy
     public const double RegularDirectionTickBaseSize = 18.0;
 
     public static bool UseCompactMarkers(double viewScale, bool fixedThingsScale, bool thingArrows)
-        => fixedThingsScale && !thingArrows && viewScale >= CompactMarkerScaleThreshold;
+        => !thingArrows && viewScale >= CompactMarkerScaleThreshold;
 
     public static double MarkerBaseSize(bool compactMarkers)
         => compactMarkers ? CompactMarkerBaseSize : RegularMarkerBaseSize;
