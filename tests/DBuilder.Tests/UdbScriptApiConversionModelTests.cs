@@ -1694,6 +1694,52 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapWrapperExposesSelectionGroupOperations()
+    {
+        var map = new MapSet();
+        var selectedVertex = map.AddVertex(new Vector2D(0, 0));
+        var unselectedVertex = map.AddVertex(new Vector2D(64, 0));
+        var selectedLine = map.AddLinedef(selectedVertex, unselectedVertex);
+        var unselectedLine = map.AddLinedef(map.AddVertex(new Vector2D(128, 0)), map.AddVertex(new Vector2D(192, 0)));
+        var selectedSector = map.AddSector();
+        var unselectedSector = map.AddSector();
+        var selectedThing = map.AddThing(new Vector2D(16, 16), 3001);
+        var unselectedThing = map.AddThing(new Vector2D(32, 32), 3002);
+        selectedVertex.Selected = true;
+        selectedLine.Selected = true;
+        selectedSector.Selected = true;
+        selectedThing.Selected = true;
+        var wrapper = new UdbScriptMapWrapper(map);
+
+        wrapper.addSelectionToGroup(2);
+        wrapper.clearAllSelected();
+        wrapper.selectVerticesByGroup(2);
+        wrapper.selectLinedefsByGroup(2);
+        wrapper.selectSectorsByGroup(2);
+        wrapper.selectThingsByGroup(2);
+
+        Assert.Same(selectedVertex, Assert.Single(wrapper.getSelectedVertices()).Vertex);
+        Assert.Same(selectedLine, Assert.Single(wrapper.getSelectedLinedefs()).Linedef);
+        Assert.Same(selectedSector, Assert.Single(wrapper.getSelectedSectors()).Sector);
+        Assert.Same(selectedThing, Assert.Single(wrapper.getSelectedThings()).Thing);
+        Assert.False(unselectedVertex.Selected);
+        Assert.False(unselectedLine.Selected);
+        Assert.False(unselectedSector.Selected);
+        Assert.False(unselectedThing.Selected);
+
+        wrapper.clearGroup(2);
+        wrapper.selectVerticesByGroup(2);
+        wrapper.selectLinedefsByGroup(2);
+        wrapper.selectSectorsByGroup(2);
+        wrapper.selectThingsByGroup(2);
+
+        Assert.Empty(wrapper.getSelectedVertices());
+        Assert.Empty(wrapper.getSelectedLinedefs());
+        Assert.Empty(wrapper.getSelectedSectors());
+        Assert.Empty(wrapper.getSelectedThings());
+    }
+
+    [Fact]
     public void MapWrapperCreatesVerticesAndThings()
     {
         var map = new MapSet();

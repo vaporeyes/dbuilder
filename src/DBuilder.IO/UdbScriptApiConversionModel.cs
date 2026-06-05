@@ -3890,6 +3890,42 @@ public sealed class UdbScriptMapWrapper
         map.InvertSelectedThings();
     }
 
+    public void addSelectionToGroup(int groupIndex)
+    {
+        ThrowIfDisposed("addSelectionToGroup");
+        map.AddSelectionToGroup(groupIndex);
+    }
+
+    public void clearGroup(int groupIndex)
+    {
+        ThrowIfDisposed("clearGroup");
+        map.ClearGroup(MapSet.GroupMask(groupIndex));
+    }
+
+    public void selectVerticesByGroup(int groupIndex)
+    {
+        ThrowIfDisposed("selectVerticesByGroup");
+        map.SelectVerticesByGroup(MapSet.GroupMask(groupIndex));
+    }
+
+    public void selectLinedefsByGroup(int groupIndex)
+    {
+        ThrowIfDisposed("selectLinedefsByGroup");
+        map.SelectLinedefsByGroup(MapSet.GroupMask(groupIndex));
+    }
+
+    public void selectSectorsByGroup(int groupIndex)
+    {
+        ThrowIfDisposed("selectSectorsByGroup");
+        map.SelectSectorsByGroup(MapSet.GroupMask(groupIndex));
+    }
+
+    public void selectThingsByGroup(int groupIndex)
+    {
+        ThrowIfDisposed("selectThingsByGroup");
+        map.SelectThingsByGroup(MapSet.GroupMask(groupIndex));
+    }
+
     public UdbScriptVertexWrapper createVertex(object pos)
     {
         ThrowIfDisposed("createVertex");

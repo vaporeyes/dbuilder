@@ -1890,6 +1890,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript Map wrapper selected-sidedef query and marking access.
   - [x] Add UDBScript Map wrapper selected-or-highlighted sidedef access.
   - [x] Add UDBScript Map wrapper select-all and invert-selected access.
+  - [x] Add UDBScript Map wrapper selection group access.
   - [x] Add UDBScript Map wrapper grid snapping access.
   - [x] Add UDBScript Map wrapper vertex and thing creation access.
   - [x] Add UDBScript Map wrapper draw-lines access.
@@ -2340,6 +2341,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript Map wrapper selected-sidedef query and marking access.
 - [x] Add UDBScript Map wrapper selected-or-highlighted sidedef access.
 - [x] Add UDBScript Map wrapper select-all and invert-selected access.
+- [x] Add UDBScript Map wrapper selection group access.
 - [x] Add UDBScript Map wrapper grid snapping access.
 - [x] Add UDBScript Map wrapper vertex and thing creation access.
 - [x] Add UDBScript Map wrapper draw-lines access.
