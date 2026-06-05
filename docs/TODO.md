@@ -2082,6 +2082,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style UDMF sector surface light and light/fade color gradient model and editor commands.
   - [x] Add UDB-style UDMF selected-linedef brightness gradient model and editor command.
   - [x] Add UDB-style gradient interpolation mode selection for sector and linedef gradient commands.
+  - [x] Normalize invalid gradient interpolation modes before sector and linedef gradient application.
 - [ ] Port edit selection panel behavior.
   - [x] Add UDB-style persisted edit-selection precise-position and height-adjust setting keys and defaults.
   - [x] Add UDB-style 15-degree edit-selection rotation snapping.

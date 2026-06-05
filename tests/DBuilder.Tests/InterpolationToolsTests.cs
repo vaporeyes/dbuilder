@@ -1,4 +1,5 @@
 // ABOUTME: InterpolationTools port verification tests.
+// ABOUTME: Covers easing endpoints, color interpolation, and persisted mode normalization.
 
 using DBuilder.Geometry;
 
@@ -25,6 +26,12 @@ public class InterpolationToolsTests
     {
         Assert.Equal(0.0, InterpolationTools.Interpolate(0.0, 10.0, 0, mode), 1e-6);
         Assert.Equal(10.0, InterpolationTools.Interpolate(0.0, 10.0, 1, mode), 1e-6);
+    }
+
+    [Fact]
+    public void NormalizeModeFallsBackToLinearForUnknownModes()
+    {
+        Assert.Equal(InterpolationTools.Mode.LINEAR, InterpolationTools.NormalizeMode((InterpolationTools.Mode)999));
     }
 
     [Fact]

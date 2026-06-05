@@ -78,6 +78,21 @@ public class SectorGradientTests
     }
 
     [Fact]
+    public void ApplyGradientNormalizesUnknownInterpolationModes()
+    {
+        var sectors = new[]
+        {
+            new Sector { Brightness = 0 },
+            new Sector { Brightness = 0 },
+            new Sector { Brightness = 100 }
+        };
+
+        SectorGradient.Apply(sectors, SectorGradientTarget.Brightness, (InterpolationTools.Mode)999);
+
+        Assert.Equal([0, 50, 100], sectors.Select(sector => sector.Brightness).ToArray());
+    }
+
+    [Fact]
     public void ApplyFloorLightGradientUsesAbsoluteAndRelativeBrightnessLikeUdb()
     {
         var sectors = new[]

@@ -31,6 +31,8 @@ public static class SectorGradient
         if (sectors.Count < MinimumSectorCount)
             return new SectorGradientResult(false, sectors.Count, "Select at least 3 sectors first!");
 
+        interpolationMode = InterpolationTools.NormalizeMode(interpolationMode);
+
         if (target == SectorGradientTarget.LightColor)
             return ApplyColorGradient(sectors, interpolationMode, "lightcolor", 0xFFFFFF, SuccessMessage(target));
         if (target == SectorGradientTarget.FadeColor)

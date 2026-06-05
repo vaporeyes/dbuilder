@@ -26,6 +26,8 @@ public static class LinedefGradient
         if (double.IsNaN(endBrightness))
             return new LinedefGradientResult(false, linedefs.Count, "End linedef doesn't have visible parts!");
 
+        interpolationMode = InterpolationTools.NormalizeMode(interpolationMode);
+
         for (int i = 0; i < linedefs.Count; i++)
         {
             double u = i / (double)(linedefs.Count - 1);

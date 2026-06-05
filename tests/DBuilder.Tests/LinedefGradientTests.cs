@@ -75,6 +75,21 @@ public class LinedefGradientTests
     }
 
     [Fact]
+    public void ApplyBrightnessNormalizesUnknownInterpolationModes()
+    {
+        var lines = new[]
+        {
+            OneSidedLine(0, absolute: true, light: 0),
+            OneSidedLine(0, absolute: true),
+            OneSidedLine(0, absolute: true, light: 100)
+        };
+
+        LinedefGradient.ApplyBrightness(lines, (InterpolationTools.Mode)999);
+
+        Assert.Equal([0, 50, 100], lines.Select(line => line.Front!.GetIntegerField("light")).ToArray());
+    }
+
+    [Fact]
     public void ApplyBrightnessAveragesVisibleEndpointSides()
     {
         var first = TwoSidedLine(100, 200);

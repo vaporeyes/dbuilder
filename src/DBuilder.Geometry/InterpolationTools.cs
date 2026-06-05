@@ -20,6 +20,9 @@ public static class InterpolationTools
         EASE_OUT_SINE,
     }
 
+    public static Mode NormalizeMode(Mode mode)
+        => Enum.IsDefined(mode) ? mode : Mode.LINEAR;
+
     public static double Interpolate(double val1, double val2, double delta, Mode mode) => mode switch
     {
         Mode.LINEAR => Linear(val1, val2, delta),
