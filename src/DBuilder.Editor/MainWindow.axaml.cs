@@ -330,12 +330,12 @@ public partial class MainWindow : Window
         SetShortcutToolTip(RotateCcwMenuItem, "Rotate 90 CCW", "window.rotate-selection-ccw");
         SetShortcutToolTip(ScaleUpMenuItem, "Scale Up", "window.scale-selection-up");
         SetShortcutToolTip(ScaleDownMenuItem, "Scale Down", "window.scale-selection-down");
-        SetShortcutToolTip(SelectSingleSidedMenuItem, "Select Single-sided", "map2d.select-single-sided");
-        SetShortcutToolTip(SelectDoubleSidedMenuItem, "Select Double-sided", "map2d.select-double-sided");
-        SetShortcutToolTip(FlipLinedefsMenuItem, "Flip Linedefs", "map2d.flip");
-        SetShortcutToolTip(FlipSidedefsMenuItem, "Flip Sidedefs", "map2d.flip-sidedefs");
-        SetShortcutToolTip(AlignLinedefsMenuItem, "Align Linedefs", "map2d.align-linedefs");
-        SetShortcutToolTip(SplitLinedefsMenuItem, "Split Linedefs", "map2d.split-linedefs");
+        SetShortcutToolTip(SelectSingleSidedMenuItem, "Select Single-sided", "map2d.selectsinglesided");
+        SetShortcutToolTip(SelectDoubleSidedMenuItem, "Select Double-sided", "map2d.selectdoublesided");
+        SetShortcutToolTip(FlipLinedefsMenuItem, "Flip Linedefs", "map2d.fliplinedefs");
+        SetShortcutToolTip(FlipSidedefsMenuItem, "Flip Sidedefs", "map2d.flipsidedefs");
+        SetShortcutToolTip(AlignLinedefsMenuItem, "Align Linedefs", "map2d.alignlinedefs");
+        SetShortcutToolTip(SplitLinedefsMenuItem, "Split Linedefs", "map2d.splitlinedefs");
         SetShortcutToolTip(AlignHorizontalMenuItem, "Align textures X", "map2d.align-textures-x");
         SetShortcutToolTip(AlignVerticalMenuItem, "Align textures Y", "map2d.align-textures-y");
         SetShortcutToolTip(FitSelectedTexturesMenuItem, "Fit Selected Textures", "map2d.fit-selected-textures");

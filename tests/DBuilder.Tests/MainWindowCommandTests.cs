@@ -1505,6 +1505,12 @@ public sealed class MainWindowCommandTests
         Assert.Contains("SetShortcutToolTip(LowerFloor8MenuItem, \"Lower Floor by 8 mp\", \"map2d.lower-floor-8\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(FitSelectedTexturesMenuItem, \"Fit Selected Textures\", \"map2d.fit-selected-textures\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ApplyLightFogFlagMenuItem, \"Apply 'lightfog' Flag\", \"map2d.apply-lightfog-flag\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(SelectSingleSidedMenuItem, \"Select Single-sided\", \"map2d.selectsinglesided\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(SelectDoubleSidedMenuItem, \"Select Double-sided\", \"map2d.selectdoublesided\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(FlipLinedefsMenuItem, \"Flip Linedefs\", \"map2d.fliplinedefs\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(FlipSidedefsMenuItem, \"Flip Sidedefs\", \"map2d.flipsidedefs\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(AlignLinedefsMenuItem, \"Align Linedefs\", \"map2d.alignlinedefs\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(SplitLinedefsMenuItem, \"Split Linedefs\", \"map2d.splitlinedefs\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(InsertPrefabMenuItem, \"Insert Prefab File\", \"window.insert-prefab-file\");", body, StringComparison.Ordinal);
     }
 

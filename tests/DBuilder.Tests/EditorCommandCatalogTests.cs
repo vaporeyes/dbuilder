@@ -2260,12 +2260,23 @@ public class EditorCommandCatalogTests
         Assert.Equal("map2d.mode-vertices", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Num1"));
         Assert.Equal("map2d.select", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.LeftButton));
         Assert.Equal("map2d.split-line", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.RightButton));
+        Assert.Equal("map2d.fliplinedefs", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "F"));
+        Assert.Equal("map2d.flipsidedefs", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "F", shift: true));
         Assert.Equal("map2d.zoom-in", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Add"));
         Assert.Equal("map2d.zoom-in", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollUp));
         Assert.Equal("map2d.zoom-out", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollDown));
         Assert.Equal("map2d.point-thing-to-cursor", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "L", shift: true));
         Assert.Equal("map2d.point-thing-to-cursor", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "L", accelerator: true, shift: true));
         Assert.Equal("map2d.toggle-3d", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Tab"));
+    }
+
+    [Fact]
+    public void UdbFlipAliasesOwnDefaultShortcutResolution()
+    {
+        Assert.Equal("F", EditorCommandCatalog.GestureText("map2d.fliplinedefs", EditorCommandCatalog.DefaultShortcuts));
+        Assert.Equal("Shift+F", EditorCommandCatalog.GestureText("map2d.flipsidedefs", EditorCommandCatalog.DefaultShortcuts));
+        Assert.Equal("map2d.fliplinedefs", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "F"));
+        Assert.Equal("map2d.flipsidedefs", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "F", shift: true));
     }
 
     [Fact]
