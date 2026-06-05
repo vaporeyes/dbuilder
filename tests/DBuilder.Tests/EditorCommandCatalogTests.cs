@@ -1365,21 +1365,24 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map2d.select-single-sided", "Select Single-sided")]
-    [InlineData("map2d.selectsinglesided", "Select Single-sided")]
-    [InlineData("map2d.select-double-sided", "Select Double-sided")]
-    [InlineData("map2d.selectdoublesided", "Select Double-sided")]
-    public void SelectSidednessCommandsMatchUdbActionSurface(string commandId, string title)
+    [InlineData("map2d.select-single-sided", "Select Single-sided", "Menu")]
+    [InlineData("map2d.selectsinglesided", "Select Single-sided", "Shift+Q")]
+    [InlineData("map2d.select-double-sided", "Select Double-sided", "Menu")]
+    [InlineData("map2d.selectdoublesided", "Select Double-sided", "Shift+R")]
+    public void SelectSidednessCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
-        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(defaultGesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
+
+        Assert.Equal("map2d.selectsinglesided", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Q", shift: true));
+        Assert.Equal("map2d.selectdoublesided", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "R", shift: true));
     }
 
     [Theory]
