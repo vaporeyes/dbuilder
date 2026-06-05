@@ -42,7 +42,28 @@ public class EditorCommandCatalogTests
             Assert.False(string.IsNullOrWhiteSpace(command.Title));
             Assert.False(string.IsNullOrWhiteSpace(command.DefaultGesture));
             Assert.True(command.AllowKeys || command.AllowMouse || command.AllowScroll);
+            Assert.False(string.IsNullOrWhiteSpace(command.CategoryTitle));
         });
+    }
+
+    [Theory]
+    [InlineData("window.open-map", "File")]
+    [InlineData("window.undo", "Edit")]
+    [InlineData("window.open-command-palette", "Tools")]
+    [InlineData("window.toggle-info-panel", "View")]
+    [InlineData("window.create-prefab", "Prefabs")]
+    [InlineData("window.select-group-1", "Selecting")]
+    [InlineData("window.udbscripts", "Scripting")]
+    [InlineData("window.model-render-all", "Rendering")]
+    [InlineData("map2d.mode-vertices", "Modes")]
+    [InlineData("map2d.zoom-in", "Classic Modes")]
+    [InlineData("map3d.move-forward", "Visual Modes")]
+    public void CommandMetadataExposesUdbStyleCategoryTitles(string commandId, string categoryTitle)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(categoryTitle, command.CategoryTitle);
     }
 
     [Fact]

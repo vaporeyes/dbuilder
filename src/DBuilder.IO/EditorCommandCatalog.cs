@@ -22,9 +22,11 @@ public sealed record EditorCommandDescriptor(
     bool DisregardAccelerator = false,
     bool DisregardAlt = false,
     bool Repeat = false,
-    string Description = "")
+    string Description = "",
+    string Category = "")
 {
     public string HelpDescription => string.IsNullOrWhiteSpace(Description) ? Title : Description;
+    public string CategoryTitle => EditorCommandCatalog.CategoryTitle(this);
 }
 
 public sealed record EditorShortcutBinding(
@@ -769,6 +771,49 @@ public static class EditorCommandCatalog
     public static EditorCommandDescriptor? Find(string commandId)
         => All.FirstOrDefault(command => string.Equals(command.Id, commandId, StringComparison.Ordinal));
 
+    public static string CategoryTitle(EditorCommandDescriptor command)
+    {
+        if (!string.IsNullOrWhiteSpace(command.Category))
+            return command.Category;
+
+        string id = command.Id;
+        if (id.Contains("udbscript", StringComparison.OrdinalIgnoreCase))
+            return UdbScriptActions.CategoryTitle;
+        if (id.Contains("-group-", StringComparison.Ordinal))
+            return "Selecting";
+        if (id.Contains("prefab", StringComparison.OrdinalIgnoreCase))
+            return "Prefabs";
+        if (id.Contains("model-render", StringComparison.OrdinalIgnoreCase)
+            || id.Contains("dynamic-lights-rendering", StringComparison.OrdinalIgnoreCase)
+            || id.Contains("enhanced-rendering", StringComparison.OrdinalIgnoreCase)
+            || id.Contains("classic-rendering", StringComparison.OrdinalIgnoreCase)
+            || id.Contains("fog-rendering", StringComparison.OrdinalIgnoreCase)
+            || id.Contains("sky-rendering", StringComparison.OrdinalIgnoreCase))
+            return "Rendering";
+        if (command.Scope == EditorCommandScope.Map3D || id.Contains("visual", StringComparison.OrdinalIgnoreCase))
+            return "Visual Modes";
+        if (command.Scope == EditorCommandScope.Map2D && id.Contains("mode-", StringComparison.OrdinalIgnoreCase))
+            return "Modes";
+        if (IsFileCategory(id))
+            return "File";
+        if (IsViewCategory(id))
+            return "View";
+        if (IsToolCategory(id))
+            return "Tools";
+        if (IsEditCategory(id))
+            return "Edit";
+        if (command.Scope == EditorCommandScope.Map2D)
+            return "Classic Modes";
+
+        return command.Scope switch
+        {
+            EditorCommandScope.Window => "Edit",
+            EditorCommandScope.Map2D => "Classic Modes",
+            EditorCommandScope.Map3D => "Visual Modes",
+            _ => command.Scope.ToString(),
+        };
+    }
+
     public static string GestureText(string commandId, IReadOnlyList<EditorShortcutBinding> bindings)
     {
         var gestures = bindings
@@ -797,6 +842,91 @@ public static class EditorCommandCatalog
         string gesture = GestureText(commandId, bindings);
         return gesture == "-" ? label : $"{label} ({gesture})";
     }
+
+    private static bool IsFileCategory(string id)
+        => ContainsAny(id,
+            "new-map",
+            "open-map",
+            "recover-autosave",
+            "reload-map",
+            "close-map",
+            "add-resource",
+            "save",
+            "exit");
+
+    private static bool IsViewCategory(string id)
+        => ContainsAny(id,
+            "status-history",
+            "center-on-coordinates",
+            "go-to-coordinates",
+            "toggle-info-panel",
+            "toggle-3d-floors",
+            "toggle-blockmap",
+            "toggle-nodes",
+            "comments-panel",
+            "always-show-vertices",
+            "fixed-things-scale");
+
+    private static bool IsToolCategory(string id)
+        => ContainsAny(id,
+            "preferences",
+            "game-configurations",
+            "reload-resources",
+            "things-filters",
+            "show-errors",
+            "browse-",
+            "tag-explorer",
+            "view-used-tags",
+            "view-thing-types",
+            "grid-setup",
+            "test-map",
+            "check-map",
+            "clean-up",
+            "blockmap-explorer",
+            "reject-explorer",
+            "nodes-viewer",
+            "sound",
+            "open-command-palette",
+            "opencommandpalette",
+            "import-",
+            "export-",
+            "usdf");
+
+    private static bool IsEditCategory(string id)
+        => ContainsAny(id,
+            "undo",
+            "redo",
+            "map-options",
+            "snap-selection",
+            "cut",
+            "copy",
+            "paste",
+            "duplicate",
+            "delete",
+            "select",
+            "properties",
+            "flags",
+            "custom-fields",
+            "tags",
+            "stitch",
+            "join",
+            "merge",
+            "flip",
+            "rotate",
+            "move",
+            "scale",
+            "align",
+            "build-",
+            "make-door",
+            "tag-range",
+            "gradient",
+            "sector-color",
+            "dynamic-light-color",
+            "auto-clear",
+            "find");
+
+    private static bool ContainsAny(string value, params string[] parts)
+        => parts.Any(part => value.Contains(part, StringComparison.OrdinalIgnoreCase));
 
     public static string GestureText(EditorShortcutBinding binding)
     {

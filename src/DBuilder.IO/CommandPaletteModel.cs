@@ -30,7 +30,7 @@ public static class CommandPaletteModel
             .Where(command => MatchesText(command.Title, searchText))
             .Select(command => new CommandPaletteRow(
                 command,
-                CategoryText(command.Scope),
+                command.CategoryTitle,
                 EditorCommandCatalog.GestureText(command.Id, bindings),
                 usableCommandIds.Contains(command.Id)))
             .ToArray();
@@ -117,12 +117,4 @@ public static class CommandPaletteModel
             " ",
             text.ToLowerInvariant().Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries));
 
-    private static string CategoryText(EditorCommandScope scope)
-        => scope switch
-        {
-            EditorCommandScope.Window => "Window",
-            EditorCommandScope.Map2D => "2D",
-            EditorCommandScope.Map3D => "3D",
-            _ => scope.ToString(),
-        };
 }

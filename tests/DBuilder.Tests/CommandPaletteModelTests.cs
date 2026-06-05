@@ -93,7 +93,7 @@ public sealed class CommandPaletteModelTests
             "toggle classic");
 
         var row = Assert.Single(groups.SelectMany(group => group.Rows), row => row.Command.Id == "map3d.toggle-classic-rendering");
-        Assert.Equal("3D", row.CategoryText);
+        Assert.Equal("Rendering", row.CategoryText);
         Assert.Equal(EditorCommandCatalog.GestureText(row.Command.Id, EditorCommandCatalog.DefaultShortcuts), row.GestureText);
     }
 }

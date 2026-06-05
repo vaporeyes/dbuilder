@@ -66,7 +66,8 @@ public static class UdbScriptActions
             EditorCommandScope.Window,
             AllowKeys: action.AllowKeys,
             AllowMouse: action.AllowMouse,
-            AllowScroll: action.AllowScroll))
+            AllowScroll: action.AllowScroll,
+            Category: CategoryTitle))
         .ToArray();
 
     public static UdbScriptExecutionPlan ExecuteCurrentPlan(UdbScriptInfo? currentScript)
