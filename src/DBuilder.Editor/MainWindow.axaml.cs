@@ -2329,7 +2329,7 @@ public partial class MainWindow : Window
         if (_map is null) { SetStatus("No map loaded."); return; }
         if (CountSelectionInCurrentMode() == 0)
         {
-            SetStatus($"Select one or more {MapView.CurrentEditMode.ToString().ToLowerInvariant()} first.");
+            SetStatus($"Select one or more {MapView.CurrentEditMode.ToString().ToLowerInvariant()} first.", StatusHistoryKind.Warning);
             return;
         }
 
@@ -2347,7 +2347,7 @@ public partial class MainWindow : Window
 
         if (changed == 0)
         {
-            SetStatus($"No similar {MapView.CurrentEditMode.ToString().ToLowerInvariant()} found.");
+            SetStatus($"No similar {MapView.CurrentEditMode.ToString().ToLowerInvariant()} found.", StatusHistoryKind.Warning);
             return;
         }
 
@@ -2360,7 +2360,7 @@ public partial class MainWindow : Window
     private async void OnFilterSelectedThings(object? sender, RoutedEventArgs e)
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
-        if (_map.SelectedThingsCount == 0) { SetStatus("This action requires a selection!"); return; }
+        if (_map.SelectedThingsCount == 0) { SetStatus("This action requires a selection!", StatusHistoryKind.Warning); return; }
 
         IReadOnlyList<int> selectedTypes = ThingSelectionFilter.SelectedTypes(_map);
         var dlg = new FilterSelectedThingsDialog(selectedTypes, _config);
@@ -2382,7 +2382,7 @@ public partial class MainWindow : Window
         if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
         if (!TryGetMapElementIndexTarget(out MapElementIndexTarget target, out string error))
         {
-            SetStatus(error);
+            SetStatus(error, StatusHistoryKind.Warning);
             return;
         }
 
@@ -2391,7 +2391,7 @@ public partial class MainWindow : Window
         {
             if (dlg.NewIndex < 0 || dlg.NewIndex > target.MaxIndex)
             {
-                SetStatus("Index must be between 0 and " + target.MaxIndex + ".");
+                SetStatus("Index must be between 0 and " + target.MaxIndex + ".", StatusHistoryKind.Warning);
                 return;
             }
 
