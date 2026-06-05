@@ -7998,9 +7998,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         IReadOnlyList<Sector> sectors = _map.GetSelectedSectors();
         if (sectors.Count < 2)
         {
-            const string message = "Select 2 or more sectors to join/merge.";
-            Picked?.Invoke(message);
-            return message;
+            return "";
         }
 
         EditBegun?.Invoke(merge ? "Merge sectors" : "Join sectors");

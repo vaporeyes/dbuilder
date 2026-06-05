@@ -771,6 +771,21 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void JoinMergeSectorsTooFewSelectedMatchesUdbSilentNoOp()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("public string JoinOrMergeSelectedSectors(bool merge)", StringComparison.Ordinal);
+        int tooFewIndex = body.IndexOf("if (sectors.Count < 2)", methodIndex, StringComparison.Ordinal);
+        int returnIndex = body.IndexOf("return \"\";", tooFewIndex, StringComparison.Ordinal);
+        int editIndex = body.IndexOf("EditBegun?.Invoke(merge ? \"Merge sectors\" : \"Join sectors\")", tooFewIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(tooFewIndex > methodIndex);
+        Assert.True(returnIndex > tooFewIndex);
+        Assert.True(returnIndex < editIndex);
+    }
+
+    [Fact]
     public void GridRenderingCommandControlsVisibleGridOnly()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
