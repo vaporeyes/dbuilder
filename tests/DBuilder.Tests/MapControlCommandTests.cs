@@ -1011,6 +1011,9 @@ public sealed class MapControlCommandTests
 
     [Theory]
     [InlineData("map3d.lookthroughthing", "LookThroughSelectedThing3D()")]
+    [InlineData("map3d.visual-select", "ToggleSelection3D()")]
+    [InlineData("map3d.select-target", "ToggleSelection3D()")]
+    [InlineData("map3d.visualselect", "ToggleSelection3D()")]
     [InlineData("map3d.visualedit", "OpenTargetDialog3D()")]
     [InlineData("map3d.clearselection", "ClearSelection3D()")]
     [InlineData("map3d.toggleslope", "ToggleSlope3D()")]

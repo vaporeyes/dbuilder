@@ -6549,6 +6549,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map3d.visualautoaligntoselection":
                 AutoAlignSelectedVisualTextures3D(alignX: true, alignY: true);
                 return true;
+            case "map3d.visual-select":
+            case "map3d.select-target":
+            case "map3d.visualselect":
+                ToggleSelection3D();
+                return true;
             case "map3d.visual-edit":
             case "map3d.edit-properties":
             case "map3d.visualedit":
