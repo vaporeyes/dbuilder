@@ -4185,10 +4185,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        _recentCommandPaletteCommands.Remove(commandId);
-        _recentCommandPaletteCommands.Insert(0, commandId);
-        if (_recentCommandPaletteCommands.Count > CommandPaletteModel.MaxRecentCommands)
-            _recentCommandPaletteCommands.RemoveRange(CommandPaletteModel.MaxRecentCommands, _recentCommandPaletteCommands.Count - CommandPaletteModel.MaxRecentCommands);
+        CommandPaletteModel.AddRecentCommand(_recentCommandPaletteCommands, commandId);
     }
 
     // ---- Map loading ----

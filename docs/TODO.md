@@ -164,6 +164,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Open Command Palette action metadata and dispatch.
   - [x] Model UDB-style command palette grouping and search filtering.
   - [x] Wire Open Command Palette to a searchable command window.
+  - [x] Match UDB command palette recent-action overflow trimming.
   - [x] Expose UDB-style action category titles in command metadata.
   - [x] Honor UDB-style modifier-disregard shortcut options during command resolution.
   - [x] Resolve window-level keyboard shortcuts through stable command ids.

@@ -17,6 +17,7 @@ public static class CommandPaletteModel
 {
     public const int MaxItems = 20;
     public const int MaxRecentCommands = 5;
+    private const int UdbRecentOverflowRemoveIndex = 4;
 
     public static IReadOnlyList<CommandPaletteGroup> BuildGroups(
         IReadOnlyList<EditorCommandDescriptor> commands,
@@ -55,6 +56,14 @@ public static class CommandPaletteModel
         AddSortedGroup(groups, "Usable", matchingRows.Where(row => row.IsUsable));
         AddSortedGroup(groups, "Unavailable", matchingRows.Where(row => !row.IsUsable));
         return groups;
+    }
+
+    public static void AddRecentCommand(List<string> recentCommandIds, string commandId)
+    {
+        recentCommandIds.Remove(commandId);
+        recentCommandIds.Insert(0, commandId);
+        if (recentCommandIds.Count > MaxRecentCommands)
+            recentCommandIds.RemoveRange(UdbRecentOverflowRemoveIndex, recentCommandIds.Count - MaxRecentCommands);
     }
 
     public static bool MatchesText(string text, string? search)

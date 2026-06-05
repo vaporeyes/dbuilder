@@ -84,6 +84,43 @@ public sealed class CommandPaletteModelTests
     }
 
     [Fact]
+    public void AddRecentCommandMatchesUdbOverflowTrimming()
+    {
+        var recent = new List<string>
+        {
+            "window.open-map",
+            "window.save",
+            "window.reload-map",
+            "window.close-map",
+            "window.preferences",
+        };
+
+        CommandPaletteModel.AddRecentCommand(recent, "window.open-command-palette");
+
+        Assert.Equal(
+            [
+                "window.open-command-palette",
+                "window.open-map",
+                "window.save",
+                "window.reload-map",
+                "window.preferences",
+            ],
+            recent);
+
+        CommandPaletteModel.AddRecentCommand(recent, "window.save");
+
+        Assert.Equal(
+            [
+                "window.save",
+                "window.open-command-palette",
+                "window.open-map",
+                "window.reload-map",
+                "window.preferences",
+            ],
+            recent);
+    }
+
+    [Fact]
     public void BuildGroupsExposesCategoryAndShortcutText()
     {
         var groups = CommandPaletteModel.BuildGroups(
