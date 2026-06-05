@@ -22,6 +22,8 @@ public sealed record NodesViewerModeDescriptor(
 
 public sealed record NodesViewerTreeStats(int TreeDepth, int TreeBalancePercent);
 
+public sealed record NodesViewerEngageDecision(bool CanEngage, string StatusText);
+
 public static class NodesViewerModel
 {
     public static NodesViewerModeDescriptor ModeDescriptor { get; } = new(
@@ -33,6 +35,36 @@ public static class NodesViewerModel
         UseByDefault: true,
         Volatile: true,
         AllowCopyPaste: false);
+
+    public static NodesViewerEngageDecision EngageDecision(
+        int vertexCount,
+        bool hasNodes,
+        bool hasZNodes,
+        bool hasSegs,
+        bool hasSubsectors,
+        bool hasVertices)
+    {
+        if (vertexCount == 0)
+            return new NodesViewerEngageDecision(false, "Failed to engage Nodes Viewer Mode: the map is empty.");
+
+        if (hasZNodes) return new NodesViewerEngageDecision(true, "Reading map nodes...");
+        if (!hasNodes)
+            return new NodesViewerEngageDecision(false, "Failed to engage Nodes Viewer Mode: unable to find the NODES lump.");
+        if (!hasSubsectors)
+            return new NodesViewerEngageDecision(false, "Failed to engage Nodes Viewer Mode: unable to find the SSECTORS lump.");
+        if (!hasSegs)
+            return new NodesViewerEngageDecision(false, "Failed to engage Nodes Viewer Mode: unable to find the SEGS lump.");
+        if (!hasVertices)
+            return new NodesViewerEngageDecision(false, "Failed to engage Nodes Viewer Mode: unable to find the VERTEXES lump.");
+
+        return new NodesViewerEngageDecision(true, "Reading map nodes...");
+    }
+
+    public static string NodeRebuildFailureStatusText()
+        => "Failed to engage Nodes Viewer Mode: failed to rebuild the nodes.";
+
+    public static string ReadFailureStatusText()
+        => "Failed to engage Nodes Viewer Mode: failed to read map nodes.";
 
     public static string StatusText(ClassicNodesStructure structure)
         => structure.IsValid ? "Classic nodes: OK" : $"Classic nodes: {structure.Status}";

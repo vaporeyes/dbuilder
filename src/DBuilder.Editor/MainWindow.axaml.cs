@@ -3734,9 +3734,38 @@ public partial class MainWindow : Window
     private void OnNodesViewer(object? sender, RoutedEventArgs e)
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
-        if (_wadPath is null || _mapMarker is null) { SetStatus("Nodes Viewer needs the source WAD."); return; }
+        if (_mapMarker is null) { SetStatus("Nodes Viewer needs a map marker."); return; }
 
-        ClassicNodesStructure structure = ReadClassicNodesStructure(out ZNodesPayload? zNodesPayload);
+        NodesViewerLumps lumps = ReadCurrentNodesViewerLumps();
+        bool rebuiltNodes = _mapDirty || !lumps.HasAnyNodes;
+        if (rebuiltNodes)
+            lumps = RebuildCurrentMapNodesForViewer();
+        if (rebuiltNodes && !lumps.HasCompleteNodeSet)
+        {
+            SetStatus(NodesViewerModel.NodeRebuildFailureStatusText());
+            return;
+        }
+
+        NodesViewerEngageDecision decision = NodesViewerModel.EngageDecision(
+            _map.Vertices.Count,
+            lumps.Nodes != null,
+            lumps.ZNodes != null,
+            lumps.Segs != null,
+            lumps.Subsectors != null,
+            lumps.Vertices != null);
+        if (!decision.CanEngage)
+        {
+            SetStatus(decision.StatusText);
+            return;
+        }
+
+        ClassicNodesStructure structure = ReadClassicNodesStructure(lumps, out ZNodesPayload? zNodesPayload);
+        if (!structure.IsValid && zNodesPayload?.IsValid != true)
+        {
+            SetStatus(NodesViewerModel.ReadFailureStatusText());
+            return;
+        }
+
         var win = new NodesViewerWindow(structure, zNodesPayload);
         win.Show(this);
         SetStatus(NodesViewerModel.ViewerStatusText(structure, zNodesPayload));
@@ -3781,31 +3810,61 @@ public partial class MainWindow : Window
         => ReadClassicNodesStructure(out _);
 
     private ClassicNodesStructure ReadClassicNodesStructure(out ZNodesPayload? zNodesPayload)
+        => ReadClassicNodesStructure(ReadCurrentNodesViewerLumps(), out zNodesPayload);
+
+    private ClassicNodesStructure ReadClassicNodesStructure(NodesViewerLumps lumps, out ZNodesPayload? zNodesPayload)
     {
         zNodesPayload = null;
-        if (_wadPath is null || _mapMarker is null)
-            return ClassicNodesStructure.Failure(ClassicNodesStatus.MissingOrTooShortNodes);
-
-        byte[]? nodes;
-        byte[]? segs;
-        byte[]? vertices;
-        byte[]? subsectors;
-        using (var wad = new WAD(_wadPath, openreadonly: true))
-        {
-            nodes = WadMaps.ReadMapLump(wad, _mapMarker, "NODES");
-            segs = WadMaps.ReadMapLump(wad, _mapMarker, "SEGS");
-            vertices = WadMaps.ReadMapLump(wad, _mapMarker, "VERTEXES");
-            subsectors = WadMaps.ReadMapLump(wad, _mapMarker, "SSECTORS");
-        }
-
-        if (nodes != null && NodesReader.HasSupportedZNodesHeader(nodes))
-            zNodesPayload = NodesReader.ExtractZNodesPayload(nodes);
+        if (lumps.ZNodes != null)
+            zNodesPayload = NodesReader.ExtractZNodesPayload(lumps.ZNodes);
+        else if (lumps.Nodes != null && NodesReader.HasSupportedZNodesHeader(lumps.Nodes))
+            zNodesPayload = NodesReader.ExtractZNodesPayload(lumps.Nodes);
 
         return NodesReader.ParseClassicStructures(
-            nodes ?? Array.Empty<byte>(),
-            segs ?? Array.Empty<byte>(),
-            vertices ?? Array.Empty<byte>(),
-            subsectors ?? Array.Empty<byte>());
+            lumps.Nodes ?? Array.Empty<byte>(),
+            lumps.Segs ?? Array.Empty<byte>(),
+            lumps.Vertices ?? Array.Empty<byte>(),
+            lumps.Subsectors ?? Array.Empty<byte>());
+    }
+
+    private NodesViewerLumps ReadCurrentNodesViewerLumps()
+        => new(
+            ReadCurrentMapLump("NODES"),
+            ReadCurrentMapLump("ZNODES"),
+            ReadCurrentMapLump("SEGS"),
+            ReadCurrentMapLump("SSECTORS"),
+            ReadCurrentMapLump("VERTEXES"));
+
+    private NodesViewerLumps RebuildCurrentMapNodesForViewer()
+    {
+        if (_map is null || _mapMarker is null) return NodesViewerLumps.Empty;
+
+        byte[] wadBytes = CurrentMapOnlyWadBytes();
+        BuildNodesIfConfigured(ref wadBytes, forTesting: false);
+        using var stream = new System.IO.MemoryStream(wadBytes);
+        stream.Position = 0;
+        using var wad = new WAD(stream, openreadonly: true);
+        var lumps = new NodesViewerLumps(
+            WadMaps.ReadMapLump(wad, _mapMarker, "NODES", _config),
+            WadMaps.ReadMapLump(wad, _mapMarker, "ZNODES", _config),
+            WadMaps.ReadMapLump(wad, _mapMarker, "SEGS", _config),
+            WadMaps.ReadMapLump(wad, _mapMarker, "SSECTORS", _config),
+            WadMaps.ReadMapLump(wad, _mapMarker, "VERTEXES", _config));
+        if (!lumps.HasCompleteNodeSet)
+            SetStatus(NodesViewerModel.NodeRebuildFailureStatusText());
+        return lumps;
+    }
+
+    private readonly record struct NodesViewerLumps(
+        byte[]? Nodes,
+        byte[]? ZNodes,
+        byte[]? Segs,
+        byte[]? Subsectors,
+        byte[]? Vertices)
+    {
+        public static NodesViewerLumps Empty { get; } = new(null, null, null, null, null);
+        public bool HasAnyNodes => Nodes != null || ZNodes != null || Segs != null || Subsectors != null || Vertices != null;
+        public bool HasCompleteNodeSet => ZNodes != null || (Nodes != null && Segs != null && Subsectors != null && Vertices != null);
     }
 
     private void OnUsdfConversations(object? sender, RoutedEventArgs e)

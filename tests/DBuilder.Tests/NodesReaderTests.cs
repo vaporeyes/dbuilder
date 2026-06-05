@@ -309,6 +309,59 @@ public class NodesReaderTests
     }
 
     [Fact]
+    public void NodesViewerEngageDecisionCancelsEmptyMapAndMissingClassicLumps()
+    {
+        NodesViewerEngageDecision empty = NodesViewerModel.EngageDecision(
+            vertexCount: 0,
+            hasNodes: true,
+            hasZNodes: false,
+            hasSegs: true,
+            hasSubsectors: true,
+            hasVertices: true);
+        Assert.False(empty.CanEngage);
+        Assert.Equal("Failed to engage Nodes Viewer Mode: the map is empty.", empty.StatusText);
+
+        NodesViewerEngageDecision missingNodes = NodesViewerModel.EngageDecision(1, false, false, true, true, true);
+        Assert.False(missingNodes.CanEngage);
+        Assert.Equal("Failed to engage Nodes Viewer Mode: unable to find the NODES lump.", missingNodes.StatusText);
+
+        NodesViewerEngageDecision missingSubsectors = NodesViewerModel.EngageDecision(1, true, false, true, false, true);
+        Assert.False(missingSubsectors.CanEngage);
+        Assert.Equal("Failed to engage Nodes Viewer Mode: unable to find the SSECTORS lump.", missingSubsectors.StatusText);
+
+        NodesViewerEngageDecision missingSegs = NodesViewerModel.EngageDecision(1, true, false, false, true, true);
+        Assert.False(missingSegs.CanEngage);
+        Assert.Equal("Failed to engage Nodes Viewer Mode: unable to find the SEGS lump.", missingSegs.StatusText);
+
+        NodesViewerEngageDecision missingVertices = NodesViewerModel.EngageDecision(1, true, false, true, true, false);
+        Assert.False(missingVertices.CanEngage);
+        Assert.Equal("Failed to engage Nodes Viewer Mode: unable to find the VERTEXES lump.", missingVertices.StatusText);
+    }
+
+    [Fact]
+    public void NodesViewerEngageDecisionAllowsZNodesOrCompleteClassicNodes()
+    {
+        NodesViewerEngageDecision znodes = NodesViewerModel.EngageDecision(1, false, true, false, false, false);
+        Assert.True(znodes.CanEngage);
+        Assert.Equal("Reading map nodes...", znodes.StatusText);
+
+        NodesViewerEngageDecision classic = NodesViewerModel.EngageDecision(1, true, false, true, true, true);
+        Assert.True(classic.CanEngage);
+        Assert.Equal("Reading map nodes...", classic.StatusText);
+    }
+
+    [Fact]
+    public void NodesViewerFailureStatusTextsMatchUdbEngageFlow()
+    {
+        Assert.Equal(
+            "Failed to engage Nodes Viewer Mode: failed to rebuild the nodes.",
+            NodesViewerModel.NodeRebuildFailureStatusText());
+        Assert.Equal(
+            "Failed to engage Nodes Viewer Mode: failed to read map nodes.",
+            NodesViewerModel.ReadFailureStatusText());
+    }
+
+    [Fact]
     public void ClassicStructuresRejectUnsupportedCompressedHeaders()
     {
         byte[] nodes = Encoding.ASCII.GetBytes("ZNOD");

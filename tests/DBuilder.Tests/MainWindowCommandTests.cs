@@ -194,6 +194,33 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void NodesViewerCommandUsesUdbEngageChecks()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        int methodIndex = body.IndexOf("private void OnNodesViewer", StringComparison.Ordinal);
+        int readIndex = body.IndexOf("NodesViewerLumps lumps = ReadCurrentNodesViewerLumps();", methodIndex, StringComparison.Ordinal);
+        int rebuildFlagIndex = body.IndexOf("bool rebuiltNodes = _mapDirty || !lumps.HasAnyNodes;", readIndex, StringComparison.Ordinal);
+        int rebuildIndex = body.IndexOf("lumps = RebuildCurrentMapNodesForViewer();", rebuildFlagIndex, StringComparison.Ordinal);
+        int rebuildFailureIndex = body.IndexOf("if (rebuiltNodes && !lumps.HasCompleteNodeSet)", rebuildIndex, StringComparison.Ordinal);
+        int decisionIndex = body.IndexOf("NodesViewerModel.EngageDecision(", rebuildFailureIndex, StringComparison.Ordinal);
+        int cancelIndex = body.IndexOf("if (!decision.CanEngage)", decisionIndex, StringComparison.Ordinal);
+        int readFailureIndex = body.IndexOf("NodesViewerModel.ReadFailureStatusText()", cancelIndex, StringComparison.Ordinal);
+        int helperIndex = body.IndexOf("private NodesViewerLumps RebuildCurrentMapNodesForViewer()", readFailureIndex, StringComparison.Ordinal);
+        int completeSetIndex = body.IndexOf("public bool HasCompleteNodeSet", helperIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(readIndex > methodIndex);
+        Assert.True(rebuildFlagIndex > readIndex);
+        Assert.True(rebuildIndex > rebuildFlagIndex);
+        Assert.True(rebuildFailureIndex > rebuildIndex);
+        Assert.True(decisionIndex > rebuildFailureIndex);
+        Assert.True(cancelIndex > decisionIndex);
+        Assert.True(readFailureIndex > cancelIndex);
+        Assert.True(helperIndex > readFailureIndex);
+        Assert.True(completeSetIndex > helperIndex);
+    }
+
+    [Fact]
     public void ObjTerrainImportActionExposesUdbSettingsBeforeParsing()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
