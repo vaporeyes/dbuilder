@@ -1744,6 +1744,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("SetShortcutToolTip(ShortcutsMenuItem, \"Shortcuts\", \"window.shortcuts\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(AboutMenuItem, \"About\", \"window.about\");", code, StringComparison.Ordinal);
         Assert.Contains("case \"window.reference-manual\": OnReferenceManual(this, new RoutedEventArgs()); return true;", code, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(ReferenceManualModel.StatusText(ReferenceManualModel.IntroductionTopic));", code, StringComparison.Ordinal);
         Assert.Contains("case \"window.edit-mode-help\": OnEditModeHelp(this, new RoutedEventArgs()); return true;", code, StringComparison.Ordinal);
         Assert.Contains("EditModeHelpMenuItem,", code, StringComparison.Ordinal);
     }

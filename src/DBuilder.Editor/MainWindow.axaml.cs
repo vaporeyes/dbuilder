@@ -4337,7 +4337,7 @@ public partial class MainWindow : Window
 
     private void OnReferenceManual(object? sender, RoutedEventArgs e)
     {
-        SetStatus("Reference Manual: introduction.html");
+        SetStatus(ReferenceManualModel.StatusText(ReferenceManualModel.IntroductionTopic));
         MapView.Focus();
     }
 
