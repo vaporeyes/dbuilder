@@ -327,6 +327,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add raw UDB accept and cancel mode action aliases.
   - [x] Add raw UDB 2D fit-to-screen and directional scroll action aliases.
   - [x] Add raw UDB classic select and edit action aliases.
+  - [x] Add raw UDB visual move-thing-to-cursor action alias.
   - [x] Add UDB-style singular and plural labels to Filter Selected Things status text.
 
 ## Plugin Architecture

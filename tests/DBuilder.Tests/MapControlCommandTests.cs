@@ -985,11 +985,15 @@ public sealed class MapControlCommandTests
     public void PlaceThingAtCursor3DUsesUdbInvalidHitWarning()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int commandIndex = body.IndexOf("case \"map3d.place-thing-at-cursor\":", StringComparison.Ordinal);
+        int aliasIndex = body.IndexOf("case \"map3d.placethingatcursor\":", commandIndex, StringComparison.Ordinal);
         int methodIndex = body.IndexOf("private bool PlaceThingTargetsAtCursor3D()", StringComparison.Ordinal);
         int missingTargetIndex = body.IndexOf("if (_target3D is not { } target)", methodIndex, StringComparison.Ordinal);
         int warningIndex = body.IndexOf("Cannot place Thing here", methodIndex, StringComparison.Ordinal);
         int emptySelectionIndex = body.IndexOf("if (things.Count == 0) return false;", methodIndex, StringComparison.Ordinal);
 
+        Assert.True(commandIndex >= 0);
+        Assert.True(aliasIndex > commandIndex);
         Assert.True(methodIndex >= 0);
         Assert.True(missingTargetIndex > methodIndex);
         Assert.True(warningIndex > missingTargetIndex);

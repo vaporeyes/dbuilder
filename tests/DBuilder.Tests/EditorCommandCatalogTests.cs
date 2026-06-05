@@ -1938,6 +1938,7 @@ public class EditorCommandCatalogTests
             ["map3d.paste-selection"] = ("Paste Selection", false, false),
             ["map3d.pasteselection"] = ("Paste Selection", false, false),
             ["map3d.place-thing-at-cursor"] = ("Move Thing to Cursor Location", false, false),
+            ["map3d.placethingatcursor"] = ("Move Thing to Cursor Location", false, false),
             ["map3d.rotate-thing-clockwise"] = ("Rotate Thing Clockwise", true, true),
             ["map3d.rotate-thing-counterclockwise"] = ("Rotate Thing Counter-clockwise", true, true),
             ["map3d.pitch-thing-clockwise"] = ("Pitch Thing Clockwise", true, true),

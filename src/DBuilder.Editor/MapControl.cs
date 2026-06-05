@@ -6261,6 +6261,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 PasteVisualThingSelection3D();
                 return true;
             case "map3d.place-thing-at-cursor":
+            case "map3d.placethingatcursor":
                 PlaceThingTargetsAtCursor3D();
                 return true;
             case "map3d.rotate-clockwise":

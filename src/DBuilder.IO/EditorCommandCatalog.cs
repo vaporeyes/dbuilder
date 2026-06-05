@@ -540,6 +540,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map3d.paste-selection", "Paste Selection", "Ctrl/Cmd+V", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.pasteselection", "Paste Selection", "Ctrl/Cmd+V", EditorCommandScope.Map3D),
         new EditorCommandDescriptor("map3d.place-thing-at-cursor", "Move Thing to Cursor Location", "Menu", EditorCommandScope.Map3D, AllowScroll: false),
+        new EditorCommandDescriptor("map3d.placethingatcursor", "Move Thing to Cursor Location", "Menu", EditorCommandScope.Map3D, AllowScroll: false),
         new EditorCommandDescriptor("map3d.rotate-clockwise", "Rotate Clockwise", "Ctrl/Cmd+Shift+ScrollUp", EditorCommandScope.Map3D, AllowMouse: false, AllowScroll: true, Repeat: true),
         new EditorCommandDescriptor("map3d.rotate-thing-clockwise", "Rotate Thing Clockwise", "Menu", EditorCommandScope.Map3D, AllowScroll: true, Repeat: true),
         new EditorCommandDescriptor("map3d.rotate-counterclockwise", "Rotate Counterclockwise", "Ctrl/Cmd+Shift+ScrollDown", EditorCommandScope.Map3D, AllowMouse: false, AllowScroll: true, Repeat: true),
