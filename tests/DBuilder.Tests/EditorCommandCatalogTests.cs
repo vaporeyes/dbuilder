@@ -442,6 +442,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Show Errors and Warnings", command.Title);
+        Assert.Equal("Shows the errors and warnings that may have occurred during loading or editing operations.", command.Description);
         Assert.Equal("F11", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
@@ -449,6 +450,7 @@ public class EditorCommandCatalogTests
         Assert.False(command.AllowScroll);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
@@ -729,6 +731,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Toggle Info Panel", command.Title);
+        Assert.Equal("Toggles the info panel between expanded and collapsed.", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
@@ -736,6 +739,7 @@ public class EditorCommandCatalogTests
         Assert.False(command.AllowScroll);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
         Assert.Equal(command.CategoryTitle, udbAlias.CategoryTitle);
     }
@@ -1056,18 +1060,19 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("window.create-prefab", "Create Prefab")]
-    [InlineData("window.createprefab", "Create Prefab")]
-    [InlineData("window.insert-prefab-file", "Insert Prefab File")]
-    [InlineData("window.insertprefabfile", "Insert Prefab File")]
-    [InlineData("window.insert-previous-prefab", "Insert Previous Prefab")]
-    [InlineData("window.insertpreviousprefab", "Insert Previous Prefab")]
-    public void PrefabCommandsMatchUdbActionSurface(string commandId, string title)
+    [InlineData("window.create-prefab", "Create Prefab", "Creates a prefab from the selected geometry and saves it to a prefab file.")]
+    [InlineData("window.createprefab", "Create Prefab", "Creates a prefab from the selected geometry and saves it to a prefab file.")]
+    [InlineData("window.insert-prefab-file", "Insert Prefab File", "Browses for a Prefab file and inserts the prefab geometry into the map.")]
+    [InlineData("window.insertprefabfile", "Insert Prefab File", "Browses for a Prefab file and inserts the prefab geometry into the map.")]
+    [InlineData("window.insert-previous-prefab", "Insert Previous Prefab", "Inserts the previously opened Prefab file again.")]
+    [InlineData("window.insertpreviousprefab", "Insert Previous Prefab", "Inserts the previously opened Prefab file again.")]
+    public void PrefabCommandsMatchUdbActionSurface(string commandId, string title, string description)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
