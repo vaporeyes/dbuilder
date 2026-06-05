@@ -1469,8 +1469,8 @@ public class EditorCommandCatalogTests
     [Theory]
     [InlineData("map2d.align-linedefs", "Align Linedefs", "This aligns the selected linedefs, so their front (or back) point towards (or away from) the same sector.")]
     [InlineData("map2d.alignlinedefs", "Align Linedefs", "This aligns the selected linedefs, so their front (or back) point towards (or away from) the same sector.")]
-    [InlineData("map2d.split-linedefs", "Split Linedefs", "")]
-    [InlineData("map2d.splitlinedefs", "Split Linedefs", "")]
+    [InlineData("map2d.split-linedefs", "Split Linedefs", "Splits the selected linedefs in the middle, or splits the highlighted linedef at the mouse position.")]
+    [InlineData("map2d.splitlinedefs", "Split Linedefs", "Splits the selected linedefs in the middle, or splits the highlighted linedef at the mouse position.")]
     public void LinedefEditCommandsMatchUdbActionSurface(string commandId, string title, string description)
     {
         var command = EditorCommandCatalog.Find(commandId);
@@ -1493,6 +1493,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Apply 'lightfog' flag", command.Title);
+        Assert.Equal("This applies 'lightfog' flag to all sidedefs within current selection (UDMF only).", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -1500,6 +1501,7 @@ public class EditorCommandCatalogTests
         Assert.False(command.AllowScroll);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
