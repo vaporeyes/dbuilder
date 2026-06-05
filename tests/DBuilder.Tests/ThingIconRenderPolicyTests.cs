@@ -121,6 +121,7 @@ public sealed class ThingIconRenderPolicyTests
         Assert.True(
             ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold
             > ThingIconRenderPolicy.OverviewMarkerScaleThreshold);
+        Assert.Equal(2.0, ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold);
         Assert.False(ThingIconRenderPolicy.UseFarOverviewMarkers(
             ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold - 0.01,
             thingArrows: false));

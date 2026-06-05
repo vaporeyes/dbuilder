@@ -11,7 +11,7 @@ public static class ThingIconRenderPolicy
     public const double MinimumThingScreenRadius = 1.5;
     public const double OverlapCullScaleThreshold = CompactMarkerScaleThreshold;
     public const double OverviewMarkerScaleThreshold = CompactMarkerScaleThreshold;
-    public const double FarOverviewMarkerScaleThreshold = 4.0;
+    public const double FarOverviewMarkerScaleThreshold = 2.0;
     public const double FarOverviewMarkerBaseSize = 0.75;
     public const double OverviewMarkerBaseSize = 2.0;
     public const double OverviewCullCellPixels = 144.0;
