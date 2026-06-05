@@ -447,6 +447,7 @@
                 <Button Classes="toolbarButton" ToolTip.Tip="Tag Range" x:Name="TagRangeButton" Click="OnTagRange">
                     <PathIcon Data="M5,6 L9,6 L9,10 L5,10 Z M12,7 L20,7 L20,9 L12,9 Z M5,14 L9,14 L9,18 L5,18 Z M12,15 L20,15 L20,17 L12,17 Z" />
                 </Button>
+                <Button x:Name="LinedefColorPresetsButton" Width="132" Height="28" Padding="8,0" ToolTip.Tip="Linedef Color Presets" Click="OnLinedefColorPresetsButton" />
                 <Button Classes="toolbarButton" ToolTip.Tip="Import OBJ Terrain" x:Name="ImportObjTerrainButton" Click="OnImportObjTerrain">
                     <PathIcon Data="M4,18 L8,10 L12,15 L16,7 L21,18 Z M4,20 L21,20 M7,18 L10,14 M13,18 L16,13" />
                 </Button>

@@ -66,6 +66,33 @@ public static class LinedefColorPresetModel
     public static string SavedStatusText(int count)
         => count == 1 ? "Saved 1 linedef color preset." : $"Saved {count} linedef color presets.";
 
+    public static IReadOnlyList<string> ActivePresetNames(IReadOnlyList<LinedefColorPreset> presets)
+        => presets
+            .Where(preset => preset.Enabled)
+            .Select(preset => preset.Name)
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .ToArray();
+
+    public static string ToolbarButtonText(IReadOnlyList<LinedefColorPreset> presets, int maxCharacters)
+    {
+        var names = ActivePresetNames(presets);
+        if (names.Count == 0) return "No active presets";
+
+        string text = string.Join(", ", names);
+        return text.Length <= maxCharacters ? text : $"{names.Count} {Plural(names.Count, "preset")} active";
+    }
+
+    public static IReadOnlyList<LinedefColorPreset> SetPresetEnabled(
+        IReadOnlyList<LinedefColorPreset> presets,
+        int index,
+        bool enabled)
+        => presets
+            .Select((preset, currentIndex) => currentIndex == index ? preset with { Enabled = enabled } : preset)
+            .ToArray();
+
+    public static string ToggleStatusText(LinedefColorPreset preset)
+        => $"{(preset.Enabled ? "Enabled" : "Disabled")} linedef color preset: {preset.Name}.";
+
     public static bool Matches(Linedef line, LinedefColorPreset preset, bool isUdmf = false)
     {
         ArgumentNullException.ThrowIfNull(line);
@@ -119,4 +146,7 @@ public static class LinedefColorPresetModel
 
     public static int WithAlpha(int argb, byte alpha)
         => unchecked((int)(((uint)alpha << 24) | ((uint)argb & 0x00ffffffu)));
+
+    private static string Plural(int count, string noun)
+        => count == 1 ? noun : $"{noun}s";
 }

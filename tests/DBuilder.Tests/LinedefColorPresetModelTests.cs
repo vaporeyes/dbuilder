@@ -128,4 +128,37 @@ public class LinedefColorPresetModelTests
     [InlineData(2, "Saved 2 linedef color presets.")]
     public void SavedStatusTextUsesSingularAndPlural(int count, string expected)
         => Assert.Equal(expected, LinedefColorPresetModel.SavedStatusText(count));
+
+    [Fact]
+    public void ToolbarButtonTextMatchesActivePresetState()
+    {
+        var presets = new[]
+        {
+            new LinedefColorPreset("Exit", 0, Enabled: true),
+            new LinedefColorPreset("Secret", 0, Enabled: true),
+            new LinedefColorPreset("Door", 0, Enabled: false),
+        };
+
+        Assert.Equal(new[] { "Exit", "Secret" }, LinedefColorPresetModel.ActivePresetNames(presets));
+        Assert.Equal("Exit, Secret", LinedefColorPresetModel.ToolbarButtonText(presets, maxCharacters: 24));
+        Assert.Equal("2 presets active", LinedefColorPresetModel.ToolbarButtonText(presets, maxCharacters: 6));
+        Assert.Equal("No active presets", LinedefColorPresetModel.ToolbarButtonText([presets[0] with { Enabled = false }], maxCharacters: 24));
+    }
+
+    [Fact]
+    public void SetPresetEnabledUpdatesOnlyRequestedPreset()
+    {
+        var presets = new[]
+        {
+            new LinedefColorPreset("Exit", 0, Enabled: true),
+            new LinedefColorPreset("Secret", 0, Enabled: false),
+        };
+
+        var updated = LinedefColorPresetModel.SetPresetEnabled(presets, index: 1, enabled: true);
+
+        Assert.True(updated[0].Enabled);
+        Assert.True(updated[1].Enabled);
+        Assert.False(presets[1].Enabled);
+        Assert.Equal("Enabled linedef color preset: Secret.", LinedefColorPresetModel.ToggleStatusText(updated[1]));
+    }
 }

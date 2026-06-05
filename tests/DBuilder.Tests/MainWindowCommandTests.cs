@@ -881,8 +881,28 @@ public sealed class MainWindowCommandTests
         Assert.Contains("_settings.LinedefColorPresets = dlg.ResultPresets.ToList();", body, StringComparison.Ordinal);
         Assert.Contains("MapView.LinedefColorPresets = _settings.NormalizedLinedefColorPresets;", body, StringComparison.Ordinal);
         Assert.Contains("SaveSettings();", body, StringComparison.Ordinal);
+        Assert.Contains("RebuildLinedefColorPresetMenu();", body, StringComparison.Ordinal);
         Assert.Contains("SetStatus(LinedefColorPresetModel.SavedStatusText(_settings.NormalizedLinedefColorPresets.Count));", body, StringComparison.Ordinal);
         Assert.DoesNotContain("LinedefColorPresetModel.EditorPendingStatusText", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void LinedefColorPresetToolbarTogglesPersistedPresetEnablement()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        string xaml = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml"));
+
+        Assert.Contains("x:Name=\"LinedefColorPresetsButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Click=\"OnLinedefColorPresetsButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("RebuildLinedefColorPresetMenu();", body, StringComparison.Ordinal);
+        Assert.Contains("LinedefColorPresetsButton.Content = LinedefColorPresetModel.ToolbarButtonText(presets, maxCharacters: 18);", body, StringComparison.Ordinal);
+        Assert.Contains("ToggleType = MenuItemToggleType.CheckBox", body, StringComparison.Ordinal);
+        Assert.Contains("item.Click += (_, _) => SetLinedefColorPresetEnabled(index, item.IsChecked == true);", body, StringComparison.Ordinal);
+        Assert.Contains("LinedefColorPresetsButton.ContextMenu?.Open(LinedefColorPresetsButton);", body, StringComparison.Ordinal);
+        Assert.Contains("LinedefColorPresetModel.SetPresetEnabled(presets, index, enabled)", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.LinedefColorPresets = updated.ToList();", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(LinedefColorPresetModel.ToggleStatusText(_settings.NormalizedLinedefColorPresets[index]));", body, StringComparison.Ordinal);
+        Assert.Contains("TagRangeButton, LinedefColorPresetsButton, ImportObjTerrainButton", body, StringComparison.Ordinal);
     }
 
     [Fact]

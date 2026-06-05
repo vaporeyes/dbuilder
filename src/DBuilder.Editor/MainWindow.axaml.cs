@@ -243,6 +243,7 @@ public partial class MainWindow : Window
         TryLoadDefaultConfig();
         RebuildTestMapMenu();
         UpdateAutomapOptionControls();
+        RebuildLinedefColorPresetMenu();
 
         if (openPath != null && System.IO.File.Exists(openPath))
             _ = LoadArchive(openPath, promptForMap: false);
@@ -2458,9 +2459,58 @@ public partial class MainWindow : Window
             _settings.LinedefColorPresets = dlg.ResultPresets.ToList();
             MapView.LinedefColorPresets = _settings.NormalizedLinedefColorPresets;
             SaveSettings();
+            RebuildLinedefColorPresetMenu();
             SetStatus(LinedefColorPresetModel.SavedStatusText(_settings.NormalizedLinedefColorPresets.Count));
         }
 
+        MapView.Focus();
+    }
+
+    private void OnLinedefColorPresetsButton(object? sender, RoutedEventArgs e)
+    {
+        RebuildLinedefColorPresetMenu();
+        LinedefColorPresetsButton.ContextMenu?.Open(LinedefColorPresetsButton);
+    }
+
+    private void RebuildLinedefColorPresetMenu()
+    {
+        IReadOnlyList<LinedefColorPreset> presets = _settings.NormalizedLinedefColorPresets;
+        LinedefColorPresetsButton.Content = LinedefColorPresetModel.ToolbarButtonText(presets, maxCharacters: 18);
+
+        var items = new List<Control>();
+        for (int i = 0; i < presets.Count; i++)
+        {
+            int index = i;
+            LinedefColorPreset preset = presets[i];
+            var item = new MenuItem
+            {
+                Header = preset.Name,
+                ToggleType = MenuItemToggleType.CheckBox,
+                IsChecked = preset.Enabled,
+            };
+            ToolTip.SetTip(item, "Toggle this linedef color preset");
+            item.Click += (_, _) => SetLinedefColorPresetEnabled(index, item.IsChecked == true);
+            items.Add(item);
+        }
+
+        items.Add(new Separator());
+        var setup = new MenuItem { Header = "Configure..." };
+        setup.Click += OnLinedefColorsSetup;
+        items.Add(setup);
+        LinedefColorPresetsButton.ContextMenu = new ContextMenu { ItemsSource = items };
+    }
+
+    private void SetLinedefColorPresetEnabled(int index, bool enabled)
+    {
+        IReadOnlyList<LinedefColorPreset> presets = _settings.NormalizedLinedefColorPresets;
+        if (index < 0 || index >= presets.Count) return;
+
+        IReadOnlyList<LinedefColorPreset> updated = LinedefColorPresetModel.SetPresetEnabled(presets, index, enabled);
+        _settings.LinedefColorPresets = updated.ToList();
+        MapView.LinedefColorPresets = _settings.NormalizedLinedefColorPresets;
+        SaveSettings();
+        RebuildLinedefColorPresetMenu();
+        SetStatus(LinedefColorPresetModel.ToggleStatusText(_settings.NormalizedLinedefColorPresets[index]));
         MapView.Focus();
     }
 
@@ -7421,7 +7471,7 @@ public partial class MainWindow : Window
             FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
             SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,
             DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, DrawGridButton, CheckMapButton,
-            CleanUpGeometryButton, TestMapButton, TestMapFromViewButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplyJitterButton, ApplyDirectionalShadingButton, ApplySlopeArchButton, ApplySlopesButton, SectorColorButton, DynamicLightColorButton, TagRangeButton, ImportObjTerrainButton, WadAuthorModeButton);
+            CleanUpGeometryButton, TestMapButton, TestMapFromViewButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplyJitterButton, ApplyDirectionalShadingButton, ApplySlopeArchButton, ApplySlopesButton, SectorColorButton, DynamicLightColorButton, TagRangeButton, LinedefColorPresetsButton, ImportObjTerrainButton, WadAuthorModeButton);
         SetEnabled(canSave, SaveMenuItem, SaveButton);
         SetEnabled(canInsertPreviousPrefab, InsertPreviousPrefabMenuItem);
         SetEnabled(canPlaceThings, PlaceThingsMenuItem);
