@@ -29,7 +29,7 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
     public int Groups { get; set; }
 
     public int FloorHeight { get; set; }
-    public int CeilHeight { get; set; }
+    public int CeilHeight { get; set; } = 128;
     public string FloorTexture { get; set; } = "-";
     public string CeilTexture { get; set; } = "-";
     public int Brightness { get; set; } = 192;

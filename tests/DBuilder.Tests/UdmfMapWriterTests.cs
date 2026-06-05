@@ -165,7 +165,7 @@ public class UdmfMapWriterTests
     public void SectorCoreFieldsAreAlwaysEmittedLikeUdb()
     {
         var map = new MapSet { Namespace = "Doom" };
-        map.Sectors.Add(new Sector { Index = 0, FloorTexture = "-", CeilTexture = "-", Brightness = 160 });
+        map.Sectors.Add(new Sector { Index = 0, FloorTexture = "-", CeilTexture = "-", CeilHeight = 0, Brightness = 160 });
 
         var text = UdmfMapWriter.Write(map);
         Assert.Contains("heightfloor = 0;", text);
