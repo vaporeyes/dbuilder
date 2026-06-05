@@ -1335,8 +1335,8 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map2d.align-grid-to-linedef", "Align Grid to Selected Linedef", "Rotates and repositions the grid so that the selected linedef is along the X-axis.")]
-    [InlineData("map2d.aligngridtolinedef", "Align Grid to Selected Linedef", "Rotates and repositions the grid so that the selected linedef is along the X-axis.")]
+    [InlineData("map2d.align-grid-to-linedef", "Align Grid to Selected Linedef", "Realigns the grid so that the selected linedef is on a grid line.")]
+    [InlineData("map2d.aligngridtolinedef", "Align Grid to Selected Linedef", "Realigns the grid so that the selected linedef is on a grid line.")]
     [InlineData("map2d.set-grid-origin-to-vertex", "Set Grid Origin to Selected Vertex", "Repositions the grid so that the selected vertex is at the origin.")]
     [InlineData("map2d.setgridorigintovertex", "Set Grid Origin to Selected Vertex", "Repositions the grid so that the selected vertex is at the origin.")]
     [InlineData("map2d.reset-grid-transform", "Reset Grid Transform", "Resets the grid to the default coordinate system.")]
