@@ -259,7 +259,7 @@
                 <MenuItem Header="_Sector Gradients" x:Name="SectorGradientsMenuItem">
                     <MenuItem Header="Make _Floors Gradient" x:Name="GradientFloorHeightsMenuItem" Click="OnGradientFloorHeights" />
                     <MenuItem Header="Make _Ceilings Gradient" x:Name="GradientCeilingHeightsMenuItem" Click="OnGradientCeilingHeights" />
-                    <MenuItem Header="Gradient _Brightness" x:Name="GradientBrightnessMenuItem" Click="OnGradientBrightness" />
+                    <MenuItem Header="Make _Brightness Gradient" x:Name="GradientBrightnessMenuItem" Click="OnGradientBrightness" />
                     <MenuItem Header="Gradient Floor _Light" x:Name="GradientFloorLightMenuItem" Click="OnGradientFloorLight" />
                     <MenuItem Header="Gradient Ceiling L_ight" x:Name="GradientCeilingLightMenuItem" Click="OnGradientCeilingLight" />
                     <MenuItem Header="Gradient Light _Color" x:Name="GradientLightColorMenuItem" Click="OnGradientLightColor" />

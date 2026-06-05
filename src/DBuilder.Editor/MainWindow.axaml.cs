@@ -444,7 +444,7 @@ public partial class MainWindow : Window
         SetShortcutToolTip(BuildStairsMenuItem, "Build Stairs", "window.build-stairs");
         SetShortcutToolTip(GradientFloorHeightsMenuItem, "Make Floors Gradient", "window.gradient-floor-heights");
         SetShortcutToolTip(GradientCeilingHeightsMenuItem, "Make Ceilings Gradient", "window.gradient-ceiling-heights");
-        SetShortcutToolTip(GradientBrightnessMenuItem, "Gradient Brightness", "window.gradient-sector-brightness");
+        SetShortcutToolTip(GradientBrightnessMenuItem, "Make Brightness Gradient", "window.gradient-sector-brightness");
         SetShortcutToolTip(GradientFloorLightMenuItem, "Gradient Floor Light", "window.gradient-floor-light");
         SetShortcutToolTip(GradientCeilingLightMenuItem, "Gradient Ceiling Light", "window.gradient-ceiling-light");
         SetShortcutToolTip(GradientLightColorMenuItem, "Gradient Light Color", "window.gradient-light-color");
