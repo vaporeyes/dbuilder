@@ -2601,24 +2601,25 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map2d.lower-floor-8", "Lower Floor by 8 mp", "Menu")]
-    [InlineData("map2d.lowerfloor8", "Lower Floor by 8 mp", "Ctrl/Cmd+Alt+ScrollDown")]
-    [InlineData("map2d.raise-floor-8", "Raise Floor by 8 mp", "Menu")]
-    [InlineData("map2d.raisefloor8", "Raise Floor by 8 mp", "Ctrl/Cmd+Alt+ScrollUp")]
-    [InlineData("map2d.lower-ceiling-8", "Lower Ceiling by 8 mp", "Menu")]
-    [InlineData("map2d.lowerceiling8", "Lower Ceiling by 8 mp", "Alt+Shift+ScrollDown")]
-    [InlineData("map2d.raise-ceiling-8", "Raise Ceiling by 8 mp", "Menu")]
-    [InlineData("map2d.raiseceiling8", "Raise Ceiling by 8 mp", "Alt+Shift+ScrollUp")]
-    [InlineData("map2d.raise-brightness-8", "Increase Brightness by 8", "Menu")]
-    [InlineData("map2d.raisebrightness8", "Increase Brightness by 8", "Menu")]
-    [InlineData("map2d.lower-brightness-8", "Decrease Brightness by 8", "Menu")]
-    [InlineData("map2d.lowerbrightness8", "Decrease Brightness by 8", "Menu")]
-    public void SectorHeightCommandsMatchUdbActionSurface(string id, string title, string defaultGesture)
+    [InlineData("map2d.lower-floor-8", "Lower Floor by 8 mp", "Menu", "Lowers the highlighted or selected floor heights by 8 mp.")]
+    [InlineData("map2d.lowerfloor8", "Lower Floor by 8 mp", "Ctrl/Cmd+Alt+ScrollDown", "Lowers the highlighted or selected floor heights by 8 mp.")]
+    [InlineData("map2d.raise-floor-8", "Raise Floor by 8 mp", "Menu", "Raises the highlighted or selected floor heights by 8 mp.")]
+    [InlineData("map2d.raisefloor8", "Raise Floor by 8 mp", "Ctrl/Cmd+Alt+ScrollUp", "Raises the highlighted or selected floor heights by 8 mp.")]
+    [InlineData("map2d.lower-ceiling-8", "Lower Ceiling by 8 mp", "Menu", "Lowers the highlighted or selected ceiling heights by 8 mp.")]
+    [InlineData("map2d.lowerceiling8", "Lower Ceiling by 8 mp", "Alt+Shift+ScrollDown", "Lowers the highlighted or selected ceiling heights by 8 mp.")]
+    [InlineData("map2d.raise-ceiling-8", "Raise Ceiling by 8 mp", "Menu", "Raises the highlighted or selected ceiling heights by 8 mp.")]
+    [InlineData("map2d.raiseceiling8", "Raise Ceiling by 8 mp", "Alt+Shift+ScrollUp", "Raises the highlighted or selected ceiling heights by 8 mp.")]
+    [InlineData("map2d.raise-brightness-8", "Increase Brightness by 8", "Menu", "Increases the targeted or selected sector brightness level by 8.")]
+    [InlineData("map2d.raisebrightness8", "Increase Brightness by 8", "Menu", "Increases the targeted or selected sector brightness level by 8.")]
+    [InlineData("map2d.lower-brightness-8", "Decrease Brightness by 8", "Menu", "Decreases the targeted or selected sector brightness level by 8.")]
+    [InlineData("map2d.lowerbrightness8", "Decrease Brightness by 8", "Menu", "Decreases the targeted or selected sector brightness level by 8.")]
+    public void SectorHeightCommandsMatchUdbActionSurface(string id, string title, string defaultGesture, string description)
     {
         var command = EditorCommandCatalog.Find(id);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal(defaultGesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
