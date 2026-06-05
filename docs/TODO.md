@@ -491,6 +491,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Skip invalid, zero-length, and near-zero UDMF linedefs during load.
   - [x] Skip UDMF sidedefs with invalid sector references while preserving original sidedef indices.
   - [x] Normalize UDMF `moreids` tags by skipping zero and duplicate ids.
+  - [x] Parse UDMF `moreids` with UDB's space-only token separator.
   - [x] Materialize UDMF sidedefs from valid linedef references instead of as standalone orphans.
   - [x] Preserve unknown top-level UDMF collections through load, clone, undo, and write.
   - [x] Preserve UDMF custom and map fields larger than signed 32-bit integers.

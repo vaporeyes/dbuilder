@@ -291,6 +291,23 @@ public class MapSetAndUdmfLoaderTests
     }
 
     [Fact]
+    public void MoreIdsUseUdbSpaceOnlyTokenSeparator()
+    {
+        const string udmf = """
+            namespace = "Doom";
+            vertex { x = 0; y = 0; }
+            vertex { x = 64; y = 0; }
+            sector { id = 5; moreids = "6,7 8	9"; }
+            linedef { v1 = 0; v2 = 1; id = 11; moreids = "12,13 14	15"; }
+            """;
+
+        var map = UdmfMapLoader.Load(udmf, out _)!;
+
+        Assert.Equal(new[] { 5 }, map.Sectors[0].Tags);
+        Assert.Equal(new[] { 11 }, map.Linedefs[0].Tags);
+    }
+
+    [Fact]
     public void MalformedUdmfReturnsNull()
     {
         var map = UdmfMapLoader.Load("namespace = wat;", out var parser);

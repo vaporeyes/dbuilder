@@ -314,7 +314,7 @@ public static class UdmfMapLoader
     {
         string more = GetString(c, "moreids", "");
         if (string.IsNullOrWhiteSpace(more)) return;
-        foreach (var token in more.Split(new[] { ' ', '\t', ',' }, System.StringSplitOptions.RemoveEmptyEntries))
+        foreach (var token in more.Split(new[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries))
         {
             if (int.TryParse(token, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out int id)
                 && id != 0
