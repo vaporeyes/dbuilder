@@ -6499,12 +6499,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 ToggleAlphaBasedTextureHighlighting();
                 return true;
             case "map3d.toggle-models-rendering":
+            case "map3d.gztogglemodels":
             case "map3d.toggle-model-rendering":
                 CycleModelRenderMode();
                 Target3DChanged?.Invoke($"Models rendering mode: {ThingModelRenderPlanner.StatusLabel(_modelRenderMode)}");
                 return true;
             case "map3d.toggle-dynamic-lights-rendering":
             case "map3d.toggledynamiclightsrendering":
+            case "map3d.gztogglelights":
                 CycleLightRenderMode();
                 Target3DChanged?.Invoke($"Dynamic lights rendering mode: {ThingLightRenderPlanner.StatusLabel(_lightRenderMode)}");
                 return true;

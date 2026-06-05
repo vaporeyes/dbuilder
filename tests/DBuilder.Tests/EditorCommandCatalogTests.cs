@@ -2991,6 +2991,7 @@ public class EditorCommandCatalogTests
     public void VisualModelsRenderingCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map3d.toggle-models-rendering");
+        var udbAlias = EditorCommandCatalog.Find("map3d.gztogglemodels");
 
         Assert.NotNull(command);
         Assert.Equal("Toggle models rendering", command.Title);
@@ -3000,6 +3001,9 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowMouse);
         Assert.False(command.AllowScroll);
         Assert.False(command.Repeat);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Fact]
@@ -3016,6 +3020,7 @@ public class EditorCommandCatalogTests
     public void VisualDynamicLightsRenderingCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map3d.toggle-dynamic-lights-rendering");
+        var udbAlias = EditorCommandCatalog.Find("map3d.gztogglelights");
 
         Assert.NotNull(command);
         Assert.Equal("Toggle dynamic lights rendering", command.Title);
@@ -3025,6 +3030,9 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowMouse);
         Assert.False(command.AllowScroll);
         Assert.False(command.Repeat);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
     [Fact]
@@ -3081,7 +3089,9 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
+    [InlineData("map3d.toggle-models-rendering", "map3d.gztogglemodels")]
     [InlineData("map3d.toggle-dynamic-lights-rendering", "map3d.toggledynamiclightsrendering")]
+    [InlineData("map3d.toggle-dynamic-lights-rendering", "map3d.gztogglelights")]
     [InlineData("map3d.toggle-classic-rendering", "map3d.toggleclassicrendering")]
     [InlineData("map3d.toggle-fog-rendering", "map3d.togglefogrendering")]
     [InlineData("map3d.toggle-fog-rendering", "map3d.gztogglefog")]
