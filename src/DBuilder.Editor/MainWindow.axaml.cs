@@ -5536,7 +5536,7 @@ public partial class MainWindow : Window
                 var visualSurfaces = MapView.SelectedVisualSurfacesForActions();
                 if (visualSurfaces.Count == 0)
                 {
-                    SetStatus("Select some things, sectors or surfaces first!");
+                    SetStatus("Select some things, sectors or surfaces first!", StatusHistoryKind.Warning);
                     return;
                 }
 
@@ -5582,7 +5582,7 @@ public partial class MainWindow : Window
         }
         else
         {
-            SetStatus("Select some things, sectors, linedefs or vertices first!");
+            SetStatus("Select some things, sectors, linedefs or vertices first!", StatusHistoryKind.Warning);
             return;
         }
 
@@ -5863,7 +5863,7 @@ public partial class MainWindow : Window
         if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
         if (_mapFormat != MapFormat.Udmf)
         {
-            SetStatus("This action is available only in UDMF map format!");
+            SetStatus("This action is available only in UDMF map format!", StatusHistoryKind.Warning);
             return;
         }
 
@@ -5877,7 +5877,7 @@ public partial class MainWindow : Window
 
             if (sectors.Count == 0 && sides.Count == 0)
             {
-                SetStatus("Select some floor or wall surfaces first!");
+                SetStatus("Select some floor or wall surfaces first!", StatusHistoryKind.Warning);
                 return;
             }
         }
@@ -5896,13 +5896,13 @@ public partial class MainWindow : Window
         }
         else
         {
-            SetStatus("Select some sectors or linedefs first!");
+            SetStatus("Select some sectors or linedefs first!", StatusHistoryKind.Warning);
             return;
         }
 
         if (sectors.Count == 0 && sides.Count == 0)
         {
-            SetStatus("Select some sectors or linedefs first!");
+            SetStatus("Select some sectors or linedefs first!", StatusHistoryKind.Warning);
             return;
         }
 

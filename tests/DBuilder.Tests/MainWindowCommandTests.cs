@@ -1135,6 +1135,18 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void JitterAndDirectionalShadingGuardsUseWarningStatusKind()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("SetStatus(\"Select some things, sectors or surfaces first!\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(\"Select some things, sectors, linedefs or vertices first!\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(\"This action is available only in UDMF map format!\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(\"Select some floor or wall surfaces first!\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(\"Select some sectors or linedefs first!\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void EditMenuTooltipsRefreshFromEffectiveShortcutBindings()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
