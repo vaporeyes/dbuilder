@@ -8894,6 +8894,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _camX -= (pos.X - _lastPointer.X) * _zoom;
         _camY += (pos.Y - _lastPointer.Y) * _zoom;
         _lastPointer = pos;
+        _geometryDirty = true;
         RequestNextFrameRendering();
     }
 
@@ -8945,6 +8946,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         _camX += screenDx * _zoom;
         _camY += screenDy * _zoom;
+        _geometryDirty = true;
         RequestNextFrameRendering();
     }
 

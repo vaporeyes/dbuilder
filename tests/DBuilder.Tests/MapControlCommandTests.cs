@@ -651,6 +651,19 @@ public sealed class MapControlCommandTests
         Assert.Contains("EditorCommandCatalog.ResolveShortcut(ShortcutBindings, EditorCommandScope.Map2D, shortcutKey, accel, shift, alt)", body, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void CameraMovementRebuildsScreenSpaceThingGeometry()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int panIndex = body.IndexOf("private void PanViewByPointerDelta(Point pos)", StringComparison.Ordinal);
+        int scrollIndex = body.IndexOf("private void ScrollView(double screenDx, double screenDy)", StringComparison.Ordinal);
+
+        Assert.True(panIndex >= 0);
+        Assert.True(scrollIndex >= 0);
+        Assert.True(body.IndexOf("_geometryDirty = true;", panIndex, StringComparison.Ordinal) > panIndex);
+        Assert.True(body.IndexOf("_geometryDirty = true;", scrollIndex, StringComparison.Ordinal) > scrollIndex);
+    }
+
     [Theory]
     [InlineData("map2d.increasesubdivlevel", "AdjustDrawSubdivision(increase: true)")]
     [InlineData("map2d.decreasesubdivlevel", "AdjustDrawSubdivision(increase: false)")]
