@@ -333,7 +333,8 @@ public class UdbScriptDockerModelTests
 
         IReadOnlyDictionary<int, UdbScriptInfo?> cleared = UdbScriptDockerModel.AssignSlot(moved, 3, null);
 
-        Assert.False(cleared.ContainsKey(3));
+        Assert.True(cleared.ContainsKey(3));
+        Assert.Null(cleared[3]);
     }
 
     [Fact]
@@ -360,7 +361,7 @@ public class UdbScriptDockerModelTests
     }
 
     [Fact]
-    public void SaveSlotAssignmentOperationsWriteOnlyAssignedScripts()
+    public void SaveSlotAssignmentOperationsWriteAssignedScriptsAndDeleteClearedSlots()
     {
         UdbScriptInfo alpha = Script("Alpha", "A", "/scripts/alpha.js");
         UdbScriptInfo blank = Script("Blank", "B", "   ");
@@ -368,10 +369,13 @@ public class UdbScriptDockerModelTests
         IReadOnlyList<UdbScriptSettingOperation> operations = UdbScriptDockerModel.SaveSlotAssignmentOperations(
             new Dictionary<int, UdbScriptInfo?> { [2] = alpha, [1] = null, [3] = blank });
 
-        UdbScriptSettingOperation operation = Assert.Single(operations);
-        Assert.Equal(UdbScriptSettingOperationKind.Write, operation.Kind);
-        Assert.Equal("scriptslots.slot2", operation.Key);
-        Assert.Equal(alpha.ScriptFile, operation.Value);
+        Assert.Equal(2, operations.Count);
+        Assert.Equal(UdbScriptSettingOperationKind.Delete, operations[0].Kind);
+        Assert.Equal("scriptslots.slot1", operations[0].Key);
+        Assert.Null(operations[0].Value);
+        Assert.Equal(UdbScriptSettingOperationKind.Write, operations[1].Kind);
+        Assert.Equal("scriptslots.slot2", operations[1].Key);
+        Assert.Equal(alpha.ScriptFile, operations[1].Value);
     }
 
     [Fact]

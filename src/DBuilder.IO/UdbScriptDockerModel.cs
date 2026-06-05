@@ -287,7 +287,7 @@ public static class UdbScriptDockerModel
         var result = slotAssignments.ToDictionary(pair => pair.Key, pair => pair.Value);
         if (script is null)
         {
-            result.Remove(slot);
+            result[slot] = null;
             return result;
         }
 
@@ -349,7 +349,15 @@ public static class UdbScriptDockerModel
         var operations = new List<UdbScriptSettingOperation>();
         foreach (KeyValuePair<int, UdbScriptInfo?> pair in slotAssignments.OrderBy(pair => pair.Key))
         {
-            if (pair.Value is null || string.IsNullOrWhiteSpace(pair.Value.ScriptFile))
+            if (pair.Value is null)
+            {
+                operations.Add(new UdbScriptSettingOperation(
+                    UdbScriptSettingOperationKind.Delete,
+                    SlotSettingKey(pair.Key)));
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(pair.Value.ScriptFile))
                 continue;
 
             operations.Add(new UdbScriptSettingOperation(
