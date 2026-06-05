@@ -518,6 +518,28 @@ public class ThingsFilterEvaluatorTests
     }
 
     [Fact]
+    public void CollectionDraftSkipsInvalidFiltersDuringActiveLookup()
+    {
+        var collection = new ThingsFilterCollectionDraft();
+        var invalid = collection.AddNew();
+        invalid.Draft.Name = "Empty";
+        var valid = collection.AddNew();
+        valid.Draft.Name = "Valid";
+        valid.Draft.ThingType = 3001;
+
+        Assert.Null(collection.FindByName("Empty"));
+        Assert.Null(collection.FindByKey("filter0"));
+
+        ThingsFilterInfo? byName = collection.FindByName("Valid");
+        ThingsFilterInfo? byKey = collection.FindByKey("filter1");
+
+        Assert.NotNull(byName);
+        Assert.NotNull(byKey);
+        Assert.Equal(3001, byName.ThingType);
+        Assert.Equal(3001, byKey.ThingType);
+    }
+
+    [Fact]
     public void ThingFilterWindowSelectsActiveFilterByStableKey()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/ThingFilterWindow.cs"));

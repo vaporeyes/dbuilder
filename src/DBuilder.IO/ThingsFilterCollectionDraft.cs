@@ -41,7 +41,10 @@ public sealed class ThingsFilterCollectionDraft
     {
         if (string.IsNullOrEmpty(name)) return null;
         foreach (var entry in filters)
+        {
+            if (!entry.Draft.IsValid()) continue;
             if (string.Equals(entry.Draft.Name, name, StringComparison.Ordinal)) return entry.Draft.ToInfo(entry.Key);
+        }
         return null;
     }
 
@@ -49,7 +52,10 @@ public sealed class ThingsFilterCollectionDraft
     {
         if (string.IsNullOrEmpty(key)) return null;
         foreach (var entry in filters)
+        {
+            if (!entry.Draft.IsValid()) continue;
             if (string.Equals(entry.Key, key, StringComparison.Ordinal)) return entry.Draft.ToInfo(entry.Key);
+        }
         return null;
     }
 

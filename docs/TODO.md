@@ -1132,6 +1132,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Preserve active custom things filter selection by stable key after renames.
   - [x] Treat explicit action arguments as valid custom things filter criteria.
   - [x] Skip invalid custom things filter drafts during settings write-back.
+  - [x] Skip invalid custom things filter drafts during active-filter lookup.
 - [ ] Port selection operations for every edit mode.
   - [x] Add active-mode select all and invert selection.
   - [x] Add menu commands to add, select, and clear selection groups.
