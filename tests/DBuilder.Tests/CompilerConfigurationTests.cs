@@ -664,6 +664,25 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void ScriptCompileFlowReportsFileOperationFailuresLikeUdb()
+    {
+        var write = ScriptCompileFlow.WorkingFileWriteError(new IOException("disk full"));
+        var read = ScriptCompileFlow.OutputFileReadError(new UnauthorizedAccessException("denied"));
+        var library = ScriptCompileFlow.LibraryFileCreateError(
+            "/maps/project/BEHAVIOR",
+            new IOException("locked"));
+
+        Assert.Equal("Unable to write script to working file. IOException: disk full", write.Description);
+        Assert.Equal("Unable to read compiler output file. UnauthorizedAccessException: denied", read.Description);
+        Assert.Equal("Unable to create library file \"/maps/project/BEHAVIOR\". IOException: locked", library.Description);
+        Assert.All(new[] { write, read, library }, error =>
+        {
+            Assert.Equal("", error.FileName);
+            Assert.Equal(-1, error.LineNumber);
+        });
+    }
+
+    [Fact]
     public void ScriptCompileFlowCompletesWhenCompilerErrorsWereReportedLikeUdb()
     {
         var compilerError = new ScriptCompilerError("Expected semicolon", "/maps/project/scripts.acs", 4);

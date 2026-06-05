@@ -1487,6 +1487,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Copy ACS include resources into the compiler temp directory without overwriting existing files.
   - [x] Fail completed compiler runs when the expected output file is missing and no compiler errors were reported.
   - [x] Report compiler initialization failures with UDB-style script compiler error text.
+  - [x] Report script compiler file operation failures with UDB-style error text.
 - [ ] Port ACC compiler integration.
   - [x] Build UDB-style ACC compiler command arguments from `%FI`, `%FO`, `%FS`, `%PT`, and `%PS`.
   - [x] Validate ACS map-script and external-library compile preconditions and include lists like UDB.

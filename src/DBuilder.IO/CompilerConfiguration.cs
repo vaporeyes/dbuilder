@@ -176,6 +176,15 @@ public static class ScriptCompileFlow
     public static ScriptCompilerError CompilerInitializationError(Exception error)
         => new("Unable to initialize compiler. " + error.GetType().Name + ": " + error.Message);
 
+    public static ScriptCompilerError WorkingFileWriteError(Exception error)
+        => new("Unable to write script to working file. " + error.GetType().Name + ": " + error.Message);
+
+    public static ScriptCompilerError OutputFileReadError(Exception error)
+        => new("Unable to read compiler output file. " + error.GetType().Name + ": " + error.Message);
+
+    public static ScriptCompilerError LibraryFileCreateError(string targetPath, Exception error)
+        => new("Unable to create library file \"" + targetPath + "\". " + error.GetType().Name + ": " + error.Message);
+
     public static ScriptCompileCompletion CompleteCompile(
         IEnumerable<ScriptCompilerError> compilerErrors,
         string outputPath,
