@@ -23,6 +23,7 @@ public sealed class ShortcutsWindow : Window
     private readonly StackPanel _sections = new() { Spacing = 8 };
     private readonly TextBlock _matchSummary = new() { Foreground = MutedBrush, VerticalAlignment = VerticalAlignment.Center };
     private readonly Dictionary<string, bool> _expandedSections = ShortcutHelpModel.GroupTitles.ToDictionary(title => title, ShortcutHelpModel.IsDefaultExpanded);
+    private bool? _searchExpandedOverride;
     private readonly TextBox _search = new()
     {
         Watermark = "Search shortcuts",
@@ -81,6 +82,7 @@ public sealed class ShortcutsWindow : Window
     {
         _search.TextChanged += (_, _) =>
         {
+            _searchExpandedOverride = null;
             _clearSearch.IsVisible = !string.IsNullOrWhiteSpace(_search.Text);
             RebuildSections(_search.Text);
         };
@@ -128,7 +130,8 @@ public sealed class ShortcutsWindow : Window
 
         foreach (var group in groups)
         {
-            bool expanded = searching || (_expandedSections.TryGetValue(group.Title, out bool value) ? value : group.DefaultExpanded);
+            bool rememberedExpanded = _expandedSections.TryGetValue(group.Title, out bool value) ? value : group.DefaultExpanded;
+            bool expanded = ShortcutHelpModel.ResolveSectionExpanded(searching, rememberedExpanded, _searchExpandedOverride);
             _sections.Children.Add(Section(group, expanded, searching));
         }
 
@@ -290,6 +293,8 @@ public sealed class ShortcutsWindow : Window
     {
         foreach (string title in ShortcutHelpModel.GroupTitles)
             _expandedSections[title] = expanded;
+        if (!string.IsNullOrWhiteSpace(_search.Text))
+            _searchExpandedOverride = expanded;
         RebuildSections(_search.Text);
     }
 }

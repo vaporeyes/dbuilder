@@ -192,6 +192,9 @@ public sealed class ShortcutHelpModelTests
         Assert.Contains("CommandColumnHeader", body, StringComparison.Ordinal);
         Assert.Contains("DescriptionColumnHeader", body, StringComparison.Ordinal);
         Assert.Contains("Text = row.DescriptionText", body, StringComparison.Ordinal);
+        Assert.Contains("_searchExpandedOverride = null;", body, StringComparison.Ordinal);
+        Assert.Contains("ShortcutHelpModel.ResolveSectionExpanded(searching, rememberedExpanded, _searchExpandedOverride)", body, StringComparison.Ordinal);
+        Assert.Contains("_searchExpandedOverride = expanded;", body, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -256,5 +259,14 @@ public sealed class ShortcutHelpModelTests
         Assert.Equal("1 shortcut", ShortcutHelpModel.SectionCountText(section, searching: false));
         Assert.Equal("1 of 12 shortcuts", ShortcutHelpModel.SectionCountText(section, searching: true));
         Assert.Equal("1 shortcut", ShortcutHelpModel.SectionCountText(section with { TotalRows = 1 }, searching: true));
+    }
+
+    [Fact]
+    public void ResolveSectionExpandedLetsFilteredToolbarOverrideDefaultExpansion()
+    {
+        Assert.True(ShortcutHelpModel.ResolveSectionExpanded(searching: true, rememberedExpanded: false, searchExpandedOverride: null));
+        Assert.False(ShortcutHelpModel.ResolveSectionExpanded(searching: true, rememberedExpanded: true, searchExpandedOverride: false));
+        Assert.True(ShortcutHelpModel.ResolveSectionExpanded(searching: true, rememberedExpanded: false, searchExpandedOverride: true));
+        Assert.False(ShortcutHelpModel.ResolveSectionExpanded(searching: false, rememberedExpanded: false, searchExpandedOverride: true));
     }
 }

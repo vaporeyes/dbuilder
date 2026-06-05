@@ -78,6 +78,9 @@ public static class ShortcutHelpModel
             ? $"{section.Rows.Count} of {CountLabel(section.TotalRows, "shortcut")}"
             : CountLabel(section.Rows.Count, "shortcut");
 
+    public static bool ResolveSectionExpanded(bool searching, bool rememberedExpanded, bool? searchExpandedOverride)
+        => searching ? searchExpandedOverride ?? true : rememberedExpanded;
+
     private static string CountLabel(int count, string noun)
         => $"{count} {noun}{Plural(count)}";
 
