@@ -940,9 +940,22 @@ public static class UdbScriptRunnerModel
 
     private static string EngineSourceName(string appPath, string path)
     {
-        if (path.StartsWith(appPath, StringComparison.Ordinal))
-            return path[appPath.Length..];
+        string normalizedAppPath = TrimTrailingDirectorySeparators(NormalizeDirectorySeparators(appPath));
+        string normalizedPath = NormalizeDirectorySeparators(path);
 
-        return path;
+        if (normalizedPath.Length > normalizedAppPath.Length
+            && normalizedPath.StartsWith(normalizedAppPath, StringComparison.Ordinal)
+            && normalizedPath[normalizedAppPath.Length] == '/')
+        {
+            return normalizedPath[normalizedAppPath.Length..];
+        }
+
+        return normalizedPath;
     }
+
+    private static string NormalizeDirectorySeparators(string path)
+        => path.Replace(Path.DirectorySeparatorChar, '/').Replace(Path.AltDirectorySeparatorChar, '/').Replace('\\', '/');
+
+    private static string TrimTrailingDirectorySeparators(string path)
+        => path.TrimEnd('/');
 }

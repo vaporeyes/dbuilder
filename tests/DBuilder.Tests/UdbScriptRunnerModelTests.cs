@@ -827,6 +827,24 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void RunExecutionPlanNormalizesAppRelativeEngineSourceNames()
+    {
+        UdbScriptRunExecutionPlan trailingSeparator = UdbScriptRunnerModel.RunExecutionPlan(
+            "/app/",
+            "/app/UDBScript/Scripts/demo.js");
+        UdbScriptRunExecutionPlan windowsSeparators = UdbScriptRunnerModel.RunExecutionPlan(
+            "C:\\UDB",
+            "C:\\UDB\\UDBScript\\Scripts\\demo.js");
+        UdbScriptRunExecutionPlan siblingPrefix = UdbScriptRunnerModel.RunExecutionPlan(
+            "/app",
+            "/application/UDBScript/Scripts/demo.js");
+
+        Assert.Equal("/UDBScript/Scripts/demo.js", trailingSeparator.Script.EngineSourceName);
+        Assert.Equal("/UDBScript/Scripts/demo.js", windowsSeparators.Script.EngineSourceName);
+        Assert.Equal("/application/UDBScript/Scripts/demo.js", siblingPrefix.Script.EngineSourceName);
+    }
+
+    [Fact]
     public void LoadSourcePlanReadsLibrariesBeforeScript()
     {
         var plan = new UdbScriptRunSourcePlan(
