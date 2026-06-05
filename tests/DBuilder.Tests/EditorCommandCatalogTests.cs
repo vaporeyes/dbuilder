@@ -1868,9 +1868,13 @@ public class EditorCommandCatalogTests
         var expected = new Dictionary<string, (string Title, bool AllowScroll, bool Repeat)>
         {
             ["map3d.move-thing-left"] = ("Move Thing Left", true, true),
+            ["map3d.movethingleft"] = ("Move Thing Left", true, true),
             ["map3d.move-thing-right"] = ("Move Thing Right", true, true),
+            ["map3d.movethingright"] = ("Move Thing Right", true, true),
             ["map3d.move-thing-forward"] = ("Move Thing Forward", true, true),
+            ["map3d.movethingfwd"] = ("Move Thing Forward", true, true),
             ["map3d.move-thing-backward"] = ("Move Thing Backward", true, true),
+            ["map3d.movethingback"] = ("Move Thing Backward", true, true),
             ["map3d.insert-item"] = ("Insert Item", true, false),
             ["map3d.insertitem"] = ("Insert Item", true, false),
             ["map3d.copy-selection"] = ("Copy Selection", false, false),

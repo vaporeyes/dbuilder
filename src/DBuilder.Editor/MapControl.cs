@@ -6199,15 +6199,19 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 MoveCameraToCursor();
                 return true;
             case "map3d.move-thing-left":
+            case "map3d.movethingleft":
                 MoveThingTargets3D(new Vec2D(0, -_grid.GridSizeF));
                 return true;
             case "map3d.move-thing-right":
+            case "map3d.movethingright":
                 MoveThingTargets3D(new Vec2D(0, _grid.GridSizeF));
                 return true;
             case "map3d.move-thing-forward":
+            case "map3d.movethingfwd":
                 MoveThingTargets3D(new Vec2D(-_grid.GridSizeF, 0));
                 return true;
             case "map3d.move-thing-backward":
+            case "map3d.movethingback":
                 MoveThingTargets3D(new Vec2D(_grid.GridSizeF, 0));
                 return true;
             case "map3d.insert-item":
