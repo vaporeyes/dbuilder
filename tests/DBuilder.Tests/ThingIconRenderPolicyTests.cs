@@ -14,6 +14,10 @@ public sealed class ThingIconRenderPolicyTests
             ThingIconRenderPolicy.CompactMarkerScaleThreshold,
             fixedThingsScale: true,
             thingArrows: false));
+        Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
+            viewScale: 3.0,
+            fixedThingsScale: true,
+            thingArrows: false));
     }
 
     [Fact]
