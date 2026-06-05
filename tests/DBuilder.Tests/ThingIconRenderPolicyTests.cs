@@ -87,6 +87,26 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
+    public void OverviewMarkersCullOverlappingScreenCells()
+    {
+        Assert.True(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(
+            ThingIconRenderPolicy.OverviewMarkerScaleThreshold,
+            thingArrows: false));
+        Assert.False(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(
+            ThingIconRenderPolicy.OverviewMarkerScaleThreshold - 0.01,
+            thingArrows: false));
+        Assert.False(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(
+            ThingIconRenderPolicy.OverviewMarkerScaleThreshold,
+            thingArrows: true));
+
+        Assert.Equal(0, ThingIconRenderPolicy.OverviewCullCell(0));
+        Assert.Equal(0, ThingIconRenderPolicy.OverviewCullCell(
+            ThingIconRenderPolicy.OverviewCullCellPixels - 0.01));
+        Assert.Equal(1, ThingIconRenderPolicy.OverviewCullCell(
+            ThingIconRenderPolicy.OverviewCullCellPixels));
+    }
+
+    [Fact]
     public void SpriteHalfSizeUsesThingRadiusInsteadOfRawSpritePixels()
     {
         var (halfWidth, halfHeight) = ThingIconRenderPolicy.SpriteHalfSize(

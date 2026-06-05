@@ -4714,9 +4714,21 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             bool overviewThingMarkers = ThingIconRenderPolicy.UseOverviewMarkers(_zoom, _thingArrows);
             double s = ThingMarkerSize(ThingIconRenderPolicy.MarkerBaseSize(compactThingMarkers, overviewThingMarkers));
             Gldefs? gldefs = _resources?.GetGldefs();
+            System.Collections.Generic.HashSet<(int X, int Y)>? overviewCells = null;
+            if (ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(_zoom, _thingArrows))
+            {
+                overviewCells = new System.Collections.Generic.HashSet<(int X, int Y)>();
+                foreach (var selected in _map.Things)
+                {
+                    if (!selected.Selected || ThingHidden2D(selected)) continue;
+                    overviewCells.Add(ThingOverviewCell(selected.Position));
+                }
+            }
+
             foreach (var t in _map.Things)
             {
                 if (ThingHidden2D(t)) continue;
+                if (overviewCells != null && !t.Selected && !overviewCells.Add(ThingOverviewCell(t.Position))) continue;
                 // Arrow mode: Doom-Builder-style colored disc + direction arrow (no sprites).
                 if (_thingArrows)
                 {
@@ -4998,6 +5010,16 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private double ThingMarkerSize(double baseSize)
         => _fixedThingsScale ? baseSize * _zoom : baseSize;
+
+    private (int X, int Y) ThingOverviewCell(Vec2D position)
+    {
+        double scale = Math.Max(_zoom, 0.001);
+        double screenX = (position.x - _camX) / scale + Bounds.Width * 0.5;
+        double screenY = Bounds.Height * 0.5 - (position.y - _camY) / scale;
+        return (
+            ThingIconRenderPolicy.OverviewCullCell(screenX),
+            ThingIconRenderPolicy.OverviewCullCell(screenY));
+    }
 
     // Classic 16-colour console palette used by the .cfg thing category "color" index.
     private static int Color16(int i)
