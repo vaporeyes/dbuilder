@@ -184,6 +184,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Keep Help shortcut expand and collapse controls with the filter toolbar.
   - [x] Sort Help shortcut rows by action title like UDB.
   - [x] Match UDB-style word-start abbreviations in Help shortcut searches.
+  - [x] Show and filter UDB-style action categories in the Help shortcut reference.
   - [x] Explain accepted shortcut override syntax in the Settings dialog.
   - [x] Apply Help shortcut expand and collapse controls to filtered results.
 - [ ] Port mouse input abstractions.

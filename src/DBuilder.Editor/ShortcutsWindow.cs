@@ -262,6 +262,13 @@ public sealed class ShortcutsWindow : Window
         });
         description.Children.Add(new TextBlock
         {
+            Text = row.CategoryText,
+            Foreground = Brushes.LightSkyBlue,
+            FontSize = 11,
+            TextWrapping = TextWrapping.Wrap,
+        });
+        description.Children.Add(new TextBlock
+        {
             Text = row.Command.Id,
             Foreground = MutedBrush,
             FontSize = 11,
