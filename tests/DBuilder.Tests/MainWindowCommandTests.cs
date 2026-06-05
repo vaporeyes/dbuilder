@@ -1309,6 +1309,14 @@ public sealed class MainWindowCommandTests
         Assert.Contains(".Where(IsPaletteCommandUsable)", code, StringComparison.Ordinal);
         Assert.Contains("if (command.Scope != EditorCommandScope.Window) return false;", code, StringComparison.Ordinal);
         Assert.Contains("return PaletteCommandControl(command.Id)?.IsEnabled ?? true;", code, StringComparison.Ordinal);
+        Assert.Contains("if (IsSelectionGroupCommand(commandId)) return SelectionGroupsMenu;", code, StringComparison.Ordinal);
+        Assert.Contains("if (IsUdbScriptPaletteCommand(commandId)) return UdbScriptDockerMenuItem;", code, StringComparison.Ordinal);
+        Assert.Contains("if (commandId == \"window.cancel-draw\") return DrawMenuItem;", code, StringComparison.Ordinal);
+        Assert.Contains("commandId.StartsWith(\"window.select-group-\", StringComparison.Ordinal)", code, StringComparison.Ordinal);
+        Assert.Contains("commandId.StartsWith(\"window.assign-group-\", StringComparison.Ordinal)", code, StringComparison.Ordinal);
+        Assert.Contains("commandId.StartsWith(\"window.clear-group-\", StringComparison.Ordinal)", code, StringComparison.Ordinal);
+        Assert.Contains("commandId == \"window.udbscriptexecute\"", code, StringComparison.Ordinal);
+        Assert.Contains("commandId.StartsWith(\"window.udbscriptexecuteslot\", StringComparison.Ordinal)", code, StringComparison.Ordinal);
         Assert.Contains("\"window.undo\" => UndoMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.redo\" => RedoMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.open-map\" => OpenWadMenuItem", code, StringComparison.Ordinal);

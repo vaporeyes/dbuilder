@@ -4183,7 +4183,12 @@ public partial class MainWindow : Window
     }
 
     private Control? PaletteCommandControl(string commandId)
-        => commandId switch
+    {
+        if (IsSelectionGroupCommand(commandId)) return SelectionGroupsMenu;
+        if (IsUdbScriptPaletteCommand(commandId)) return UdbScriptDockerMenuItem;
+        if (commandId == "window.cancel-draw") return DrawMenuItem;
+
+        return commandId switch
         {
             "window.undo" => UndoMenuItem,
             "window.redo" => RedoMenuItem,
@@ -4312,6 +4317,17 @@ public partial class MainWindow : Window
             "window.about" => AboutMenuItem,
             _ => null,
         };
+    }
+
+    private static bool IsSelectionGroupCommand(string commandId)
+        => commandId.StartsWith("window.select-group-", StringComparison.Ordinal)
+            || commandId.StartsWith("window.assign-group-", StringComparison.Ordinal)
+            || commandId.StartsWith("window.clear-group-", StringComparison.Ordinal);
+
+    private static bool IsUdbScriptPaletteCommand(string commandId)
+        => commandId == "window.udbscripts"
+            || commandId == "window.udbscriptexecute"
+            || commandId.StartsWith("window.udbscriptexecuteslot", StringComparison.Ordinal);
 
     private void RunCommandFromPalette(string commandId)
     {
