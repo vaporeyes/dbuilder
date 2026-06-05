@@ -191,6 +191,69 @@ public class BlockmapLumpTests
         Assert.Equal("/gzdb/features/classic_modes/mode_blockmapexplorer.html", mode.HelpPath);
     }
 
+    [Fact]
+    public void ExplorerEngageDecisionCancelsMissingEmptyAndMalformedBlockmaps()
+    {
+        BlockmapExplorerEngageDecision missing = BlockmapExplorerModel.EngageDecision(null, BlockmapLump.Parse(null));
+        Assert.False(missing.CanEngage);
+        Assert.Equal("Failed to engage Blockmap Explorer Mode: map has no BLOCKMAP lump.", missing.StatusText);
+
+        BlockmapExplorerEngageDecision empty = BlockmapExplorerModel.EngageDecision(Array.Empty<byte>(), BlockmapLump.Parse(Array.Empty<byte>()));
+        Assert.False(empty.CanEngage);
+        Assert.Equal("Failed to engage Blockmap Explorer Mode: BLOCKMAP lump is empty.", empty.StatusText);
+
+        byte[] unterminated = BuildBlockmap(
+            0,
+            0,
+            1,
+            1,
+            new ushort[] { 5 },
+            new[] { List(2, 3) });
+        BlockmapExplorerEngageDecision malformed = BlockmapExplorerModel.EngageDecision(unterminated, BlockmapLump.Parse(unterminated));
+        Assert.False(malformed.CanEngage);
+        Assert.Equal("Failed to engage Blockmap Explorer Mode: BLOCKMAP lump is malformed, tried to read beyond the end of the lump.", malformed.StatusText);
+    }
+
+    [Fact]
+    public void ExplorerEngageDecisionAllowsUsableBlockmapsAndWarnableOffsets()
+    {
+        byte[] valid = BuildBlockmap(
+            0,
+            0,
+            1,
+            1,
+            new ushort[] { 5 },
+            new[] { List(ushort.MaxValue) });
+        BlockmapLumpData blockmap = BlockmapLump.Parse(valid);
+
+        BlockmapExplorerEngageDecision decision = BlockmapExplorerModel.EngageDecision(valid, blockmap);
+
+        Assert.True(decision.CanEngage);
+        Assert.Equal("Blockmap Explorer: Ok, 1 x 1.", decision.StatusText);
+
+        byte[] offsetPastLump = BuildBlockmap(
+            0,
+            0,
+            2,
+            1,
+            new ushort[] { 6, 99 },
+            new[] { List(3, ushort.MaxValue) });
+        BlockmapExplorerEngageDecision warnable = BlockmapExplorerModel.EngageDecision(offsetPastLump, BlockmapLump.Parse(offsetPastLump));
+        Assert.True(warnable.CanEngage);
+        Assert.Equal("Blockmap Explorer: BlockListOffsetOutOfRange, 2 x 1.", warnable.StatusText);
+    }
+
+    [Fact]
+    public void ExplorerRebuildStatusTextsMatchUdbEngageFlow()
+    {
+        Assert.Equal(
+            "Blockmap Explorer: map was changed, rebuilding nodes with testing settings.",
+            BlockmapExplorerModel.DirtyMapRebuildStatusText());
+        Assert.Equal(
+            "Failed to engage Blockmap Explorer Mode: failed to rebuild the nodes.",
+            BlockmapExplorerModel.NodeRebuildFailureStatusText());
+    }
+
     private static byte[] BuildBlockmap(int originX, int originY, short columns, short rows, ushort[] offsetsInShorts, byte[][] lists)
     {
         int size = BlockmapLump.HeaderSize + offsetsInShorts.Length * sizeof(ushort);

@@ -3609,8 +3609,17 @@ public partial class MainWindow : Window
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
 
-        byte[]? bytes = ReadCurrentMapLump("BLOCKMAP");
+        byte[]? bytes = _mapDirty ? RebuildCurrentMapBlockmapForExplorer() : ReadCurrentMapLump("BLOCKMAP");
+        if (_mapDirty && bytes == null) return;
+
         BlockmapLumpData blockmap = BlockmapLump.Parse(bytes);
+        BlockmapExplorerEngageDecision decision = BlockmapExplorerModel.EngageDecision(bytes, blockmap);
+        if (!decision.CanEngage)
+        {
+            SetStatus(decision.StatusText);
+            return;
+        }
+
         _blockmapExplorer?.Close();
         _blockmapExplorer = new BlockmapExplorerWindow(blockmap, _map.Linedefs.Count);
         _blockmapExplorer.Closed += (_, _) =>
@@ -3632,7 +3641,33 @@ public partial class MainWindow : Window
             SetStatus($"Blockmap block ({column}, {row}).");
         };
         _blockmapExplorer.Show(this);
-        SetStatus($"Blockmap Explorer: {blockmap.Status}, {blockmap.Columns} x {blockmap.Rows}.");
+        SetStatus(decision.StatusText);
+    }
+
+    private byte[]? RebuildCurrentMapBlockmapForExplorer()
+    {
+        if (_map is null || _mapMarker is null) return null;
+
+        SetStatus(BlockmapExplorerModel.DirtyMapRebuildStatusText());
+        byte[] wadBytes = CurrentMapOnlyWadBytes();
+        BuildNodesIfConfigured(ref wadBytes, forTesting: true);
+        using var stream = new System.IO.MemoryStream(wadBytes);
+        stream.Position = 0;
+        using var wad = new WAD(stream, openreadonly: true);
+        byte[]? blockmapBytes = WadMaps.ReadMapLump(wad, _mapMarker, "BLOCKMAP", _config);
+        if (blockmapBytes == null)
+            SetStatus(BlockmapExplorerModel.NodeRebuildFailureStatusText());
+        return blockmapBytes;
+    }
+
+    private byte[] CurrentMapOnlyWadBytes()
+    {
+        if (_map is null || _mapMarker is null) return Array.Empty<byte>();
+
+        using var stream = new System.IO.MemoryStream();
+        using (var wad = new WAD(stream))
+            WadMaps.SaveMap(wad, _mapMarker, _map, _mapFormat, _config);
+        return stream.ToArray();
     }
 
     private void OnToggleSectorFills(object? sender, RoutedEventArgs e)

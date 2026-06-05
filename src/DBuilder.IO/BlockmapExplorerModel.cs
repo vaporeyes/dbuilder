@@ -23,6 +23,8 @@ public sealed record BlockmapExplorerModeDescriptor(
     bool Volatile,
     string HelpPath);
 
+public sealed record BlockmapExplorerEngageDecision(bool CanEngage, string StatusText);
+
 public static class BlockmapExplorerModel
 {
     public const string DoomMapSetIo = "DoomMapSetIO";
@@ -38,6 +40,23 @@ public static class BlockmapExplorerModel
         UseByDefault: true,
         Volatile: true,
         "/gzdb/features/classic_modes/mode_blockmapexplorer.html");
+
+    public static BlockmapExplorerEngageDecision EngageDecision(byte[]? blockmapBytes, BlockmapLumpData blockmap)
+    {
+        if (blockmapBytes == null)
+            return new BlockmapExplorerEngageDecision(false, "Failed to engage Blockmap Explorer Mode: map has no BLOCKMAP lump.");
+
+        if (!blockmap.IsUsable)
+            return new BlockmapExplorerEngageDecision(false, $"Failed to engage Blockmap Explorer Mode: {FailureMessage(blockmap.Status)}");
+
+        return new BlockmapExplorerEngageDecision(true, $"Blockmap Explorer: {blockmap.Status}, {blockmap.Columns} x {blockmap.Rows}.");
+    }
+
+    public static string DirtyMapRebuildStatusText()
+        => "Blockmap Explorer: map was changed, rebuilding nodes with testing settings.";
+
+    public static string NodeRebuildFailureStatusText()
+        => "Failed to engage Blockmap Explorer Mode: failed to rebuild the nodes.";
 
     public static IReadOnlyList<BlockmapExplorerRow> BuildRows(BlockmapLumpData blockmap, bool questionableOnly = false)
     {
@@ -92,6 +111,17 @@ public static class BlockmapExplorerModel
 
     private static bool IsQuestionableOffset(BlockmapLumpData blockmap, int offset)
         => offset >= 0 && offset < BlockmapLump.HeaderSize + blockmap.Columns * blockmap.Rows * sizeof(ushort);
+
+    private static string FailureMessage(BlockmapLumpStatus status)
+        => status switch
+        {
+            BlockmapLumpStatus.Empty => "BLOCKMAP lump is empty.",
+            BlockmapLumpStatus.TooShortHeader => "BLOCKMAP lump is shorter than the 8-byte header.",
+            BlockmapLumpStatus.InvalidDimensions => "BLOCKMAP lump has non-positive dimensions.",
+            BlockmapLumpStatus.OffsetTableTruncated => "BLOCKMAP lump ends before the block-list offset table is complete.",
+            BlockmapLumpStatus.BlockListReadPastEnd => "BLOCKMAP lump is malformed, tried to read beyond the end of the lump.",
+            _ => $"BLOCKMAP lump is not usable ({status}).",
+        };
 
     private static string CountLabel(int count, string singular, string? plural = null)
         => $"{count} {(count == 1 ? singular : plural ?? singular + "s")}";

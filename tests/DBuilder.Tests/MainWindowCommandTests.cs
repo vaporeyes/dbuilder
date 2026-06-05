@@ -169,6 +169,31 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void BlockmapExplorerCommandUsesUdbEngageChecks()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        int methodIndex = body.IndexOf("private void OnBlockmapExplorer", StringComparison.Ordinal);
+        int rebuildIndex = body.IndexOf("_mapDirty ? RebuildCurrentMapBlockmapForExplorer() : ReadCurrentMapLump(\"BLOCKMAP\")", methodIndex, StringComparison.Ordinal);
+        int dirtyFailureIndex = body.IndexOf("if (_mapDirty && bytes == null) return;", rebuildIndex, StringComparison.Ordinal);
+        int decisionIndex = body.IndexOf("BlockmapExplorerModel.EngageDecision(bytes, blockmap)", dirtyFailureIndex, StringComparison.Ordinal);
+        int cancelIndex = body.IndexOf("if (!decision.CanEngage)", decisionIndex, StringComparison.Ordinal);
+        int statusIndex = body.IndexOf("SetStatus(decision.StatusText);", cancelIndex, StringComparison.Ordinal);
+        int helperIndex = body.IndexOf("private byte[]? RebuildCurrentMapBlockmapForExplorer()", statusIndex, StringComparison.Ordinal);
+        int rebuildStatusIndex = body.IndexOf("BlockmapExplorerModel.DirtyMapRebuildStatusText()", helperIndex, StringComparison.Ordinal);
+        int failureStatusIndex = body.IndexOf("BlockmapExplorerModel.NodeRebuildFailureStatusText()", rebuildStatusIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(rebuildIndex > methodIndex);
+        Assert.True(dirtyFailureIndex > rebuildIndex);
+        Assert.True(decisionIndex > dirtyFailureIndex);
+        Assert.True(cancelIndex > decisionIndex);
+        Assert.True(statusIndex > cancelIndex);
+        Assert.True(helperIndex > statusIndex);
+        Assert.True(rebuildStatusIndex > helperIndex);
+        Assert.True(failureStatusIndex > rebuildStatusIndex);
+    }
+
+    [Fact]
     public void ObjTerrainImportActionExposesUdbSettingsBeforeParsing()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
