@@ -629,6 +629,25 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void ThreeDFloorModeCommandsUseExplicitModeState()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("public enum ThreeDFloorEditMode { None, Floor, Slope, DrawSlopes }", body, StringComparison.Ordinal);
+        Assert.Contains("public ThreeDFloorEditMode CurrentThreeDFloorEditMode => _threeDFloorEditMode;", body, StringComparison.Ordinal);
+        Assert.Contains("ThreeDFloors.ModeDescriptor.DisplayName", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.mode-3d-floor\":", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.threedfloorhelpermode\":", body, StringComparison.Ordinal);
+        Assert.Contains("SetThreeDFloorEditMode(ThreeDFloorEditMode.Floor);", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.mode-3d-slope\":", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.threedslopemode\":", body, StringComparison.Ordinal);
+        Assert.Contains("SetThreeDFloorEditMode(ThreeDFloorEditMode.Slope);", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.mode-draw-slopes\":", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.drawslopesmode\":", body, StringComparison.Ordinal);
+        Assert.Contains("SetThreeDFloorEditMode(ThreeDFloorEditMode.DrawSlopes);", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Map2DSelectCommandsUseCursorSelectionWithModifiers()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));

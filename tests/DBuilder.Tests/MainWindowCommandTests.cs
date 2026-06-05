@@ -174,6 +174,14 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void ModeStatusUsesMapControl2DModeLabel()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("$\"Mode: {MapView.Current2DModeStatusText}\"", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ScreenshotCommandsWriteTimestampedPngFiles()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));

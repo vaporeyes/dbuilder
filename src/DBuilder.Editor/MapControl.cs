@@ -821,8 +821,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     /// <summary>Which element class clicks select. Switched with the number keys 1-4.</summary>
     public enum EditMode { Vertices, Linedefs, Sectors, Things }
+    public enum ThreeDFloorEditMode { None, Floor, Slope, DrawSlopes }
     private EditMode _editMode = EditMode.Linedefs;
+    private ThreeDFloorEditMode _threeDFloorEditMode;
     public EditMode CurrentEditMode => _editMode;
+    public ThreeDFloorEditMode CurrentThreeDFloorEditMode => _threeDFloorEditMode;
+    public string Current2DModeStatusText => _threeDFloorEditMode switch
+    {
+        ThreeDFloorEditMode.Floor => ThreeDFloors.ModeDescriptor.DisplayName,
+        ThreeDFloorEditMode.Slope => ThreeDFloors.SlopeModeDescriptor.DisplayName,
+        ThreeDFloorEditMode.DrawSlopes => ThreeDFloors.DrawSlopesModeDescriptor.DisplayName,
+        _ => _editSelectionMode ? "Edit Selection" : _editMode.ToString(),
+    };
     private bool _editSelectionMode;
     public bool EditSelectionModeActive => _editSelectionMode;
     /// <summary>Raised when the active selection mode changes (for the status bar).</summary>
@@ -844,8 +854,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             ActionStateChanged?.Invoke();
         }
         SetImageExampleMode(false);
+        bool changedThreeDFloorMode = _threeDFloorEditMode != ThreeDFloorEditMode.None;
+        _threeDFloorEditMode = ThreeDFloorEditMode.None;
         SetEditSelectionMode(false);
-        if (_editMode == m) return;
+        if (_editMode == m && !changedThreeDFloorMode) return;
         _editMode = m;
         ModeChanged?.Invoke();
         Picked?.Invoke($"mode: {m}");
@@ -854,11 +866,36 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     public void SetCurrentEditMode(EditMode mode) => SetEditMode(mode);
 
+    private void SetThreeDFloorEditMode(ThreeDFloorEditMode mode)
+    {
+        if (AutomapMode)
+        {
+            AutomapMode = false;
+            ClearAutomapState();
+            _geometryDirty = true;
+            ActionStateChanged?.Invoke();
+        }
+        if (WadAuthorMode)
+        {
+            LeaveWadAuthorMode();
+            _geometryDirty = true;
+            ActionStateChanged?.Invoke();
+        }
+        SetImageExampleMode(false);
+        SetEditSelectionMode(false);
+        if (_threeDFloorEditMode == mode) return;
+        _threeDFloorEditMode = mode;
+        ModeChanged?.Invoke();
+        Picked?.Invoke($"mode: {Current2DModeStatusText}");
+        RequestNextFrameRendering();
+    }
+
     public void BeginEditSelectionMode() => SetEditSelectionMode(true);
 
     private void SetEditSelectionMode(bool enabled)
     {
         if (_editSelectionMode == enabled) return;
+        if (enabled) _threeDFloorEditMode = ThreeDFloorEditMode.None;
         _editSelectionMode = enabled;
         if (enabled)
         {
@@ -6141,6 +6178,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.bridge-mode":
             case "map2d.bridgemode":
                 RunBridgeCommand();
+                return true;
+            case "map2d.mode-3d-floor":
+            case "map2d.threedfloorhelpermode":
+                SetThreeDFloorEditMode(ThreeDFloorEditMode.Floor);
+                return true;
+            case "map2d.mode-3d-slope":
+            case "map2d.threedslopemode":
+                SetThreeDFloorEditMode(ThreeDFloorEditMode.Slope);
+                return true;
+            case "map2d.mode-draw-slopes":
+            case "map2d.drawslopesmode":
+                SetThreeDFloorEditMode(ThreeDFloorEditMode.DrawSlopes);
                 return true;
             case "map2d.3dfloor.select-control-sector":
             case "map2d.select3dfloorcontrolsector":
