@@ -487,9 +487,12 @@ public partial class MainWindow : Window
         SetShortcutToolTip(ReloadMapButton, "Reload Map", "window.reload-map");
         SetShortcutToolTip(CloseMapButton, "Close Map", "window.close-map");
         SetShortcutToolTip(SaveButton, "Save WAD", "window.save");
+        SetShortcutToolTip(ScriptsButton, "Scripts", "window.udbscripts");
         SetShortcutToolTip(CutButton, "Cut Selection", "window.cut");
         SetShortcutToolTip(CopyButton, "Copy Selection", "window.copy");
         SetShortcutToolTip(PasteButton, "Paste Selection", "window.paste");
+        SetShortcutToolTip(InsertPrefabButton, "Insert Prefab File", "window.insert-prefab-file");
+        SetShortcutToolTip(InsertPreviousPrefabButton, "Insert Previous Prefab", "window.insert-previous-prefab");
         SetShortcutToolTip(DeleteButton, "Delete Selection", "window.delete");
         SetShortcutToolTip(FitButton, "Fit to Map", "map2d.fit");
         SetShortcutToolTip(Toggle3DModeButton, "Toggle 3D Mode", "map2d.toggle-3d");
@@ -527,6 +530,8 @@ public partial class MainWindow : Window
         SetShortcutToolTip(SectorColorButton, "Sector Color", "window.sector-color");
         SetShortcutToolTip(DynamicLightColorButton, "Dynamic Light Color", "window.dynamic-light-color");
         SetShortcutToolTip(TagRangeButton, "Tag Range", "window.tag-range");
+        SetShortcutToolTip(ThingFilterButton, "Configure Things Filters", "window.things-filters-setup");
+        SetShortcutToolTip(LinedefColorSetupButton, "Configure Linedef Colors", "window.linedefcolorssetup");
         SetShortcutToolTip(ImportObjTerrainButton, "Import OBJ Terrain", "window.import-obj-terrain");
     }
 
@@ -7480,16 +7485,17 @@ public partial class MainWindow : Window
             DrawRectangleMenuItem, DrawEllipseMenuItem, DrawGridMenuItem, CheckMapMenuItem, CleanUpGeometryMenuItem,
             TestMapMenuItem, TestMapFromViewMenuItem, SoundPropagationMenuItem, SetLeakFinderStartMenuItem, SetLeakFinderEndMenuItem, SoundEnvironmentsMenuItem, BlockmapExplorerMenuItem, BuildBridgeMenuItem, MakeDoorMenuItem, BuildStairsMenuItem, ApplyJitterMenuItem, ApplyDirectionalShadingMenuItem, ApplySlopeArchMenuItem, ApplySlopesMenuItem, SectorColorMenuItem, DynamicLightColorMenuItem, ToggleLightPanelMenuItem, TagRangeMenuItem, ImageExampleMenuItem, ImportObjTerrainMenuItem,
             ExportObjectMenuItem, ExportImageMenuItem, ExportWavefrontMenuItem, ExportIdStudioMenuItem, RejectViewerMenuItem, CloseMapButton, SaveAsMenuItem, SaveAsFormatMenuItem,
+            ScriptsButton, InsertPrefabButton, LinedefColorSetupButton,
             FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
             SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,
             DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, DrawGridButton,
             ToggleGridRenderingButton, ToggleSnapToGridButton, ToggleDynamicGridSizeButton, AutoMergeButton, SplitJoinedSectorsButton, AutoClearSidedefTexturesButton, CheckMapButton,
             CleanUpGeometryButton, TestMapButton, TestMapFromViewButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplyJitterButton, ApplyDirectionalShadingButton, ApplySlopeArchButton, ApplySlopesButton, SectorColorButton, DynamicLightColorButton, TagRangeButton, LinedefColorPresetsButton, ImportObjTerrainButton, WadAuthorModeButton);
         SetEnabled(canSave, SaveMenuItem, SaveButton);
-        SetEnabled(canInsertPreviousPrefab, InsertPreviousPrefabMenuItem);
+        SetEnabled(canInsertPreviousPrefab, InsertPreviousPrefabMenuItem, InsertPreviousPrefabButton);
         SetEnabled(canPlaceThings, PlaceThingsMenuItem);
         SetEnabled(canEditUsdf, UsdfConversationsMenuItem);
-        SetEnabled(canFilterThingCategories, ThingFilterMenuItem);
+        SetEnabled(canFilterThingCategories, ThingFilterMenuItem, ThingFilterButton);
         SetEnabled(canReloadResources, ReloadResourcesMenuItem, ReloadResourcesButton);
         SetEnabled(canUseCopyPaste, CutMenuItem, CopyMenuItem, PasteMenuItem, PasteSpecialMenuItem, CutButton, CopyButton, PasteButton);
         SetEnabled(canBrowseAny, BrowsersMenuItem);

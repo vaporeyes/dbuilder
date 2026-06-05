@@ -934,7 +934,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("IReadOnlyList<ThingFilterCategoryChoice> cats = ThingFilterWindow.CategoryChoices(_config);", body, StringComparison.Ordinal);
         Assert.Contains("GridSetupMenuItem, SmartGridTransformMenuItem, AlignGridToLinedefMenuItem, SetGridOriginToVertexMenuItem, ToggleGridRenderingMenuItem,", body, StringComparison.Ordinal);
         Assert.Contains("ResetGridTransformMenuItem, ToggleSnapToGridMenuItem, ToggleDynamicGridSizeMenuItem, GridSizeDownMenuItem, GridSizeUpMenuItem", body, StringComparison.Ordinal);
-        Assert.Contains("SetEnabled(canFilterThingCategories, ThingFilterMenuItem);", body, StringComparison.Ordinal);
+        Assert.Contains("SetEnabled(canFilterThingCategories, ThingFilterMenuItem, ThingFilterButton);", body, StringComparison.Ordinal);
         Assert.Contains("SetEnabled(canBrowseAny, BrowsersMenuItem);", body, StringComparison.Ordinal);
         Assert.Contains("SetEnabled(hasResources, BrowseWallTexturesMenuItem, BrowseFlatsMenuItem);", body, StringComparison.Ordinal);
         Assert.Contains("SetEnabled(canBrowseCatalogs, BrowseThingsMenuItem, BrowseLinedefActionsMenuItem, BrowseSectorEffectsMenuItem);", body, StringComparison.Ordinal);
@@ -1180,17 +1180,27 @@ public sealed class MainWindowCommandTests
 
         Assert.Contains("ApplyToolbarShortcutTooltips();", body, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"OpenWadButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"ScriptsButton\" Click=\"OnUdbScriptDocker\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"InsertPrefabButton\" Click=\"OnInsertPrefab\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"InsertPreviousPrefabButton\" Click=\"OnInsertPreviousPrefab\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"ThingFilterButton\" Click=\"OnThingFilter\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"LinedefColorSetupButton\" Click=\"OnLinedefColorsSetup\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"TestMapFromViewButton\"", xaml, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(OpenWadButton, \"Open WAD\", \"window.open-map\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(SaveButton, \"Save WAD\", \"window.save\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ScriptsButton, \"Scripts\", \"window.udbscripts\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(CutButton, \"Cut Selection\", \"window.cut\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(CopyButton, \"Copy Selection\", \"window.copy\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(PasteButton, \"Paste Selection\", \"window.paste\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(InsertPrefabButton, \"Insert Prefab File\", \"window.insert-prefab-file\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(InsertPreviousPrefabButton, \"Insert Previous Prefab\", \"window.insert-previous-prefab\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(OpenMapButton, \"Open Map\", \"window.open-map-in-current-wad\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(TestMapFromViewButton, \"Test Map from Current Position\", \"window.testmapfromview\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(VerticesModeButton, \"Vertices Mode\", \"map2d.mode-vertices\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ApplyJitterButton, \"Randomize\", \"window.applyjitter\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ApplyDirectionalShadingButton, \"Apply Directional Shading\", \"window.applydirectionalshading\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ThingFilterButton, \"Configure Things Filters\", \"window.things-filters-setup\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(LinedefColorSetupButton, \"Configure Linedef Colors\", \"window.linedefcolorssetup\");", body, StringComparison.Ordinal);
         Assert.Contains("EditorCommandCatalog.CommandToolTip(label, commandId, _shortcutBindings)", body, StringComparison.Ordinal);
     }
 

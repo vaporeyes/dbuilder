@@ -1305,6 +1305,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add toolbar buttons for draw mode and shape tools.
   - [x] Add toolbar buttons for cut, copy, and paste actions.
   - [x] Add toolbar buttons for grid, snap, geometry, and sidedef texture toggles.
+  - [x] Add toolbar buttons for scripts, prefabs, things filters, and linedef color setup.
   - [x] Add toolbar buttons for map check, cleanup, test, stairs, and slopes.
   - [x] Add a toolbar button for testing the map from the current position.
   - [x] Add an Insert at Cursor toolbar action for thing and vertex placement.
