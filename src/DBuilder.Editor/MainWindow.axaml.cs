@@ -536,7 +536,7 @@ public partial class MainWindow : Window
     private void LogAndSetStatus(Exception exception, string context)
     {
         ErrorLog.Append(exception, context);
-        SetStatus($"{context}: {exception.Message}");
+        SetStatus($"{context}: {exception.Message}", StatusHistoryKind.Warning);
     }
 
     private static string? AssetsRootFromConfigDir(string configDir)
@@ -6894,10 +6894,10 @@ public partial class MainWindow : Window
 
     // ---- UI helpers ----
 
-    private void SetStatus(string text)
+    private void SetStatus(string text, StatusHistoryKind kind = StatusHistoryKind.Info)
     {
         StatusText.Text = text;
-        _statusHistory.Add(text);
+        _statusHistory.Add(text, kind);
     }
 
     private string CurrentConfigLabel()

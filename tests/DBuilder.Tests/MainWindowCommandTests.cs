@@ -121,6 +121,16 @@ public sealed class MainWindowCommandTests
         Assert.Contains($"{handlerName}(this, new RoutedEventArgs())", body, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void LoggedWorkflowFailuresUseWarningStatusKind()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("SetStatus($\"{context}: {exception.Message}\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("private void SetStatus(string text, StatusHistoryKind kind = StatusHistoryKind.Info)", body, StringComparison.Ordinal);
+        Assert.Contains("_statusHistory.Add(text, kind);", body, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("window.classiccopyproperties", "OnCopyProperties")]
     [InlineData("window.classicpasteproperties", "OnPasteProperties")]
