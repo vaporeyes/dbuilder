@@ -61,7 +61,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.save-map-as", "Save Map As", "Menu", EditorCommandScope.Window, AllowMouse: false, Description: "Saves the current map and all resources from the source WAD file to a new WAD file."),
         new EditorCommandDescriptor("window.savemapas", "Save Map As", "Menu", EditorCommandScope.Window, AllowMouse: false, Description: "Saves the current map and all resources from the source WAD file to a new WAD file."),
         new EditorCommandDescriptor("window.save-as-format", "Save As Format", "Menu", EditorCommandScope.Window, AllowMouse: false),
-        new EditorCommandDescriptor("window.savemapinto", "Save As Format", "Menu", EditorCommandScope.Window, AllowMouse: false),
+        new EditorCommandDescriptor("window.savemapinto", "Save Map Into", "Menu", EditorCommandScope.Window, AllowMouse: false, Description: "Saves the current map without any other resources into an existing or new WAD file."),
         new EditorCommandDescriptor("window.map-options", "Map Options", "Menu", EditorCommandScope.Window, AllowMouse: false, Description: "Shows the Map Options dialog which allows changing the map lump name, game configuration and custom resources."),
         new EditorCommandDescriptor("window.mapoptions", "Map Options", "Menu", EditorCommandScope.Window, AllowMouse: false, Description: "Shows the Map Options dialog which allows changing the map lump name, game configuration and custom resources."),
         new EditorCommandDescriptor("window.snap-selection-to-grid", "Snap Selected Map Elements to Grid", "Menu", EditorCommandScope.Window, AllowMouse: false, Description: "Snaps selected map elements to grid."),

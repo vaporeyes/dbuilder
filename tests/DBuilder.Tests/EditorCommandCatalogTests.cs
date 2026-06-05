@@ -385,7 +385,7 @@ public class EditorCommandCatalogTests
     [InlineData("window.save-map-as", "Save Map As", "Menu")]
     [InlineData("window.savemapas", "Save Map As", "Menu")]
     [InlineData("window.save-as-format", "Save As Format", "Menu")]
-    [InlineData("window.savemapinto", "Save As Format", "Menu")]
+    [InlineData("window.savemapinto", "Save Map Into", "Menu")]
     [InlineData("window.map-options", "Map Options", "Menu")]
     [InlineData("window.mapoptions", "Map Options", "Menu")]
     [InlineData("window.snap-selection-to-grid", "Snap Selected Map Elements to Grid", "Menu")]
@@ -639,6 +639,21 @@ public class EditorCommandCatalogTests
         Assert.False(command.AllowScroll);
         Assert.False(command.Repeat);
         Assert.Equal(description, command.Description);
+    }
+
+    [Fact]
+    public void SaveMapIntoAliasMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.savemapinto");
+
+        Assert.NotNull(command);
+        Assert.Equal("Save Map Into", command.Title);
+        Assert.Equal("Saves the current map without any other resources into an existing or new WAD file.", command.Description);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.False(command.AllowMouse);
+        Assert.False(command.AllowScroll);
     }
 
     [Theory]
