@@ -4728,6 +4728,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             foreach (var t in _map.Things)
             {
                 if (ThingHidden2D(t)) continue;
+                ThingTypeInfo? thingInfo = _gameConfig?.GetThing(t.Type);
+                double thingRadius = t.Size > 0 ? t.Size : thingInfo?.RenderRadius ?? thingInfo?.Width ?? 10.0;
+                bool fixedSize = t.FixedSize || thingInfo?.FixedSize == true;
+                if (!t.Selected && !ThingIconRenderPolicy.ShouldRenderThing(
+                    thingRadius,
+                    _zoom,
+                    _fixedThingsScale,
+                    fixedSize)) continue;
                 if (overviewCells != null && !t.Selected && !overviewCells.Add(ThingOverviewCell(t.Position))) continue;
                 // Arrow mode: Doom-Builder-style colored disc + direction arrow (no sprites).
                 if (_thingArrows)
@@ -4736,20 +4744,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                     continue;
                 }
 
-                ThingTypeInfo? thingInfo = _gameConfig?.GetThing(t.Type);
                 ThingBillboardDisplay? display = ThingBillboardDisplayPlanner.Plan(thingInfo, _resources);
                 if (!compactThingMarkers && display != null && GetSpriteTexture(display.SpriteName) is { })
                 {
                     ImageData img = display.Image;
                     int sc = ThingBillboardTint(t, gldefs);
-                    double thingRadius = t.Size > 0 ? t.Size : thingInfo?.RenderRadius ?? thingInfo?.Width ?? 10.0;
                     var (hw, hh) = ThingIconRenderPolicy.SpriteHalfSize(
                         img.Width,
                         img.Height,
                         thingRadius,
                         _zoom,
                         _fixedThingsScale,
-                        t.FixedSize || thingInfo?.FixedSize == true);
+                        fixedSize);
                     var p = t.Position;
                     if (!spriteVerts.TryGetValue(display.SpriteName, out var list)) { list = new(); spriteVerts[display.SpriteName] = list; }
                     // Image top (v=0) maps to higher world-y so the sprite stands upright on screen.

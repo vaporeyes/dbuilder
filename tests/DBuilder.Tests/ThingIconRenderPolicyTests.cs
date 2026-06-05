@@ -122,7 +122,33 @@ public sealed class ThingIconRenderPolicyTests
             ThingIconRenderPolicy.OverviewCullCellPixels - 0.01));
         Assert.Equal(1, ThingIconRenderPolicy.OverviewCullCell(
             ThingIconRenderPolicy.OverviewCullCellPixels));
-        Assert.Equal(64.0, ThingIconRenderPolicy.OverviewCullCellPixels);
+        Assert.Equal(96.0, ThingIconRenderPolicy.OverviewCullCellPixels);
+    }
+
+    [Fact]
+    public void SkipsThingsWhoseProjectedRadiusIsTooSmall()
+    {
+        Assert.False(ThingIconRenderPolicy.ShouldRenderThing(
+            mapRadius: 10,
+            viewScale: 8,
+            fixedThingsScale: false));
+        Assert.True(ThingIconRenderPolicy.ShouldRenderThing(
+            mapRadius: 12,
+            viewScale: 8,
+            fixedThingsScale: false));
+    }
+
+    [Fact]
+    public void FixedThingScalePreservesProjectedRadiusAtCloseZoom()
+    {
+        Assert.Equal(48, ThingIconRenderPolicy.ProjectedThingScreenRadius(
+            mapRadius: 80,
+            viewScale: 0.5,
+            fixedThingsScale: true));
+        Assert.True(ThingIconRenderPolicy.ShouldRenderThing(
+            mapRadius: 80,
+            viewScale: 0.5,
+            fixedThingsScale: true));
     }
 
     [Fact]

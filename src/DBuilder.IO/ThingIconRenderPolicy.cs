@@ -8,9 +8,10 @@ public static class ThingIconRenderPolicy
     public const double CompactMarkerScaleThreshold = 0.125;
     public const double FixedThingScreenRadius = 48.0;
     public const double ThingSpriteShrink = 2.0;
+    public const double MinimumThingScreenRadius = 1.5;
     public const double OverviewMarkerScaleThreshold = 0.25;
     public const double OverviewMarkerBaseSize = 2.0;
-    public const double OverviewCullCellPixels = 64.0;
+    public const double OverviewCullCellPixels = 96.0;
     public const double CompactMarkerBaseSize = 4.0;
     public const double RegularMarkerBaseSize = 10.0;
     public const double CompactDirectionTickBaseSize = 7.0;
@@ -31,6 +32,9 @@ public static class ThingIconRenderPolicy
     public static int OverviewCullCell(double screenCoordinate)
         => (int)Math.Floor(screenCoordinate / OverviewCullCellPixels);
 
+    public static bool ShouldRenderThing(double mapRadius, double viewScale, bool fixedThingsScale, bool fixedSize = false)
+        => ProjectedThingScreenRadius(mapRadius, viewScale, fixedThingsScale, fixedSize) >= MinimumThingScreenRadius;
+
     public static double MarkerBaseSize(bool compactMarkers)
         => compactMarkers ? CompactMarkerBaseSize : RegularMarkerBaseSize;
 
@@ -49,6 +53,9 @@ public static class ThingIconRenderPolicy
         if (fixedThingsScale && radius / scale > FixedThingScreenRadius) return FixedThingScreenRadius * scale;
         return radius;
     }
+
+    public static double ProjectedThingScreenRadius(double mapRadius, double viewScale, bool fixedThingsScale, bool fixedSize = false)
+        => ScaledWorldRadius(mapRadius, viewScale, fixedThingsScale, fixedSize) / Math.Max(0.001, viewScale);
 
     public static (double HalfWidth, double HalfHeight) SpriteHalfSize(
         int imageWidth,
