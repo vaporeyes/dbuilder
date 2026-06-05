@@ -10,6 +10,8 @@ namespace DBuilder.Editor;
 
 public sealed class SettingsWindow : PropertyDialog
 {
+    private const string ShortcutOverrideWatermark = "command.id=Shortcut; separate entries with semicolons, commas, or new lines";
+
     private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _testSkill, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _statusHistoryLimit, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _mergeGeometryMode, _pasteTagMode;
     private readonly CheckBox _testMonsters, _autoClearSidedefTextures, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _pasteRemoveActions;
@@ -69,6 +71,10 @@ public sealed class SettingsWindow : PropertyDialog
         _maxRecentFiles = AddField("Max recent files", Settings.MaxRecentFilesText(s));
         _statusHistoryLimit = AddField("Status history", Settings.StatusHistoryLimitText(s));
         _shortcutOverrides = AddField("Shortcut overrides", EditorCommandCatalog.OverrideText(s.ShortcutOverrides));
+        _shortcutOverrides.AcceptsReturn = true;
+        _shortcutOverrides.MinHeight = 72;
+        _shortcutOverrides.Watermark = ShortcutOverrideWatermark;
+        _shortcutOverrides.TextWrapping = Avalonia.Media.TextWrapping.Wrap;
         _drawLineShowGuidelines = s.NormalizedDrawLineSettings.ShowGuidelines;
         _drawRectangleSubdivisions = s.NormalizedDrawRectangleSettings.Subdivisions;
         _drawRectangleBevelWidth = s.NormalizedDrawRectangleSettings.BevelWidth;

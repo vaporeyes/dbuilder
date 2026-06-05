@@ -32,6 +32,22 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowDescribesShortcutOverrideSyntax()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+
+        Assert.NotNull(type.GetField("ShortcutOverrides", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddField(\"Shortcut overrides\", EditorCommandCatalog.OverrideText(s.ShortcutOverrides))", body, StringComparison.Ordinal);
+        Assert.Contains("ShortcutOverrideWatermark", body, StringComparison.Ordinal);
+        Assert.Contains("command.id=Shortcut", body, StringComparison.Ordinal);
+        Assert.Contains("_shortcutOverrides.AcceptsReturn = true;", body, StringComparison.Ordinal);
+        Assert.Contains("_shortcutOverrides.MinHeight = 72;", body, StringComparison.Ordinal);
+        Assert.Contains("_shortcutOverrides.TextWrapping = Avalonia.Media.TextWrapping.Wrap;", body, StringComparison.Ordinal);
+        Assert.Contains("ShortcutOverrides = EditorCommandCatalog.ParseOverrideText(_shortcutOverrides.Text);", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesTestSkillAndMonsters()
     {
         Type type = typeof(SettingsWindow);
