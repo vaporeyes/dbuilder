@@ -3376,7 +3376,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 ? (h.Front ? h.Line.Front : h.Line.Back)
                 : null;
             if (wallSide != null && !doneSides.Add((wallSide, h.Part))) continue;
-            if (h.Kind == VisualHitKind.Wall && AdjustVisualWallBrightness3D(h, raise, brightnessLevels, _mapFormat, _gameConfig, out brightnessStatus))
+            if (h.Kind == VisualHitKind.Wall && AdjustVisualWallBrightness3D(h, raise, brightnessLevels, _mapFormat, _gameConfig, out brightnessStatus, mapInfo: CurrentMapInfo()))
             {
                 if (!begun) { EditBegun?.Invoke(VisualBrightness3DEditName(h.Kind)); begun = true; }
                 continue;
@@ -3453,7 +3453,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         IReadOnlyList<int> brightnessLevels,
         MapFormat mapFormat,
         GameConfiguration? config,
-        out string status)
+        out string status,
+        MapInfoEntry? mapInfo = null)
     {
         status = string.Empty;
         if (hit.Kind != VisualHitKind.Wall || hit.Line == null || hit.Sector == null) return false;
@@ -3479,7 +3480,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (next == current) return false;
 
         side.SetIntegerField(field, next, absolute ? int.MinValue : 0);
-        SidedefFogTools.UpdateLightFogFlag(side, mapInfo: null, config);
+        SidedefFogTools.UpdateLightFogFlag(side, mapInfo, config);
         status = VisualBrightness3DStatusText(VisualHitKind.Wall, next);
         return true;
     }

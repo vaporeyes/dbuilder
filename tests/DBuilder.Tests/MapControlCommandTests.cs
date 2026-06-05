@@ -844,6 +844,21 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void VisualWallBrightnessLightFogUsesCurrentMapInfoLikeUdb()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int callIndex = body.IndexOf("AdjustVisualWallBrightness3D(h, raise, brightnessLevels, _mapFormat, _gameConfig, out brightnessStatus, mapInfo: CurrentMapInfo())", StringComparison.Ordinal);
+        int methodIndex = body.IndexOf("public static bool AdjustVisualWallBrightness3D", StringComparison.Ordinal);
+        int parameterIndex = body.IndexOf("MapInfoEntry? mapInfo = null", methodIndex, StringComparison.Ordinal);
+        int updateIndex = body.IndexOf("SidedefFogTools.UpdateLightFogFlag(side, mapInfo, config)", methodIndex, StringComparison.Ordinal);
+
+        Assert.True(callIndex >= 0);
+        Assert.True(methodIndex > callIndex);
+        Assert.True(parameterIndex > methodIndex);
+        Assert.True(updateIndex > methodIndex);
+    }
+
+    [Fact]
     public void GridRenderingCommandControlsVisibleGridOnly()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
@@ -1559,7 +1574,7 @@ public sealed class MapControlCommandTests
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
         int methodIndex = body.IndexOf("private void AdjustTargetBrightness3D(bool raise)", StringComparison.Ordinal);
         int levelsIndex = body.IndexOf("IReadOnlyList<int> brightnessLevels = _gameConfig?.BrightnessLevels ?? [];", methodIndex, StringComparison.Ordinal);
-        int wallIndex = body.IndexOf("AdjustVisualWallBrightness3D(h, raise, brightnessLevels, _mapFormat, _gameConfig, out brightnessStatus)", methodIndex, StringComparison.Ordinal);
+        int wallIndex = body.IndexOf("AdjustVisualWallBrightness3D(h, raise, brightnessLevels, _mapFormat, _gameConfig, out brightnessStatus, mapInfo: CurrentMapInfo())", methodIndex, StringComparison.Ordinal);
         int wallEditIndex = body.IndexOf("EditBegun?.Invoke(VisualBrightness3DEditName(h.Kind));", wallIndex, StringComparison.Ordinal);
         int ceilingIndex = body.IndexOf("AdjustVisualCeilingBrightness3D(h, raise, brightnessLevels, _mapFormat, _gameConfig, out brightnessStatus)", wallIndex, StringComparison.Ordinal);
         int ceilingEditIndex = body.IndexOf("EditBegun?.Invoke(VisualBrightness3DEditName(h.Kind));", ceilingIndex, StringComparison.Ordinal);
