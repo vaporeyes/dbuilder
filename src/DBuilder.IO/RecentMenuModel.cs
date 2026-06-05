@@ -32,18 +32,18 @@ public static class RecentMenuModel
     public static IReadOnlyList<RecentMenuEntry> Build(Settings settings, Func<string, bool> fileExists)
     {
         var entries = new List<RecentMenuEntry>();
-        IReadOnlyList<RecentMapReference> recentMaps = settings.ExistingRecentMaps(fileExists);
-        IReadOnlyList<string> recentFiles = settings.ExistingRecentFiles(fileExists);
+        IReadOnlyList<(int Index, RecentMapReference Map)> recentMaps = ExistingRecentMaps(settings, fileExists);
+        IReadOnlyList<(int Index, string Path)> recentFiles = ExistingRecentFiles(settings, fileExists);
         int maxRows = settings.NormalizedMaxRecentFiles;
         int mapRows = Math.Min(recentMaps.Count, maxRows);
         int fileRows = Math.Min(recentFiles.Count, maxRows - mapRows);
 
         for (int i = 0; i < mapRows; i++)
         {
-            RecentMapReference map = recentMaps[i];
+            (int index, RecentMapReference map) = recentMaps[i];
             entries.Add(new RecentMenuEntry(
                 RecentMenuEntryKind.Map,
-                NumberedHeader(i, RecentMapHeader(map)),
+                NumberedHeader(index, RecentMapHeader(map)),
                 map.Path,
                 map.MapName,
                 map.ArchivePath));
@@ -54,10 +54,10 @@ public static class RecentMenuModel
 
         for (int i = 0; i < fileRows; i++)
         {
-            string path = recentFiles[i];
+            (int index, string path) = recentFiles[i];
             entries.Add(new RecentMenuEntry(
                 RecentMenuEntryKind.File,
-                NumberedHeader(i, DisplayFilename(path)),
+                NumberedHeader(index, DisplayFilename(path)),
                 path));
         }
 
@@ -84,4 +84,24 @@ public static class RecentMenuModel
 
     private static string NumberedHeader(int index, string text)
         => $"&{index + 1}  {text}";
+
+    private static IReadOnlyList<(int Index, string Path)> ExistingRecentFiles(Settings settings, Func<string, bool> fileExists)
+    {
+        settings.RecentFiles ??= new();
+        return settings.RecentFiles
+            .Select((path, index) => (Index: index, Path: path))
+            .Take(settings.NormalizedMaxRecentFiles)
+            .Where(entry => fileExists(entry.Path))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<(int Index, RecentMapReference Map)> ExistingRecentMaps(Settings settings, Func<string, bool> fileExists)
+    {
+        settings.RecentMaps ??= new();
+        return settings.RecentMaps
+            .Select((map, index) => (Index: index, Map: map))
+            .Take(settings.NormalizedMaxRecentFiles)
+            .Where(entry => fileExists(entry.Map.Path))
+            .ToArray();
+    }
 }

@@ -46,7 +46,7 @@ public sealed class RecentMenuModelTests
     }
 
     [Fact]
-    public void BuildSkipsMissingRecentPaths()
+    public void BuildSkipsMissingRecentPathsAndPreservesStoredRowNumbers()
     {
         var settings = new Settings
         {
@@ -61,9 +61,9 @@ public sealed class RecentMenuModelTests
         IReadOnlyList<RecentMenuEntry> entries = RecentMenuModel.Build(settings, path => path.Contains("present", StringComparison.Ordinal));
 
         Assert.Equal(3, entries.Count);
-        Assert.Equal("&1  present.pk3 (maps/b.wad:MAP02)", entries[0].Header);
+        Assert.Equal("&2  present.pk3 (maps/b.wad:MAP02)", entries[0].Header);
         Assert.True(entries[1].IsSeparator);
-        Assert.Equal("&1  /present.wad", entries[2].Header);
+        Assert.Equal("&2  /present.wad", entries[2].Header);
     }
 
     [Fact]
