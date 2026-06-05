@@ -1158,6 +1158,23 @@ public class EditorCommandCatalogTests
         Assert.False(command.Repeat);
     }
 
+    [Fact]
+    public void PanViewCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.pan_view");
+
+        Assert.NotNull(command);
+        Assert.Equal("Pan View", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.False(command.Repeat);
+        Assert.Equal("Pans the map in the direction of the mouse while held down.", command.Description);
+        Assert.Equal("Classic Modes", command.CategoryTitle);
+    }
+
     [Theory]
     [InlineData("map2d.scrollwest", "Scroll West")]
     [InlineData("map2d.scrolleast", "Scroll East")]

@@ -315,6 +315,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.classicpaintselect", "Paint Selection", "Menu", EditorCommandScope.Map2D, AllowScroll: false, DisregardShift: true, DisregardAccelerator: true, DisregardAlt: true),
         new EditorCommandDescriptor("map2d.box-select", "Box-select or move a grabbed vertex/thing", "Left-drag", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.pan", "Pan the view", "Right-drag", EditorCommandScope.Map2D),
+        new EditorCommandDescriptor("map2d.pan_view", "Pan View", "Menu", EditorCommandScope.Map2D, AllowScroll: false, Description: "Pans the map in the direction of the mouse while held down."),
         new EditorCommandDescriptor("map2d.zoom", "Zoom out / in", "Wheel / - =", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.fit", "Fit map to view", "R", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.edit-properties", "Edit properties", "Double-click", EditorCommandScope.Map2D),

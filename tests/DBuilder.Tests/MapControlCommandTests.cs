@@ -675,10 +675,22 @@ public sealed class MapControlCommandTests
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
 
-        Assert.Contains("commandId is \"map3d.orbit\" or \"map2d.classicpaintselect\"", body, StringComparison.Ordinal);
+        Assert.Contains("commandId is \"map3d.orbit\" or \"map2d.classicpaintselect\" or \"map2d.pan_view\"", body, StringComparison.Ordinal);
         Assert.Contains("if (commandId == \"map2d.classicpaintselect\") EndClassicPaintSelection();", body, StringComparison.Ordinal);
         Assert.Contains("if (_classicPaintSelectPressed)", body, StringComparison.Ordinal);
         Assert.Contains("ApplyClassicPaintSelection(_cursorWorld, e.KeyModifiers);", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PanViewUsesHeldActionState()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("case \"map2d.pan_view\":", body, StringComparison.Ordinal);
+        Assert.Contains("BeginHeldPanView();", body, StringComparison.Ordinal);
+        Assert.Contains("if (commandId == \"map2d.pan_view\") EndHeldPanView();", body, StringComparison.Ordinal);
+        Assert.Contains("if (_heldPanView)", body, StringComparison.Ordinal);
+        Assert.Contains("PanViewByPointerDelta(pos);", body, StringComparison.Ordinal);
     }
 
     [Fact]

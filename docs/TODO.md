@@ -329,6 +329,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add raw UDB classic select and edit action aliases.
   - [x] Add raw UDB visual move-thing-to-cursor action alias.
   - [x] Add raw UDB snap-to-geometry and split-joined-sectors toggle surfaces.
+  - [x] Add raw UDB held pan-view action alias.
   - [x] Add UDB-style singular and plural labels to Filter Selected Things status text.
 
 ## Plugin Architecture
