@@ -59,6 +59,9 @@ public static class ThingIconRenderPolicy
     public static double DirectionTickBaseSize(bool compactMarkers)
         => compactMarkers ? CompactDirectionTickBaseSize : RegularDirectionTickBaseSize;
 
+    public static double MarkerWorldSize(double baseSize, double viewScale, bool fixedThingsScale, bool compactMarkers)
+        => fixedThingsScale || compactMarkers ? baseSize * Math.Max(0.001, viewScale) : baseSize;
+
     public static double ScaledWorldRadius(double mapRadius, double viewScale, bool fixedThingsScale, bool fixedSize = false)
     {
         double radius = Math.Max(1.0, mapRadius);

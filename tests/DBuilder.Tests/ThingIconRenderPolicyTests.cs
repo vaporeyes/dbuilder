@@ -69,6 +69,30 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
+    public void CompactMarkersKeepFixedScreenFootprintWithoutFixedThingScale()
+    {
+        double worldSize = ThingIconRenderPolicy.MarkerWorldSize(
+            baseSize: 4,
+            viewScale: 0.25,
+            fixedThingsScale: false,
+            compactMarkers: true);
+
+        Assert.Equal(1, worldSize);
+    }
+
+    [Fact]
+    public void RegularMarkersKeepMapSizeWithoutFixedThingScale()
+    {
+        double worldSize = ThingIconRenderPolicy.MarkerWorldSize(
+            baseSize: 10,
+            viewScale: 0.25,
+            fixedThingsScale: false,
+            compactMarkers: false);
+
+        Assert.Equal(10, worldSize);
+    }
+
+    [Fact]
     public void OverviewMarkersUseSmallestScreenFootprint()
     {
         Assert.True(ThingIconRenderPolicy.UseOverviewMarkers(

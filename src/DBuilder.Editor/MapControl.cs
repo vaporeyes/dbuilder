@@ -4713,10 +4713,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             bool compactThingMarkers = ThingIconRenderPolicy.UseCompactMarkers(_zoom, _fixedThingsScale, _thingArrows);
             bool overviewThingMarkers = ThingIconRenderPolicy.UseOverviewMarkers(_zoom, _thingArrows);
             bool farOverviewThingMarkers = ThingIconRenderPolicy.UseFarOverviewMarkers(_zoom, _thingArrows);
-            double s = ThingMarkerSize(ThingIconRenderPolicy.MarkerBaseSize(
-                compactThingMarkers,
-                overviewThingMarkers,
-                farOverviewThingMarkers));
+            double s = ThingMarkerSize(
+                ThingIconRenderPolicy.MarkerBaseSize(
+                    compactThingMarkers,
+                    overviewThingMarkers,
+                    farOverviewThingMarkers),
+                compactThingMarkers);
             Gldefs? gldefs = _resources?.GetGldefs();
             System.Collections.Generic.HashSet<(int X, int Y)>? overviewCells = null;
             if (ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(_zoom, _thingArrows))
@@ -5018,8 +5020,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _ => unchecked((int)0xffd0d0d0),
     };
 
-    private double ThingMarkerSize(double baseSize)
-        => _fixedThingsScale ? baseSize * _zoom : baseSize;
+    private double ThingMarkerSize(double baseSize, bool compactMarkers = false)
+        => ThingIconRenderPolicy.MarkerWorldSize(baseSize, _zoom, _fixedThingsScale, compactMarkers);
 
     private (int X, int Y) ThingOverviewCell(Vec2D position)
     {
