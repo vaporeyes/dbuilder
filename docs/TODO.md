@@ -949,6 +949,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Apply MAPINFO `DoomEdNums` `none` removals after actor merging.
   - [x] Apply MAPINFO `DoomEdNums` overrides from archived unsupported actors like UDB.
   - [x] Prefer actor metadata over existing thing copies for MAPINFO `DoomEdNums` overrides.
+  - [x] Match DECORATE `Game` metadata by exact configured game tokens.
   - [x] Recategorize replacement actors only when they declare an explicit `$Category`.
   - [x] Cancel replacement actor recategorization when a later replacement omits `$Category`.
   - [x] Ignore non-positive DECORATE editor numbers during actor merging.

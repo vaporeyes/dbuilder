@@ -1547,6 +1547,31 @@ ACTOR NeutralGameThing 31014
     }
 
     [Fact]
+    public void MergeActorsMatchesDecorateGamesByExactTokensLikeUdb()
+    {
+        const string text = @"
+ACTOR DoomOnlyThing 31015
+{
+    Game Doom
+    Radius 24
+    Height 48
+    States { Spawn: DARG A -1 stop }
+}
+ACTOR Doom2Thing 31016
+{
+    Game Doom2
+    Radius 24
+    Height 48
+    States { Spawn: D2RG A -1 stop }
+}";
+        var gc = GameConfiguration.FromText(@"decorategames = ""doom2"";");
+        gc.MergeActors(DecorateParser.Parse(text));
+
+        Assert.Null(gc.GetThing(31015));
+        Assert.NotNull(gc.GetThing(31016));
+    }
+
+    [Fact]
     public void MergeActorsAppliesDoomEdNumsOverridesFromUnsupportedActors()
     {
         const string text = @"

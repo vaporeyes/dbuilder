@@ -887,11 +887,19 @@ public sealed class GameConfiguration
     {
         if (!actor.Properties.TryGetValue("game", out var games) || games.Count == 0) return true;
 
-        string includeGames = DecorateGames.ToLowerInvariant();
+        var includeGames = ConfiguredDecorateGameSet();
         foreach (string game in games)
-            if (game.Length > 0 && includeGames.Contains(game.ToLowerInvariant(), StringComparison.Ordinal))
+            if (game.Length > 0 && includeGames.Contains(game))
                 return true;
         return false;
+    }
+
+    private HashSet<string> ConfiguredDecorateGameSet()
+    {
+        var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (string game in DecorateGames.Split(new[] { ',', ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+            result.Add(game.Trim());
+        return result;
     }
 
     private int FindThingByClass(string className)
