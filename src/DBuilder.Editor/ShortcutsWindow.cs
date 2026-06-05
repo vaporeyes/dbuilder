@@ -240,7 +240,12 @@ public sealed class ShortcutsWindow : Window
             ColumnDefinitions = new ColumnDefinitions("135,95,90,165,*"),
             Margin = new Avalonia.Thickness(0, 1),
         };
-        grid.Children.Add(new TextBlock
+        var shortcut = new StackPanel
+        {
+            Orientation = Orientation.Vertical,
+            Spacing = 1,
+        };
+        shortcut.Children.Add(new TextBlock
         {
             Text = row.GestureText,
             Foreground = Brushes.Khaki,
@@ -248,6 +253,15 @@ public sealed class ShortcutsWindow : Window
             VerticalAlignment = VerticalAlignment.Top,
             TextWrapping = TextWrapping.Wrap,
         });
+        shortcut.Children.Add(new TextBlock
+        {
+            Text = $"Default: {row.DefaultGestureText}",
+            Foreground = MutedBrush,
+            FontSize = 11,
+            IsVisible = !string.Equals(row.GestureText, row.DefaultGestureText, StringComparison.Ordinal),
+            TextWrapping = TextWrapping.Wrap,
+        });
+        grid.Children.Add(shortcut);
         var modifiers = new TextBlock
         {
             Text = row.ModifierText,

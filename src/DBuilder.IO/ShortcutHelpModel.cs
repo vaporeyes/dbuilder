@@ -6,6 +6,7 @@ namespace DBuilder.IO;
 public sealed record ShortcutHelpRow(
     EditorCommandDescriptor Command,
     string GestureText,
+    string DefaultGestureText,
     string ModifierText,
     string ScopeText,
     string CategoryText,
@@ -50,6 +51,7 @@ public static class ShortcutHelpModel
                 .Select(command => new ShortcutHelpRow(
                     command,
                     EditorCommandCatalog.GestureText(command.Id, bindings),
+                    EditorCommandCatalog.GestureText(command.Id, EditorCommandCatalog.DefaultShortcuts),
                     ModifierText(command),
                     ScopeTitle(command.Scope),
                     command.CategoryTitle,
@@ -123,6 +125,7 @@ public static class ShortcutHelpModel
             || MatchesText(row.ScopeText, token)
             || MatchesText(row.CategoryText, token)
             || MatchesText(row.GestureText, token)
+            || MatchesText(row.DefaultGestureText, token)
             || MatchesText(row.ModifierText, token)
             || MatchesText(row.DescriptionText, token));
     }

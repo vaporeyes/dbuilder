@@ -92,6 +92,15 @@ public sealed class ShortcutHelpModelTests
         Assert.Contains(gesture.SelectMany(section => section.Rows), row => row.Command.Id == "window.save");
         Assert.Contains(gesture, section => section.TotalRows > section.Rows.Count);
 
+        var defaultGesture = ShortcutHelpModel.BuildSections(
+            EditorCommandCatalog.All,
+            EditorCommandCatalog.EffectiveShortcuts(new[]
+            {
+                new EditorShortcutBinding("window.save", EditorCommandScope.Window, "F5"),
+            }),
+            "Ctrl/Cmd+S");
+        Assert.Contains(defaultGesture.SelectMany(section => section.Rows), row => row.Command.Id == "window.save");
+
         var actionDescription = ShortcutHelpModel.BuildSections(
             EditorCommandCatalog.All,
             EditorCommandCatalog.DefaultShortcuts,
@@ -179,8 +188,27 @@ public sealed class ShortcutHelpModelTests
         Assert.Equal("window.save", save.Command.Id);
         Assert.Equal("Saves the current map to the opened source WAD file.", save.DescriptionText);
         Assert.Equal(save.Command.Description, save.DescriptionText);
+        Assert.Equal("Ctrl/Cmd+S", save.DefaultGestureText);
         Assert.Equal("File", save.CategoryText);
         Assert.Equal("Window commands", save.ScopeText);
+    }
+
+    [Fact]
+    public void ShortcutRowsExposeDefaultGesturesForCustomizedBindings()
+    {
+        var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]
+        {
+            new EditorShortcutBinding("window.save", EditorCommandScope.Window, "F5"),
+        });
+
+        ShortcutHelpRow save = Assert.Single(ShortcutHelpModel.BuildSections(
+                EditorCommandCatalog.All,
+                bindings,
+                filter: "window.save")
+            .SelectMany(section => section.Rows));
+
+        Assert.Equal("F5", save.GestureText);
+        Assert.Equal("Ctrl/Cmd+S", save.DefaultGestureText);
     }
 
     [Fact]
@@ -212,6 +240,8 @@ public sealed class ShortcutHelpModelTests
         Assert.Contains("ScopeColumnHeader", body, StringComparison.Ordinal);
         Assert.Contains("CommandColumnHeader", body, StringComparison.Ordinal);
         Assert.Contains("DescriptionColumnHeader", body, StringComparison.Ordinal);
+        Assert.Contains("Text = $\"Default: {row.DefaultGestureText}\"", body, StringComparison.Ordinal);
+        Assert.Contains("IsVisible = !string.Equals(row.GestureText, row.DefaultGestureText, StringComparison.Ordinal)", body, StringComparison.Ordinal);
         Assert.Contains("Text = row.GestureText,\n            Foreground = Brushes.Khaki,\n            FontSize = 12,\n            VerticalAlignment = VerticalAlignment.Top,\n            TextWrapping = TextWrapping.Wrap,", body, StringComparison.Ordinal);
         Assert.Contains("Text = row.ModifierText,\n            Foreground = MutedBrush,\n            FontSize = 12,\n            VerticalAlignment = VerticalAlignment.Top,\n            TextWrapping = TextWrapping.Wrap,", body, StringComparison.Ordinal);
         Assert.Contains("Text = row.ScopeText,\n            Foreground = MutedBrush,\n            FontSize = 12,\n            VerticalAlignment = VerticalAlignment.Top,\n            TextWrapping = TextWrapping.Wrap,", body, StringComparison.Ordinal);
@@ -277,7 +307,7 @@ public sealed class ShortcutHelpModelTests
     public void SectionCountTextDescribesFilteredAndUnfilteredRows()
     {
         var command = EditorCommandCatalog.Find("window.save")!;
-        var row = new ShortcutHelpRow(command, "Ctrl/Cmd+S", "", "Window commands", command.CategoryTitle, command.HelpDescription);
+        var row = new ShortcutHelpRow(command, "Ctrl/Cmd+S", "Ctrl/Cmd+S", "", "Window commands", command.CategoryTitle, command.HelpDescription);
         var section = new ShortcutHelpSection("File and configuration", "Project commands.", [row], true, 12);
 
         Assert.Equal("1 shortcut", ShortcutHelpModel.SectionCountText(section, searching: false));
