@@ -302,7 +302,7 @@ public class UdmfMapWriterTests
     }
 
     [Fact]
-    public void MoreIdsSkipZeroAndDuplicateExtraTags()
+    public void MoreIdsPreserveZeroAndDuplicateExtraTagsLikeUdb()
     {
         var map = new MapSet { Namespace = "ZDoom" };
         var sector = new Sector { Index = 0, FloorTexture = "A", CeilTexture = "B" };
@@ -318,11 +318,9 @@ public class UdmfMapWriterTests
         var text = UdmfMapWriter.Write(map);
 
         Assert.Contains("id = 5;", Block(text, "sector // 0"));
-        Assert.Contains("moreids = \"7 8\";", Block(text, "sector // 0"));
+        Assert.Contains("moreids = \"0 5 7 7 8\";", Block(text, "sector // 0"));
         Assert.Contains("id = 11;", Block(text, "linedef // 0"));
-        Assert.Contains("moreids = \"12 13\";", Block(text, "linedef // 0"));
-        Assert.DoesNotContain("0 5", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("11 12 12", text, StringComparison.Ordinal);
+        Assert.Contains("moreids = \"0 11 12 12 13\";", Block(text, "linedef // 0"));
     }
 
     [Fact]

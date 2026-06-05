@@ -506,7 +506,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Emit UDMF text maps with UDB-style CRLF line endings.
   - [x] Format UDMF double values like UDB's universal parser.
   - [x] Format UDMF float values like UDB's universal parser.
-  - [x] Skip zero and duplicate UDMF `moreids` tags during writes.
+  - [x] Preserve zero and duplicate UDMF `moreids` tags during writes like UDB.
 - [ ] Port universal map stream reader behavior.
   - [x] Add stream-level UDMF reader facade with parser diagnostics.
 - [ ] Port universal map stream writer behavior.
