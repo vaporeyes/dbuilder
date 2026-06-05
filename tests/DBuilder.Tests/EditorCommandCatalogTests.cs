@@ -2243,7 +2243,7 @@ public class EditorCommandCatalogTests
     {
         Assert.Equal("map2d.toggle-sector-fills", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "S"));
         Assert.Equal("map2d.toggle-full-brightness", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "B"));
-        Assert.Equal("map2d.toggle-highlight", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "H"));
+        Assert.Equal("map2d.togglehighlight", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "H"));
         Assert.Equal("map2d.draw-sector", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D"));
         Assert.Equal("map2d.draw-lines", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D", shift: true));
         Assert.Equal("map2d.draw-rectangle", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D", accelerator: true, shift: true));
@@ -2251,11 +2251,11 @@ public class EditorCommandCatalogTests
         Assert.Equal("map2d.draw-curve", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "D", accelerator: true, alt: true));
         Assert.Equal("map2d.curvelinesmode", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "C", shift: true));
         Assert.Equal("map2d.bridge-mode", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "B", accelerator: true));
-        Assert.Equal("map2d.increase-subdivision-level", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollUp, accelerator: true));
-        Assert.Equal("map2d.decrease-subdivision-level", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollDown, accelerator: true));
-        Assert.Equal("map2d.increase-bevel", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollUp, accelerator: true, shift: true));
-        Assert.Equal("map2d.decrease-bevel", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollDown, accelerator: true, shift: true));
-        Assert.Equal("map2d.remove-first-draw-point", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Back", accelerator: true));
+        Assert.Equal("map2d.increasesubdivlevel", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollUp, accelerator: true));
+        Assert.Equal("map2d.decreasesubdivlevel", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollDown, accelerator: true));
+        Assert.Equal("map2d.increasebevel", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollUp, accelerator: true, shift: true));
+        Assert.Equal("map2d.decreasebevel", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollDown, accelerator: true, shift: true));
+        Assert.Equal("map2d.removefirstpoint", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Back", accelerator: true));
         Assert.Equal("map2d.mode-vertices", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "NumPad1"));
         Assert.Equal("map2d.mode-vertices", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Num1"));
         Assert.Equal("map2d.select", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.LeftButton));
@@ -2267,6 +2267,7 @@ public class EditorCommandCatalogTests
         Assert.Equal("map2d.zoom-out", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollDown));
         Assert.Equal("map2d.thinglookatcursor", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "L", shift: true));
         Assert.Equal("map2d.thinglookatcursor", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "L", accelerator: true, shift: true));
+        Assert.Equal("map2d.togglesnap", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "G"));
         Assert.Equal("map2d.toggle-3d", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Tab"));
     }
 
@@ -2539,7 +2540,7 @@ public class EditorCommandCatalogTests
         Assert.Equal("map3d.cut-selection", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "X", accelerator: true));
         Assert.Equal("map3d.paste-selection", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "V", accelerator: true));
         Assert.Equal("map3d.toggle-full-brightness", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "B"));
-        Assert.Equal("map3d.toggle-highlight", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "H"));
+        Assert.Equal("map3d.togglehighlight", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "H"));
         Assert.Equal("map3d.lowerbrightness8", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "["));
         Assert.Equal("map3d.raisebrightness8", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "]"));
         Assert.Equal("map3d.matchbrightness", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "M", accelerator: true));
