@@ -278,8 +278,6 @@ public sealed class MapCheckContext
     public string? ImpassableFlag { get; init; }
     /// <summary>Maximum safe map width or height in map units; 0 disables the map-size check.</summary>
     public int SafeBoundary { get; init; }
-    /// <summary>Linedefs shorter than this are flagged. UDB's check uses 1 map unit.</summary>
-    public double ShortLinedefLength { get; init; } = 1;
 }
 
 /// <summary>A single detected map problem with a human-readable message and optional navigation hints.</summary>
@@ -1646,9 +1644,9 @@ public static class MapAnalysis
         {
             var l = map.Linedefs[i];
             double len = (l.End.Position - l.Start.Position).GetLength();
-            if (len < ctx.ShortLinedefLength)
+            if (len < 1.0)
                 issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.ShortLinedef,
-                    $"Linedef {i} is shorter than {ctx.ShortLinedefLength:0.##} mu.")
+                    $"Linedef {i} is shorter than 1 mu.")
                     {
                         Description = "This linedef is shorter than 1 map unit. This can potentially cause nodebuilding errors.",
                         Target = l,
