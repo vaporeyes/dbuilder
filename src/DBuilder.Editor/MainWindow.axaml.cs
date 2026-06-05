@@ -1609,6 +1609,8 @@ public partial class MainWindow : Window
             case "window.errorcheckmode": OnCheckMap(this, new RoutedEventArgs()); return true;
             case "window.clean-up-geometry": OnCleanUpGeometry(this, new RoutedEventArgs()); return true;
             case "window.test-map": OnTestMap(this, new RoutedEventArgs()); return true;
+            case "window.test-map-from-view": OnTestMapFromView(this, new RoutedEventArgs()); return true;
+            case "window.testmapfromview": OnTestMapFromView(this, new RoutedEventArgs()); return true;
             case "window.things-filters-setup": OnThingFilter(this, new RoutedEventArgs()); return true;
             case "window.reload-resources": OnReloadResources(this, new RoutedEventArgs()); return true;
             case "window.grid-setup": OnGridSetup(this, new RoutedEventArgs()); return true;
@@ -4679,8 +4681,12 @@ public partial class MainWindow : Window
         return discard;
     }
 
+    private void OnTestMap(object? sender, RoutedEventArgs e) => TestMap(testFromCurrentPosition: false);
+
+    private void OnTestMapFromView(object? sender, RoutedEventArgs e) => TestMap(testFromCurrentPosition: true);
+
     // Saves the current map to a temporary PWAD (with nodes if a builder is configured) and launches a source port on it.
-    private void OnTestMap(object? sender, RoutedEventArgs e)
+    private void TestMap(bool testFromCurrentPosition)
     {
         if (_map is null || _mapMarker is null) { SetStatus("No map loaded to test."); return; }
 
@@ -4707,9 +4713,26 @@ public partial class MainWindow : Window
         try
         {
             // Build a minimal PWAD containing only the edited map block (the IWAD provides everything else).
+            MapSet testMap = _map;
+            if (testFromCurrentPosition)
+            {
+                bool usesHubPlayerStartArgs = _mapFormat is MapFormat.Hexen or MapFormat.Udmf;
+                TestMapFromViewResult placement = TestMapFromView.Prepare(
+                    _map,
+                    MapView.CurrentTestMapFromViewPlacement(),
+                    usesHubPlayerStartArgs);
+                if (!placement.Success || placement.Map is null)
+                {
+                    SetStatus(placement.Message);
+                    return;
+                }
+
+                testMap = placement.Map;
+            }
+
             byte[] bytes;
             var ms = new System.IO.MemoryStream();
-            using (var dst = new WAD(ms)) { WadMaps.SaveMap(dst, _mapMarker, _map, _mapFormat, _config); bytes = ms.ToArray(); }
+            using (var dst = new WAD(ms)) { WadMaps.SaveMap(dst, _mapMarker, testMap, _mapFormat, _config); bytes = ms.ToArray(); }
             BuildNodesIfConfigured(ref bytes, forTesting: true); // GZDoom can build nodes itself, but use the configured builder when present
 
             string temp = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"dbuilder_test_{_mapMarker}.wad");

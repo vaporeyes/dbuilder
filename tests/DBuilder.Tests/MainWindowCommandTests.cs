@@ -100,6 +100,8 @@ public sealed class MainWindowCommandTests
     [InlineData("window.check-map", "OnCheckMap")]
     [InlineData("window.errorcheckmode", "OnCheckMap")]
     [InlineData("window.clean-up-geometry", "OnCleanUpGeometry")]
+    [InlineData("window.test-map-from-view", "OnTestMapFromView")]
+    [InlineData("window.testmapfromview", "OnTestMapFromView")]
     [InlineData("window.build-bridge", "OnBuildBridge")]
     [InlineData("window.makedoor", "OnMakeDoor")]
     [InlineData("window.build-stairs", "OnBuildStairs")]

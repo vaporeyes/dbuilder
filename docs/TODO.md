@@ -103,6 +103,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Execute configured before/after Reload Resources commands.
 - [ ] Port game testing flow with configurable source ports.
   - [x] Use loaded game configuration test parameter templates when no user override is set.
+  - [x] Add UDB-style Test Map from current position action and temporary player-start placement.
   - [x] Include non-excluded map resources in Test Map launch parameters.
   - [x] Build testable source-port launch plans for Test Map.
   - [x] Expand UDB-style `%NM` Test Map tokens for no-monsters launches.

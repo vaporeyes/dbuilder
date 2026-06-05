@@ -926,6 +926,29 @@ public class EditorCommandCatalogTests
         Assert.False(command.AllowScroll);
     }
 
+    [Theory]
+    [InlineData("window.test-map-from-view")]
+    [InlineData("window.testmapfromview")]
+    public void TestMapFromViewCommandMatchesUdbActionSurface(string commandId)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal("Test map from current position", command.Title);
+        Assert.Equal("Ctrl/Cmd+F9", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.False(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.Equal(
+            "Starts the game and loads this map for playing. Player start is placed either at cursor position (in 2D-Modes) or at camera position (in Visual Modes).",
+            command.Description);
+    }
+
+    [Fact]
+    public void TestMapFromViewShortcutMatchesUdbDefault()
+        => Assert.Equal("window.testmapfromview", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "F9", accelerator: true));
+
     [Fact]
     public void GridSetupCommandMatchesUdbActionSurface()
     {

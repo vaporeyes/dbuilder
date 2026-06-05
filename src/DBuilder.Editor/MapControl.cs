@@ -113,6 +113,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     // 3D fly-mode state (toggled with Tab). Geometry built lazily into textured buckets.
     private bool _mode3D;
     public bool In3DMode => _mode3D;
+    public TestMapFromViewPlacement CurrentTestMapFromViewPlacement()
+        => _mode3D
+            ? new TestMapFromViewPlacement(
+                new Vec2D(_cam3DPos.X, _cam3DPos.Y),
+                _cam3DPos.Z,
+                _yaw,
+                VisualMode: true)
+            : new TestMapFromViewPlacement(_cursorWorld, 0, null, VisualMode: false);
     private bool _walkMode;          // G toggles: camera snaps to floor + eye height instead of free flight
     private const double EyeHeight = 41; // Doom player view height above the floor
     private bool _geo3DDirty = true;
