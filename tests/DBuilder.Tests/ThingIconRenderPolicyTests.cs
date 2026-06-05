@@ -15,11 +15,20 @@ public sealed class ThingIconRenderPolicyTests
             fixedThingsScale: true,
             thingArrows: false));
         Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
-            viewScale: 3.0,
+            viewScale: 1.0,
             fixedThingsScale: true,
             thingArrows: false));
         Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
             ThingIconRenderPolicy.CompactMarkerScaleThreshold,
+            fixedThingsScale: false,
+            thingArrows: false));
+    }
+
+    [Fact]
+    public void UsesCompactMarkersAtOverviewZoomWithoutFixedThingScale()
+    {
+        Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
+            viewScale: 1.0,
             fixedThingsScale: false,
             thingArrows: false));
     }
