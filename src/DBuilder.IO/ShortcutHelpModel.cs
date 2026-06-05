@@ -7,6 +7,7 @@ public sealed record ShortcutHelpRow(
     EditorCommandDescriptor Command,
     string GestureText,
     string ModifierText,
+    string ScopeText,
     string CategoryText,
     string DescriptionText);
 
@@ -50,6 +51,7 @@ public static class ShortcutHelpModel
                     command,
                     EditorCommandCatalog.GestureText(command.Id, bindings),
                     ModifierText(command),
+                    ScopeTitle(command.Scope),
                     command.CategoryTitle,
                     command.HelpDescription))
                 .Where(row => row.GestureText != "-")
@@ -118,7 +120,7 @@ public static class ShortcutHelpModel
             || MatchesText(groupDescription, token)
             || MatchesText(row.Command.Title, token)
             || MatchesText(row.Command.Id, token)
-            || MatchesText(ScopeTitle(row.Command.Scope), token)
+            || MatchesText(row.ScopeText, token)
             || MatchesText(row.CategoryText, token)
             || MatchesText(row.GestureText, token)
             || MatchesText(row.ModifierText, token)

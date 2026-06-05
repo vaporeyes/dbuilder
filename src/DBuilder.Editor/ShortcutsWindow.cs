@@ -17,6 +17,7 @@ public sealed class ShortcutsWindow : Window
     private static readonly SolidColorBrush RowBrush = new(Color.FromRgb(0x20, 0x26, 0x2d));
     private const string ShortcutColumnHeader = "Shortcut";
     private const string OptionColumnHeader = "Options";
+    private const string ScopeColumnHeader = "Scope";
     private const string CommandColumnHeader = "Command";
     private const string DescriptionColumnHeader = "Description";
 
@@ -202,13 +203,14 @@ public sealed class ShortcutsWindow : Window
     {
         var grid = new Grid
         {
-            ColumnDefinitions = new ColumnDefinitions("135,95,190,*"),
+            ColumnDefinitions = new ColumnDefinitions("135,95,90,165,*"),
             Margin = new Avalonia.Thickness(0, 0, 0, 2),
         };
         grid.Children.Add(HeaderText(ShortcutColumnHeader, 0));
         grid.Children.Add(HeaderText(OptionColumnHeader, 1));
-        grid.Children.Add(HeaderText(CommandColumnHeader, 2));
-        grid.Children.Add(HeaderText(DescriptionColumnHeader, 3));
+        grid.Children.Add(HeaderText(ScopeColumnHeader, 2));
+        grid.Children.Add(HeaderText(CommandColumnHeader, 3));
+        grid.Children.Add(HeaderText(DescriptionColumnHeader, 4));
         return new Border
         {
             Background = PanelBrush,
@@ -235,7 +237,7 @@ public sealed class ShortcutsWindow : Window
     {
         var grid = new Grid
         {
-            ColumnDefinitions = new ColumnDefinitions("135,95,190,*"),
+            ColumnDefinitions = new ColumnDefinitions("135,95,90,165,*"),
             Margin = new Avalonia.Thickness(0, 1),
         };
         grid.Children.Add(new TextBlock
@@ -256,6 +258,17 @@ public sealed class ShortcutsWindow : Window
         };
         Grid.SetColumn(modifiers, 1);
         grid.Children.Add(modifiers);
+
+        var scope = new TextBlock
+        {
+            Text = row.ScopeText,
+            Foreground = MutedBrush,
+            FontSize = 12,
+            VerticalAlignment = VerticalAlignment.Top,
+            TextWrapping = TextWrapping.Wrap,
+        };
+        Grid.SetColumn(scope, 2);
+        grid.Children.Add(scope);
 
         var description = new StackPanel
         {
@@ -283,7 +296,7 @@ public sealed class ShortcutsWindow : Window
             FontSize = 11,
             TextWrapping = TextWrapping.Wrap,
         });
-        Grid.SetColumn(description, 2);
+        Grid.SetColumn(description, 3);
         grid.Children.Add(description);
 
         var help = new TextBlock
@@ -293,7 +306,7 @@ public sealed class ShortcutsWindow : Window
             FontSize = 12,
             TextWrapping = TextWrapping.Wrap,
         };
-        Grid.SetColumn(help, 3);
+        Grid.SetColumn(help, 4);
         grid.Children.Add(help);
 
         return new Border

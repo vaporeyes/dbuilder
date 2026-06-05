@@ -98,6 +98,13 @@ public sealed class ShortcutHelpModelTests
             "opened source WAD");
         Assert.Contains(actionDescription.SelectMany(section => section.Rows), row => row.Command.Id == "window.save");
 
+        var scopeLabel = ShortcutHelpModel.BuildSections(
+            EditorCommandCatalog.All,
+            EditorCommandCatalog.DefaultShortcuts,
+            "map3d");
+        Assert.Contains(scopeLabel.SelectMany(section => section.Rows), row => row.Command.Id == "map3d.toggle-2d");
+        Assert.All(scopeLabel.SelectMany(section => section.Rows), row => Assert.Equal("3D mode", row.ScopeText));
+
         var modifiers = ShortcutHelpModel.BuildSections(
             EditorCommandCatalog.All,
             EditorCommandCatalog.DefaultShortcuts,
@@ -173,6 +180,7 @@ public sealed class ShortcutHelpModelTests
         Assert.Equal("Saves the current map to the opened source WAD file.", save.DescriptionText);
         Assert.Equal(save.Command.Description, save.DescriptionText);
         Assert.Equal("File", save.CategoryText);
+        Assert.Equal("Window commands", save.ScopeText);
     }
 
     [Fact]
@@ -201,10 +209,12 @@ public sealed class ShortcutHelpModelTests
         Assert.Contains("ColumnDefinitions = new ColumnDefinitions(\"Auto,*,Auto,Auto,Auto\")", body, StringComparison.Ordinal);
         Assert.Contains("ShortcutColumnHeader", body, StringComparison.Ordinal);
         Assert.Contains("OptionColumnHeader", body, StringComparison.Ordinal);
+        Assert.Contains("ScopeColumnHeader", body, StringComparison.Ordinal);
         Assert.Contains("CommandColumnHeader", body, StringComparison.Ordinal);
         Assert.Contains("DescriptionColumnHeader", body, StringComparison.Ordinal);
         Assert.Contains("Text = row.GestureText,\n            Foreground = Brushes.Khaki,\n            FontSize = 12,\n            VerticalAlignment = VerticalAlignment.Top,\n            TextWrapping = TextWrapping.Wrap,", body, StringComparison.Ordinal);
         Assert.Contains("Text = row.ModifierText,\n            Foreground = MutedBrush,\n            FontSize = 12,\n            VerticalAlignment = VerticalAlignment.Top,\n            TextWrapping = TextWrapping.Wrap,", body, StringComparison.Ordinal);
+        Assert.Contains("Text = row.ScopeText,\n            Foreground = MutedBrush,\n            FontSize = 12,\n            VerticalAlignment = VerticalAlignment.Top,\n            TextWrapping = TextWrapping.Wrap,", body, StringComparison.Ordinal);
         Assert.Contains("Text = row.DescriptionText", body, StringComparison.Ordinal);
         Assert.Contains("_searchExpandedOverride = null;", body, StringComparison.Ordinal);
         Assert.Contains("ShortcutHelpModel.ResolveSectionExpanded(searching, rememberedExpanded, _searchExpandedOverride)", body, StringComparison.Ordinal);
@@ -267,7 +277,7 @@ public sealed class ShortcutHelpModelTests
     public void SectionCountTextDescribesFilteredAndUnfilteredRows()
     {
         var command = EditorCommandCatalog.Find("window.save")!;
-        var row = new ShortcutHelpRow(command, "Ctrl/Cmd+S", "", command.CategoryTitle, command.HelpDescription);
+        var row = new ShortcutHelpRow(command, "Ctrl/Cmd+S", "", "Window commands", command.CategoryTitle, command.HelpDescription);
         var section = new ShortcutHelpSection("File and configuration", "Project commands.", [row], true, 12);
 
         Assert.Equal("1 shortcut", ShortcutHelpModel.SectionCountText(section, searching: false));
