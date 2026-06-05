@@ -51,12 +51,11 @@ public static class ShortcutHelpModel
                 .Select(command => new ShortcutHelpRow(
                     command,
                     EditorCommandCatalog.GestureText(command.Id, bindings),
-                    EditorCommandCatalog.GestureText(command.Id, EditorCommandCatalog.DefaultShortcuts),
+                    DefaultGestureText(command),
                     ModifierText(command),
                     ScopeTitle(command.Scope),
                     command.CategoryTitle,
                     command.HelpDescription))
-                .Where(row => row.GestureText != "-")
                 .OrderBy(row => row.Command.Title, StringComparer.Ordinal)
                 .ToArray();
 
@@ -92,6 +91,12 @@ public static class ShortcutHelpModel
 
     public static int EffectiveShortcutCount(IReadOnlyList<EditorCommandDescriptor> commands, IReadOnlyList<EditorShortcutBinding> bindings)
         => BuildSections(commands, bindings, filter: "").Sum(section => section.Rows.Count);
+
+    private static string DefaultGestureText(EditorCommandDescriptor command)
+    {
+        string bindingText = EditorCommandCatalog.GestureText(command.Id, EditorCommandCatalog.DefaultShortcuts);
+        return bindingText == "-" ? command.DefaultGesture : bindingText;
+    }
 
     public static bool IsDefaultExpanded(string title)
         => title is "File and configuration" or "Window editing" or "2D view and modes" or "3D navigation";

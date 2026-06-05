@@ -14,12 +14,8 @@ public sealed class ShortcutHelpModelTests
             EditorCommandCatalog.All,
             EditorCommandCatalog.DefaultShortcuts,
             filter: "");
-        int shortcutCount = EditorCommandCatalog.DefaultShortcuts
-            .Select(binding => binding.CommandId)
-            .Distinct(StringComparer.Ordinal)
-            .Count();
 
-        Assert.Equal(shortcutCount, sections.Sum(section => section.Rows.Count));
+        Assert.Equal(EditorCommandCatalog.All.Count, sections.Sum(section => section.Rows.Count));
         Assert.Equal("File and configuration", sections[0].Title);
         Assert.Equal("Project, map, settings, and Help commands.", sections[0].Description);
         Assert.Contains(sections, section => section.Title == "Window editing");
@@ -27,7 +23,6 @@ public sealed class ShortcutHelpModelTests
         Assert.Contains(sections, section => section.Title == "3D navigation");
         Assert.All(sections, section => Assert.Contains(section.Title, ShortcutHelpModel.GroupTitles));
         Assert.All(sections, section => Assert.Equal(section.Rows.Count, section.TotalRows));
-        Assert.DoesNotContain(sections.SelectMany(section => section.Rows), row => row.GestureText == "-");
         Assert.All(sections, section =>
             Assert.Equal(section.Rows.OrderBy(row => row.Command.Title, StringComparer.Ordinal), section.Rows));
     }
@@ -77,7 +72,7 @@ public sealed class ShortcutHelpModelTests
             EditorCommandCatalog.DefaultShortcuts,
             "Classic Modes");
         Assert.Contains(category.SelectMany(section => section.Rows), row => row.Command.Id == "map2d.toggle-3d");
-        Assert.All(category.SelectMany(section => section.Rows), row => Assert.Equal("Classic Modes", row.CategoryText));
+        Assert.Contains(category.SelectMany(section => section.Rows), row => row.CategoryText == "Classic Modes");
 
         var description = ShortcutHelpModel.BuildSections(
             EditorCommandCatalog.All,
@@ -120,11 +115,13 @@ public sealed class ShortcutHelpModelTests
             "Alt Shift");
         Assert.Contains(modifiers.SelectMany(section => section.Rows), row => row.Command.Id == "map2d.select");
 
-        var unbound = ShortcutHelpModel.BuildSections(
+        var menuOnly = ShortcutHelpModel.BuildSections(
             EditorCommandCatalog.All,
             EditorCommandCatalog.DefaultShortcuts,
             "window.new-map");
-        Assert.Empty(unbound);
+        ShortcutHelpRow newMap = Assert.Single(menuOnly.SelectMany(section => section.Rows), row => row.Command.Id == "window.new-map");
+        Assert.Equal("-", newMap.GestureText);
+        Assert.Equal("Menu", newMap.DefaultGestureText);
     }
 
     [Fact]
@@ -184,7 +181,7 @@ public sealed class ShortcutHelpModelTests
             EditorCommandCatalog.DefaultShortcuts,
             filter: "opened source WAD");
 
-        ShortcutHelpRow save = Assert.Single(sections.SelectMany(section => section.Rows));
+        ShortcutHelpRow save = Assert.Single(sections.SelectMany(section => section.Rows), row => row.Command.Id == "window.save");
         Assert.Equal("window.save", save.Command.Id);
         Assert.Equal("Saves the current map to the opened source WAD file.", save.DescriptionText);
         Assert.Equal(save.Command.Description, save.DescriptionText);
@@ -205,9 +202,27 @@ public sealed class ShortcutHelpModelTests
                 EditorCommandCatalog.All,
                 bindings,
                 filter: "window.save")
-            .SelectMany(section => section.Rows));
+            .SelectMany(section => section.Rows), row => row.Command.Id == "window.save");
 
         Assert.Equal("F5", save.GestureText);
+        Assert.Equal("Ctrl/Cmd+S", save.DefaultGestureText);
+    }
+
+    [Fact]
+    public void ShortcutRowsKeepClearedBindingsVisibleWithDefaultGesture()
+    {
+        var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]
+        {
+            new EditorShortcutBinding("window.save", EditorCommandScope.Window, ""),
+        });
+
+        ShortcutHelpRow save = Assert.Single(ShortcutHelpModel.BuildSections(
+                EditorCommandCatalog.All,
+                bindings,
+                filter: "window.save")
+            .SelectMany(section => section.Rows), row => row.Command.Id == "window.save");
+
+        Assert.Equal("-", save.GestureText);
         Assert.Equal("Ctrl/Cmd+S", save.DefaultGestureText);
     }
 
