@@ -128,6 +128,19 @@ public sealed class ShortcutsWindow : Window
         return grid;
     }
 
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        if (e.Key == Key.F && HasSearchModifier(e.KeyModifiers))
+        {
+            _search.Focus();
+            _search.SelectAll();
+            e.Handled = true;
+            return;
+        }
+
+        base.OnKeyDown(e);
+    }
+
     private void RebuildSections(string? filter)
     {
         string text = filter?.Trim() ?? "";
@@ -340,4 +353,7 @@ public sealed class ShortcutsWindow : Window
             _searchExpandedOverride = expanded;
         RebuildSections(_search.Text);
     }
+
+    private static bool HasSearchModifier(KeyModifiers modifiers)
+        => modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta);
 }

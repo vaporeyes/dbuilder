@@ -235,6 +235,10 @@ public sealed class ShortcutHelpModelTests
         Assert.Contains("Content = \"Expand All\"", body, StringComparison.Ordinal);
         Assert.Contains("Content = \"Collapse All\"", body, StringComparison.Ordinal);
         Assert.Contains("ColumnDefinitions = new ColumnDefinitions(\"Auto,*,Auto,Auto,Auto\")", body, StringComparison.Ordinal);
+        Assert.Contains("protected override void OnKeyDown(KeyEventArgs e)", body, StringComparison.Ordinal);
+        Assert.Contains("e.Key == Key.F && HasSearchModifier(e.KeyModifiers)", body, StringComparison.Ordinal);
+        Assert.Contains("_search.SelectAll();", body, StringComparison.Ordinal);
+        Assert.Contains("private static bool HasSearchModifier(KeyModifiers modifiers)", body, StringComparison.Ordinal);
         Assert.Contains("ShortcutColumnHeader", body, StringComparison.Ordinal);
         Assert.Contains("OptionColumnHeader", body, StringComparison.Ordinal);
         Assert.Contains("ScopeColumnHeader", body, StringComparison.Ordinal);
