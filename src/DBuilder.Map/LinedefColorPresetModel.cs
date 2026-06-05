@@ -28,6 +28,7 @@ public static class LinedefColorPresetModel
     public const string FlagsSeparator = "^";
     public const string ConfigureActionTitle = "Configure Linedefs Colors";
     public const string DialogTitle = "Linedef Color Presets";
+    public const string NewPresetName = "Unnamed preset";
     public const string ConfigureActionDescription = "Shows the Linedef Color Presets setup dialog, which allows you to add, remove and change linedef color presets.";
 
     public static IReadOnlyList<LinedefColorPreset> DefaultPresets { get; } =

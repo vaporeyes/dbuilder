@@ -69,7 +69,7 @@ public sealed class LinedefColorPresetsDialog : Window
         };
         var add = new Button { Content = "Add", MinWidth = 62 };
         add.Click += (_, _) => AddPreset();
-        var remove = new Button { Content = "Remove", MinWidth = 72 };
+        var remove = new Button { Content = "Delete", MinWidth = 72 };
         remove.Click += (_, _) => RemovePreset();
         var up = new Button { Content = "Up", MinWidth = 54 };
         up.Click += (_, _) => MovePreset(-1);
@@ -135,7 +135,7 @@ public sealed class LinedefColorPresetsDialog : Window
     private void AddPreset()
     {
         StoreCurrentFields();
-        _presets.Add(new LinedefColorPreset("New preset", unchecked((int)0xffffffff), Action: 0, Activation: 0));
+        _presets.Add(new LinedefColorPreset(LinedefColorPresetModel.NewPresetName, unchecked((int)0xffffffff), Action: 0, Activation: 0));
         RefreshList();
         _list.SelectedIndex = _presets.Count - 1;
     }

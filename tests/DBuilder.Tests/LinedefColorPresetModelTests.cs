@@ -13,6 +13,10 @@ public class LinedefColorPresetModelTests
         => Assert.Equal("Linedef Color Presets", LinedefColorPresetModel.DialogTitle);
 
     [Fact]
+    public void NewPresetNameMatchesUdbPresetForm()
+        => Assert.Equal("Unnamed preset", LinedefColorPresetModel.NewPresetName);
+
+    [Fact]
     public void MovePresetSwapsWithRequestedNeighbor()
     {
         var presets = new[]
