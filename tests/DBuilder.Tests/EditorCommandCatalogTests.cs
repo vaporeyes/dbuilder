@@ -1426,16 +1426,17 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map2d.join-sectors", "Join Sectors")]
-    [InlineData("map2d.joinsectors", "Join Sectors")]
-    [InlineData("map2d.merge-sectors", "Merge Sectors")]
-    [InlineData("map2d.mergesectors", "Merge Sectors")]
-    public void JoinMergeSectorCommandsMatchUdbActionSurface(string commandId, string title)
+    [InlineData("map2d.join-sectors", "Join Sectors", "Joins two or more selected sectors together and keeps all linedefs.")]
+    [InlineData("map2d.joinsectors", "Join Sectors", "Joins two or more selected sectors together and keeps all linedefs.")]
+    [InlineData("map2d.merge-sectors", "Merge Sectors", "Joins two or more selected sectors together and removes the shared linedefs.")]
+    [InlineData("map2d.mergesectors", "Merge Sectors", "Joins two or more selected sectors together and removes the shared linedefs.")]
+    public void JoinMergeSectorCommandsMatchUdbActionSurface(string commandId, string title, string description)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
