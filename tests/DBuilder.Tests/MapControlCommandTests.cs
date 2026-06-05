@@ -22,6 +22,15 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void ClassicViewModeDefaultsToUdbNormalSetting()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("private ClassicViewMode _classicViewMode = ClassicViewMode.Wireframe;", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("private ClassicViewMode _classicViewMode = ClassicViewMode.FloorTextures;", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void LinedefRenderingUsesUdbColorPresetModel()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));

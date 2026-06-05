@@ -223,7 +223,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _alphaBasedTextureHighlighting = true;
     private bool _selectAdjacentVisualVertexSlopeHandles;
     private VisualSlopePickingMode _visualSlopePickingMode;
-    private ClassicViewMode _classicViewMode = ClassicViewMode.FloorTextures;
+    private ClassicViewMode _classicViewMode = ClassicViewMode.Wireframe;
 
     public bool ShowSectorFills => _showFills;
     public bool ShowThings => _showThings;
