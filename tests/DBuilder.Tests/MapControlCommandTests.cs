@@ -12,6 +12,16 @@ namespace DBuilder.Tests;
 public sealed class MapControlCommandTests
 {
     [Fact]
+    public void FixedThingScaleDefaultsToUdbDisabledSetting()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("private bool _fixedThingsScale;", body, StringComparison.Ordinal);
+        Assert.Contains("public bool ToggleFixedThingsScale()", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("private bool _fixedThingsScale = true;", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void LinedefRenderingUsesUdbColorPresetModel()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));

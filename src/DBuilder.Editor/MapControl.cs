@@ -208,7 +208,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _showThings = true;
     private bool _synchronizedThingEditing;
     private int _showVisualThings = 2;
-    private bool _fixedThingsScale = true;
+    private bool _fixedThingsScale;
     private bool _alwaysShowVertices = true;
     private bool _fullBrightness = true;
     private bool _useHighlight = true;
