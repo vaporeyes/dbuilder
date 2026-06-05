@@ -628,6 +628,13 @@ public sealed class MainWindowCommandTests
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
 
+        int methodIndex = body.IndexOf("private void OnRejectViewer", StringComparison.Ordinal);
+        int readIndex = body.IndexOf("byte[]? bytes = ReadCurrentMapLump(\"REJECT\");", methodIndex, StringComparison.Ordinal);
+        int directWadIndex = body.IndexOf("WadMaps.ReadMapLump(wad, _mapMarker, \"REJECT\")", methodIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(readIndex > methodIndex);
+        Assert.Equal(-1, directWadIndex);
         Assert.Contains("RejectExplorerEngageDecision decision = RejectExplorerModel.EngageDecision(validation);", body, StringComparison.Ordinal);
         Assert.Contains("if (!decision.CanEngage)", body, StringComparison.Ordinal);
         Assert.Contains("SetStatus($\"{decision.Title}: {decision.Message}\");", body, StringComparison.Ordinal);

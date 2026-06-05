@@ -4924,10 +4924,8 @@ public partial class MainWindow : Window
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
         var sel = _map.GetSelectedSectors();
-        if (_wadPath is null || _mapMarker is null) { SetStatus("Reject viewer needs the source WAD."); return; }
 
-        byte[]? bytes;
-        using (var wad = new WAD(_wadPath, openreadonly: true)) bytes = WadMaps.ReadMapLump(wad, _mapMarker, "REJECT");
+        byte[]? bytes = ReadCurrentMapLump("REJECT");
         var validation = RejectExplorerModel.Validate(bytes, _map.Sectors.Count);
         RejectExplorerEngageDecision decision = RejectExplorerModel.EngageDecision(validation);
         if (!decision.CanEngage)
