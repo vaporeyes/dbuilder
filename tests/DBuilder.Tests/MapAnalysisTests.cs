@@ -2052,7 +2052,10 @@ public class MapAnalysisTests
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.InvalidPolyobject);
         Assert.Same(line, issue.Target);
-        Assert.Equal("\"Polyobj_StartLine\" action targets non-existing Polyobject Start Spot (7)", issue.Message);
+        Assert.Equal("Incorrect Polyobject setup for linedef 0", issue.Message);
+        Assert.Equal(
+            "Incorrect Polyobject setup for linedef 0: \"Polyobj_StartLine\" action targets non-existing Polyobject Start Spot (7)",
+            issue.Description);
     }
 
     [Fact]
@@ -2070,7 +2073,10 @@ public class MapAnalysisTests
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.InvalidPolyobject);
         Assert.Same(thing, issue.Target);
-        Assert.Equal("Polyobject Start Spot 7 is not targeted by any Polyobject Anchor", issue.Message);
+        Assert.Equal("Incorrect Polyobject setup for thing 0", issue.Message);
+        Assert.Equal(
+            "Incorrect Polyobject setup for thing 0: Polyobject Start Spot 7 is not targeted by any Polyobject Anchor",
+            issue.Description);
     }
 
     [Fact]
@@ -2112,7 +2118,10 @@ public class MapAnalysisTests
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.InvalidPolyobject);
 
-        Assert.Equal("\"Polyobj_StartLine\" action have non-existing Mirror Polyobject Number assigned (9). It won't function correctly ingame.", issue.Message);
+        Assert.Equal("Incorrect Polyobject setup for linedef 0", issue.Message);
+        Assert.Equal(
+            "Incorrect Polyobject setup for linedef 0: \"Polyobj_StartLine\" action have non-existing Mirror Polyobject Number assigned (9). It won't function correctly ingame.",
+            issue.Description);
     }
 
     [Fact]
@@ -2136,7 +2145,10 @@ public class MapAnalysisTests
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.InvalidPolyobject);
 
-        Assert.Equal("Several \"Polyobj_StartLine\" actions have the same Polyobject Number assigned (7). They won't function correctly ingame.", issue.Message);
+        Assert.Equal("Incorrect Polyobject setup for linedefs 0 and 1", issue.Message);
+        Assert.Equal(
+            "Incorrect Polyobject setup for linedefs 0 and 1: Several \"Polyobj_StartLine\" actions have the same Polyobject Number assigned (7). They won't function correctly ingame.",
+            issue.Description);
     }
 
     [Fact]

@@ -1458,11 +1458,14 @@ public static class MapAnalysis
 
     private static void AddPolyLineIssue(List<MapIssue> issues, IEnumerable<(int Index, Linedef Line)> lines, string message)
     {
-        var elements = lines.Select(item => item.Line).Where(line => line != null).ToArray();
+        var items = lines.Where(item => item.Line != null).ToArray();
+        var elements = items.Select(item => item.Line).ToArray();
         var first = elements.FirstOrDefault();
         if (first == null) return;
-        issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.InvalidPolyobject, message)
+        string title = PolyobjectElementTitle("linedef", "linedefs", items.Select(item => item.Index));
+        issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.InvalidPolyobject, title)
         {
+            Description = title + ": " + message,
             Target = first,
             RelatedTargets = elements.Skip(1).Cast<IMapElement>().ToArray(),
             Focus = new Vector2D((first.Start.Position.x + first.End.Position.x) * 0.5, (first.Start.Position.y + first.End.Position.y) * 0.5),
@@ -1471,15 +1474,38 @@ public static class MapAnalysis
 
     private static void AddPolyThingIssue(List<MapIssue> issues, IEnumerable<(int Index, Thing Thing)> things, string message)
     {
-        var elements = things.Select(item => item.Thing).Where(thing => thing != null).ToArray();
+        var items = things.Where(item => item.Thing != null).ToArray();
+        var elements = items.Select(item => item.Thing).ToArray();
         var first = elements.FirstOrDefault();
         if (first == null) return;
-        issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.InvalidPolyobject, message)
+        string title = PolyobjectElementTitle("thing", "things", items.Select(item => item.Index));
+        issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.InvalidPolyobject, title)
         {
+            Description = title + ": " + message,
             Target = first,
             RelatedTargets = elements.Skip(1).Cast<IMapElement>().ToArray(),
             Focus = first.Position,
         });
+    }
+
+    private static string PolyobjectElementTitle(string singular, string plural, IEnumerable<int> indexes)
+    {
+        int[] values = indexes.ToArray();
+        if (values.Length == 1)
+            return "Incorrect Polyobject setup for " + singular + " " + values[0].ToString(CultureInfo.InvariantCulture);
+
+        return "Incorrect Polyobject setup for " + plural + " " + JoinedIndexes(values);
+    }
+
+    private static string JoinedIndexes(IReadOnlyList<int> indexes)
+    {
+        if (indexes.Count == 0) return string.Empty;
+        if (indexes.Count == 1) return indexes[0].ToString(CultureInfo.InvariantCulture);
+        if (indexes.Count == 2)
+            return indexes[0].ToString(CultureInfo.InvariantCulture) + " and " + indexes[1].ToString(CultureInfo.InvariantCulture);
+
+        return string.Join(", ", indexes.Take(indexes.Count - 1).Select(index => index.ToString(CultureInfo.InvariantCulture)))
+            + " and " + indexes[^1].ToString(CultureInfo.InvariantCulture);
     }
 
     private static void CheckTextureAlignment(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
