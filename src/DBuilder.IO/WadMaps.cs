@@ -350,13 +350,14 @@ public static class WadMaps
 
     /// <summary>
     /// Renames a validated map marker without touching non-map lumps that happen to share the same name.
-    /// The rename is refused when the target marker already exists as a map block.
+    /// The rename is refused when the target marker already exists as a map block or is invalid for the config.
     /// </summary>
-    public static bool RenameMap(WAD wad, string oldMarker, string newMarker)
+    public static bool RenameMap(WAD wad, string oldMarker, string newMarker, GameConfiguration? config = null)
     {
         int oldHeaderIndex = FindMapHeaderIndex(wad, oldMarker);
         if (oldHeaderIndex < 0) return false;
         if (oldMarker == newMarker) return true;
+        if (!MapNameRules.IsValidMarker(newMarker, config)) return false;
         if (FindMapHeaderIndex(wad, newMarker) >= 0) return false;
 
         wad.Lumps[oldHeaderIndex].Rename(newMarker);

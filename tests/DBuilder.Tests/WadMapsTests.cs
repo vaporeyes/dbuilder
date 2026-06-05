@@ -398,6 +398,23 @@ maplumpnames
     }
 
     [Fact]
+    public void RenameMapRejectsConfiguredMapLumpTargetNames()
+    {
+        using var wad = new WAD(new MemoryStream());
+        WriteLump(wad, "MAP01", new byte[0], 0);
+        WriteLump(wad, "THINGS", new byte[] { 1 }, 1);
+        WriteLump(wad, "LINEDEFS", new byte[] { 2 }, 2);
+        wad.WriteHeaders();
+
+        var config = GameConfiguration.FromText(MapLumpConfig);
+
+        Assert.False(WadMaps.RenameMap(wad, "MAP01", "THINGS", config));
+        Assert.True(WadMaps.RenameMap(wad, "MAP01", "MAP02", config));
+
+        Assert.Equal(new[] { "MAP02", "THINGS", "LINEDEFS" }, wad.Lumps.Select(l => l.Name).ToArray());
+    }
+
+    [Fact]
     public void LoadsUdmfTextmapAfterValidatedMarker()
     {
         using var wad = new WAD(new MemoryStream());

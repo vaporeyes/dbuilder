@@ -543,6 +543,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Create missing required config map lumps during save.
   - [x] Add collision-safe map marker renaming.
   - [x] Reject map marker names that overlap configured map lumps.
+  - [x] Reject configured map-lump names when renaming map markers.
   - [x] Preserve configured script and blind-copy map lumps during save-back.
   - [x] Preserve existing Hexen `BEHAVIOR` bytes during save-back.
   - [x] Block save-back when a map rename target already exists.
