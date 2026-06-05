@@ -10,7 +10,7 @@ public static class ThingIconRenderPolicy
     public const double ThingSpriteShrink = 2.0;
     public const double OverviewMarkerScaleThreshold = 1.0;
     public const double OverviewMarkerBaseSize = 2.0;
-    public const double OverviewCullCellPixels = 24.0;
+    public const double OverviewCullCellPixels = 48.0;
     public const double CompactMarkerBaseSize = 4.0;
     public const double RegularMarkerBaseSize = 10.0;
     public const double CompactDirectionTickBaseSize = 7.0;
@@ -26,7 +26,7 @@ public static class ThingIconRenderPolicy
         => !thingArrows && viewScale < CompactMarkerScaleThreshold;
 
     public static bool ShouldCullOverlappingOverviewThings(double viewScale, bool thingArrows)
-        => !thingArrows && viewScale >= CompactMarkerScaleThreshold;
+        => viewScale >= CompactMarkerScaleThreshold;
 
     public static int OverviewCullCell(double screenCoordinate)
         => (int)Math.Floor(screenCoordinate / OverviewCullCellPixels);

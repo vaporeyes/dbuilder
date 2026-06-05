@@ -99,6 +99,9 @@ public sealed class ThingIconRenderPolicyTests
             ThingIconRenderPolicy.CompactMarkerScaleThreshold - 0.01,
             thingArrows: false));
         Assert.False(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(
+            ThingIconRenderPolicy.CompactMarkerScaleThreshold - 0.01,
+            thingArrows: true));
+        Assert.True(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(
             ThingIconRenderPolicy.CompactMarkerScaleThreshold,
             thingArrows: true));
 
@@ -107,7 +110,7 @@ public sealed class ThingIconRenderPolicyTests
             ThingIconRenderPolicy.OverviewCullCellPixels - 0.01));
         Assert.Equal(1, ThingIconRenderPolicy.OverviewCullCell(
             ThingIconRenderPolicy.OverviewCullCellPixels));
-        Assert.Equal(24.0, ThingIconRenderPolicy.OverviewCullCellPixels);
+        Assert.Equal(48.0, ThingIconRenderPolicy.OverviewCullCellPixels);
     }
 
     [Fact]
