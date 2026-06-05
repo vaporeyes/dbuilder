@@ -269,6 +269,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Reflect view, model rendering, and explorer command availability in command palette usable actions.
   - [x] Reflect prefab, gradient, automap, and maintenance command availability in command palette usable actions.
   - [x] Reflect dynamic selection-group, script, and cancel-draw availability in command palette usable actions.
+  - [x] Reflect grid-size move-selection command availability in command palette usable actions.
   - [x] Add stable UDB action ids for Select All, Invert Selection, and Select None.
   - [x] Add stable UDB action ids for Flags, Custom Fields, and Tags dialogs.
   - [x] Add stable UDB action ids for Stitch Geometry, Join Sectors, and Merge Sectors.

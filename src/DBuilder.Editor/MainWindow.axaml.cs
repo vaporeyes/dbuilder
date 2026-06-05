@@ -4263,6 +4263,7 @@ public partial class MainWindow : Window
             "window.flip-selection-vertical" or "window.flipselectionv" => FlipVerticalMenuItem,
             "window.rotate-selection-cw" or "window.rotateclockwise" => RotateCwMenuItem,
             "window.rotate-selection-ccw" or "window.rotatecounterclockwise" => RotateCcwMenuItem,
+            "window.moveselectionup" or "window.moveselectiondown" or "window.moveselectionleft" or "window.moveselectionright" => TransformSelectionMenuItem,
             "window.scale-selection-up" => ScaleUpMenuItem,
             "window.scale-selection-down" => ScaleDownMenuItem,
             "window.align-floor-to-front" or "window.alignfloortofront" => AlignFloorToFrontMenuItem,

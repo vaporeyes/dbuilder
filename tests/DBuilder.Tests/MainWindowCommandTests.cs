@@ -1368,6 +1368,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("\"window.toggle-info-panel\" => InfoPanelMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.delete\" or \"window.deleteitem\" => DeleteMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.properties\" => PropertiesMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.moveselectionup\" or \"window.moveselectiondown\" or \"window.moveselectionleft\" or \"window.moveselectionright\" => TransformSelectionMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.tag-range\" or \"window.rangetagselection\" => TagRangeMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.sector-color\" => SectorColorMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.dynamic-light-color\" => DynamicLightColorMenuItem", code, StringComparison.Ordinal);
