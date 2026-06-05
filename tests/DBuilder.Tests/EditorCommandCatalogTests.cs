@@ -2265,8 +2265,8 @@ public class EditorCommandCatalogTests
         Assert.Equal("map2d.zoom-in", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Add"));
         Assert.Equal("map2d.zoom-in", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollUp));
         Assert.Equal("map2d.zoom-out", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, EditorPointerInput.ScrollDown));
-        Assert.Equal("map2d.point-thing-to-cursor", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "L", shift: true));
-        Assert.Equal("map2d.point-thing-to-cursor", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "L", accelerator: true, shift: true));
+        Assert.Equal("map2d.thinglookatcursor", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "L", shift: true));
+        Assert.Equal("map2d.thinglookatcursor", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "L", accelerator: true, shift: true));
         Assert.Equal("map2d.toggle-3d", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Tab"));
     }
 
@@ -3207,7 +3207,7 @@ public class EditorCommandCatalogTests
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.False(command.AllowMouse);
-        Assert.Equal("map2d.insert", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "I"));
+        Assert.Equal("map2d.insertitem", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "I"));
         Assert.Equal("map3d.insert-item", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "I"));
     }
 
@@ -3522,7 +3522,7 @@ public class EditorCommandCatalogTests
         string hints = EditorCommandCatalog.CommandHints(
             EditorCommandCatalog.DefaultShortcuts,
             "map2d.draw-sector",
-            "map2d.insert");
+            "map2d.insertitem");
 
         Assert.Equal("D Draw sector; I / Insert Insert vertex or thing", hints);
     }
@@ -3536,7 +3536,7 @@ public class EditorCommandCatalogTests
         });
 
         string hint = EditorCommandCatalog.ExpandHintTemplate(
-            "Press <k>map2d.draw-sector</k> or <k>map2d.insert</k>.",
+            "Press <k>map2d.draw-sector</k> or <k>map2d.insertitem</k>.",
             bindings);
 
         Assert.Equal("Press F6 or I / Insert.", hint);
