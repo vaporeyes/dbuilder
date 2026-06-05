@@ -7287,6 +7287,7 @@ public partial class MainWindow : Window
         SetEnabled(canUndo, UndoMenuItem, UndoButton);
         SetEnabled(canRedo, RedoMenuItem, RedoButton);
         UpdateCommandCheckedState();
+        UpdateMenuSeparators(MainMenu);
     }
 
     private void UpdateUndoRedoLabels()
@@ -7377,6 +7378,35 @@ public partial class MainWindow : Window
     }
 
     private static void SetChecked(MenuItem item, bool isChecked) => item.IsChecked = isChecked;
+
+    private static void UpdateMenuSeparators(ItemsControl items)
+    {
+        foreach (object? item in items.Items)
+        {
+            if (item is MenuItem child)
+                UpdateMenuSeparators(child);
+        }
+
+        Separator? pendingSeparator = null;
+        bool hasVisibleItem = false;
+        foreach (object? item in items.Items)
+        {
+            if (item is Separator separator)
+            {
+                separator.IsVisible = false;
+                pendingSeparator = separator;
+                continue;
+            }
+
+            if (item is not Control control || !control.IsVisible) continue;
+
+            if (pendingSeparator is not null && hasVisibleItem)
+                pendingSeparator.IsVisible = true;
+
+            pendingSeparator = null;
+            hasVisibleItem = true;
+        }
+    }
 
     private static void SetActiveClass(Control control, bool active) => control.Classes.Set("active", active);
 

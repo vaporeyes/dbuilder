@@ -54,7 +54,7 @@
     <Grid RowDefinitions="Auto,Auto,*,Auto,Auto">
 
         <!-- Menu bar -->
-        <Menu Grid.Row="0">
+        <Menu Grid.Row="0" x:Name="MainMenu">
             <MenuItem Header="_File">
                 <MenuItem Header="_New Map" x:Name="NewMapMenuItem" Click="OnNewMap" />
                 <MenuItem Header="_Open WAD..." x:Name="OpenWadMenuItem" Click="OnOpen" />

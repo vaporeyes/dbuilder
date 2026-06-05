@@ -765,6 +765,20 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void MenuSeparatorsAreNormalizedAfterCommandAvailabilityLikeUdb()
+    {
+        string code = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        string xaml = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml"));
+
+        Assert.Contains("<Menu Grid.Row=\"0\" x:Name=\"MainMenu\">", xaml, StringComparison.Ordinal);
+        Assert.Contains("UpdateCommandCheckedState();\n        UpdateMenuSeparators(MainMenu);", code, StringComparison.Ordinal);
+        Assert.Contains("private static void UpdateMenuSeparators(ItemsControl items)", code, StringComparison.Ordinal);
+        Assert.Contains("if (item is MenuItem child)\n                UpdateMenuSeparators(child);", code, StringComparison.Ordinal);
+        Assert.Contains("separator.IsVisible = false;", code, StringComparison.Ordinal);
+        Assert.Contains("pendingSeparator.IsVisible = true;", code, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ColorPickerCommandAvailabilityReflectsMapFormatAndSelection()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
