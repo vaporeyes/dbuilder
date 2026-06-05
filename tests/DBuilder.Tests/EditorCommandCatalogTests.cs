@@ -1175,6 +1175,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Toggle Dynamic Grid Size", command.Title);
+        Assert.Equal("Toggles automatic grid size adjustment in classic modes.", command.Description);
         Assert.Equal("Ctrl/Cmd+Alt+G", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -1187,6 +1188,7 @@ public class EditorCommandCatalogTests
             alt: true));
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
         Assert.Equal(command.AllowMouse, udbAlias.AllowMouse);
     }
