@@ -646,7 +646,7 @@ public partial class MainWindow : Window
         if (!await ConfirmDiscardDirtyMap()) return;
         if (!System.IO.File.Exists(map.Path))
         {
-            SetStatus($"File not found: {map.Path}");
+            SetStatus($"File not found: {map.Path}", StatusHistoryKind.Warning);
             return;
         }
 
@@ -4266,7 +4266,7 @@ public partial class MainWindow : Window
                 maps = CurrentWadMaps(wad);
                 if (wad.IsIWAD) _iwadPath = path; // loaded an IWAD directly - usable as the Test Map base
             }
-            if (maps.Count == 0) { SetStatus($"No map found in {System.IO.Path.GetFileName(path)}"); return; }
+            if (maps.Count == 0) { SetStatus($"No map found in {System.IO.Path.GetFileName(path)}", StatusHistoryKind.Warning); return; }
 
             var selected = maps[0];
             if (!string.IsNullOrWhiteSpace(preferredMapName))
@@ -4274,7 +4274,7 @@ public partial class MainWindow : Window
                 var preferred = maps.FirstOrDefault(m => string.Equals(m.Name, preferredMapName, StringComparison.OrdinalIgnoreCase));
                 if (preferred is null)
                 {
-                    SetStatus($"Recent map not found: {preferredMapName} in {System.IO.Path.GetFileName(path)}");
+                    SetStatus($"Recent map not found: {preferredMapName} in {System.IO.Path.GetFileName(path)}", StatusHistoryKind.Warning);
                     return;
                 }
                 selected = preferred;
@@ -4315,7 +4315,7 @@ public partial class MainWindow : Window
                         || string.Equals(m.ArchivePath, recentMap.ArchivePath, StringComparison.OrdinalIgnoreCase)));
                 if (preferred is null)
                 {
-                    SetStatus($"Recent map not found: {RecentMapHeader(recentMap)}");
+                    SetStatus($"Recent map not found: {RecentMapHeader(recentMap)}", StatusHistoryKind.Warning);
                     return;
                 }
                 selected = preferred;

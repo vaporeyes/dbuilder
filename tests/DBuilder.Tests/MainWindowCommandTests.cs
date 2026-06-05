@@ -1051,6 +1051,17 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void RecentMapLoadFailuresUseWarningStatusKind()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("SetStatus($\"File not found: {map.Path}\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus($\"No map found in {System.IO.Path.GetFileName(path)}\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus($\"Recent map not found: {preferredMapName} in {System.IO.Path.GetFileName(path)}\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus($\"Recent map not found: {RecentMapHeader(recentMap)}\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void EditMenuTooltipsRefreshFromEffectiveShortcutBindings()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
