@@ -3443,18 +3443,19 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map3d.copy-properties", "Copy Properties", "Menu")]
-    [InlineData("map3d.copyproperties", "Copy Properties", "Menu")]
-    [InlineData("map3d.paste-properties", "Paste Properties", "Ctrl/Cmd+Alt+V")]
-    [InlineData("map3d.pasteproperties", "Paste Properties", "Ctrl/Cmd+Alt+V")]
-    [InlineData("map3d.paste-properties-options", "Paste Properties Special", "Ctrl/Cmd+Shift+V")]
-    [InlineData("map3d.pastepropertieswithoptions", "Paste Properties Special", "Ctrl/Cmd+Shift+V")]
-    public void VisualPastePropertiesCommandsMatchUdbActionSurface(string id, string title, string gesture)
+    [InlineData("map3d.copy-properties", "Copy Properties", "Menu", "Copies the targeted object properties for pasting.")]
+    [InlineData("map3d.copyproperties", "Copy Properties", "Menu", "Copies the targeted object properties for pasting.")]
+    [InlineData("map3d.paste-properties", "Paste Properties", "Ctrl/Cmd+Alt+V", "Pastes the copied properties onto the targeted or selected object.")]
+    [InlineData("map3d.pasteproperties", "Paste Properties", "Ctrl/Cmd+Alt+V", "Pastes the copied properties onto the targeted or selected object.")]
+    [InlineData("map3d.paste-properties-options", "Paste Properties Special", "Ctrl/Cmd+Shift+V", "Pastes the copied properties onto the highlighted or selected objects allowing you to choose the properties to paste.")]
+    [InlineData("map3d.pastepropertieswithoptions", "Paste Properties Special", "Ctrl/Cmd+Shift+V", "Pastes the copied properties onto the highlighted or selected objects allowing you to choose the properties to paste.")]
+    public void VisualPastePropertiesCommandsMatchUdbActionSurface(string id, string title, string gesture, string description)
     {
         var command = EditorCommandCatalog.Find(id);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal(gesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
