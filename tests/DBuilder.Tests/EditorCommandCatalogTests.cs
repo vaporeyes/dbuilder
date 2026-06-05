@@ -2888,7 +2888,7 @@ public class EditorCommandCatalogTests
     [Theory]
     [InlineData("map3d.visual-select", "map3d.select-target", "map3d.visualselect", "Select", "Click", false, "Selects the highlighted item. Hold Shift to select adjacent surfaces with the same texture. Hold Ctrl to select adjacent surfaces with the same height. Hold Alt to stop selecting adjacent surfaces when already selected surface is encountered.")]
     [InlineData("map3d.visual-edit", "map3d.edit-properties", "map3d.visualedit", "Edit", "Enter", false, "Edits the properties of the selected items or drags the selected items.")]
-    [InlineData("map3d.clear-selection", "map3d.clear-target", "map3d.clearselection", "Clear Selection", "Esc", true, "")]
+    [InlineData("map3d.clear-selection", "map3d.clear-target", "map3d.clearselection", "Clear Selection", "Esc", true, "Deselects all selected elements.")]
     public void VisualBaseCommandAliasesMatchUdbActionSurface(string id, string legacyId, string udbId, string title, string gesture, bool allowScroll, string? description)
     {
         var command = EditorCommandCatalog.Find(id);
@@ -3028,10 +3028,12 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Delete Item", command.Title);
+        Assert.Equal("Deletes the highlighted or selected items, depending on the editing mode you are in.", command.Description);
         Assert.Equal("Delete", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
