@@ -2536,6 +2536,7 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
+    [InlineData("map2d.draw-lines", "Draw lines", "Shift+D", "Starts drawing lines. See the Drawing category for actions available during drawing mode.")]
     [InlineData("map2d.draw-rectangle", "Start Rectangle Drawing", "Ctrl/Cmd+Shift+D", "Starts drawing rectangle. Increase/Decrease Subdivision Level and Increase/Decrease Corners Bevel actions are available in this mode.")]
     [InlineData("map2d.drawlinesmode", "Start Drawing", "Ctrl/Cmd+D", "Starts drawing lines. See the Drawing category for actions available during drawing mode.")]
     [InlineData("map2d.drawrectanglemode", "Start Rectangle Drawing", "Ctrl/Cmd+Shift+D", "Starts drawing rectangle. Increase/Decrease Subdivision Level and Increase/Decrease Corners Bevel actions are available in this mode.")]

@@ -415,7 +415,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.previous-view-mode", "Previous View Mode", "Menu", EditorCommandScope.Map2D, Description: "This switches to previous view mode."),
         new EditorCommandDescriptor("map2d.previousviewmode", "Previous View Mode", "Menu", EditorCommandScope.Map2D, Description: "This switches to previous view mode."),
         new EditorCommandDescriptor("map2d.draw-sector", "Draw sector", "D", EditorCommandScope.Map2D),
-        new EditorCommandDescriptor("map2d.draw-lines", "Draw lines", "Shift+D", EditorCommandScope.Map2D),
+        new EditorCommandDescriptor("map2d.draw-lines", "Draw lines", "Shift+D", EditorCommandScope.Map2D, AllowScroll: true, Description: "Starts drawing lines. See the Drawing category for actions available during drawing mode."),
         new EditorCommandDescriptor("map2d.drawlinesmode", "Start Drawing", "Ctrl/Cmd+D", EditorCommandScope.Map2D, AllowScroll: true, Description: "Starts drawing lines. See the Drawing category for actions available during drawing mode."),
         new EditorCommandDescriptor("map2d.draw-rectangle", "Start Rectangle Drawing", "Ctrl/Cmd+Shift+D", EditorCommandScope.Map2D, AllowScroll: true, Description: "Starts drawing rectangle. Increase/Decrease Subdivision Level and Increase/Decrease Corners Bevel actions are available in this mode."),
         new EditorCommandDescriptor("map2d.drawrectanglemode", "Start Rectangle Drawing", "Ctrl/Cmd+Shift+D", EditorCommandScope.Map2D, AllowScroll: true, Description: "Starts drawing rectangle. Increase/Decrease Subdivision Level and Increase/Decrease Corners Bevel actions are available in this mode."),
