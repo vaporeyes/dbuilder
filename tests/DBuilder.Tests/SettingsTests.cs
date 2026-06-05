@@ -280,6 +280,8 @@ public class SettingsTests
                 TestPort = "/gz",
                 TestIwad = "/iwad.wad",
                 TestAdditionalParameters = "+set test_value 1",
+                TestSkill = 4,
+                TestMonsters = false,
                 UdbScriptExternalEditor = "/tools/editor.exe",
                 UdbScriptSettings = new Dictionary<string, object?>
                 {
@@ -415,6 +417,8 @@ public class SettingsTests
             Assert.Equal("/gz", loaded.TestPort);
             Assert.Equal("/iwad.wad", loaded.TestIwad);
             Assert.Equal("+set test_value 1", loaded.TestAdditionalParameters);
+            Assert.Equal(4, loaded.TestSkill);
+            Assert.False(loaded.TestMonsters);
             Assert.Equal("/tools/editor.exe", loaded.UdbScriptExternalEditor);
             Assert.Equal("/scripts/slotted.js", loaded.UdbScriptSettings["scriptslots.slot3"]?.ToString());
             Assert.Equal("False", loaded.UdbScriptSettings["directoryexpand.hash-child"]?.ToString());
@@ -807,6 +811,16 @@ public class SettingsTests
     public void AcceptStatusHistoryLimitTextClampsSettingsDialogInput(string text, int? expected)
         => Assert.Equal(expected, Settings.AcceptStatusHistoryLimitText(text));
 
+    [Theory]
+    [InlineData("", null)]
+    [InlineData("nope", null)]
+    [InlineData("0", null)]
+    [InlineData("1", Settings.MinTestSkill)]
+    [InlineData("4", 4)]
+    [InlineData("9", Settings.MaxTestSkill)]
+    public void AcceptTestSkillTextClampsSettingsDialogInput(string text, int? expected)
+        => Assert.Equal(expected, Settings.AcceptTestSkillText(text));
+
     [Fact]
     public void NumericPreferenceTextShowsNormalizedSettingsDialogValues()
     {
@@ -814,5 +828,7 @@ public class SettingsTests
         Assert.Equal("25", Settings.MaxRecentFilesText(new Settings { MaxRecentFiles = 50 }));
         Assert.Equal("100", Settings.StatusHistoryLimitText(new Settings()));
         Assert.Equal("10", Settings.StatusHistoryLimitText(new Settings { StatusHistoryLimit = 1 }));
+        Assert.Equal("3", Settings.TestSkillText(new Settings()));
+        Assert.Equal("5", Settings.TestSkillText(new Settings { TestSkill = 9 }));
     }
 }

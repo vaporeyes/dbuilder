@@ -1311,6 +1311,8 @@ public partial class MainWindow : Window
         _settings.TestIwad = dlg.TestIwad;
         _settings.TestPortArgs = dlg.TestPortArgs;
         _settings.TestAdditionalParameters = dlg.TestAdditionalParameters;
+        _settings.TestSkill = dlg.TestSkill;
+        _settings.TestMonsters = dlg.TestMonsters;
         _settings.NodeBuilderPath = dlg.NodeBuilderPath;
         _settings.NodeBuilderArgs = dlg.NodeBuilderArgs;
         _settings.UdbScriptExternalEditor = dlg.UdbScriptExternalEditor;
@@ -4757,6 +4759,8 @@ public partial class MainWindow : Window
                 temp,
                 _mapMarker,
                 TestResourcePaths(),
+                testMonsters: _settings.TestMonsters,
+                skill: _settings.NormalizedTestSkill,
                 additionalParameters: _settings.TestAdditionalParameters);
 
             System.Diagnostics.Process.Start(SourcePort.CreateStartInfo(port!, args));

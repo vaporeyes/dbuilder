@@ -32,6 +32,23 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesTestSkillAndMonsters()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("TestSkill", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("TestMonsters", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddField(\"Test skill\", Settings.TestSkillText(s))", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Test with monsters\", s.TestMonsters)", body, StringComparison.Ordinal);
+        Assert.Contains("TestSkill = Settings.AcceptTestSkillText(_testSkill.Text);", body, StringComparison.Ordinal);
+        Assert.Contains("TestMonsters = _testMonsters.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.TestSkill = dlg.TestSkill;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.TestMonsters = dlg.TestMonsters;", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesAlphaBasedTextureHighlightingPreference()
     {
         Type type = typeof(SettingsWindow);

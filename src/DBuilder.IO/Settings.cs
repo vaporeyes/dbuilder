@@ -19,6 +19,9 @@ public sealed class Settings
     public const int DefaultStatusHistoryLimit = 100;
     public const int MinStatusHistoryLimit = 10;
     public const int MaxStatusHistoryLimit = 1000;
+    public const int DefaultTestSkill = 3;
+    public const int MinTestSkill = 1;
+    public const int MaxTestSkill = 5;
 
     public string? ConfigDir { get; set; }
     public string? LastUsedConfigName { get; set; }
@@ -29,6 +32,8 @@ public sealed class Settings
     public string? TestPortArgs { get; set; }
     public string? TestAdditionalParameters { get; set; }
     public string? TestIwad { get; set; }
+    public int? TestSkill { get; set; }
+    public bool TestMonsters { get; set; } = true;
     public string? UdbScriptExternalEditor { get; set; }
     public Dictionary<string, object?> UdbScriptSettings { get; set; } = new(StringComparer.Ordinal);
     public Dictionary<string, object?> UsdfDialogEditorSettings { get; set; } = new(StringComparer.Ordinal);
@@ -87,6 +92,9 @@ public sealed class Settings
     public int NormalizedMaxRecentFiles =>
         Math.Clamp(MaxRecentFiles ?? DefaultMaxRecentFiles, MinMaxRecentFiles, MaxMaxRecentFiles);
 
+    public int NormalizedTestSkill =>
+        Math.Clamp(TestSkill ?? DefaultTestSkill, MinTestSkill, MaxTestSkill);
+
     public static int? AcceptMaxRecentFilesText(string? text)
     {
         if (!int.TryParse(text, out int value) || value <= 0) return null;
@@ -99,11 +107,20 @@ public sealed class Settings
         return Math.Clamp(value, MinStatusHistoryLimit, MaxStatusHistoryLimit);
     }
 
+    public static int? AcceptTestSkillText(string? text)
+    {
+        if (!int.TryParse(text, out int value) || value <= 0) return null;
+        return Math.Clamp(value, MinTestSkill, MaxTestSkill);
+    }
+
     public static string MaxRecentFilesText(Settings settings)
         => settings.NormalizedMaxRecentFiles.ToString(CultureInfo.InvariantCulture);
 
     public static string StatusHistoryLimitText(Settings settings)
         => settings.NormalizedStatusHistoryLimit.ToString(CultureInfo.InvariantCulture);
+
+    public static string TestSkillText(Settings settings)
+        => settings.NormalizedTestSkill.ToString(CultureInfo.InvariantCulture);
 
     public int NormalizedDefaultViewMode =>
         Math.Clamp(DefaultViewMode ?? 0, 0, 3);

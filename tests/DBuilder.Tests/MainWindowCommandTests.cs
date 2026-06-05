@@ -1095,6 +1095,8 @@ public sealed class MainWindowCommandTests
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
 
+        Assert.Contains("testMonsters: _settings.TestMonsters", body, StringComparison.Ordinal);
+        Assert.Contains("skill: _settings.NormalizedTestSkill", body, StringComparison.Ordinal);
         Assert.Contains("additionalParameters: _settings.TestAdditionalParameters", body, StringComparison.Ordinal);
     }
 

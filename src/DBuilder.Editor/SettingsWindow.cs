@@ -10,9 +10,9 @@ namespace DBuilder.Editor;
 
 public sealed class SettingsWindow : PropertyDialog
 {
-    private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _statusHistoryLimit, _shortcutOverrides;
+    private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _testSkill, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _statusHistoryLimit, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _mergeGeometryMode, _pasteTagMode;
-    private readonly CheckBox _autoClearSidedefTextures, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _pasteRemoveActions;
+    private readonly CheckBox _testMonsters, _autoClearSidedefTextures, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _pasteRemoveActions;
     private readonly bool _drawLineShowGuidelines;
     private readonly int _drawRectangleSubdivisions, _drawRectangleBevelWidth;
     private readonly bool _drawRectangleShowGuidelines;
@@ -23,6 +23,8 @@ public sealed class SettingsWindow : PropertyDialog
 
     public string? ConfigDir, TestPort, TestIwad, TestPortArgs, TestAdditionalParameters, NodeBuilderPath, NodeBuilderArgs, UdbScriptExternalEditor;
     public int? MaxRecentFiles;
+    public int? TestSkill;
+    public bool TestMonsters;
     public bool AutoClearSidedefTextures;
     public bool DynamicGridSize;
     public bool UseHighlight;
@@ -55,6 +57,8 @@ public sealed class SettingsWindow : PropertyDialog
         _testIwad  = AddField("Test IWAD", s.TestIwad ?? "");
         _testArgs  = AddField("Test port args", s.TestPortArgs ?? "");
         _testAdditionalParameters = AddField("Test additional parameters", s.TestAdditionalParameters ?? "");
+        _testSkill = AddField("Test skill", Settings.TestSkillText(s));
+        _testMonsters = AddCheckBox("Test with monsters", s.TestMonsters);
         _nodePath  = AddField("Node builder", s.NodeBuilderPath ?? "");
         _nodeArgs  = AddField("Node builder args", s.NodeBuilderArgs ?? "");
         _udbScriptExternalEditor = AddFieldWithButton(
@@ -114,6 +118,8 @@ public sealed class SettingsWindow : PropertyDialog
         TestIwad = NullIfBlank(_testIwad.Text);
         TestPortArgs = NullIfBlank(_testArgs.Text);
         TestAdditionalParameters = NullIfBlank(_testAdditionalParameters.Text);
+        TestSkill = Settings.AcceptTestSkillText(_testSkill.Text);
+        TestMonsters = _testMonsters.IsChecked == true;
         NodeBuilderPath = NullIfBlank(_nodePath.Text);
         NodeBuilderArgs = NullIfBlank(_nodeArgs.Text);
         UdbScriptExternalEditor = UdbScriptPreferencesModel.AcceptExternalEditorPath(_udbScriptExternalEditor.Text ?? "")?.Value?.ToString();
