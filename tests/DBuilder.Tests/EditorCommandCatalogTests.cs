@@ -2114,6 +2114,7 @@ public class EditorCommandCatalogTests
 
             Assert.NotNull(command);
             Assert.Equal(action.Title, command.Title);
+            Assert.Equal(action.Description, command.Description);
             Assert.Equal(EditorCommandScope.Map2D, command.Scope);
             Assert.Equal(action.AllowKeys, command.AllowKeys);
             Assert.Equal(action.AllowMouse, command.AllowMouse);
