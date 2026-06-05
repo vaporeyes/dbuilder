@@ -1502,7 +1502,12 @@ public sealed class MainWindowCommandTests
         Assert.Contains("SetShortcutToolTip(CopyMenuItem, \"Copy selection\", \"window.copy\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(SelectSimilarMenuItem, \"Select Similar Map Elements\", \"window.select-similar\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(SnapSelectionToGridMenuItem, \"Snap Selected Map Elements to Grid\", \"window.snap-selection-to-grid\");", body, StringComparison.Ordinal);
-        Assert.Contains("SetShortcutToolTip(LowerFloor8MenuItem, \"Lower Floor by 8 mp\", \"map2d.lower-floor-8\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(LowerFloor8MenuItem, \"Lower Floor by 8 mp\", \"map2d.lowerfloor8\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(RaiseFloor8MenuItem, \"Raise Floor by 8 mp\", \"map2d.raisefloor8\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(LowerCeiling8MenuItem, \"Lower Ceiling by 8 mp\", \"map2d.lowerceiling8\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(RaiseCeiling8MenuItem, \"Raise Ceiling by 8 mp\", \"map2d.raiseceiling8\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(RaiseBrightness8MenuItem, \"Increase Brightness by 8\", \"map2d.raisebrightness8\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(LowerBrightness8MenuItem, \"Decrease Brightness by 8\", \"map2d.lowerbrightness8\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(FitSelectedTexturesMenuItem, \"Fit Selected Textures\", \"map2d.fit-selected-textures\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ApplyLightFogFlagMenuItem, \"Apply 'lightfog' Flag\", \"map2d.apply-lightfog-flag\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(SelectSingleSidedMenuItem, \"Select Single-sided\", \"map2d.selectsinglesided\");", body, StringComparison.Ordinal);

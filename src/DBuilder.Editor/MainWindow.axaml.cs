@@ -318,12 +318,12 @@ public partial class MainWindow : Window
         SetShortcutToolTip(MergeGeometryReplaceMenuItem, "Replace with Dragged Geometry", "window.georeplace");
         SetShortcutToolTip(JoinSectorsMenuItem, "Join sectors", "window.join-sectors");
         SetShortcutToolTip(MergeSectorsMenuItem, "Merge sectors", "window.merge-sectors");
-        SetShortcutToolTip(LowerFloor8MenuItem, "Lower Floor by 8 mp", "map2d.lower-floor-8");
-        SetShortcutToolTip(RaiseFloor8MenuItem, "Raise Floor by 8 mp", "map2d.raise-floor-8");
-        SetShortcutToolTip(LowerCeiling8MenuItem, "Lower Ceiling by 8 mp", "map2d.lower-ceiling-8");
-        SetShortcutToolTip(RaiseCeiling8MenuItem, "Raise Ceiling by 8 mp", "map2d.raise-ceiling-8");
-        SetShortcutToolTip(RaiseBrightness8MenuItem, "Increase Brightness by 8", "map2d.raise-brightness-8");
-        SetShortcutToolTip(LowerBrightness8MenuItem, "Decrease Brightness by 8", "map2d.lower-brightness-8");
+        SetShortcutToolTip(LowerFloor8MenuItem, "Lower Floor by 8 mp", "map2d.lowerfloor8");
+        SetShortcutToolTip(RaiseFloor8MenuItem, "Raise Floor by 8 mp", "map2d.raisefloor8");
+        SetShortcutToolTip(LowerCeiling8MenuItem, "Lower Ceiling by 8 mp", "map2d.lowerceiling8");
+        SetShortcutToolTip(RaiseCeiling8MenuItem, "Raise Ceiling by 8 mp", "map2d.raiseceiling8");
+        SetShortcutToolTip(RaiseBrightness8MenuItem, "Increase Brightness by 8", "map2d.raisebrightness8");
+        SetShortcutToolTip(LowerBrightness8MenuItem, "Decrease Brightness by 8", "map2d.lowerbrightness8");
         SetShortcutToolTip(FlipHorizontalMenuItem, "Flip Horizontal", "window.flip-selection-horizontal");
         SetShortcutToolTip(FlipVerticalMenuItem, "Flip Vertical", "window.flip-selection-vertical");
         SetShortcutToolTip(RotateCwMenuItem, "Rotate 90 CW", "window.rotate-selection-cw");
