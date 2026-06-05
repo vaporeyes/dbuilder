@@ -744,6 +744,17 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void EditMenuCopyPasteAvailabilityReflectsUdbModeLevelRule()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("bool canUseCopyPaste = hasMap;", body, StringComparison.Ordinal);
+        Assert.Contains("SetEnabled(canUseCopyPaste, CutMenuItem, CopyMenuItem, PasteMenuItem, PasteSpecialMenuItem);", body, StringComparison.Ordinal);
+        Assert.Contains("SetEnabled(hasSelection,\n            DuplicateMenuItem, DeleteMenuItem, SelectNoneMenuItem,", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("SetEnabled(hasSelection,\n            CutMenuItem, CopyMenuItem", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ColorPickerCommandAvailabilityReflectsMapFormatAndSelection()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));

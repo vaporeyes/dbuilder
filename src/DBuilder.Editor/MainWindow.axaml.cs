@@ -7129,6 +7129,7 @@ public partial class MainWindow : Window
     private void UpdateCommandAvailability()
     {
         bool hasMap = _map is not null;
+        bool canUseCopyPaste = hasMap;
         bool hasArchive = _wadPath is not null || _pk3Maps is { Count: > 0 };
         bool hasResources = _resources is not null;
         bool canBrowseCatalogs = hasMap && _config is not null;
@@ -7188,7 +7189,7 @@ public partial class MainWindow : Window
 
         SetEnabled(hasArchive, OpenMapMenuItem, ReloadMapMenuItem, OpenMapButton, ReloadMapButton);
         SetEnabled(hasMap,
-            CloseMapMenuItem, MapOptionsMenuItem, PrefabsMenuItem, PasteMenuItem, PasteSpecialMenuItem, SelectAllMenuItem, InvertSelectionMenuItem, SelectionGroupsMenu,
+            CloseMapMenuItem, MapOptionsMenuItem, PrefabsMenuItem, SelectAllMenuItem, InvertSelectionMenuItem, SelectionGroupsMenu,
             StitchMenuItem, InsertPrefabMenuItem, FindReplaceMenuItem, TagsMenuItem,
             InsertAtCursorMenuItem, SelectSingleSidedMenuItem, SelectDoubleSidedMenuItem, ChangeMapElementIndexMenuItem, FlipLinedefsMenuItem, FlipSidedefsMenuItem, AlignLinedefsMenuItem, SplitLinedefsMenuItem,
             SectorHeightsMenuItem,
@@ -7216,11 +7217,12 @@ public partial class MainWindow : Window
         SetEnabled(canEditUsdf, UsdfConversationsMenuItem);
         SetEnabled(canFilterThingCategories, ThingFilterMenuItem);
         SetEnabled(canReloadResources, ReloadResourcesMenuItem, ReloadResourcesButton);
+        SetEnabled(canUseCopyPaste, CutMenuItem, CopyMenuItem, PasteMenuItem, PasteSpecialMenuItem);
         SetEnabled(canBrowseAny, BrowsersMenuItem);
         SetEnabled(hasResources, BrowseWallTexturesMenuItem, BrowseFlatsMenuItem);
         SetEnabled(canBrowseCatalogs, BrowseThingsMenuItem, BrowseLinedefActionsMenuItem, BrowseSectorEffectsMenuItem);
         SetEnabled(hasSelection,
-            CutMenuItem, CopyMenuItem, DuplicateMenuItem, DeleteMenuItem, SelectNoneMenuItem,
+            DuplicateMenuItem, DeleteMenuItem, SelectNoneMenuItem,
             SavePrefabMenuItem, DeleteButton);
         SetEnabled(canCopyProperties, CopyPropertiesMenuItem);
         SetEnabled(canPasteProperties, PastePropertiesMenuItem, PastePropertiesOptionsMenuItem);
