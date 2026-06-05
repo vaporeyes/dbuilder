@@ -961,9 +961,9 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("window.stitch-geometry", "Stitch geometry", null)]
-    [InlineData("window.geomergeclassic", "Merge Dragged Vertices Only", null)]
-    [InlineData("window.geomerge", "Merge Dragged Geometry", null)]
-    [InlineData("window.georeplace", "Replace with Dragged Geometry", null)]
+    [InlineData("window.geomergeclassic", "Merge Dragged Vertices Only", "Only vertex-line intersections will be processed when applying geometry drag or paste actions.")]
+    [InlineData("window.geomerge", "Merge Dragged Geometry", "Geometry merging will be performed when applying geometry drag or paste actions.")]
+    [InlineData("window.georeplace", "Replace with Dragged Geometry", "Dragged geometry will replace underlaying geometry when applying geometry drag or paste actions.")]
     [InlineData("window.join-sectors", "Join Sectors", "Joins two or more selected sectors together and keeps all linedefs.")]
     [InlineData("window.merge-sectors", "Merge Sectors", "Joins two or more selected sectors together and removes the shared linedefs.")]
     public void WindowGeometryEditCommandsMatchUdbActionSurface(string commandId, string title, string? description = null)
