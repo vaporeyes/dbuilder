@@ -134,12 +134,13 @@ public class EditorCommandCatalogTests
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
-        Assert.False(command.AllowScroll);
+        Assert.True(command.AllowScroll);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
         Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal(command.CategoryTitle, udbAlias.CategoryTitle);
+        Assert.Equal(command.AllowScroll, udbAlias.AllowScroll);
     }
 
     [Theory]
