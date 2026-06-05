@@ -468,6 +468,7 @@ public partial class MainWindow : Window
 
     private void ApplyToolbarShortcutTooltips()
     {
+        SetShortcutToolTip(OpenWadButton, "Open WAD", "window.open-map");
         SetShortcutToolTip(OpenMapButton, "Open Map", "window.open-map-in-current-wad");
         SetShortcutToolTip(ReloadMapButton, "Reload Map", "window.reload-map");
         SetShortcutToolTip(CloseMapButton, "Close Map", "window.close-map");

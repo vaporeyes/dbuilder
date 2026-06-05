@@ -218,6 +218,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Synchronize menu and toolbar enabled state for map, archive, selection and sector-selection commands.
   - [x] Reflect active mode and draw state in toolbar buttons.
   - [x] Show effective shortcut bindings in toolbar tooltips.
+  - [x] Show effective shortcut binding in the Open WAD toolbar tooltip.
   - [x] Show effective shortcut bindings in menu item tooltips.
   - [x] Show effective shortcut bindings in File menu item tooltips.
   - [x] Show effective shortcut bindings in Edit and Prefabs menu item tooltips.

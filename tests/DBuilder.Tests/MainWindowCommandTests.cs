@@ -975,8 +975,11 @@ public sealed class MainWindowCommandTests
     public void ToolbarTooltipsRefreshFromEffectiveShortcutBindings()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        string xaml = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml"));
 
         Assert.Contains("ApplyToolbarShortcutTooltips();", body, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"OpenWadButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(OpenWadButton, \"Open WAD\", \"window.open-map\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(SaveButton, \"Save WAD\", \"window.save\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(OpenMapButton, \"Open Map\", \"window.open-map-in-current-wad\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(VerticesModeButton, \"Vertices Mode\", \"map2d.mode-vertices\");", body, StringComparison.Ordinal);
