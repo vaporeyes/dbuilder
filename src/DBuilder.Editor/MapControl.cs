@@ -6193,8 +6193,21 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 ExitDrawModes();
                 return true;
             case "map2d.fit":
+            case "map2d.centerinscreen":
                 FitToMap();
                 MarkGeometryDirty();
+                return true;
+            case "map2d.scrollwest":
+                ScrollView(-100, 0);
+                return true;
+            case "map2d.scrolleast":
+                ScrollView(100, 0);
+                return true;
+            case "map2d.scrollnorth":
+                ScrollView(0, 100);
+                return true;
+            case "map2d.scrollsouth":
+                ScrollView(0, -100);
                 return true;
             case "map2d.zoom-in":
             case "map2d.zoomin":
@@ -8792,6 +8805,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MatchGridSizeToDisplayScale();
         _soundLeakDirty = true;
         _wadAuthorDirty = true;
+        RequestNextFrameRendering();
+    }
+
+    private void ScrollView(double screenDx, double screenDy)
+    {
+        _camX += screenDx * _zoom;
+        _camY += screenDy * _zoom;
         RequestNextFrameRendering();
     }
 

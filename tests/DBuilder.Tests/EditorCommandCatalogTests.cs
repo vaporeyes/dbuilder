@@ -1125,6 +1125,40 @@ public class EditorCommandCatalogTests
         Assert.True(command.Repeat);
     }
 
+    [Fact]
+    public void CenterInScreenCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.centerinscreen");
+
+        Assert.NotNull(command);
+        Assert.Equal("Fit To Screen", command.Title);
+        Assert.Equal("R", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.False(command.Repeat);
+    }
+
+    [Theory]
+    [InlineData("map2d.scrollwest", "Scroll West")]
+    [InlineData("map2d.scrolleast", "Scroll East")]
+    [InlineData("map2d.scrollnorth", "Scroll North")]
+    [InlineData("map2d.scrollsouth", "Scroll South")]
+    public void ScrollCommandsMatchUdbActionSurface(string commandId, string title)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+        Assert.True(command.Repeat);
+    }
+
     [Theory]
     [InlineData("map2d.align-grid-to-linedef", "Align Grid to Selected Linedef")]
     [InlineData("map2d.aligngridtolinedef", "Align Grid to Selected Linedef")]

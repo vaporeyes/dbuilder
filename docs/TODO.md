@@ -325,6 +325,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add stable UDB action ids for fixed thing scale and always-show-vertices view toggles.
   - [x] Add raw UDB fixed thing scale and always-show-vertices action aliases.
   - [x] Add raw UDB accept and cancel mode action aliases.
+  - [x] Add raw UDB 2D fit-to-screen and directional scroll action aliases.
   - [x] Add UDB-style singular and plural labels to Filter Selected Things status text.
 
 ## Plugin Architecture
