@@ -1183,6 +1183,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add menu commands for selected wall texture auto-alignment.
   - [x] Propagate selected wall texture auto-alignment across connected matching walls in both directions.
   - [x] Wrap fit-texture offsets to loaded texture dimensions.
+  - [x] Report the selected-texture fit empty-selection warning before resource availability checks.
   - [x] Add UDB-style UDMF floor and ceiling flat alignment to selected linedef front/back sides.
 - [ ] Port stair builder behavior fully.
   - [x] Add independent ceiling height stepping to the stair builder.

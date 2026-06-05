@@ -1035,6 +1035,21 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void FitSelectedTexturesUsesSelectionWarningBeforeResourceGuard()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("public string FitSelectedTextures()", StringComparison.Ordinal);
+        int selectionIndex = body.IndexOf("if (_map.SelectedLinedefsCount == 0) return \"Select one or more linedefs to fit textures.\";", methodIndex, StringComparison.Ordinal);
+        int resourcesIndex = body.IndexOf("if (_resources == null) return \"No resources loaded for texture dimensions.\";", selectionIndex, StringComparison.Ordinal);
+        int editIndex = body.IndexOf("EditBegun?.Invoke(\"Fit selected textures\");", resourcesIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(selectionIndex > methodIndex);
+        Assert.True(resourcesIndex > selectionIndex);
+        Assert.True(editIndex > resourcesIndex);
+    }
+
+    [Fact]
     public void VisualTextureReset3DUsesMapFormatAwareSidedefReset()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));

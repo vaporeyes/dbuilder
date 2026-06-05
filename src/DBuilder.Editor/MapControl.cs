@@ -7415,8 +7415,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public string FitSelectedTextures()
     {
         if (_map == null) return "No map loaded.";
-        if (_resources == null) return "No resources loaded for texture dimensions.";
         if (_map.SelectedLinedefsCount == 0) return "Select one or more linedefs to fit textures.";
+        if (_resources == null) return "No resources loaded for texture dimensions.";
 
         int changed = 0;
         int skipped = 0;
