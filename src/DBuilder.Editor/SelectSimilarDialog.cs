@@ -8,6 +8,12 @@ namespace DBuilder.Editor;
 
 public sealed class SelectSimilarDialog : PropertyDialog
 {
+    private static VertexSimilarityOptions SavedVertexOptions { get; set; } = new();
+    private static SectorSimilarityOptions SavedSectorOptions { get; set; } = new();
+    private static LinedefSimilarityOptions SavedLinedefOptions { get; set; } = new();
+    private static SidedefSimilarityOptions SavedSidedefOptions { get; set; } = new();
+    private static ThingSimilarityOptions SavedThingOptions { get; set; } = new();
+
     private readonly MapControl.EditMode _mode;
     private readonly CheckBox? _vertexZFloor;
     private readonly CheckBox? _vertexZCeiling;
@@ -60,49 +66,49 @@ public sealed class SelectSimilarDialog : PropertyDialog
         switch (mode)
         {
             case MapControl.EditMode.Vertices:
-                _vertexZFloor = AddCheckBox("Vertex floor height", true);
-                _vertexZCeiling = AddCheckBox("Vertex ceiling height", true);
-                _vertexFields = AddCheckBox("Custom fields", true);
+                _vertexZFloor = AddCheckBox("Vertex floor height", SavedVertexOptions.ZFloor);
+                _vertexZCeiling = AddCheckBox("Vertex ceiling height", SavedVertexOptions.ZCeiling);
+                _vertexFields = AddCheckBox("Custom fields", SavedVertexOptions.Fields);
                 break;
             case MapControl.EditMode.Sectors:
-                _sectorFloorHeight = AddCheckBox("Floor height", true);
-                _sectorCeilingHeight = AddCheckBox("Ceiling height", true);
-                _sectorFloorTexture = AddCheckBox("Floor texture", true);
-                _sectorCeilingTexture = AddCheckBox("Ceiling texture", true);
-                _sectorBrightness = AddCheckBox("Sector brightness", true);
-                _sectorSpecial = AddCheckBox("Effect", true);
-                _sectorTags = AddCheckBox("Tags", true);
-                _sectorSlopes = AddCheckBox("Slopes", true);
-                _sectorFlags = AddCheckBox("Flags", true);
-                _sectorFields = AddCheckBox("Custom fields", true);
+                _sectorFloorHeight = AddCheckBox("Floor height", SavedSectorOptions.FloorHeight);
+                _sectorCeilingHeight = AddCheckBox("Ceiling height", SavedSectorOptions.CeilingHeight);
+                _sectorFloorTexture = AddCheckBox("Floor texture", SavedSectorOptions.FloorTexture);
+                _sectorCeilingTexture = AddCheckBox("Ceiling texture", SavedSectorOptions.CeilingTexture);
+                _sectorBrightness = AddCheckBox("Sector brightness", SavedSectorOptions.Brightness);
+                _sectorSpecial = AddCheckBox("Effect", SavedSectorOptions.Special);
+                _sectorTags = AddCheckBox("Tags", SavedSectorOptions.Tags);
+                _sectorSlopes = AddCheckBox("Slopes", SavedSectorOptions.Slopes);
+                _sectorFlags = AddCheckBox("Flags", SavedSectorOptions.Flags);
+                _sectorFields = AddCheckBox("Custom fields", SavedSectorOptions.Fields);
                 break;
             case MapControl.EditMode.Linedefs:
-                _linedefAction = AddCheckBox("Action", true);
-                _linedefArguments = AddCheckBox("Action arguments", true);
-                _linedefActivation = AddCheckBox("Activation", true);
-                _linedefTags = AddCheckBox("Tags", true);
-                _linedefFlags = AddCheckBox("Linedef flags", true);
-                _linedefFields = AddCheckBox("Linedef custom fields", true);
-                _sidedefUpperTexture = AddCheckBox("Upper texture", true);
-                _sidedefMiddleTexture = AddCheckBox("Middle texture", true);
-                _sidedefLowerTexture = AddCheckBox("Lower texture", true);
-                _sidedefOffsetX = AddCheckBox("Texture offset X", true);
-                _sidedefOffsetY = AddCheckBox("Texture offset Y", true);
-                _sidedefFlags = AddCheckBox("Sidedef flags", true);
-                _sidedefFields = AddCheckBox("Sidedef custom fields", true);
+                _linedefAction = AddCheckBox("Action", SavedLinedefOptions.Action);
+                _linedefArguments = AddCheckBox("Action arguments", SavedLinedefOptions.Arguments);
+                _linedefActivation = AddCheckBox("Activation", SavedLinedefOptions.Activation);
+                _linedefTags = AddCheckBox("Tags", SavedLinedefOptions.Tags);
+                _linedefFlags = AddCheckBox("Linedef flags", SavedLinedefOptions.Flags);
+                _linedefFields = AddCheckBox("Linedef custom fields", SavedLinedefOptions.Fields);
+                _sidedefUpperTexture = AddCheckBox("Upper texture", SavedSidedefOptions.UpperTexture);
+                _sidedefMiddleTexture = AddCheckBox("Middle texture", SavedSidedefOptions.MiddleTexture);
+                _sidedefLowerTexture = AddCheckBox("Lower texture", SavedSidedefOptions.LowerTexture);
+                _sidedefOffsetX = AddCheckBox("Texture offset X", SavedSidedefOptions.OffsetX);
+                _sidedefOffsetY = AddCheckBox("Texture offset Y", SavedSidedefOptions.OffsetY);
+                _sidedefFlags = AddCheckBox("Sidedef flags", SavedSidedefOptions.Flags);
+                _sidedefFields = AddCheckBox("Sidedef custom fields", SavedSidedefOptions.Fields);
                 break;
             case MapControl.EditMode.Things:
-                _thingType = AddCheckBox("Type", true);
-                _thingAngle = AddCheckBox("Angle", true);
-                _thingHeight = AddCheckBox("Z-height", true);
-                _thingPitch = AddCheckBox("Pitch", true);
-                _thingRoll = AddCheckBox("Roll", true);
-                _thingScale = AddCheckBox("Scale", true);
-                _thingAction = AddCheckBox("Action", true);
-                _thingArguments = AddCheckBox("Action arguments", true);
-                _thingTag = AddCheckBox("Tag", true);
-                _thingFlags = AddCheckBox("Flags", true);
-                _thingFields = AddCheckBox("Custom fields", true);
+                _thingType = AddCheckBox("Type", SavedThingOptions.Type);
+                _thingAngle = AddCheckBox("Angle", SavedThingOptions.Angle);
+                _thingHeight = AddCheckBox("Z-height", SavedThingOptions.Height);
+                _thingPitch = AddCheckBox("Pitch", SavedThingOptions.Pitch);
+                _thingRoll = AddCheckBox("Roll", SavedThingOptions.Roll);
+                _thingScale = AddCheckBox("Scale", SavedThingOptions.Scale);
+                _thingAction = AddCheckBox("Action", SavedThingOptions.Action);
+                _thingArguments = AddCheckBox("Action arguments", SavedThingOptions.Arguments);
+                _thingTag = AddCheckBox("Tag", SavedThingOptions.Tag);
+                _thingFlags = AddCheckBox("Flags", SavedThingOptions.Flags);
+                _thingFields = AddCheckBox("Custom fields", SavedThingOptions.Fields);
                 break;
         }
     }
@@ -118,6 +124,7 @@ public sealed class SelectSimilarDialog : PropertyDialog
                     ZCeiling = Checked(_vertexZCeiling),
                     Fields = Checked(_vertexFields),
                 };
+                SavedVertexOptions = VertexOptions;
                 break;
             case MapControl.EditMode.Sectors:
                 SectorOptions = new SectorSimilarityOptions
@@ -133,6 +140,7 @@ public sealed class SelectSimilarDialog : PropertyDialog
                     Flags = Checked(_sectorFlags),
                     Fields = Checked(_sectorFields),
                 };
+                SavedSectorOptions = SectorOptions;
                 break;
             case MapControl.EditMode.Linedefs:
                 LinedefOptions = new LinedefSimilarityOptions
@@ -154,6 +162,8 @@ public sealed class SelectSimilarDialog : PropertyDialog
                     Flags = Checked(_sidedefFlags),
                     Fields = Checked(_sidedefFields),
                 };
+                SavedLinedefOptions = LinedefOptions;
+                SavedSidedefOptions = SidedefOptions;
                 break;
             case MapControl.EditMode.Things:
                 ThingOptions = new ThingSimilarityOptions
@@ -170,6 +180,7 @@ public sealed class SelectSimilarDialog : PropertyDialog
                     Flags = Checked(_thingFlags),
                     Fields = Checked(_thingFields),
                 };
+                SavedThingOptions = ThingOptions;
                 break;
         }
     }

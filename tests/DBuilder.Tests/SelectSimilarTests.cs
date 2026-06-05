@@ -136,6 +136,23 @@ public class SelectSimilarTests
         Assert.False(differentHeight.Selected);
     }
 
+    [Fact]
+    public void SelectSimilarDialogPersistsOptionsBetweenOpensLikeUdb()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SelectSimilarDialog.cs"));
+
+        Assert.Contains("private static VertexSimilarityOptions SavedVertexOptions { get; set; } = new();", body, StringComparison.Ordinal);
+        Assert.Contains("_vertexZFloor = AddCheckBox(\"Vertex floor height\", SavedVertexOptions.ZFloor);", body, StringComparison.Ordinal);
+        Assert.Contains("_linedefAction = AddCheckBox(\"Action\", SavedLinedefOptions.Action);", body, StringComparison.Ordinal);
+        Assert.Contains("_sidedefUpperTexture = AddCheckBox(\"Upper texture\", SavedSidedefOptions.UpperTexture);", body, StringComparison.Ordinal);
+        Assert.Contains("_thingType = AddCheckBox(\"Type\", SavedThingOptions.Type);", body, StringComparison.Ordinal);
+        Assert.Contains("SavedVertexOptions = VertexOptions;", body, StringComparison.Ordinal);
+        Assert.Contains("SavedSectorOptions = SectorOptions;", body, StringComparison.Ordinal);
+        Assert.Contains("SavedLinedefOptions = LinedefOptions;", body, StringComparison.Ordinal);
+        Assert.Contains("SavedSidedefOptions = SidedefOptions;", body, StringComparison.Ordinal);
+        Assert.Contains("SavedThingOptions = ThingOptions;", body, StringComparison.Ordinal);
+    }
+
     private static Linedef AddLine(MapSet map, Sector sector, Vector2D start, Vector2D end, string middleTexture)
     {
         var line = map.AddLinedef(map.AddVertex(start), map.AddVertex(end));
