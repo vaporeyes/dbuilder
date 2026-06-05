@@ -803,6 +803,17 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void PlaceThingsStatusTextMatchesUdbPluralWording()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("public string PlaceThingsFromSelection()", StringComparison.Ordinal);
+        int statusIndex = body.IndexOf("string status = \"Placed \" + count + \" things.\";", methodIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(statusIndex > methodIndex);
+    }
+
+    [Fact]
     public void GridRenderingCommandControlsVisibleGridOnly()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));

@@ -8204,7 +8204,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _map.BuildIndexes();
         MarkGeometryDirty();
         Changed?.Invoke();
-        string status = "Placed " + count + " thing" + (count == 1 ? "." : "s.");
+        string status = "Placed " + count + " things.";
         Picked?.Invoke(status);
         return status;
     }
