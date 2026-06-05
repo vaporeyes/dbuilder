@@ -3536,15 +3536,16 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map3d.align-texture-x", "Align texture X", "A")]
-    [InlineData("map3d.align-texture-y", "Align texture Y", "Shift+A")]
-    public void VisualTextureAlignCommandsMatchLocalActionSurface(string id, string title, string gesture)
+    [InlineData("map3d.align-texture-x", "Align texture X", "A", "Automatically aligns the neighbouring textures X offsets until another texture is encountered.")]
+    [InlineData("map3d.align-texture-y", "Align texture Y", "Shift+A", "Automatically aligns the neighbouring textures Y offsets until another texture is encountered. The Y alignment only takes the ceiling height for each sidedef into account.")]
+    public void VisualTextureAlignCommandsMatchLocalActionSurface(string id, string title, string gesture, string description)
     {
         var command = EditorCommandCatalog.Find(id);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
         Assert.Equal(gesture, command.DefaultGesture);
+        Assert.Equal(description, command.Description);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
