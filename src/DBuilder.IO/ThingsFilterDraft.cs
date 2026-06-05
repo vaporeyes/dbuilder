@@ -78,9 +78,9 @@ public sealed class ThingsFilterDraft
             || ThingAction != -1
             || HasThingArg()
             || ThingTag != -1
-            || RequiredFields.Count > 0
-            || ForbiddenFields.Count > 0
-            || CustomFields.Count > 0;
+            || HasNamedField(RequiredFields)
+            || HasNamedField(ForbiddenFields)
+            || HasNamedCustomField();
 
     public void WriteSettings(Configuration configuration, string path)
     {
@@ -96,12 +96,19 @@ public sealed class ThingsFilterDraft
         configuration.WriteSetting(path + ".tag", ThingTag);
 
         foreach (string field in RequiredFields)
+        {
+            if (string.IsNullOrWhiteSpace(field)) continue;
             configuration.WriteSetting(path + ".fields." + field, true);
+        }
         foreach (string field in ForbiddenFields)
+        {
+            if (string.IsNullOrWhiteSpace(field)) continue;
             configuration.WriteSetting(path + ".fields." + field, false);
+        }
 
         foreach (var (key, field) in CustomFields)
         {
+            if (string.IsNullOrWhiteSpace(key)) continue;
             configuration.WriteSetting(path + ".customfieldtypes." + key, field.Type);
             configuration.WriteSetting(path + ".customfieldvalues." + key, field.Value);
         }
@@ -111,6 +118,20 @@ public sealed class ThingsFilterDraft
     {
         foreach (int arg in ThingArgs)
             if (arg != -1) return true;
+        return false;
+    }
+
+    private static bool HasNamedField(IEnumerable<string> fields)
+    {
+        foreach (string field in fields)
+            if (!string.IsNullOrWhiteSpace(field)) return true;
+        return false;
+    }
+
+    private bool HasNamedCustomField()
+    {
+        foreach (string key in CustomFields.Keys)
+            if (!string.IsNullOrWhiteSpace(key)) return true;
         return false;
     }
 }

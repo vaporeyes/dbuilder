@@ -540,6 +540,33 @@ public class ThingsFilterEvaluatorTests
     }
 
     [Fact]
+    public void DraftIgnoresBlankFieldCriteriaDuringValidationAndWriteBack()
+    {
+        var draft = new ThingsFilterDraft();
+        draft.RequiredFields.Add("");
+        draft.RequiredFields.Add(" ");
+        draft.ForbiddenFields.Add("");
+        draft.CustomFields[""] = new ThingsFilterCustomFieldInfo("", (int)UniversalType.String, "ignored");
+        draft.CustomFields[" "] = new ThingsFilterCustomFieldInfo(" ", (int)UniversalType.String, "ignored");
+
+        Assert.False(draft.IsValid());
+
+        draft.RequiredFields.Add("skill1");
+        draft.ForbiddenFields.Add("ambush");
+        draft.CustomFields["species"] = new ThingsFilterCustomFieldInfo("species", (int)UniversalType.String, "DoomImp");
+
+        var configuration = new Configuration(sorted: true);
+        draft.WriteSettings(configuration, "thingsfilters.custom0");
+
+        var filter = Assert.Single(GameConfiguration.FromText(configuration.OutputConfiguration("\n")).ThingsFilters);
+
+        Assert.Equal(["skill1"], filter.RequiredFields);
+        Assert.Equal(["ambush"], filter.ForbiddenFields);
+        var custom = Assert.Single(filter.CustomFields);
+        Assert.Equal("species", custom.Key);
+    }
+
+    [Fact]
     public void ThingFilterWindowSelectsActiveFilterByStableKey()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/ThingFilterWindow.cs"));
