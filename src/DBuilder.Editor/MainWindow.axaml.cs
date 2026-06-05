@@ -910,7 +910,7 @@ public partial class MainWindow : Window
     // Adds a base resource beneath the current map's WAD so its textures/flats/sprites resolve.
     private async void OnAddResource(object? sender, RoutedEventArgs e)
     {
-        if (_resources is null) { SetStatus("Open a WAD first."); return; }
+        if (_resources is null) { SetStatus("Open a WAD first.", StatusHistoryKind.Warning); return; }
         var top = GetTopLevel(this);
         if (top is null) return;
         var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
@@ -926,7 +926,7 @@ public partial class MainWindow : Window
 
     private async void OnAddResourceDirectory(object? sender, RoutedEventArgs e)
     {
-        if (_resources is null) { SetStatus("Open a WAD first."); return; }
+        if (_resources is null) { SetStatus("Open a WAD first.", StatusHistoryKind.Warning); return; }
         var top = GetTopLevel(this);
         if (top is null) return;
         var folders = await top.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
@@ -941,7 +941,7 @@ public partial class MainWindow : Window
 
     private async Task AddResourceLocation(DataLocation resource)
     {
-        if (_resources is null) { SetStatus("Open a WAD first."); return; }
+        if (_resources is null) { SetStatus("Open a WAD first.", StatusHistoryKind.Warning); return; }
 
         ConfigResourceDefaultsModel.ApplyRequiredArchiveDefaults(_config, resource);
 
@@ -979,7 +979,7 @@ public partial class MainWindow : Window
     // Opens the texture/flat browser for the current 3D target and applies the pick to it.
     private async void OnBrowseTextures(bool flats)
     {
-        if (_resources is null) { SetStatus("No resources loaded for textures."); return; }
+        if (_resources is null) { SetStatus("No resources loaded for textures.", StatusHistoryKind.Warning); return; }
         var dlg = new TextureBrowserDialog(_resources, flats);
         if (await dlg.ShowDialog<bool>(this) && dlg.Selected is { } name)
         {
@@ -990,7 +990,7 @@ public partial class MainWindow : Window
 
     private async void OnBrowseWallTextures(object? sender, RoutedEventArgs e)
     {
-        if (_resources is null) { SetStatus("No resources loaded for textures."); return; }
+        if (_resources is null) { SetStatus("No resources loaded for textures.", StatusHistoryKind.Warning); return; }
         var dlg = new TextureBrowserDialog(_resources, flats: false) { Title = "Browse Textures" };
         if (await dlg.ShowDialog<bool>(this) && dlg.Selected is { } name) SetStatus($"Texture selected: {name}");
         MapView.Focus();
@@ -998,7 +998,7 @@ public partial class MainWindow : Window
 
     private async void OnBrowseFlats(object? sender, RoutedEventArgs e)
     {
-        if (_resources is null) { SetStatus("No resources loaded for flats."); return; }
+        if (_resources is null) { SetStatus("No resources loaded for flats.", StatusHistoryKind.Warning); return; }
         var dlg = new TextureBrowserDialog(_resources, flats: true) { Title = "Browse Flats" };
         if (await dlg.ShowDialog<bool>(this) && dlg.Selected is { } name) SetStatus($"Flat selected: {name}");
         MapView.Focus();
@@ -1014,7 +1014,7 @@ public partial class MainWindow : Window
     {
         if (_wadPath is null || _mapOptions is null)
         {
-            SetStatus("Open a WAD map to reload resources.");
+            SetStatus("Open a WAD map to reload resources.", StatusHistoryKind.Warning);
             return;
         }
 
@@ -1040,10 +1040,10 @@ public partial class MainWindow : Window
 
     private async Task ApplyFlatToSelectedSectors(bool ceiling)
     {
-        if (_resources is null) { SetStatus("No resources loaded for flats."); return; }
+        if (_resources is null) { SetStatus("No resources loaded for flats.", StatusHistoryKind.Warning); return; }
         if (_map is null || _undo is null || _map.SelectedSectorsCount == 0)
         {
-            SetStatus("Select one or more sectors before applying flats.");
+            SetStatus("Select one or more sectors before applying flats.", StatusHistoryKind.Warning);
             return;
         }
 
@@ -1092,7 +1092,7 @@ public partial class MainWindow : Window
         int current = 0,
         Action<int, string>? onSelected = null)
     {
-        if (_config is null) { SetStatus("No game configuration loaded."); return; }
+        if (_config is null) { SetStatus("No game configuration loaded.", StatusHistoryKind.Warning); return; }
         var dlg = new BrowserDialog(title, entries(_config), current);
         if (await dlg.ShowDialog<bool>(this) && dlg.SelectedNumber is int n)
         {
