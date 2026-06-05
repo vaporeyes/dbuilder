@@ -58,6 +58,14 @@ public sealed class ThingSimilarityOptions
     public bool Tag { get; init; } = true;
     public bool Flags { get; init; } = true;
     public bool Conversation { get; init; } = true;
+    public bool Gravity { get; init; } = true;
+    public bool Health { get; init; } = true;
+    public bool Score { get; init; } = true;
+    public bool FloatBobPhase { get; init; } = true;
+    public bool Alpha { get; init; } = true;
+    public bool FillColor { get; init; } = true;
+    public bool RenderStyle { get; init; } = true;
+    public bool Comment { get; init; } = true;
     public bool Fields { get; init; } = true;
 }
 
@@ -167,6 +175,14 @@ public static class SelectSimilar
         if (options.Tag && source.Tag != target.Tag) return false;
         if (options.Flags && (source.Flags != target.Flags || !SetMatches(source.UdmfFlags, target.UdmfFlags))) return false;
         if (options.Conversation && !FieldValueMatches(source.Fields, target.Fields, "conversation")) return false;
+        if (options.Gravity && !FieldValueMatches(source.Fields, target.Fields, "gravity")) return false;
+        if (options.Health && !FieldValueMatches(source.Fields, target.Fields, "health")) return false;
+        if (options.Score && !FieldValueMatches(source.Fields, target.Fields, "score")) return false;
+        if (options.FloatBobPhase && !FieldValueMatches(source.Fields, target.Fields, "floatbobphase")) return false;
+        if (options.Alpha && !FieldValueMatches(source.Fields, target.Fields, "alpha")) return false;
+        if (options.FillColor && !FieldValueMatches(source.Fields, target.Fields, "fillcolor")) return false;
+        if (options.RenderStyle && !FieldValueMatches(source.Fields, target.Fields, "renderstyle")) return false;
+        if (options.Comment && !FieldValueMatches(source.Fields, target.Fields, "comment")) return false;
         return !options.Fields || FieldsMatch(source.Fields, target.Fields);
     }
 

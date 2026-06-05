@@ -56,7 +56,7 @@ public class SelectSimilarTests
         differentConversation.Fields["conversation"] = 7;
         differentConversation.Fields["comment"] = "alpha";
 
-        var options = new ThingSimilarityOptions { Fields = false };
+        var options = new ThingSimilarityOptions { Comment = false, Fields = false };
 
         Assert.Equal(1, SelectSimilar.SelectThings(map, options));
         Assert.True(sameConversation.Selected);
@@ -75,6 +75,75 @@ public class SelectSimilarTests
         target.Fields["conversation"] = 7;
 
         var options = new ThingSimilarityOptions { Conversation = false, Fields = false };
+
+        Assert.Equal(1, SelectSimilar.SelectThings(map, options));
+        Assert.True(target.Selected);
+    }
+
+    [Fact]
+    public void SelectThingsMatchesUdbManagedFieldsIndependentlyFromCustomFields()
+    {
+        var map = new MapSet();
+        var source = map.AddThing(new Vector2D(0, 0), 3001);
+        source.Selected = true;
+        source.Fields["gravity"] = 0.5;
+        source.Fields["health"] = 2;
+        source.Fields["score"] = 1000;
+        source.Fields["floatbobphase"] = 4;
+        source.Fields["alpha"] = 0.75;
+        source.Fields["fillcolor"] = 0x336699;
+        source.Fields["renderstyle"] = "Translucent";
+        source.Fields["comment"] = "guard";
+        source.Fields["species"] = "imp";
+
+        var match = map.AddThing(new Vector2D(64, 0), 3001);
+        match.Fields["gravity"] = 0.5;
+        match.Fields["health"] = 2;
+        match.Fields["score"] = 1000;
+        match.Fields["floatbobphase"] = 4;
+        match.Fields["alpha"] = 0.75;
+        match.Fields["fillcolor"] = 0x336699;
+        match.Fields["renderstyle"] = "translucent";
+        match.Fields["comment"] = "guard";
+        match.Fields["species"] = "demon";
+
+        var differentGravity = map.AddThing(new Vector2D(128, 0), 3001);
+        differentGravity.Fields["gravity"] = 1.0;
+        differentGravity.Fields["health"] = 2;
+        differentGravity.Fields["score"] = 1000;
+        differentGravity.Fields["floatbobphase"] = 4;
+        differentGravity.Fields["alpha"] = 0.75;
+        differentGravity.Fields["fillcolor"] = 0x336699;
+        differentGravity.Fields["renderstyle"] = "Translucent";
+        differentGravity.Fields["comment"] = "guard";
+        differentGravity.Fields["species"] = "imp";
+
+        var options = new ThingSimilarityOptions { Fields = false };
+
+        Assert.Equal(1, SelectSimilar.SelectThings(map, options));
+        Assert.True(match.Selected);
+        Assert.False(differentGravity.Selected);
+    }
+
+    [Fact]
+    public void SelectThingsCanIgnoreUdbManagedFieldsWhenDisabled()
+    {
+        var map = new MapSet();
+        var source = map.AddThing(new Vector2D(0, 0), 3001);
+        source.Selected = true;
+        source.Fields["gravity"] = 0.5;
+        source.Fields["comment"] = "guard";
+
+        var target = map.AddThing(new Vector2D(64, 0), 3001);
+        target.Fields["gravity"] = 1.0;
+        target.Fields["comment"] = "patrol";
+
+        var options = new ThingSimilarityOptions
+        {
+            Gravity = false,
+            Comment = false,
+            Fields = false,
+        };
 
         Assert.Equal(1, SelectSimilar.SelectThings(map, options));
         Assert.True(target.Selected);
@@ -188,6 +257,14 @@ public class SelectSimilarTests
         Assert.Contains("_sidedefUpperTexture = AddCheckBox(\"Upper texture\", SavedSidedefOptions.UpperTexture);", body, StringComparison.Ordinal);
         Assert.Contains("_thingType = AddCheckBox(\"Type\", SavedThingOptions.Type);", body, StringComparison.Ordinal);
         Assert.Contains("_thingConversation = AddCheckBox(\"Conversation ID\", SavedThingOptions.Conversation);", body, StringComparison.Ordinal);
+        Assert.Contains("_thingGravity = AddCheckBox(\"Gravity\", SavedThingOptions.Gravity);", body, StringComparison.Ordinal);
+        Assert.Contains("_thingHealth = AddCheckBox(\"Health multiplier\", SavedThingOptions.Health);", body, StringComparison.Ordinal);
+        Assert.Contains("_thingScore = AddCheckBox(\"Score\", SavedThingOptions.Score);", body, StringComparison.Ordinal);
+        Assert.Contains("_thingFloatBobPhase = AddCheckBox(\"Float bob phase\", SavedThingOptions.FloatBobPhase);", body, StringComparison.Ordinal);
+        Assert.Contains("_thingAlpha = AddCheckBox(\"Alpha\", SavedThingOptions.Alpha);", body, StringComparison.Ordinal);
+        Assert.Contains("_thingFillColor = AddCheckBox(\"Fill color\", SavedThingOptions.FillColor);", body, StringComparison.Ordinal);
+        Assert.Contains("_thingRenderStyle = AddCheckBox(\"Render style\", SavedThingOptions.RenderStyle);", body, StringComparison.Ordinal);
+        Assert.Contains("_thingComment = AddCheckBox(\"Comment\", SavedThingOptions.Comment);", body, StringComparison.Ordinal);
         Assert.Contains("SavedVertexOptions = VertexOptions;", body, StringComparison.Ordinal);
         Assert.Contains("SavedSectorOptions = SectorOptions;", body, StringComparison.Ordinal);
         Assert.Contains("SavedLinedefOptions = LinedefOptions;", body, StringComparison.Ordinal);

@@ -2031,6 +2031,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add mode-specific Select Similar options dialog before applying selection.
   - [x] Preserve Select Similar option choices between dialog opens like UDB.
   - [x] Add UDB-style Thing Conversation ID matching to Select Similar options.
+  - [x] Add UDB-style managed Thing field matching to Select Similar options.
 - [ ] Port texture fitting behavior.
   - [x] Add UDB-style UDMF sidedef texture fit scale and offset field helper.
   - [x] Add UDB-style connected-surface UDMF sidedef texture fit calculations.

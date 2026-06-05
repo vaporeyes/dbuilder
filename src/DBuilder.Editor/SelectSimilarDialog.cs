@@ -52,6 +52,14 @@ public sealed class SelectSimilarDialog : PropertyDialog
     private readonly CheckBox? _thingTag;
     private readonly CheckBox? _thingFlags;
     private readonly CheckBox? _thingConversation;
+    private readonly CheckBox? _thingGravity;
+    private readonly CheckBox? _thingHealth;
+    private readonly CheckBox? _thingScore;
+    private readonly CheckBox? _thingFloatBobPhase;
+    private readonly CheckBox? _thingAlpha;
+    private readonly CheckBox? _thingFillColor;
+    private readonly CheckBox? _thingRenderStyle;
+    private readonly CheckBox? _thingComment;
     private readonly CheckBox? _thingFields;
 
     public VertexSimilarityOptions VertexOptions { get; private set; } = new();
@@ -110,7 +118,15 @@ public sealed class SelectSimilarDialog : PropertyDialog
                 _thingTag = AddCheckBox("Tag", SavedThingOptions.Tag);
                 _thingFlags = AddCheckBox("Flags", SavedThingOptions.Flags);
                 _thingConversation = AddCheckBox("Conversation ID", SavedThingOptions.Conversation);
+                _thingGravity = AddCheckBox("Gravity", SavedThingOptions.Gravity);
+                _thingHealth = AddCheckBox("Health multiplier", SavedThingOptions.Health);
+                _thingScore = AddCheckBox("Score", SavedThingOptions.Score);
+                _thingFloatBobPhase = AddCheckBox("Float bob phase", SavedThingOptions.FloatBobPhase);
+                _thingAlpha = AddCheckBox("Alpha", SavedThingOptions.Alpha);
+                _thingFillColor = AddCheckBox("Fill color", SavedThingOptions.FillColor);
+                _thingRenderStyle = AddCheckBox("Render style", SavedThingOptions.RenderStyle);
                 _thingFields = AddCheckBox("Custom fields", SavedThingOptions.Fields);
+                _thingComment = AddCheckBox("Comment", SavedThingOptions.Comment);
                 break;
         }
     }
@@ -181,7 +197,15 @@ public sealed class SelectSimilarDialog : PropertyDialog
                     Tag = Checked(_thingTag),
                     Flags = Checked(_thingFlags),
                     Conversation = Checked(_thingConversation),
+                    Gravity = Checked(_thingGravity),
+                    Health = Checked(_thingHealth),
+                    Score = Checked(_thingScore),
+                    FloatBobPhase = Checked(_thingFloatBobPhase),
+                    Alpha = Checked(_thingAlpha),
+                    FillColor = Checked(_thingFillColor),
+                    RenderStyle = Checked(_thingRenderStyle),
                     Fields = Checked(_thingFields),
+                    Comment = Checked(_thingComment),
                 };
                 SavedThingOptions = ThingOptions;
                 break;
