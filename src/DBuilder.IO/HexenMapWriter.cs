@@ -88,9 +88,9 @@ public static class HexenMapWriter
         foreach (var t in map.Things)
         {
             w.Write((ushort)t.Tag);                  // tid
-            w.Write((short)t.Position.x);
-            w.Write((short)t.Position.y);
-            w.Write((short)t.Height);                // z
+            w.Write(DoomMapWriter.TruncateMapCoordinate(t.Position.x));
+            w.Write(DoomMapWriter.TruncateMapCoordinate(t.Position.y));
+            w.Write(DoomMapWriter.TruncateMapCoordinate(t.Height)); // z
             w.Write((short)t.Angle);
             w.Write((short)t.Type);
             w.Write((ushort)t.Flags);

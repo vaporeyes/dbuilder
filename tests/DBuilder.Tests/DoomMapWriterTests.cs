@@ -163,6 +163,28 @@ public class DoomMapWriterTests
         Assert.Equal(expected, DoomMapWriter.WriteThings(map));
     }
 
+    [Fact]
+    public void WriteThingsTruncatesCoordinatesLikeUdb()
+    {
+        var map = new MapSet();
+        map.Things.Add(new Thing
+        {
+            Position = new Vector2D(10.9, -10.9),
+            Angle = 45,
+            Type = 3001,
+            Flags = 7,
+        });
+
+        var bytes = DoomMapWriter.WriteThings(map);
+
+        using var reader = new BinaryReader(new MemoryStream(bytes));
+        Assert.Equal(10, reader.ReadInt16());
+        Assert.Equal(-10, reader.ReadInt16());
+        Assert.Equal(45, reader.ReadInt16());
+        Assert.Equal(3001, reader.ReadInt16());
+        Assert.Equal(7, reader.ReadUInt16());
+    }
+
     // ============================================================
     // Full WriteMap into a WAD + re-load round trip
     // ============================================================

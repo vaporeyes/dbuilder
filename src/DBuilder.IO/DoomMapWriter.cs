@@ -129,8 +129,8 @@ public static class DoomMapWriter
         using var w = new BinaryWriter(ms);
         foreach (var t in map.Things)
         {
-            w.Write((short)t.Position.x);
-            w.Write((short)t.Position.y);
+            w.Write(TruncateMapCoordinate(t.Position.x));
+            w.Write(TruncateMapCoordinate(t.Position.y));
             w.Write((short)t.Angle);
             w.Write((short)t.Type);
             w.Write((ushort)t.Flags);
@@ -153,6 +153,9 @@ public static class DoomMapWriter
 
     private static short RoundMapCoordinate(double value)
         => (short)(int)System.Math.Round(value);
+
+    internal static short TruncateMapCoordinate(double value)
+        => (short)(int)value;
 
     private static byte[] FixedString(string s, int length)
     {

@@ -126,6 +126,39 @@ public class HexenMapWriterTests
     }
 
     [Fact]
+    public void WriteThingsTruncatesCoordinatesAndHeightLikeUdb()
+    {
+        var map = new MapSet();
+        var thing = new Thing
+        {
+            Tag = 9,
+            Position = new Vector2D(10.9, -10.9),
+            Height = 20.9,
+            Angle = 90,
+            Type = 3001,
+            Flags = 7,
+            Action = 80,
+        };
+        thing.Args[0] = 1;
+        thing.Args[1] = 2;
+        map.Things.Add(thing);
+
+        var bytes = HexenMapWriter.WriteThings(map);
+
+        using var reader = new BinaryReader(new MemoryStream(bytes));
+        Assert.Equal(9, reader.ReadUInt16());
+        Assert.Equal(10, reader.ReadInt16());
+        Assert.Equal(-10, reader.ReadInt16());
+        Assert.Equal(20, reader.ReadInt16());
+        Assert.Equal(90, reader.ReadInt16());
+        Assert.Equal(3001, reader.ReadInt16());
+        Assert.Equal(7, reader.ReadUInt16());
+        Assert.Equal(80, reader.ReadByte());
+        Assert.Equal(1, reader.ReadByte());
+        Assert.Equal(2, reader.ReadByte());
+    }
+
+    [Fact]
     public void SharedVertexWriterRoundsCoordinatesLikeUdb()
     {
         var map = new MapSet();
