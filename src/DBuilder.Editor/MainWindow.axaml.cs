@@ -219,6 +219,7 @@ public partial class MainWindow : Window
         MapView.DrawGridSettings = _settings.NormalizedDrawGridSettings;
         MapView.AutomapSettings = _settings.NormalizedAutomapSettings;
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
+        MapView.RenderGridEnabled = _settings.RenderGrid;
         MapView.DynamicGridSizeEnabled = _settings.DynamicGridSize;
         MapView.SetUseHighlight(_settings.UseHighlight);
         MapView.SetAlphaBasedTextureHighlighting(_settings.AlphaBasedTextureHighlighting);
@@ -403,6 +404,7 @@ public partial class MainWindow : Window
         SetShortcutToolTip(AlignGridToLinedefMenuItem, "Align Grid to Selected Linedef", "map2d.align-grid-to-linedef");
         SetShortcutToolTip(SetGridOriginToVertexMenuItem, "Set Grid Origin to Selected Vertex", "map2d.set-grid-origin-to-vertex");
         SetShortcutToolTip(ResetGridTransformMenuItem, "Reset Grid Transform", "map2d.reset-grid-transform");
+        SetShortcutToolTip(ToggleGridRenderingMenuItem, "Show Grid", "map2d.toggle-grid-rendering");
         SetShortcutToolTip(ToggleSnapToGridMenuItem, "Toggle grid snap", "map2d.toggle-grid-snap");
         SetShortcutToolTip(ToggleDynamicGridSizeMenuItem, "Dynamic Grid Size", "map2d.toggle-dynamic-grid-size");
         SetShortcutToolTip(GridSizeDownMenuItem, "Decrease grid size", "map2d.grid-down");
@@ -3650,6 +3652,14 @@ public partial class MainWindow : Window
         MapView.Focus();
     }
 
+    private void OnToggleGridRendering(object? sender, RoutedEventArgs e)
+    {
+        SetStatus(MapView.ToggleGridRendering());
+        _settings.RenderGrid = MapView.RenderGridEnabled;
+        SaveSettings();
+        MapView.Focus();
+    }
+
     private void OnToggleDynamicGridSize(object? sender, RoutedEventArgs e)
     {
         SetStatus(MapView.ToggleDynamicGridSize());
@@ -4387,6 +4397,7 @@ public partial class MainWindow : Window
             "window.reload-resources" => ReloadResourcesMenuItem,
             "window.open-command-palette" or "window.opencommandpalette" => CommandPaletteMenuItem,
             "window.grid-setup" => GridSetupMenuItem,
+            "map2d.toggle-grid-rendering" or "map2d.togglegrid" => ToggleGridRenderingMenuItem,
             "window.usdf-conversations" or "window.usdf-dialog-editor" or "window.opendialogeditor" => UsdfConversationsMenuItem,
             "window.import-obj-terrain" or "window.importobjasterrain" => ImportObjTerrainMenuItem,
             "window.export-object" => ExportObjectMenuItem,
@@ -7287,7 +7298,7 @@ public partial class MainWindow : Window
             MoveCameraToCursorMenuItem, ToggleFullBrightnessMenuItem, ToggleHighlightMenuItem, ViewModeMenuItem, ViewModeWireframeMenuItem, ViewModeBrightnessMenuItem, ViewModeFloorsMenuItem, ViewModeCeilingsMenuItem, NextViewModeMenuItem, PreviousViewModeMenuItem,
             ModelRenderingMenuItem, ModelRenderNoneMenuItem, ModelRenderSelectionMenuItem, ModelRenderActiveFilterMenuItem, ModelRenderAllMenuItem, NextModelRenderModeMenuItem,
             ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem, ToggleFixedThingsScaleMenuItem, ToggleAlwaysShowVerticesMenuItem,
-            Toggle3DFloorsMenuItem, ThingFilterMenuItem, GridMenuItem, GridSetupMenuItem, SmartGridTransformMenuItem, AlignGridToLinedefMenuItem, SetGridOriginToVertexMenuItem,
+            Toggle3DFloorsMenuItem, ThingFilterMenuItem, GridMenuItem, GridSetupMenuItem, SmartGridTransformMenuItem, AlignGridToLinedefMenuItem, SetGridOriginToVertexMenuItem, ToggleGridRenderingMenuItem,
             ResetGridTransformMenuItem, ToggleSnapToGridMenuItem, ToggleDynamicGridSizeMenuItem, GridSizeDownMenuItem, GridSizeUpMenuItem, ToggleBlockmapMenuItem, ToggleNodesMenuItem,
             DrawMenuItem,
             MakeSectorAtCursorMenuItem, DrawSectorMenuItem, DrawLinesMenuItem, DrawCurveMenuItem,
@@ -7404,6 +7415,7 @@ public partial class MainWindow : Window
         SetChecked(ViewModeFloorsMenuItem, MapView.ViewMode2D == MapControl.ClassicViewMode.FloorTextures);
         SetChecked(ViewModeCeilingsMenuItem, MapView.ViewMode2D == MapControl.ClassicViewMode.CeilingTextures);
         SetChecked(Toggle3DFloorsMenuItem, MapView.Show3DFloors);
+        SetChecked(ToggleGridRenderingMenuItem, MapView.RenderGridEnabled);
         SetChecked(ToggleSnapToGridMenuItem, MapView.SnapToGridEnabled);
         SetChecked(ToggleDynamicGridSizeMenuItem, MapView.DynamicGridSizeEnabled);
         SetChecked(ToggleBlockmapMenuItem, MapView.ShowBlockmap);

@@ -216,6 +216,7 @@
                     <MenuItem Header="_Align Grid To Selected Linedef" x:Name="AlignGridToLinedefMenuItem" Click="OnAlignGridToLinedef" />
                     <MenuItem Header="Set Grid _Origin To Selected Vertex" x:Name="SetGridOriginToVertexMenuItem" Click="OnSetGridOriginToVertex" />
                     <MenuItem Header="_Reset Grid Transform" x:Name="ResetGridTransformMenuItem" Click="OnResetGridTransform" />
+                    <MenuItem Header="_Show Grid" x:Name="ToggleGridRenderingMenuItem" ToggleType="CheckBox" Click="OnToggleGridRendering" />
                 </MenuItem>
                 <MenuItem Header="_Snap to Grid" x:Name="ToggleSnapToGridMenuItem" ToggleType="CheckBox" Click="OnToggleSnapToGrid" />
                 <MenuItem Header="_Dynamic Grid Size" x:Name="ToggleDynamicGridSizeMenuItem" ToggleType="CheckBox" Click="OnToggleDynamicGridSize" />

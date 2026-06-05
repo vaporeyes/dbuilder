@@ -468,6 +468,8 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.applylightfogflag", "Apply 'lightfog' flag", "Menu", EditorCommandScope.Map2D, AllowMouse: false),
         new EditorCommandDescriptor("map2d.toggle-grid-snap", "Toggle grid snap", "G", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.togglesnap", "Toggle grid snap", "G", EditorCommandScope.Map2D),
+        new EditorCommandDescriptor("map2d.toggle-grid-rendering", "Show Grid", "Menu", EditorCommandScope.Map2D, AllowMouse: false),
+        new EditorCommandDescriptor("map2d.togglegrid", "Show Grid", "Menu", EditorCommandScope.Map2D, AllowMouse: false),
         new EditorCommandDescriptor("map2d.toggle-dynamic-grid-size", "Toggle Dynamic Grid Size", "Ctrl/Cmd+Alt+G", EditorCommandScope.Map2D, AllowMouse: false),
         new EditorCommandDescriptor("map2d.toggledynamicgrid", "Toggle Dynamic Grid Size", "Ctrl/Cmd+Alt+G", EditorCommandScope.Map2D, AllowMouse: false),
         new EditorCommandDescriptor("map2d.align-grid-to-linedef", "Align Grid to Selected Linedef", "Menu", EditorCommandScope.Map2D, AllowScroll: true),

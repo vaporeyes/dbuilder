@@ -867,7 +867,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("bool canBrowseAny = hasResources || canBrowseCatalogs;", body, StringComparison.Ordinal);
         Assert.Contains("bool canFilterThingCategories = hasMap && _config is { Things.Count: > 0 };", body, StringComparison.Ordinal);
         Assert.Contains("IReadOnlyList<ThingFilterCategoryChoice> cats = ThingFilterWindow.CategoryChoices(_config);", body, StringComparison.Ordinal);
-        Assert.Contains("GridSetupMenuItem, SmartGridTransformMenuItem, AlignGridToLinedefMenuItem, SetGridOriginToVertexMenuItem,", body, StringComparison.Ordinal);
+        Assert.Contains("GridSetupMenuItem, SmartGridTransformMenuItem, AlignGridToLinedefMenuItem, SetGridOriginToVertexMenuItem, ToggleGridRenderingMenuItem,", body, StringComparison.Ordinal);
         Assert.Contains("ResetGridTransformMenuItem, ToggleSnapToGridMenuItem, ToggleDynamicGridSizeMenuItem, GridSizeDownMenuItem, GridSizeUpMenuItem", body, StringComparison.Ordinal);
         Assert.Contains("SetEnabled(canFilterThingCategories, ThingFilterMenuItem);", body, StringComparison.Ordinal);
         Assert.Contains("SetEnabled(canBrowseAny, BrowsersMenuItem);", body, StringComparison.Ordinal);
@@ -1022,7 +1022,22 @@ public sealed class MainWindowCommandTests
         string xaml = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml"));
 
         Assert.Contains("Header=\"_Grid\" x:Name=\"GridMenuItem\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Header=\"_Show Grid\" x:Name=\"ToggleGridRenderingMenuItem\" ToggleType=\"CheckBox\"", xaml, StringComparison.Ordinal);
         Assert.Contains("ThingFilterMenuItem, GridMenuItem, GridSetupMenuItem, SmartGridTransformMenuItem,", code, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GridRenderingCommandPersistsAndReflectsCheckedState()
+    {
+        string code = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("MapView.RenderGridEnabled = _settings.RenderGrid;", code, StringComparison.Ordinal);
+        Assert.Contains("private void OnToggleGridRendering(object? sender, RoutedEventArgs e)", code, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(MapView.ToggleGridRendering());", code, StringComparison.Ordinal);
+        Assert.Contains("_settings.RenderGrid = MapView.RenderGridEnabled;", code, StringComparison.Ordinal);
+        Assert.Contains("SaveSettings();", code, StringComparison.Ordinal);
+        Assert.Contains("SetChecked(ToggleGridRenderingMenuItem, MapView.RenderGridEnabled);", code, StringComparison.Ordinal);
+        Assert.Contains("\"map2d.toggle-grid-rendering\" or \"map2d.togglegrid\" => ToggleGridRenderingMenuItem", code, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -1377,6 +1392,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("SetShortcutToolTip(ThingFilterMenuItem, \"Configure Things Filters\", \"window.things-filters-setup\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(FilterSelectedThingsMenuItem, \"Filter Selected Things\", \"window.filter-selected-things\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(GridSetupMenuItem, \"Grid and Backdrop Setup\", \"window.grid-setup\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ToggleGridRenderingMenuItem, \"Show Grid\", \"map2d.toggle-grid-rendering\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ToggleSnapToGridMenuItem, \"Toggle grid snap\", \"map2d.toggle-grid-snap\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(GridSizeUpMenuItem, \"Increase grid size\", \"map2d.grid-up\");", code, StringComparison.Ordinal);
     }

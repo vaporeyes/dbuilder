@@ -1365,6 +1365,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     // Grid setup is the UDB-compatible snap model; the visible grid renders the same transform.
     private readonly GridSetup _grid = new();
     private bool _snapToGrid = true;
+    private bool _renderGrid = true;
     private bool _dynamicGridSize = true;
     private GlVertexBuffer? _gridVb;
     private int _gridLineCount;
@@ -5058,6 +5059,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     // Builds and draws the visible grid as a line list. Skips when cells would be denser than a few pixels.
     private void DrawGrid()
     {
+        if (!_renderGrid) { _gridLineCount = 0; return; }
         if (_device is null || _gridVb is null || _grid.GridSizeF <= 0) { _gridLineCount = 0; return; }
         if (_grid.GridSizeF / _zoom < 4) { _gridLineCount = 0; return; }
 
@@ -5127,6 +5129,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _snapToGrid = !_snapToGrid;
         string status = $"snap {(_snapToGrid ? "on" : "off")} (grid {GridSizeLabel()})";
         ActionStateChanged?.Invoke();
+        Picked?.Invoke(status);
+        return status;
+    }
+
+    public string ToggleGridRendering()
+    {
+        RenderGridEnabled = !RenderGridEnabled;
+        string status = "Grid rendering is " + (_renderGrid ? "ENABLED" : "DISABLED");
         Picked?.Invoke(status);
         return status;
     }
@@ -6138,6 +6148,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.toggle-grid-snap":
             case "map2d.togglesnap":
                 ToggleSnapToGrid();
+                return true;
+            case "map2d.toggle-grid-rendering":
+            case "map2d.togglegrid":
+                ToggleGridRendering();
                 return true;
             case "map2d.toggle-dynamic-grid-size":
             case "map2d.toggledynamicgrid":
@@ -8300,6 +8314,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool DrawLinesOnly => _drawLinesOnly;
     public bool DrawCurve => _drawCurve;
     public bool SnapToGridEnabled => _snapToGrid;
+    public bool RenderGridEnabled
+    {
+        get => _renderGrid;
+        set
+        {
+            if (_renderGrid == value) return;
+            _renderGrid = value;
+            ActionStateChanged?.Invoke();
+            RequestNextFrameRendering();
+        }
+    }
     public bool DynamicGridSizeEnabled
     {
         get => _dynamicGridSize;

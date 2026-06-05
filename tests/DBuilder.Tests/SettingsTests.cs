@@ -305,6 +305,7 @@ public class SettingsTests
                 AutoClearSidedefTextures = false,
                 AlphaBasedTextureHighlighting = false,
                 SelectAdjacentVisualVertexSlopeHandles = true,
+                RenderGrid = false,
                 DynamicGridSize = false,
                 DefaultViewMode = 3,
                 ModelRenderMode = (int)ThingModelRenderMode.Selection,
@@ -436,6 +437,7 @@ public class SettingsTests
             Assert.False(loaded.AutoClearSidedefTextures);
             Assert.False(loaded.AlphaBasedTextureHighlighting);
             Assert.True(loaded.SelectAdjacentVisualVertexSlopeHandles);
+            Assert.False(loaded.RenderGrid);
             Assert.False(loaded.DynamicGridSize);
             Assert.Equal(3, loaded.DefaultViewMode);
             Assert.Equal(3, loaded.NormalizedDefaultViewMode);

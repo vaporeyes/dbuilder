@@ -1089,6 +1089,23 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
+    [InlineData("map2d.toggle-grid-rendering")]
+    [InlineData("map2d.togglegrid")]
+    public void GridRenderingCommandMatchesUdbActionSurface(string commandId)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal("Show Grid", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.False(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.False(command.Repeat);
+    }
+
+    [Theory]
     [InlineData("map2d.zoomin", "Zoom in", "+")]
     [InlineData("map2d.zoomout", "Zoom out", "-")]
     public void ZoomCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture)

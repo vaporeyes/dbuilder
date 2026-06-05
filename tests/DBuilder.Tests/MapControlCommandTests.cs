@@ -630,6 +630,7 @@ public sealed class MapControlCommandTests
     [InlineData("map2d.lowerbrightness8", "AdjustSectorBrightness(raise: false)")]
     [InlineData("map2d.applylightfogflag", "ApplyLightFogFlag()")]
     [InlineData("map2d.togglesnap", "ToggleSnapToGrid()")]
+    [InlineData("map2d.togglegrid", "ToggleGridRendering()")]
     [InlineData("map2d.toggledynamicgrid", "ToggleDynamicGridSize()")]
     [InlineData("map2d.aligngridtolinedef", "AlignGridToSelectedLinedef()")]
     [InlineData("map2d.setgridorigintovertex", "SetGridOriginToSelectedVertex()")]
@@ -645,6 +646,19 @@ public sealed class MapControlCommandTests
 
         Assert.True(commandIndex >= 0);
         Assert.True(handlerIndex > commandIndex);
+    }
+
+    [Fact]
+    public void GridRenderingCommandControlsVisibleGridOnly()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("private bool _renderGrid = true;", body, StringComparison.Ordinal);
+        Assert.Contains("if (!_renderGrid) { _gridLineCount = 0; return; }", body, StringComparison.Ordinal);
+        Assert.Contains("public string ToggleGridRendering()", body, StringComparison.Ordinal);
+        Assert.Contains("RenderGridEnabled = !RenderGridEnabled;", body, StringComparison.Ordinal);
+        Assert.Contains("Grid rendering is ", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("case \"map2d.togglegrid\":\n                ToggleSnapToGrid();", body, StringComparison.Ordinal);
     }
 
     [Fact]
