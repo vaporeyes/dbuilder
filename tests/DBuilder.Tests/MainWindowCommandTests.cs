@@ -1309,13 +1309,23 @@ public sealed class MainWindowCommandTests
         Assert.Contains(".Where(IsPaletteCommandUsable)", code, StringComparison.Ordinal);
         Assert.Contains("if (command.Scope != EditorCommandScope.Window) return false;", code, StringComparison.Ordinal);
         Assert.Contains("return PaletteCommandControl(command.Id)?.IsEnabled ?? true;", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.undo\" => UndoMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.redo\" => RedoMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.open-map\" => OpenWadMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.open-map-in-current-wad\" => OpenMapMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.reload-map\" => ReloadMapMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.save\" or \"window.save-map\" => SaveMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.map-options\" => MapOptionsMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.game-configurations\" => LoadGameConfigMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.show-errors\" => ErrorLogMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.delete\" or \"window.deleteitem\" => DeleteMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.properties\" => PropertiesMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.tag-range\" or \"window.rangetagselection\" => TagRangeMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.sector-color\" => SectorColorMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.dynamic-light-color\" => DynamicLightColorMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.browse-floor-flats\" => BrowseFloorFlatsMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.things-filters-setup\" => ThingFilterMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.reference-manual\" => ReferenceManualMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.edit-mode-help\" => EditModeHelpMenuItem", code, StringComparison.Ordinal);
     }
 
