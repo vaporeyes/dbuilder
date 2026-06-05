@@ -49,8 +49,12 @@ public class EditorCommandCatalogTests
     [Theory]
     [InlineData("window.open-map", "File")]
     [InlineData("window.undo", "Edit")]
+    [InlineData("window.toggleautoclearsidetextures", "Edit")]
     [InlineData("window.open-command-palette", "Tools")]
+    [InlineData("window.viewusedtags", "Tools")]
+    [InlineData("window.viewthingtypes", "Tools")]
     [InlineData("window.toggle-info-panel", "View")]
+    [InlineData("window.toggleinfopanel", "View")]
     [InlineData("window.create-prefab", "Prefabs")]
     [InlineData("window.select-group-1", "Selecting")]
     [InlineData("window.udbscripts", "Scripting")]
@@ -105,6 +109,7 @@ public class EditorCommandCatalogTests
     public void AutoClearSidedefTexturesCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("window.toggle-auto-clear-sidedef-textures");
+        var udbAlias = EditorCommandCatalog.Find("window.toggleautoclearsidetextures");
 
         Assert.NotNull(command);
         Assert.Equal("Auto Clear Sidedef Textures", command.Title);
@@ -112,6 +117,11 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.False(command.AllowScroll);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
+        Assert.Equal(command.Description, udbAlias.Description);
+        Assert.Equal(command.CategoryTitle, udbAlias.CategoryTitle);
     }
 
     [Fact]
@@ -344,7 +354,9 @@ public class EditorCommandCatalogTests
     [InlineData("window.shortcuts", "Shortcuts", "Menu")]
     [InlineData("window.about", "About", "Menu")]
     [InlineData("window.view-used-tags", "View Used Tags", "Menu")]
+    [InlineData("window.viewusedtags", "View Used Tags", "Menu")]
     [InlineData("window.view-thing-types", "View Thing Types", "Menu")]
+    [InlineData("window.viewthingtypes", "View Thing Types", "Menu")]
     [InlineData("window.center-on-coordinates", "Go To Coordinates", "Ctrl/Cmd+Shift+G")]
     [InlineData("window.go-to-coordinates", "Go To Coordinates", "Ctrl/Cmd+Shift+G")]
     public void KeyOnlyWindowCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture)
@@ -632,6 +644,7 @@ public class EditorCommandCatalogTests
     public void ToggleInfoPanelCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("window.toggle-info-panel");
+        var udbAlias = EditorCommandCatalog.Find("window.toggleinfopanel");
 
         Assert.NotNull(command);
         Assert.Equal("Toggle Info Panel", command.Title);
@@ -640,6 +653,10 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.False(command.AllowScroll);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
+        Assert.Equal(command.CategoryTitle, udbAlias.CategoryTitle);
     }
 
     [Fact]

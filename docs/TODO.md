@@ -223,6 +223,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Show UDB-style action descriptions in the Help shortcut reference.
   - [x] Show command scope labels in the Help shortcut reference.
   - [x] Add UDB-style Reference Manual and About This Editing Mode Help menu actions.
+  - [x] Add raw UDB window action aliases to shortcut help metadata.
 - [ ] Port toolbar/menu command synchronization.
   - [x] Synchronize menu and toolbar enabled state for undo, redo, save and delete commands.
   - [x] Synchronize menu and toolbar enabled state for map, archive, selection and sector-selection commands.
@@ -230,6 +231,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Show effective shortcut bindings in toolbar tooltips.
   - [x] Show effective shortcut binding in the Open WAD toolbar tooltip.
   - [x] Show effective shortcut bindings in menu item tooltips.
+  - [x] Add raw UDB window action aliases for menu command metadata.
   - [x] Show effective shortcut bindings in File menu item tooltips.
   - [x] Show effective shortcut bindings in Edit and Prefabs menu item tooltips.
   - [x] Show effective shortcut bindings in View menu item tooltips.
