@@ -1232,6 +1232,7 @@ public class EditorCommandCatalogTests
     public void ToggleCommentsCommandMatchesUdbActionSurface()
     {
         AssertKeyOnlyMap2DCommand("map2d.toggle-comments", "Toggle Comments");
+        AssertKeyOnlyMap2DCommand("map2d.togglecomments", "Toggle Comments");
     }
 
     [Theory]

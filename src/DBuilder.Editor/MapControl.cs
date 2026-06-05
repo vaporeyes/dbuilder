@@ -5867,6 +5867,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 Target3DChanged?.Invoke($"Event lines are {(_showEventLines ? "ENABLED" : "DISABLED")}");
                 return true;
             case "map2d.toggle-comments":
+            case "map2d.togglecomments":
                 Target3DChanged?.Invoke($"Comments are {(ToggleComments() ? "ENABLED" : "DISABLED")}");
                 return true;
             case "map2d.toggle-fixed-things-scale":

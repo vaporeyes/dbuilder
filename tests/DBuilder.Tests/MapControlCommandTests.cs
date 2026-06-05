@@ -607,6 +607,7 @@ public sealed class MapControlCommandTests
     [InlineData("map2d.raisefloor8", "AdjustSectorHeights(SectorHeightPart.Floor, 8)")]
     [InlineData("map2d.lowerceiling8", "AdjustSectorHeights(SectorHeightPart.Ceiling, -8)")]
     [InlineData("map2d.raiseceiling8", "AdjustSectorHeights(SectorHeightPart.Ceiling, 8)")]
+    [InlineData("map2d.togglecomments", "ToggleComments()")]
     [InlineData("map2d.verticesmode", "SetEditMode(EditMode.Vertices)")]
     [InlineData("map2d.linedefsmode", "SetEditMode(EditMode.Linedefs)")]
     [InlineData("map2d.sectorsmode", "SetEditMode(EditMode.Sectors)")]

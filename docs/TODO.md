@@ -1705,6 +1705,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Comments docker persisted setting keys for filter-mode and click-select behavior.
   - [x] Wire Comments docker filter-mode and click-select options into the editor panel.
   - [x] Render UDB-style comment icons in the editor for linedefs, sectors, and things.
+  - [x] Add UDB-style togglecomments action alias.
   - [x] Wire Comments panel live mode, group, and current selection refresh from editor changes.
   - [x] Add Comments panel search filtering for comment text and object group.
   - [x] Add UDB-style Comments panel edit-object menu and remove-undo labels.
@@ -2476,6 +2477,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Comments docker persisted setting keys for filter-mode and click-select behavior.
   - [x] Wire Comments docker filter-mode and click-select options into the editor panel.
   - [x] Render UDB-style comment icons in the editor for linedefs, sectors, and things.
+  - [x] Add UDB-style togglecomments action alias.
   - [x] Wire Comments panel live mode, group, and current selection refresh from editor changes.
   - [x] Add UDB-style singular and plural labels to Comments panel summaries.
   - [x] Add UDB-style singular and plural labels to Comments panel edit status text.

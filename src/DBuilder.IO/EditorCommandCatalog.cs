@@ -317,6 +317,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.toggle-things", "Toggle things", "T", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.toggle-thing-arrows", "Toggle sprites / direction arrows", "Y", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.toggle-comments", "Toggle Comments", "Menu", EditorCommandScope.Map2D, AllowMouse: false),
+        new EditorCommandDescriptor("map2d.togglecomments", "Toggle Comments", "Menu", EditorCommandScope.Map2D, AllowMouse: false),
         new EditorCommandDescriptor("map2d.toggle-fixed-things-scale", "Toggle Fixed Things Scale", "Menu", EditorCommandScope.Map2D, AllowMouse: false),
         new EditorCommandDescriptor("map2d.toggle-always-show-vertices", "Toggle Always Show Vertices", "Menu", EditorCommandScope.Map2D, AllowMouse: false),
         new EditorCommandDescriptor("map2d.toggle-full-brightness", "Toggle Full Brightness", "B", EditorCommandScope.Map2D, AllowScroll: true),
