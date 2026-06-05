@@ -302,9 +302,9 @@ public partial class MainWindow : Window
         SetShortcutToolTip(PasteMenuItem, "Paste selection", "window.paste");
         SetShortcutToolTip(PasteSpecialMenuItem, "Paste Selection Special", "window.paste-special");
         SetShortcutToolTip(DuplicateMenuItem, "Duplicate selection", "window.duplicate");
-        SetShortcutToolTip(CopyPropertiesMenuItem, "Copy Properties", "window.copy-properties");
-        SetShortcutToolTip(PastePropertiesMenuItem, "Paste Properties", "window.paste-properties");
-        SetShortcutToolTip(PastePropertiesOptionsMenuItem, "Paste Properties With Options", "window.paste-properties-options");
+        SetShortcutToolTip(CopyPropertiesMenuItem, "Copy Properties", "window.classiccopyproperties");
+        SetShortcutToolTip(PastePropertiesMenuItem, "Paste Properties", "window.classicpasteproperties");
+        SetShortcutToolTip(PastePropertiesOptionsMenuItem, "Paste Properties With Options", "window.classicpastepropertieswithoptions");
         SetShortcutToolTip(DeleteMenuItem, "Delete selection", "window.delete");
         SetShortcutToolTip(SelectAllMenuItem, "Select all", "window.select-all");
         SetShortcutToolTip(InvertSelectionMenuItem, "Invert selection", "window.invert-selection");

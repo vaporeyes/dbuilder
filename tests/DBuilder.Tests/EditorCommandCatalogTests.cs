@@ -844,19 +844,19 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("window.copy-properties", "Copy Properties")]
-    [InlineData("window.classiccopyproperties", "Copy Properties")]
-    [InlineData("window.paste-properties", "Paste Properties")]
-    [InlineData("window.classicpasteproperties", "Paste Properties")]
-    [InlineData("window.paste-properties-options", "Paste Properties With Options")]
-    [InlineData("window.classicpastepropertieswithoptions", "Paste Properties With Options")]
-    public void PastePropertiesCommandsMatchUdbActionSurface(string commandId, string title)
+    [InlineData("window.copy-properties", "Copy Properties", "Menu")]
+    [InlineData("window.classiccopyproperties", "Copy Properties", "Ctrl/Cmd+Shift+C")]
+    [InlineData("window.paste-properties", "Paste Properties", "Menu")]
+    [InlineData("window.classicpasteproperties", "Paste Properties", "Ctrl/Cmd+Alt+V")]
+    [InlineData("window.paste-properties-options", "Paste Properties With Options", "Menu")]
+    [InlineData("window.classicpastepropertieswithoptions", "Paste Properties With Options", "Ctrl/Cmd+Shift+V")]
+    public void PastePropertiesCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
-        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(defaultGesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
@@ -2198,6 +2198,9 @@ public class EditorCommandCatalogTests
         Assert.Equal("window.delete", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "Delete"));
         Assert.Equal("window.delete", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "Back"));
         Assert.Equal("window.cancel-draw", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "Escape"));
+        Assert.Equal("window.classiccopyproperties", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "C", accelerator: true, shift: true));
+        Assert.Equal("window.classicpasteproperties", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "V", accelerator: true, alt: true));
+        Assert.Equal("window.classicpastepropertieswithoptions", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Window, "V", accelerator: true, shift: true));
     }
 
     [Fact]
