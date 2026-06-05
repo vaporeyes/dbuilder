@@ -116,6 +116,26 @@ public class ConfigPickerModelTests
         Assert.Equal(-1, ConfigPickerModel.SelectedIndex(System.Array.Empty<ConfigPickerRow>(), "Missing"));
     }
 
+    [Theory]
+    [InlineData(0, "Doom [Doom]")]
+    [InlineData(1, "Doom [Doom] (1 configuration resource)")]
+    [InlineData(2, "Doom [Doom] (2 configuration resources)")]
+    public void DisplayTextShowsConfigurationResourceCounts(int resources, string expected)
+    {
+        var row = new ConfigPickerRow("Doom", "Doom", "/configs/Doom_DoomDoom.cfg");
+
+        Assert.Equal(expected, ConfigPickerModel.DisplayText(row, resources));
+    }
+
+    [Fact]
+    public void ConfigDialogRowsUseConfigurationResourceCounts()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/ConfigDialog.cs"));
+
+        Assert.Contains("public override string ToString() => ConfigPickerModel.DisplayText(Row, ResourceCount);", body, StringComparison.Ordinal);
+        Assert.Contains("=> new(row, _settings.ResourcesForConfiguration(row.Path).Count);", body, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void ResolveConfigPathMatchesSidecarFilenamesAndExternalPaths()
     {

@@ -61,6 +61,14 @@ public static class ConfigPickerModel
         return index >= 0 ? index : 0;
     }
 
+    public static string DisplayText(ConfigPickerRow row, int resourceCount)
+    {
+        string title = row.ToString();
+        return resourceCount > 0
+            ? $"{title} ({resourceCount} configuration resource{(resourceCount == 1 ? "" : "s")})"
+            : title;
+    }
+
     public static string? ResolveConfigPath(string configDir, string configNameOrPath, Func<string, bool> fileExists)
     {
         string value = configNameOrPath.Trim();

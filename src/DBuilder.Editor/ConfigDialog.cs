@@ -2,6 +2,7 @@
 // ABOUTME: Shows parsed game titles when available and preserves a browse path for external cfg files.
 
 using System.Collections.Generic;
+using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Platform.Storage;
@@ -11,8 +12,14 @@ namespace DBuilder.Editor;
 
 public sealed class ConfigDialog : Window
 {
+    private sealed record ConfigListItem(ConfigPickerRow Row, int ResourceCount)
+    {
+        public override string ToString() => ConfigPickerModel.DisplayText(Row, ResourceCount);
+    }
+
     private readonly ListBox _list;
     private readonly List<ConfigPickerRow> _rows;
+    private readonly List<ConfigListItem> _items;
     private readonly Settings _settings;
 
     public string? SelectedPath { get; private set; }
@@ -28,7 +35,8 @@ public sealed class ConfigDialog : Window
         _settings = settings;
 
         _rows = ConfigPickerModel.LoadRows(configDir, currentName, System.IO.File.Exists);
-        _list = new ListBox { ItemsSource = _rows };
+        _items = _rows.Select(CreateListItem).ToList();
+        _list = new ListBox { ItemsSource = _items };
         _list.SelectedIndex = ConfigPickerModel.SelectedIndex(_rows, currentName);
         _list.DoubleTapped += (_, _) => Accept();
 
@@ -71,16 +79,18 @@ public sealed class ConfigDialog : Window
 
     private void Accept()
     {
-        if (_list.SelectedItem is ConfigPickerRow row)
+        if (_list.SelectedItem is ConfigListItem item)
         {
-            SelectedPath = row.Path;
+            SelectedPath = item.Row.Path;
             Close(true);
         }
     }
 
     private async System.Threading.Tasks.Task EditResources()
     {
-        if (_list.SelectedItem is not ConfigPickerRow row) return;
+        if (_list.SelectedItem is not ConfigListItem item) return;
+        ConfigPickerRow row = item.Row;
+        int index = _list.SelectedIndex;
 
         GameConfiguration? config = null;
         try { config = GameConfiguration.FromFile(row.Path); }
@@ -91,8 +101,18 @@ public sealed class ConfigDialog : Window
         {
             _settings.SetResourcesForConfiguration(row.Path, dlg.ResultResources);
             ResourceListChanged = true;
+            if (index >= 0)
+            {
+                _items[index] = CreateListItem(row);
+                _list.ItemsSource = null;
+                _list.ItemsSource = _items;
+                _list.SelectedIndex = index;
+            }
         }
     }
+
+    private ConfigListItem CreateListItem(ConfigPickerRow row)
+        => new(row, _settings.ResourcesForConfiguration(row.Path).Count);
 
     private async System.Threading.Tasks.Task Browse()
     {
