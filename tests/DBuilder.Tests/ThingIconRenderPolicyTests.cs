@@ -78,25 +78,28 @@ public sealed class ThingIconRenderPolicyTests
         Assert.False(ThingIconRenderPolicy.ShouldDrawDirectionTicks(
             ThingIconRenderPolicy.OverviewMarkerScaleThreshold,
             thingArrows: false));
+        Assert.False(ThingIconRenderPolicy.ShouldDrawDirectionTicks(
+            ThingIconRenderPolicy.CompactMarkerScaleThreshold,
+            thingArrows: false));
         Assert.True(ThingIconRenderPolicy.ShouldDrawDirectionTicks(
-            ThingIconRenderPolicy.OverviewMarkerScaleThreshold - 0.01,
+            ThingIconRenderPolicy.CompactMarkerScaleThreshold - 0.01,
             thingArrows: false));
         Assert.False(ThingIconRenderPolicy.ShouldDrawDirectionTicks(
-            ThingIconRenderPolicy.OverviewMarkerScaleThreshold - 0.01,
+            ThingIconRenderPolicy.CompactMarkerScaleThreshold - 0.01,
             thingArrows: true));
     }
 
     [Fact]
-    public void OverviewMarkersCullOverlappingScreenCells()
+    public void CompactMarkersCullOverlappingScreenCells()
     {
         Assert.True(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(
-            ThingIconRenderPolicy.OverviewMarkerScaleThreshold,
+            ThingIconRenderPolicy.CompactMarkerScaleThreshold,
             thingArrows: false));
         Assert.False(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(
-            ThingIconRenderPolicy.OverviewMarkerScaleThreshold - 0.01,
+            ThingIconRenderPolicy.CompactMarkerScaleThreshold - 0.01,
             thingArrows: false));
         Assert.False(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(
-            ThingIconRenderPolicy.OverviewMarkerScaleThreshold,
+            ThingIconRenderPolicy.CompactMarkerScaleThreshold,
             thingArrows: true));
 
         Assert.Equal(0, ThingIconRenderPolicy.OverviewCullCell(0));

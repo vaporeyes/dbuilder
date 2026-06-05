@@ -23,10 +23,10 @@ public static class ThingIconRenderPolicy
         => !thingArrows && viewScale >= OverviewMarkerScaleThreshold;
 
     public static bool ShouldDrawDirectionTicks(double viewScale, bool thingArrows)
-        => !thingArrows && viewScale < OverviewMarkerScaleThreshold;
+        => !thingArrows && viewScale < CompactMarkerScaleThreshold;
 
     public static bool ShouldCullOverlappingOverviewThings(double viewScale, bool thingArrows)
-        => UseOverviewMarkers(viewScale, thingArrows);
+        => !thingArrows && viewScale >= CompactMarkerScaleThreshold;
 
     public static int OverviewCullCell(double screenCoordinate)
         => (int)Math.Floor(screenCoordinate / OverviewCullCellPixels);
