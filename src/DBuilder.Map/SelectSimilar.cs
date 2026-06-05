@@ -57,6 +57,7 @@ public sealed class ThingSimilarityOptions
     public bool Arguments { get; init; } = true;
     public bool Tag { get; init; } = true;
     public bool Flags { get; init; } = true;
+    public bool Conversation { get; init; } = true;
     public bool Fields { get; init; } = true;
 }
 
@@ -165,6 +166,7 @@ public static class SelectSimilar
         if (options.Arguments && !ArgsMatch(source.Args, target.Args, source.Fields, target.Fields)) return false;
         if (options.Tag && source.Tag != target.Tag) return false;
         if (options.Flags && (source.Flags != target.Flags || !SetMatches(source.UdmfFlags, target.UdmfFlags))) return false;
+        if (options.Conversation && !FieldValueMatches(source.Fields, target.Fields, "conversation")) return false;
         return !options.Fields || FieldsMatch(source.Fields, target.Fields);
     }
 

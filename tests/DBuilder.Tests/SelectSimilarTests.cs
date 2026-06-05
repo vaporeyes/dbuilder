@@ -40,6 +40,47 @@ public class SelectSimilarTests
     }
 
     [Fact]
+    public void SelectThingsCanMatchConversationIndependentlyFromCustomFields()
+    {
+        var map = new MapSet();
+        var source = map.AddThing(new Vector2D(0, 0), 3001);
+        source.Selected = true;
+        source.Fields["conversation"] = 5;
+        source.Fields["comment"] = "alpha";
+
+        var sameConversation = map.AddThing(new Vector2D(64, 0), 3001);
+        sameConversation.Fields["conversation"] = 5;
+        sameConversation.Fields["comment"] = "beta";
+
+        var differentConversation = map.AddThing(new Vector2D(128, 0), 3001);
+        differentConversation.Fields["conversation"] = 7;
+        differentConversation.Fields["comment"] = "alpha";
+
+        var options = new ThingSimilarityOptions { Fields = false };
+
+        Assert.Equal(1, SelectSimilar.SelectThings(map, options));
+        Assert.True(sameConversation.Selected);
+        Assert.False(differentConversation.Selected);
+    }
+
+    [Fact]
+    public void SelectThingsCanIgnoreConversationWhenDisabled()
+    {
+        var map = new MapSet();
+        var source = map.AddThing(new Vector2D(0, 0), 3001);
+        source.Selected = true;
+        source.Fields["conversation"] = 5;
+
+        var target = map.AddThing(new Vector2D(64, 0), 3001);
+        target.Fields["conversation"] = 7;
+
+        var options = new ThingSimilarityOptions { Conversation = false, Fields = false };
+
+        Assert.Equal(1, SelectSimilar.SelectThings(map, options));
+        Assert.True(target.Selected);
+    }
+
+    [Fact]
     public void SelectSectorsCanIgnoreDisabledProperties()
     {
         var map = new MapSet();
@@ -146,6 +187,7 @@ public class SelectSimilarTests
         Assert.Contains("_linedefAction = AddCheckBox(\"Action\", SavedLinedefOptions.Action);", body, StringComparison.Ordinal);
         Assert.Contains("_sidedefUpperTexture = AddCheckBox(\"Upper texture\", SavedSidedefOptions.UpperTexture);", body, StringComparison.Ordinal);
         Assert.Contains("_thingType = AddCheckBox(\"Type\", SavedThingOptions.Type);", body, StringComparison.Ordinal);
+        Assert.Contains("_thingConversation = AddCheckBox(\"Conversation ID\", SavedThingOptions.Conversation);", body, StringComparison.Ordinal);
         Assert.Contains("SavedVertexOptions = VertexOptions;", body, StringComparison.Ordinal);
         Assert.Contains("SavedSectorOptions = SectorOptions;", body, StringComparison.Ordinal);
         Assert.Contains("SavedLinedefOptions = LinedefOptions;", body, StringComparison.Ordinal);

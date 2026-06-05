@@ -51,6 +51,7 @@ public sealed class SelectSimilarDialog : PropertyDialog
     private readonly CheckBox? _thingArguments;
     private readonly CheckBox? _thingTag;
     private readonly CheckBox? _thingFlags;
+    private readonly CheckBox? _thingConversation;
     private readonly CheckBox? _thingFields;
 
     public VertexSimilarityOptions VertexOptions { get; private set; } = new();
@@ -108,6 +109,7 @@ public sealed class SelectSimilarDialog : PropertyDialog
                 _thingArguments = AddCheckBox("Action arguments", SavedThingOptions.Arguments);
                 _thingTag = AddCheckBox("Tag", SavedThingOptions.Tag);
                 _thingFlags = AddCheckBox("Flags", SavedThingOptions.Flags);
+                _thingConversation = AddCheckBox("Conversation ID", SavedThingOptions.Conversation);
                 _thingFields = AddCheckBox("Custom fields", SavedThingOptions.Fields);
                 break;
         }
@@ -178,6 +180,7 @@ public sealed class SelectSimilarDialog : PropertyDialog
                     Arguments = Checked(_thingArguments),
                     Tag = Checked(_thingTag),
                     Flags = Checked(_thingFlags),
+                    Conversation = Checked(_thingConversation),
                     Fields = Checked(_thingFields),
                 };
                 SavedThingOptions = ThingOptions;
