@@ -15,7 +15,8 @@ public sealed record UdbScriptInfo(
     string ScriptFile,
     string PathHash,
     string? RawOptions,
-    IReadOnlyList<UdbScriptOption> Options);
+    IReadOnlyList<UdbScriptOption> Options,
+    bool IgnoreVersion = false);
 
 public sealed record UdbScriptOption(
     string Name,

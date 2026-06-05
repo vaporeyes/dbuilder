@@ -2267,6 +2267,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Show effective UDBScript slot hotkeys in the script docker.
 - [ ] Port script runner UI integration.
 - [ ] Port full script runtime constraint integration.
+  - [x] Remember accepted over-version UDBScript runs for the session like UDB.
 - [ ] Port script exception handling.
 - [ ] Port full QueryOptions runner UI integration.
 - [ ] Port full UDBScript API wrappers for maps, vertices, linedefs, sidedefs, sectors, things, vectors, planes, blockmaps, images, data, and game config.

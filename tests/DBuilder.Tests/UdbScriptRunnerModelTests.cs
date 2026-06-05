@@ -23,6 +23,25 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void ScriptInfoDefaultsToPromptingForUnsupportedFeatureVersions()
+    {
+        UdbScriptInfo script = new(
+            "Demo",
+            "Description",
+            6,
+            "/scripts/demo.js",
+            "hash",
+            null,
+            Array.Empty<UdbScriptOption>());
+
+        Assert.False(script.IgnoreVersion);
+        Assert.True(UdbScriptRunnerModel.VersionGate(script.Version, script.IgnoreVersion).RequiresPrompt);
+        Assert.False(UdbScriptRunnerModel.VersionGate(
+            script.Version,
+            (script with { IgnoreVersion = true }).IgnoreVersion).RequiresPrompt);
+    }
+
+    [Fact]
     public void VersionGateDecisionMatchesUdbPreRunContinueAndIgnoreVersionBranches()
     {
         UdbScriptVersionGateDecision current = UdbScriptRunnerModel.VersionGateDecision(

@@ -18,6 +18,7 @@ public class MainWindowUdbScriptTests
         Assert.NotNull(type.GetMethod("RunUdbScriptPlan", BindingFlags.Instance | BindingFlags.NonPublic));
         Assert.NotNull(type.GetMethod("OpenUdbScriptRunnerWindow", BindingFlags.Instance | BindingFlags.NonPublic));
         Assert.NotNull(type.GetMethod("RunUdbScriptInRunner", BindingFlags.Instance | BindingFlags.NonPublic));
+        Assert.NotNull(type.GetMethod("RememberUdbScriptIgnoreVersion", BindingFlags.Instance | BindingFlags.NonPublic));
         Assert.NotNull(type.GetMethod("HandleUdbScriptRunnerExceptionAsync", BindingFlags.Instance | BindingFlags.NonPublic));
     }
 
@@ -30,5 +31,19 @@ public class MainWindowUdbScriptTests
 
         Assert.Contains("UdbScriptDockerModel.SlotHotkeys(_shortcutBindings)", body, StringComparison.Ordinal);
         Assert.Contains("new UdbScriptDockerWindow(", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MainWindowRemembersAcceptedUdbScriptFeatureVersionWarningsForSession()
+    {
+        string body = File.ReadAllText(Path.Combine(
+            AppContext.BaseDirectory,
+            "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("script.IgnoreVersion", body, StringComparison.Ordinal);
+        Assert.Contains("script = RememberUdbScriptIgnoreVersion(script);", body, StringComparison.Ordinal);
+        Assert.Contains("script with { IgnoreVersion = true }", body, StringComparison.Ordinal);
+        Assert.Contains("_udbScriptDocker?.ApplyCurrentScript(remembered);", body, StringComparison.Ordinal);
+        Assert.Contains("_udbScriptSlotAssignments = _udbScriptSlotAssignments.ToDictionary(", body, StringComparison.Ordinal);
     }
 }

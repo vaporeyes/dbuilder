@@ -1708,7 +1708,7 @@ public partial class MainWindow : Window
             runner.MarkRunning();
             UdbScriptVersionGateDecision versionDecision = await runner.ConfirmFeatureVersionAsync(
                 script.Version,
-                ignoreVersion: false);
+                script.IgnoreVersion);
             if (!versionDecision.ShouldContinue)
             {
                 runner.ApplyLog($"Script feature version rejected: {script.Version}");
@@ -1717,7 +1717,10 @@ public partial class MainWindow : Window
                 return;
             }
             if (versionDecision.SetIgnoreVersion)
+            {
+                script = RememberUdbScriptIgnoreVersion(script);
                 runner.ApplyLog($"Script feature version accepted: {script.Version}");
+            }
 
             UdbScriptRunSourcePlan sourcePlan = UdbScriptRunnerModel.BuildSourcePlan(AppContext.BaseDirectory, script.ScriptFile);
             runner.ApplyStatus($"Preparing script: {script.Name}");
@@ -1761,6 +1764,19 @@ public partial class MainWindow : Window
         {
             await HandleUdbScriptRunnerExceptionAsync(runner, script, ex);
         }
+    }
+
+    private UdbScriptInfo RememberUdbScriptIgnoreVersion(UdbScriptInfo script)
+    {
+        UdbScriptInfo remembered = script with { IgnoreVersion = true };
+        _pendingUdbScript = remembered;
+        _udbScriptSlotAssignments = _udbScriptSlotAssignments.ToDictionary(
+            pair => pair.Key,
+            pair => pair.Value is not null && string.Equals(pair.Value.ScriptFile, script.ScriptFile, StringComparison.Ordinal)
+                ? remembered
+                : pair.Value);
+        _udbScriptDocker?.ApplyCurrentScript(remembered);
+        return remembered;
     }
 
     private async Task HandleUdbScriptRunnerExceptionAsync(UdbScriptRunnerWindow runner, UdbScriptInfo script, Exception exception)
