@@ -707,6 +707,24 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void ThingsFiltersSetupCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.things-filters-setup");
+        var udbAlias = EditorCommandCatalog.Find("window.thingsfilterssetup");
+
+        Assert.NotNull(command);
+        Assert.Equal("Configure Things Filters", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.False(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
+    }
+
+    [Fact]
     public void ChangeMapElementIndexCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("window.change-map-element-index");

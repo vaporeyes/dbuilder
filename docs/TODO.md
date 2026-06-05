@@ -297,6 +297,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add stable UDB action ids for Preferences, Game Configurations, and Snap Selection to Grid.
   - [x] Add stable UDB action ids for Help shortcuts and About.
   - [x] Add searchable, collapsible organization to the Help shortcuts reference.
+  - [x] Add stable UDB action id for Things Filters setup.
   - [x] Dispatch the UDB-style 2D edit-properties action id.
   - [x] Add stable UDB action ids for remaining File menu actions.
   - [x] Add stable UDB action ids for tag, thing, coordinate, and error windows.
@@ -1161,6 +1162,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Select the active configured thing filter by stable key in the filter window.
   - [x] Show nested thing category titles in the thing filter window like UDB.
   - [x] Sort configured thing filters by name in the filter window like UDB.
+  - [x] Add UDB-style thingsfilterssetup action alias.
 - [ ] Port custom things filters.
   - [x] Add UI-independent custom things filter drafts and UDB settings write-back.
   - [x] Add custom things filter list add, delete, sort, and active-name preservation behavior.

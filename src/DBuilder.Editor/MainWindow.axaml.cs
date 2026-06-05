@@ -1671,6 +1671,7 @@ public partial class MainWindow : Window
             case "window.test-map-from-view": OnTestMapFromView(this, new RoutedEventArgs()); return true;
             case "window.testmapfromview": OnTestMapFromView(this, new RoutedEventArgs()); return true;
             case "window.things-filters-setup": OnThingFilter(this, new RoutedEventArgs()); return true;
+            case "window.thingsfilterssetup": OnThingFilter(this, new RoutedEventArgs()); return true;
             case "window.reload-resources": OnReloadResources(this, new RoutedEventArgs()); return true;
             case "window.grid-setup": OnGridSetup(this, new RoutedEventArgs()); return true;
             case "window.usdf-conversations": OnUsdfConversations(this, new RoutedEventArgs()); return true;
@@ -4343,7 +4344,7 @@ public partial class MainWindow : Window
             "window.clean-up-geometry" => CleanUpGeometryMenuItem,
             "window.test-map" => TestMapMenuItem,
             "window.test-map-from-view" or "window.testmapfromview" => TestMapFromViewMenuItem,
-            "window.things-filters-setup" => ThingFilterMenuItem,
+            "window.things-filters-setup" or "window.thingsfilterssetup" => ThingFilterMenuItem,
             "window.reload-resources" => ReloadResourcesMenuItem,
             "window.open-command-palette" or "window.opencommandpalette" => CommandPaletteMenuItem,
             "window.grid-setup" => GridSetupMenuItem,
