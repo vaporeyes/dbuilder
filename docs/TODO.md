@@ -127,6 +127,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Go To Coordinates action alias.
   - [x] Add UDB-style Toggle Info Panel action metadata and dispatch.
   - [x] Add UDB-style Open Command Palette action metadata and dispatch.
+  - [x] Model UDB-style command palette grouping and search filtering.
   - [x] Honor UDB-style modifier-disregard shortcut options during command resolution.
   - [x] Resolve window-level keyboard shortcuts through stable command ids.
   - [x] Resolve 2D map keyboard shortcuts through stable command ids.
