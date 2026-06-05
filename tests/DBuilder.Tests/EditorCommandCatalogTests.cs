@@ -1592,24 +1592,25 @@ public class EditorCommandCatalogTests
         => AssertKeyOnlyMap2DCommand(commandId, title);
 
     [Theory]
-    [InlineData("map2d.view-mode-wireframe", "View Wireframe")]
-    [InlineData("map2d.viewmodenormal", "View Wireframe")]
-    [InlineData("map2d.view-mode-brightness", "View Brightness Levels")]
-    [InlineData("map2d.viewmodebrightness", "View Brightness Levels")]
-    [InlineData("map2d.view-mode-floors", "View Floor Textures")]
-    [InlineData("map2d.viewmodefloors", "View Floor Textures")]
-    [InlineData("map2d.view-mode-ceilings", "View Ceiling Textures")]
-    [InlineData("map2d.viewmodeceilings", "View Ceiling Textures")]
-    [InlineData("map2d.next-view-mode", "Next View Mode")]
-    [InlineData("map2d.nextviewmode", "Next View Mode")]
-    [InlineData("map2d.previous-view-mode", "Previous View Mode")]
-    [InlineData("map2d.previousviewmode", "Previous View Mode")]
-    public void ClassicViewModeCommandsMatchUdbActionSurface(string commandId, string title)
+    [InlineData("map2d.view-mode-wireframe", "View Wireframe", "This sets the view mode to Wireframe. This shows only the map elements without any sector filling.")]
+    [InlineData("map2d.viewmodenormal", "View Wireframe", "This sets the view mode to Wireframe. This shows only the map elements without any sector filling.")]
+    [InlineData("map2d.view-mode-brightness", "View Brightness Levels", "This sets the view mode to Brightness Levels. This fills all sectors with their brightness levels.")]
+    [InlineData("map2d.viewmodebrightness", "View Brightness Levels", "This sets the view mode to Brightness Levels. This fills all sectors with their brightness levels.")]
+    [InlineData("map2d.view-mode-floors", "View Floor Textures", "This sets the view mode to Floor Textures. In this view mode the sectors are filled with their floor texture and with their brightness level applied.")]
+    [InlineData("map2d.viewmodefloors", "View Floor Textures", "This sets the view mode to Floor Textures. In this view mode the sectors are filled with their floor texture and with their brightness level applied.")]
+    [InlineData("map2d.view-mode-ceilings", "View Ceiling Textures", "This sets the view mode to Ceiling Textures. In this view mode the sectors are filled with their ceiling texture and with their brightness level applied.")]
+    [InlineData("map2d.viewmodeceilings", "View Ceiling Textures", "This sets the view mode to Ceiling Textures. In this view mode the sectors are filled with their ceiling texture and with their brightness level applied.")]
+    [InlineData("map2d.next-view-mode", "Next View Mode", "This switches to next view mode.")]
+    [InlineData("map2d.nextviewmode", "Next View Mode", "This switches to next view mode.")]
+    [InlineData("map2d.previous-view-mode", "Previous View Mode", "This switches to previous view mode.")]
+    [InlineData("map2d.previousviewmode", "Previous View Mode", "This switches to previous view mode.")]
+    public void ClassicViewModeCommandsMatchUdbActionSurface(string commandId, string title, string description)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
