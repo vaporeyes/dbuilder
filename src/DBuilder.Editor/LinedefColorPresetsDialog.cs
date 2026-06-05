@@ -135,9 +135,10 @@ public sealed class LinedefColorPresetsDialog : Window
     private void AddPreset()
     {
         StoreCurrentFields();
-        _presets.Add(new LinedefColorPreset(LinedefColorPresetModel.NewPresetName, unchecked((int)0xffffffff), Action: 0, Activation: 0));
+        int index = Math.Max(0, _list.SelectedIndex);
+        _presets.Insert(index, new LinedefColorPreset(LinedefColorPresetModel.NewPresetName, unchecked((int)0xffffffff), Action: 0, Activation: 0));
         RefreshList();
-        _list.SelectedIndex = _presets.Count - 1;
+        _list.SelectedIndex = index;
     }
 
     private void RemovePreset()
@@ -145,7 +146,6 @@ public sealed class LinedefColorPresetsDialog : Window
         int index = _list.SelectedIndex;
         if (index < 0 || index >= _presets.Count) return;
         _presets.RemoveAt(index);
-        if (_presets.Count == 0) _presets.AddRange(LinedefColorPresetModel.DefaultPresets);
         RefreshList();
         _list.SelectedIndex = Math.Min(index, _presets.Count - 1);
     }
