@@ -7283,7 +7283,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private void RunBridgeCommand()
     {
         string status = BuildBridgeFromSelectedLinedefs();
-        if (!status.StartsWith("built bridge", StringComparison.Ordinal)) Picked?.Invoke(status);
+        if (!status.StartsWith("Created a Bridge", StringComparison.Ordinal)) Picked?.Invoke(status);
     }
 
     public string BuildBridgeFromSelectedLinedefs()
@@ -7292,7 +7292,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var selected = _map.GetSelectedLinedefs();
         if (selected.Count < 2) return "Select two matching linedef chains to build a bridge.";
 
-        BridgePlan? plan = BridgePlanner.TryCreate(selected);
+        var options = new BridgePlanOptions();
+        BridgePlan? plan = BridgePlanner.TryCreate(selected, options);
         if (plan == null) return "Select exactly two non-intersecting linedef chains with matching vertex counts.";
         if (plan.Shapes.Count == 0) return "Selected linedefs did not produce bridge sectors.";
 
@@ -7331,7 +7332,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         MarkGeometryDirty();
         Changed?.Invoke();
 
-        string status = $"built bridge with {newSectors.Count} sector{(newSectors.Count == 1 ? "" : "s")}";
+        string status = BridgePlanner.CreatedStatus(options.Subdivisions);
         Picked?.Invoke(status);
         return status;
     }

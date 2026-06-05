@@ -87,6 +87,16 @@ public sealed class MapControlCommandTests
     public void TexturePasted3DStatusTextMatchesUdbTargetKind(string textureName, VisualHitKind kind, string expected)
         => Assert.Equal(expected, MapControl.TexturePasted3DStatusText(textureName, kind));
 
+    [Fact]
+    public void BridgeCommandReportsUdbSuccessStatusOnce()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("BridgePlanner.CreatedStatus(options.Subdivisions)", body, StringComparison.Ordinal);
+        Assert.Contains("!status.StartsWith(\"Created a Bridge\", StringComparison.Ordinal)", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("built bridge with", body, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("FLOOR0_1", VisualHitKind.Floor, true, "Paste floor \"FLOOR0_1\"")]
     [InlineData("CEIL1_1", VisualHitKind.Ceiling, true, "Paste ceiling \"CEIL1_1\"")]

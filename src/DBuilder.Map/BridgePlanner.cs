@@ -39,6 +39,9 @@ public static class BridgePlanner
     public const int MinSubdivisions = 0;
     public const int MaxSubdivisions = 32;
 
+    public static string CreatedStatus(int subdivisions)
+        => "Created a Bridge with " + Math.Clamp(subdivisions, MinSubdivisions, MaxSubdivisions) + " subdivisions.";
+
     public static BridgePlan? TryCreate(IEnumerable<Linedef> linedefs, BridgePlanOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(linedefs);

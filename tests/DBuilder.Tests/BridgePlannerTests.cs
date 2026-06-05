@@ -9,6 +9,14 @@ namespace DBuilder.Tests;
 public class BridgePlannerTests
 {
     [Fact]
+    public void CreatedStatusMatchesUdbBridgeModeMessage()
+    {
+        Assert.Equal("Created a Bridge with 0 subdivisions.", BridgePlanner.CreatedStatus(BridgePlanner.MinSubdivisions));
+        Assert.Equal("Created a Bridge with 12 subdivisions.", BridgePlanner.CreatedStatus(12));
+        Assert.Equal("Created a Bridge with 32 subdivisions.", BridgePlanner.CreatedStatus(99));
+    }
+
+    [Fact]
     public void TryCreateBuildsBridgeShapesBetweenTwoLineGroups()
     {
         var map = new MapSet();
