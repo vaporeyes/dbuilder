@@ -161,14 +161,16 @@ public class EditorCommandCatalogTests
         Assert.Equal(description, command.Description);
     }
 
-    [Fact]
-    public void MakeDoorCommandMatchesUdbActionSurface()
+    [Theory]
+    [InlineData("window.make-door")]
+    [InlineData("window.makedoor")]
+    public void MakeDoorCommandMatchesUdbActionSurface(string commandId)
     {
-        var command = EditorCommandCatalog.Find("window.make-door");
-        var udbAlias = EditorCommandCatalog.Find("window.makedoor");
+        var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal("Make Door", command.Title);
+        Assert.Equal("Creates doors from the highlighted or selected sectors.", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
