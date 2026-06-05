@@ -11,6 +11,16 @@ namespace DBuilder.Tests;
 
 public sealed class MapControlCommandTests
 {
+    [Fact]
+    public void LinedefRenderingUsesUdbColorPresetModel()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("private int LineColor(Linedef l)", body, StringComparison.Ordinal);
+        Assert.Contains("LinedefColorPresetModel.TryGetColor(l, LinedefColorPresetModel.DefaultPresets, _mapFormat == MapFormat.Udmf, out int presetColor)", body, StringComparison.Ordinal);
+        Assert.Contains("LinedefColorPresetModel.WithAlpha(presetColor, LinedefColorPresetModel.DefaultDoubleSidedAlpha)", body, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("FLOOR0_1", VisualHitKind.Floor, "Pasted flat \"FLOOR0_1\" on floor.")]
     [InlineData("CEIL1_1", VisualHitKind.Ceiling, "Pasted flat \"CEIL1_1\" on ceiling.")]

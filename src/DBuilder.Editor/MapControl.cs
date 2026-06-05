@@ -5029,12 +5029,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return unchecked((int)(0xff000000u | ((uint)r << 16) | ((uint)g << 8) | b));
     }
 
-    private static int LineColor(Linedef l)
+    private int LineColor(Linedef l)
     {
         if (l.Selected) return unchecked((int)0xffffee00);                       // yellow
         if ((l.Front?.Sector?.Selected ?? false) || (l.Back?.Sector?.Selected ?? false))
             return unchecked((int)0xff00ccff);                                   // cyan
         bool twoSided = l.Front != null && l.Back != null;
+        if (LinedefColorPresetModel.TryGetColor(l, LinedefColorPresetModel.DefaultPresets, _mapFormat == MapFormat.Udmf, out int presetColor))
+            return twoSided ? LinedefColorPresetModel.WithAlpha(presetColor, LinedefColorPresetModel.DefaultDoubleSidedAlpha) : presetColor;
         return twoSided ? unchecked((int)0xff8090a0) : unchecked((int)0xffe0e0e0);
     }
 
