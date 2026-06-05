@@ -2396,6 +2396,7 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
+        Assert.Equal("Deletes the highlighted or selected items in classic modes, trying to preserve the rest of the map geometry intact.", command.Description);
         Assert.Equal("map2d.dissolveitem", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Delete", accelerator: true));
         Assert.Null(EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map2D, "Back"));
     }

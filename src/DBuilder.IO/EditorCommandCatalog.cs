@@ -463,7 +463,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.alignlinedefs", "Align Linedefs", "Menu", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.split-linedefs", "Split Linedefs", "Menu", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.splitlinedefs", "Split Linedefs", "Menu", EditorCommandScope.Map2D, AllowScroll: true),
-        new EditorCommandDescriptor("map2d.dissolveitem", "Dissolve Item", "Ctrl/Cmd+Delete", EditorCommandScope.Map2D, AllowScroll: true),
+        new EditorCommandDescriptor("map2d.dissolveitem", "Dissolve Item", "Ctrl/Cmd+Delete", EditorCommandScope.Map2D, AllowScroll: true, Description: "Deletes the highlighted or selected items in classic modes, trying to preserve the rest of the map geometry intact."),
         new EditorCommandDescriptor("map2d.join-sectors", "Join Sectors", "Menu", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.joinsectors", "Join Sectors", "Menu", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.merge-sectors", "Merge Sectors", "Menu", EditorCommandScope.Map2D, AllowScroll: true),
