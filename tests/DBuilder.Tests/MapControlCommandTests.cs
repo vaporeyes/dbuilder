@@ -549,6 +549,16 @@ public sealed class MapControlCommandTests
         Assert.Contains($"{handlerName}();", body, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void MapControlChecksAllWheelAxesForShortcutDispatch()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("var wheelKeys = EditorPointerInput.WheelKeys(e.Delta.X, e.Delta.Y);", body, StringComparison.Ordinal);
+        Assert.Contains("foreach (string shortcutKey in wheelKeys)", body, StringComparison.Ordinal);
+        Assert.Contains("EditorCommandCatalog.ResolveShortcut(ShortcutBindings, EditorCommandScope.Map2D, shortcutKey, accel, shift, alt)", body, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("map2d.increasesubdivlevel", "AdjustDrawSubdivision(increase: true)")]
     [InlineData("map2d.decreasesubdivlevel", "AdjustDrawSubdivision(increase: false)")]

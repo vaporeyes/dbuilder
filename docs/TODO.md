@@ -161,6 +161,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Normalize wheel directions as UDB-style scroll command keys.
   - [x] Normalize mouse buttons as UDB-style button command keys.
   - [x] Normalize UDB internal MScroll shortcut aliases to scroll command keys.
+  - [x] Dispatch separate 2D shortcut checks for combined wheel-axis input.
 - [ ] Port special key handling.
   - [x] Normalize configurable shortcut aliases for escape, delete and backspace keys.
   - [x] Normalize configurable shortcut aliases for punctuation and numpad keys.

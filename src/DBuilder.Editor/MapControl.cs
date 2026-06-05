@@ -8676,7 +8676,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
     {
         base.OnPointerWheelChanged(e);
-        if (EditorPointerInput.WheelKey(e.Delta.X, e.Delta.Y) is not { } wheelKey) return;
+        var wheelKeys = EditorPointerInput.WheelKeys(e.Delta.X, e.Delta.Y);
+        if (wheelKeys.Count == 0) return;
+        string wheelKey = wheelKeys[0];
 
         // In 3D, the wheel raises/lowers the targeted floor/ceiling (Shift = fine 1-unit step).
         if (_mode3D)
@@ -8690,11 +8692,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         bool accel = e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta);
         bool shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
         bool alt = e.KeyModifiers.HasFlag(KeyModifiers.Alt);
-        if (EditorCommandCatalog.ResolveShortcut(ShortcutBindings, EditorCommandScope.Map2D, wheelKey, accel, shift, alt) is { } commandId
-            && RunMapCommand(commandId, e.KeyModifiers))
+        foreach (string shortcutKey in wheelKeys)
         {
-            e.Handled = true;
-            return;
+            if (EditorCommandCatalog.ResolveShortcut(ShortcutBindings, EditorCommandScope.Map2D, shortcutKey, accel, shift, alt) is { } commandId
+                && RunMapCommand(commandId, e.KeyModifiers))
+            {
+                e.Handled = true;
+                return;
+            }
         }
 
         ZoomBy(wheelKey is EditorPointerInput.ScrollUp or EditorPointerInput.ScrollRight ? 0.85 : 1.0 / 0.85);

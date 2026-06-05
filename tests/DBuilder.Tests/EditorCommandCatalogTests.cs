@@ -2959,6 +2959,10 @@ public class EditorCommandCatalogTests
         Assert.Equal(EditorPointerInput.ScrollRight, EditorPointerInput.WheelKey(2, 1));
         Assert.Equal(EditorPointerInput.ScrollLeft, EditorPointerInput.WheelKey(-2, 1));
         Assert.Null(EditorPointerInput.WheelKey(0, 0));
+        Assert.Equal([EditorPointerInput.ScrollRight, EditorPointerInput.ScrollUp], EditorPointerInput.WheelKeys(2, 1));
+        Assert.Equal([EditorPointerInput.ScrollUp, EditorPointerInput.ScrollRight], EditorPointerInput.WheelKeys(1, 2));
+        Assert.Equal([EditorPointerInput.ScrollDown], EditorPointerInput.WheelKeys(0, -1));
+        Assert.Empty(EditorPointerInput.WheelKeys(0, 0));
     }
 
     [Fact]

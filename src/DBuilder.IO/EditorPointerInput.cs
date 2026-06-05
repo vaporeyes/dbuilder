@@ -50,8 +50,18 @@ public static class EditorPointerInput
 
     public static string? WheelKey(double x, double y)
     {
-        if (x == 0 && y == 0) return null;
-        if (Math.Abs(y) >= Math.Abs(x)) return y > 0 ? ScrollUp : ScrollDown;
-        return x > 0 ? ScrollRight : ScrollLeft;
+        var keys = WheelKeys(x, y);
+        return keys.Count == 0 ? null : keys[0];
+    }
+
+    public static IReadOnlyList<string> WheelKeys(double x, double y)
+    {
+        if (x == 0 && y == 0) return [];
+
+        string? horizontal = x == 0 ? null : x > 0 ? ScrollRight : ScrollLeft;
+        string? vertical = y == 0 ? null : y > 0 ? ScrollUp : ScrollDown;
+        if (horizontal is null) return [vertical!];
+        if (vertical is null) return [horizontal];
+        return Math.Abs(y) >= Math.Abs(x) ? [vertical, horizontal] : [horizontal, vertical];
     }
 }
