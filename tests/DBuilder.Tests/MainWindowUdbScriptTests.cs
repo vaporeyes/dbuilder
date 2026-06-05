@@ -20,6 +20,7 @@ public class MainWindowUdbScriptTests
         Assert.NotNull(type.GetMethod("RunUdbScriptInRunner", BindingFlags.Instance | BindingFlags.NonPublic));
         Assert.NotNull(type.GetMethod("RememberUdbScriptIgnoreVersion", BindingFlags.Instance | BindingFlags.NonPublic));
         Assert.NotNull(type.GetMethod("HandleUdbScriptRunnerExceptionAsync", BindingFlags.Instance | BindingFlags.NonPublic));
+        Assert.NotNull(type.GetMethod("StatusKindFromUdbScript", BindingFlags.Static | BindingFlags.NonPublic));
     }
 
     [Fact]
@@ -45,5 +46,18 @@ public class MainWindowUdbScriptTests
         Assert.Contains("script with { IgnoreVersion = true }", body, StringComparison.Ordinal);
         Assert.Contains("_udbScriptDocker?.ApplyCurrentScript(remembered);", body, StringComparison.Ordinal);
         Assert.Contains("_udbScriptSlotAssignments = _udbScriptSlotAssignments.ToDictionary(", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MainWindowRecordsUdbScriptOutcomeStatusKinds()
+    {
+        string body = File.ReadAllText(Path.Combine(
+            AppContext.BaseDirectory,
+            "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("SetStatus(plan.Outcome.StatusText, StatusKindFromUdbScript(plan.Outcome.StatusKind));", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus($\"UDBScript execution failed: {script.Name}\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("UdbScriptRunnerStatusKind.Ready => StatusHistoryKind.Ready", body, StringComparison.Ordinal);
+        Assert.Contains("UdbScriptRunnerStatusKind.Warning => StatusHistoryKind.Warning", body, StringComparison.Ordinal);
     }
 }

@@ -1845,10 +1845,18 @@ public partial class MainWindow : Window
         runner.ApplyLog($"Script exception: {kind}");
         runner.Finish(runner.ElapsedRuntime, autoClose: false);
         if (!string.IsNullOrWhiteSpace(plan.Outcome.StatusText))
-            SetStatus(plan.Outcome.StatusText);
+            SetStatus(plan.Outcome.StatusText, StatusKindFromUdbScript(plan.Outcome.StatusKind));
         else
-            SetStatus($"UDBScript execution failed: {script.Name}");
+            SetStatus($"UDBScript execution failed: {script.Name}", StatusHistoryKind.Warning);
     }
+
+    private static StatusHistoryKind StatusKindFromUdbScript(UdbScriptRunnerStatusKind kind)
+        => kind switch
+        {
+            UdbScriptRunnerStatusKind.Ready => StatusHistoryKind.Ready,
+            UdbScriptRunnerStatusKind.Warning => StatusHistoryKind.Warning,
+            _ => StatusHistoryKind.Info,
+        };
 
     private bool RunSelectionGroupCommand(string commandId)
     {
