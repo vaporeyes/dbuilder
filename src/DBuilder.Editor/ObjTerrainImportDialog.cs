@@ -19,7 +19,7 @@ public sealed class ObjTerrainImportDialog : PropertyDialog
     public bool ResultUseVertexHeights { get; private set; }
 
     public ObjTerrainImportDialog(bool vertexHeightsSupported)
-        : base("Import OBJ Terrain")
+        : base("Import Wavefront .obj as terrain")
     {
         _vertexHeightsSupported = vertexHeightsSupported;
         ResultUseVertexHeights = vertexHeightsSupported;

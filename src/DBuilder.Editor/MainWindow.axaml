@@ -290,7 +290,7 @@
                 <MenuItem Header="Open Color _Picker" x:Name="ToggleLightPanelMenuItem" Click="OnToggleLightPanel" />
                 <MenuItem Header="Tag _Range..." x:Name="TagRangeMenuItem" Click="OnTagRange" />
                 <MenuItem Header="_Image Example" x:Name="ImageExampleMenuItem" ToggleType="CheckBox" Click="OnImageExample" />
-                <MenuItem Header="Import _OBJ Terrain..." x:Name="ImportObjTerrainMenuItem" Click="OnImportObjTerrain" />
+                <MenuItem Header="Import _Wavefront .obj as terrain..." x:Name="ImportObjTerrainMenuItem" Click="OnImportObjTerrain" />
                 <MenuItem Header="Export _Object OBJ..." x:Name="ExportObjectMenuItem" Click="OnExportObject" />
                 <MenuItem Header="Export to _image..." x:Name="ExportImageMenuItem" Click="OnExportImage" />
                 <MenuItem Header="Export to _Wavefront .obj..." x:Name="ExportWavefrontMenuItem" Click="OnExportWavefront" />
@@ -491,7 +491,7 @@
                     <PathIcon Data="M5,17 L17,5 L20,8 L8,20 Z M14,5 L17,2 L22,7 L19,10 Z M6,16 L9,19 L5,20 Z" />
                 </Button>
                 <Button x:Name="LinedefColorPresetsButton" Width="132" Height="28" Padding="8,0" ToolTip.Tip="Linedef Color Presets" Click="OnLinedefColorPresetsButton" />
-                <Button Classes="toolbarButton" ToolTip.Tip="Import OBJ Terrain" x:Name="ImportObjTerrainButton" Click="OnImportObjTerrain">
+                <Button Classes="toolbarButton" ToolTip.Tip="Import Wavefront .obj as terrain" x:Name="ImportObjTerrainButton" Click="OnImportObjTerrain">
                     <PathIcon Data="M4,18 L8,10 L12,15 L16,7 L21,18 Z M4,20 L21,20 M7,18 L10,14 M13,18 L16,13" />
                 </Button>
             </StackPanel>

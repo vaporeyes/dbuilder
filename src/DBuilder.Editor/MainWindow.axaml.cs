@@ -468,7 +468,7 @@ public partial class MainWindow : Window
         SetShortcutToolTip(ToggleLightPanelMenuItem, "Open Color Picker", "window.togglelightpannel");
         SetShortcutToolTip(TagRangeMenuItem, "Tag Range", "window.tag-range");
         SetShortcutToolTip(ImageExampleMenuItem, "Image Example", "map2d.mode-image-example");
-        SetShortcutToolTip(ImportObjTerrainMenuItem, "Import OBJ Terrain", "window.import-obj-terrain");
+        SetShortcutToolTip(ImportObjTerrainMenuItem, "Import Wavefront .obj as terrain", "window.import-obj-terrain");
         SetShortcutToolTip(ExportObjectMenuItem, "Export Object OBJ", "window.export-object");
         SetShortcutToolTip(ExportImageMenuItem, "Export to image", "window.export-image");
         SetShortcutToolTip(ExportWavefrontMenuItem, "Export to Wavefront .obj", "window.export-wavefront");
@@ -532,7 +532,7 @@ public partial class MainWindow : Window
         SetShortcutToolTip(TagRangeButton, "Tag Range", "window.tag-range");
         SetShortcutToolTip(ThingFilterButton, "Configure Things Filters", "window.things-filters-setup");
         SetShortcutToolTip(LinedefColorSetupButton, "Configure Linedef Colors", "window.linedefcolorssetup");
-        SetShortcutToolTip(ImportObjTerrainButton, "Import OBJ Terrain", "window.import-obj-terrain");
+        SetShortcutToolTip(ImportObjTerrainButton, "Import Wavefront .obj as terrain", "window.import-obj-terrain");
     }
 
     private void SetShortcutToolTip(Control control, string label, string commandId)
@@ -5748,7 +5748,7 @@ public partial class MainWindow : Window
 
         var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Import OBJ Terrain",
+            Title = "Import Wavefront .obj as terrain",
             AllowMultiple = false,
             FileTypeFilter = new[]
             {

@@ -602,8 +602,8 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("window.import-obj-terrain", "Import OBJ Terrain", null, true, true)]
-    [InlineData("window.importobjasterrain", "Import OBJ Terrain", null, true, true)]
+    [InlineData("window.import-obj-terrain", "Import Wavefront .obj as terrain", "Creates sectors from given model (UDMF only).", false, false)]
+    [InlineData("window.importobjasterrain", "Import Wavefront .obj as terrain", "Creates sectors from given model (UDMF only).", false, false)]
     [InlineData("window.export-object", "Export Object OBJ", null, true, true)]
     [InlineData("window.export-image", "Export to image", "Exports selected sectors (or the whole map if no sectors selected) to an image", false, false)]
     [InlineData("window.exporttoimage", "Export to image", "Exports selected sectors (or the whole map if no sectors selected) to an image", false, false)]
