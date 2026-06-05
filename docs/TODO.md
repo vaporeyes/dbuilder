@@ -2031,6 +2031,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style singular and plural labels to Make Door status text.
 - [ ] Port object export tools.
   - [x] Add UDB-style legacy object export settings defaults, scale and texture options, and path validation.
+  - [x] Add UDB-style legacy object export form labels and save-dialog metadata.
   - [x] Add UDB-style legacy object export geometry writer and OBJ/MTL file planning.
   - [x] Add editor command integration for legacy object OBJ export with options, file writing, and texture image export.
 - [ ] Port image export tools.

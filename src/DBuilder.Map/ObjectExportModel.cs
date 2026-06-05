@@ -19,6 +19,14 @@ public sealed record ObjectExportSettings(
     public const string DialogFilter = "Wavefront obj files|*.obj";
     public const string DialogTitle = "Select save location:";
     public const string InvalidPathMessage = "Selected path does not exist!";
+    public const string FormTitle = "Export to Wavefront .obj";
+    public const string FormDescription = "Exports selected sectors, or the whole map, using the legacy object exporter.";
+    public const string PathLabel = "Export path:";
+    public const string BrowseButtonText = "Browse...";
+    public const string FixScaleText = "Export for GZDoom (Fix Vertical Scale)";
+    public const string ExportTexturesText = "Export textures";
+    public const string ExportButtonText = "Export";
+    public const string CancelButtonText = "Cancel";
 
     public static ObjectExportSettings FromOptions(ObjectExportOptions options)
         => new(options.FilePath.Trim(), options.FixScale, options.ExportTextures);
@@ -28,6 +36,12 @@ public sealed record ObjectExportSettings(
 
     public static string DefaultFilePath(string mapDirectory, string mapTitle, string levelName)
         => Path.Combine(mapDirectory, DefaultFileName(mapTitle, levelName) + DefaultExtension);
+
+    public static string DialogFilterName()
+        => DialogFilter.Split('|')[0];
+
+    public static string DialogFilterPattern()
+        => DialogFilter.Split('|').Length > 1 ? DialogFilter.Split('|')[1] : "*" + DefaultExtension;
 
     public static IReadOnlyList<string> Validate(ObjectExportOptions options, Func<string, bool>? directoryExists = null)
     {
@@ -41,6 +55,36 @@ public sealed record ObjectExportSettings(
 
         return errors;
     }
+}
+
+public sealed record ObjectExportFormState(
+    ObjectExportOptions DefaultOptions,
+    string Title,
+    string Description,
+    string PathLabel,
+    string BrowseButtonText,
+    string FixScaleText,
+    string ExportTexturesText,
+    string ExportButtonText,
+    string CancelButtonText,
+    string SaveDialogTitle,
+    string SaveDialogFilter,
+    string SaveDialogExtension)
+{
+    public static ObjectExportFormState FromPath(string filePath, bool fixScale = false, bool exportTextures = false)
+        => new(
+            new ObjectExportOptions(filePath, fixScale, exportTextures),
+            ObjectExportSettings.FormTitle,
+            ObjectExportSettings.FormDescription,
+            ObjectExportSettings.PathLabel,
+            ObjectExportSettings.BrowseButtonText,
+            ObjectExportSettings.FixScaleText,
+            ObjectExportSettings.ExportTexturesText,
+            ObjectExportSettings.ExportButtonText,
+            ObjectExportSettings.CancelButtonText,
+            ObjectExportSettings.DialogTitle,
+            ObjectExportSettings.DialogFilter,
+            ObjectExportSettings.DefaultExtension.TrimStart('.'));
 }
 
 public static class ObjectExportWriter

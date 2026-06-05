@@ -17,7 +17,46 @@ public sealed class ObjectExportModelTests
         Assert.Equal("doom2_MAP01", ObjectExportSettings.DefaultFileName("doom2", "MAP01"));
         Assert.Equal(".obj", ObjectExportSettings.DefaultExtension);
         Assert.Equal("Wavefront obj files|*.obj", ObjectExportSettings.DialogFilter);
+        Assert.Equal("Wavefront obj files", ObjectExportSettings.DialogFilterName());
+        Assert.Equal("*.obj", ObjectExportSettings.DialogFilterPattern());
         Assert.Equal("Select save location:", ObjectExportSettings.DialogTitle);
+    }
+
+    [Fact]
+    public void FormStateExposesUdbLegacyObjectExportLabels()
+    {
+        ObjectExportFormState state = ObjectExportFormState.FromPath(
+            "/maps/doom2_MAP01.obj",
+            fixScale: true,
+            exportTextures: true);
+
+        Assert.Equal(new ObjectExportOptions("/maps/doom2_MAP01.obj", FixScale: true, ExportTextures: true), state.DefaultOptions);
+        Assert.Equal("Export to Wavefront .obj", state.Title);
+        Assert.Equal("Exports selected sectors, or the whole map, using the legacy object exporter.", state.Description);
+        Assert.Equal("Export path:", state.PathLabel);
+        Assert.Equal("Browse...", state.BrowseButtonText);
+        Assert.Equal("Export for GZDoom (Fix Vertical Scale)", state.FixScaleText);
+        Assert.Equal("Export textures", state.ExportTexturesText);
+        Assert.Equal("Export", state.ExportButtonText);
+        Assert.Equal("Cancel", state.CancelButtonText);
+        Assert.Equal("Select save location:", state.SaveDialogTitle);
+        Assert.Equal("Wavefront obj files|*.obj", state.SaveDialogFilter);
+        Assert.Equal("obj", state.SaveDialogExtension);
+    }
+
+    [Fact]
+    public void EditorObjectExportDialogUsesSharedUdbMetadata()
+    {
+        string dialog = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/ObjectExportDialog.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("ObjectExportSettings.FormTitle", dialog, StringComparison.Ordinal);
+        Assert.Contains("ObjectExportSettings.FormDescription", dialog, StringComparison.Ordinal);
+        Assert.Contains("ObjectExportSettings.PathLabel", dialog, StringComparison.Ordinal);
+        Assert.Contains("ObjectExportSettings.FixScaleText", dialog, StringComparison.Ordinal);
+        Assert.Contains("ObjectExportSettings.ExportTexturesText", dialog, StringComparison.Ordinal);
+        Assert.Contains("ObjectExportSettings.DialogFilterName()", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("ObjectExportSettings.DialogFilterPattern()", mainWindow, StringComparison.Ordinal);
     }
 
     [Fact]

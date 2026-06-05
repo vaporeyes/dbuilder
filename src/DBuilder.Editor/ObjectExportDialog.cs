@@ -15,12 +15,12 @@ public sealed class ObjectExportDialog : PropertyDialog
     public ObjectExportOptions ResultOptions { get; private set; }
 
     public ObjectExportDialog(ObjectExportOptions options)
-        : base("Export to Wavefront .obj", "Exports selected sectors, or the whole map, using the legacy object exporter.")
+        : base(ObjectExportSettings.FormTitle, ObjectExportSettings.FormDescription)
     {
         ResultOptions = options;
-        _filePath = AddField("OBJ path", options.FilePath);
-        _fixScale = AddCheckBox("Export for GZDoom (Fix Vertical Scale)", options.FixScale);
-        _exportTextures = AddCheckBox("Export textures", options.ExportTextures);
+        _filePath = AddField(ObjectExportSettings.PathLabel, options.FilePath);
+        _fixScale = AddCheckBox(ObjectExportSettings.FixScaleText, options.FixScale);
+        _exportTextures = AddCheckBox(ObjectExportSettings.ExportTexturesText, options.ExportTextures);
     }
 
     protected override void OnConfirm()

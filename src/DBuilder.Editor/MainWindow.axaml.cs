@@ -6065,8 +6065,14 @@ public partial class MainWindow : Window
         {
             Title = ObjectExportSettings.DialogTitle,
             SuggestedFileName = DefaultObjectExportFileName(),
-            DefaultExtension = "obj",
-            FileTypeChoices = new[] { new FilePickerFileType("Wavefront OBJ") { Patterns = new[] { "*.obj" } } },
+            DefaultExtension = ObjectExportSettings.DefaultExtension.TrimStart('.'),
+            FileTypeChoices = new[]
+            {
+                new FilePickerFileType(ObjectExportSettings.DialogFilterName())
+                {
+                    Patterns = new[] { ObjectExportSettings.DialogFilterPattern() },
+                },
+            },
         });
         if (file?.TryGetLocalPath() is not { } path) return;
 
