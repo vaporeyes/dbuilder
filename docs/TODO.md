@@ -117,6 +117,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Expose draw-ellipse continuous, radial, and thing placement preferences in the Settings dialog.
   - [x] Expose draw-curve continuous, auto-close, and thing placement preferences in the Settings dialog.
   - [x] Expose draw-grid continuous and triangulation preferences in the Settings dialog.
+  - [x] Add raw UDB grid setup, snap, dynamic grid, and grid-size action aliases.
   - [x] Clamp Settings dialog numeric preference input to supported UDB ranges.
   - [x] Show normalized numeric preference defaults in the Settings dialog.
   - [x] Expose alpha-based texture highlighting in the Settings dialog.
@@ -1203,6 +1204,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Report UDB grid-size bounds when bracket shortcuts reach minimum or maximum size.
   - [x] Keep bracket grid stepping usable after oversized grid values.
   - [x] Add UDB-style align-grid, set-grid-origin, reset-grid, and smart-grid-transform actions.
+  - [x] Add raw UDB grid transform action aliases.
   - [x] Add UDB-style dynamic grid size setting, toggle, shortcut, and zoom matching.
   - [x] Preserve UDMF fractional grid sizes when confirming the grid setup dialog.
 - [ ] Port drawing behavior for sectors, lines, rectangles, ellipses, curves, and grids.

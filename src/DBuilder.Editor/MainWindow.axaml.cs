@@ -1686,6 +1686,7 @@ public partial class MainWindow : Window
             case "window.reload-resources": OnReloadResources(this, new RoutedEventArgs()); return true;
             case "window.reloadresources": OnReloadResources(this, new RoutedEventArgs()); return true;
             case "window.grid-setup": OnGridSetup(this, new RoutedEventArgs()); return true;
+            case "window.gridsetup": OnGridSetup(this, new RoutedEventArgs()); return true;
             case "window.usdf-conversations": OnUsdfConversations(this, new RoutedEventArgs()); return true;
             case "window.usdf-dialog-editor": OnUsdfConversations(this, new RoutedEventArgs()); return true;
             case "window.opendialogeditor": OnUsdfConversations(this, new RoutedEventArgs()); return true;

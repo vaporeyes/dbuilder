@@ -63,6 +63,7 @@ public class EditorCommandCatalogTests
     [InlineData("window.testmap", "Tools")]
     [InlineData("window.viewusedtags", "Tools")]
     [InlineData("window.viewthingtypes", "Tools")]
+    [InlineData("window.gridsetup", "Tools")]
     [InlineData("window.toggle-info-panel", "View")]
     [InlineData("window.toggleinfopanel", "View")]
     [InlineData("window.create-prefab", "Prefabs")]
@@ -1019,6 +1020,7 @@ public class EditorCommandCatalogTests
     public void GridSetupCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("window.grid-setup");
+        var udbAlias = EditorCommandCatalog.Find("window.gridsetup");
 
         Assert.NotNull(command);
         Assert.Equal("Grid and Backdrop Setup", command.Title);
@@ -1027,12 +1029,17 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
+        Assert.Equal(command.CategoryTitle, udbAlias.CategoryTitle);
     }
 
     [Fact]
     public void DynamicGridCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("map2d.toggle-dynamic-grid-size");
+        var udbAlias = EditorCommandCatalog.Find("map2d.toggledynamicgrid");
 
         Assert.NotNull(command);
         Assert.Equal("Toggle Dynamic Grid Size", command.Title);
@@ -1046,12 +1053,40 @@ public class EditorCommandCatalogTests
             "G",
             accelerator: true,
             alt: true));
+        Assert.NotNull(udbAlias);
+        Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
+        Assert.Equal(command.AllowMouse, udbAlias.AllowMouse);
+    }
+
+    [Theory]
+    [InlineData("map2d.toggle-grid-snap", "Toggle grid snap", "G", false)]
+    [InlineData("map2d.togglesnap", "Toggle grid snap", "G", false)]
+    [InlineData("map2d.grid-down", "Decrease grid size", "[", true)]
+    [InlineData("map2d.griddec", "Decrease grid size", "[", true)]
+    [InlineData("map2d.grid-up", "Increase grid size", "]", true)]
+    [InlineData("map2d.gridinc", "Increase grid size", "]", true)]
+    public void GridSizeAndSnapCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture, bool repeat)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(defaultGesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.Equal(repeat, command.Repeat);
     }
 
     [Theory]
     [InlineData("map2d.align-grid-to-linedef", "Align Grid to Selected Linedef")]
+    [InlineData("map2d.aligngridtolinedef", "Align Grid to Selected Linedef")]
     [InlineData("map2d.set-grid-origin-to-vertex", "Set Grid Origin to Selected Vertex")]
+    [InlineData("map2d.setgridorigintovertex", "Set Grid Origin to Selected Vertex")]
     [InlineData("map2d.reset-grid-transform", "Reset Grid Transform")]
+    [InlineData("map2d.resetgrid", "Reset Grid Transform")]
     [InlineData("map2d.smart-grid-transform", "Smart Grid Transform")]
     [InlineData("map2d.smartgridtransform", "Smart Grid Transform")]
     public void GridTransformCommandsMatchUdbActionSurface(string commandId, string title)

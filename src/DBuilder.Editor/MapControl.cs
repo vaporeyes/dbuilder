@@ -6116,18 +6116,23 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 ApplyLightFogFlag();
                 return true;
             case "map2d.toggle-grid-snap":
+            case "map2d.togglesnap":
                 ToggleSnapToGrid();
                 return true;
             case "map2d.toggle-dynamic-grid-size":
+            case "map2d.toggledynamicgrid":
                 ToggleDynamicGridSize();
                 return true;
             case "map2d.align-grid-to-linedef":
+            case "map2d.aligngridtolinedef":
                 AlignGridToSelectedLinedef();
                 return true;
             case "map2d.set-grid-origin-to-vertex":
+            case "map2d.setgridorigintovertex":
                 SetGridOriginToSelectedVertex();
                 return true;
             case "map2d.reset-grid-transform":
+            case "map2d.resetgrid":
                 ResetGridTransform();
                 return true;
             case "map2d.smart-grid-transform":
@@ -6135,9 +6140,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 SmartGridTransform();
                 return true;
             case "map2d.grid-down":
+            case "map2d.griddec":
                 ChangeGridSize(larger: false);
                 return true;
             case "map2d.grid-up":
+            case "map2d.gridinc":
                 ChangeGridSize(larger: true);
                 return true;
             case "map2d.finish-draw":

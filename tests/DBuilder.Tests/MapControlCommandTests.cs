@@ -619,7 +619,14 @@ public sealed class MapControlCommandTests
     [InlineData("map2d.raisebrightness8", "AdjustSectorBrightness(raise: true)")]
     [InlineData("map2d.lowerbrightness8", "AdjustSectorBrightness(raise: false)")]
     [InlineData("map2d.applylightfogflag", "ApplyLightFogFlag()")]
+    [InlineData("map2d.togglesnap", "ToggleSnapToGrid()")]
+    [InlineData("map2d.toggledynamicgrid", "ToggleDynamicGridSize()")]
+    [InlineData("map2d.aligngridtolinedef", "AlignGridToSelectedLinedef()")]
+    [InlineData("map2d.setgridorigintovertex", "SetGridOriginToSelectedVertex()")]
+    [InlineData("map2d.resetgrid", "ResetGridTransform()")]
     [InlineData("map2d.smartgridtransform", "SmartGridTransform()")]
+    [InlineData("map2d.griddec", "ChangeGridSize(larger: false)")]
+    [InlineData("map2d.gridinc", "ChangeGridSize(larger: true)")]
     public void UdbClassicActionAliasesAreDispatched(string commandId, string handlerCall)
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
