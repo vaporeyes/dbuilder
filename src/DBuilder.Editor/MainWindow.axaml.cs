@@ -4520,7 +4520,7 @@ public partial class MainWindow : Window
             "window.test-map" => TestMapMenuItem,
             "window.test-map-from-view" or "window.testmapfromview" => TestMapFromViewMenuItem,
             "window.things-filters-setup" or "window.thingsfilterssetup" => ThingFilterMenuItem,
-            "window.linedefcolorssetup" => ThingFilterMenuItem,
+            "window.linedefcolorssetup" => LinedefColorSetupButton,
             "window.reload-resources" => ReloadResourcesMenuItem,
             "window.open-command-palette" or "window.opencommandpalette" => CommandPaletteMenuItem,
             "window.grid-setup" => GridSetupMenuItem,
