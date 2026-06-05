@@ -933,6 +933,31 @@ public class MapOptionsTests
     }
 
     [Fact]
+    public void ResourceOptionsDialogModelFormatsResourceListMetadata()
+    {
+        var wad = new DataLocation(DataLocationType.Wad, "/tmp/base.wad", option1: true, notForTesting: true)
+        {
+            RequiredArchives = new List<string> { "doom2.wad", "textures.pk3" },
+        };
+        var directory = new DataLocation(DataLocationType.Directory, "/tmp/resource-dir", option1: true, option2: true);
+
+        Assert.Equal(
+            "base.wad (WAD; strict patches; excluded from Test Map; requires doom2.wad, textures.pk3)",
+            ResourceOptionsDialogModel.DisplayText(wad));
+        Assert.Equal(
+            "resource-dir (Directory; root textures; root flats)",
+            ResourceOptionsDialogModel.DisplayText(directory));
+    }
+
+    [Fact]
+    public void ConfigResourcesDialogDisplaysResourceOptionMetadata()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/ConfigResourcesDialog.cs"));
+
+        Assert.Contains("public override string ToString() => ResourceOptionsDialogModel.DisplayText(Location);", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void DataLocationListCombinedKeepsLaterDuplicates()
     {
         var first = new DataLocationList

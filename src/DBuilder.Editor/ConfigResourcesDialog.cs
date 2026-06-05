@@ -12,8 +12,13 @@ namespace DBuilder.Editor;
 
 public sealed class ConfigResourcesDialog : Window
 {
+    private sealed record ResourceListItem(DataLocation Location)
+    {
+        public override string ToString() => ResourceOptionsDialogModel.DisplayText(Location);
+    }
+
     private readonly GameConfiguration? _config;
-    private readonly ObservableCollection<DataLocation> _resources;
+    private readonly ObservableCollection<ResourceListItem> _resources;
     private readonly ListBox _list;
     private readonly TextBlock _warnings;
 
@@ -23,7 +28,7 @@ public sealed class ConfigResourcesDialog : Window
     {
         _config = config;
         ResultResources = new DataLocationList(resources);
-        _resources = new ObservableCollection<DataLocation>(ResultResources);
+        _resources = new ObservableCollection<ResourceListItem>(ResultResources.Select(location => new ResourceListItem(location)));
 
         Title = $"Configuration Resources - {row.Title}";
         Width = 620;
@@ -125,30 +130,30 @@ public sealed class ConfigResourcesDialog : Window
         var options = new ResourceOptionsDialog(resource);
         if (await options.ShowDialog<bool>(this))
         {
-            _resources.Add(options.ResultLocation);
+            _resources.Add(new ResourceListItem(options.ResultLocation));
             RefreshWarnings();
         }
     }
 
     private async System.Threading.Tasks.Task EditSelected()
     {
-        if (_list.SelectedItem is not DataLocation location) return;
-        int index = _resources.IndexOf(location);
+        if (_list.SelectedItem is not ResourceListItem item) return;
+        int index = _resources.IndexOf(item);
         if (index < 0) return;
 
-        var options = new ResourceOptionsDialog(location);
+        var options = new ResourceOptionsDialog(item.Location);
         if (await options.ShowDialog<bool>(this))
         {
-            _resources[index] = options.ResultLocation;
+            _resources[index] = new ResourceListItem(options.ResultLocation);
             RefreshWarnings();
         }
     }
 
     private void RemoveSelected()
     {
-        if (_list.SelectedItem is DataLocation location)
+        if (_list.SelectedItem is ResourceListItem item)
         {
-            _resources.Remove(location);
+            _resources.Remove(item);
             RefreshWarnings();
         }
     }
@@ -158,13 +163,13 @@ public sealed class ConfigResourcesDialog : Window
 
     private void Accept()
     {
-        ResultResources = new DataLocationList(_resources);
+        ResultResources = new DataLocationList(_resources.Select(item => item.Location));
         Close(true);
     }
 
     private void RefreshWarnings()
     {
-        var warnings = ResourceArchiveWarningModel.BuildWarnings(_config, _resources);
+        var warnings = ResourceArchiveWarningModel.BuildWarnings(_config, _resources.Select(item => item.Location));
         _warnings.Text = string.Join("\n\n", warnings);
         _warnings.IsVisible = warnings.Count > 0;
     }

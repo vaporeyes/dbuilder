@@ -1272,6 +1272,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add settings persistence and load path for UDB-style per-configuration resource lists.
   - [x] Add a resource-list editor surface for per-configuration resources.
   - [x] Add tested required-archive default mapping for configuration resources.
+  - [x] Show resource option metadata in the per-configuration resource editor list.
 - [x] Port find and replace dialog.
 - [x] Port tag statistics dialog.
   - [x] Display and edit UDB-compatible tag labels from map options.
