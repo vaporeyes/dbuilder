@@ -5918,6 +5918,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         => IsFlyMovementCommand(commandId) || commandId is
             "map3d.orbit" or
             "map2d.classicpaintselect" or
+            "map2d.pan" or
             "map2d.pan_view" or
             "map3d.visual-paint-select" or
             "map3d.visualpaintselect";
@@ -5985,6 +5986,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 BeginVisualPaintSelection();
                 _heldMapCommands.Add(commandId);
                 return true;
+            case "map2d.pan":
             case "map2d.pan_view":
                 BeginHeldPanView();
                 _heldMapCommands.Add(commandId);
@@ -6844,7 +6846,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             if (commandId == "map3d.orbit") _orbit3DPoint = null;
             if (commandId == "map2d.classicpaintselect") EndClassicPaintSelection();
             if (commandId is "map3d.visual-paint-select" or "map3d.visualpaintselect") EndVisualPaintSelection();
-            if (commandId == "map2d.pan_view") EndHeldPanView();
+            if (commandId is "map2d.pan" or "map2d.pan_view") EndHeldPanView();
             e.Handled = true;
         }
 

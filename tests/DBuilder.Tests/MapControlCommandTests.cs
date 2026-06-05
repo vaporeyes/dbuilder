@@ -944,9 +944,10 @@ public sealed class MapControlCommandTests
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
 
+        Assert.Contains("case \"map2d.pan\":", body, StringComparison.Ordinal);
         Assert.Contains("case \"map2d.pan_view\":", body, StringComparison.Ordinal);
         Assert.Contains("BeginHeldPanView();", body, StringComparison.Ordinal);
-        Assert.Contains("if (commandId == \"map2d.pan_view\") EndHeldPanView();", body, StringComparison.Ordinal);
+        Assert.Contains("if (commandId is \"map2d.pan\" or \"map2d.pan_view\") EndHeldPanView();", body, StringComparison.Ordinal);
         Assert.Contains("if (_heldPanView)", body, StringComparison.Ordinal);
         Assert.Contains("PanViewByPointerDelta(pos);", body, StringComparison.Ordinal);
     }
