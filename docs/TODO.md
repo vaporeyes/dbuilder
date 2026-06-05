@@ -79,6 +79,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Record node and visplane guard branches as warning status entries.
   - [x] Record open-map guard branches as warning status entries.
   - [x] Record UDBScript utility guard branches as warning status entries.
+  - [x] Record autosave recovery guard branches as warning status entries.
   - [x] Add testable Status History header formatting with singular and plural labels.
 - [ ] Port recent file and recent map behavior to match UDB.
   - [x] Persist and reopen specific recent maps from WAD and PK3 archives.

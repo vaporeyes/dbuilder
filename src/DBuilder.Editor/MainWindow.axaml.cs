@@ -817,7 +817,7 @@ public partial class MainWindow : Window
         var entries = AutoSaveStore.List();
         if (entries.Count == 0)
         {
-            SetStatus("No autosave snapshots found.");
+            SetStatus("No autosave snapshots found.", StatusHistoryKind.Warning);
             return;
         }
 
@@ -4213,14 +4213,14 @@ public partial class MainWindow : Window
                 ?? maps.FirstOrDefault();
             if (entry is null)
             {
-                SetStatus($"Autosave contains no recoverable map: {autosave.DisplayName}");
+                SetStatus($"Autosave contains no recoverable map: {autosave.DisplayName}", StatusHistoryKind.Warning);
                 return;
             }
 
             var map = WadMaps.Load(wad, entry);
             if (map is null)
             {
-                SetStatus($"Failed to recover autosave map: {autosave.DisplayName}");
+                SetStatus($"Failed to recover autosave map: {autosave.DisplayName}", StatusHistoryKind.Warning);
                 return;
             }
 
