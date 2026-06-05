@@ -1568,7 +1568,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("SetShortcutToolTip(SetLeakFinderStartMenuItem, \"Set leak finder start sector\", \"window.setleakfinderstart\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(SetLeakFinderEndMenuItem, \"Set leak finder end sector\", \"window.setleakfinderend\");", code, StringComparison.Ordinal);
         Assert.Contains("SoundPropagationMenuItem, SetLeakFinderStartMenuItem, SetLeakFinderEndMenuItem, SoundEnvironmentsMenuItem", code, StringComparison.Ordinal);
-        Assert.Contains("SetShortcutToolTip(GradientFloorHeightsMenuItem, \"Gradient Floor Heights\", \"window.gradient-floor-heights\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(GradientFloorHeightsMenuItem, \"Make Floors Gradient\", \"window.gradient-floor-heights\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ApplyJitterMenuItem, \"Randomize\", \"window.applyjitter\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ApplyDirectionalShadingMenuItem, \"Apply Directional Shading\", \"window.applydirectionalshading\");", code, StringComparison.Ordinal);
         Assert.Contains("ApplyJitterMenuItem, ApplyDirectionalShadingMenuItem, ApplySlopeArchMenuItem", code, StringComparison.Ordinal);

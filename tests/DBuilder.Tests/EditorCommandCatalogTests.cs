@@ -507,10 +507,10 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("window.gradient-floor-heights", "Gradient Floor Heights")]
-    [InlineData("window.gradientfloors", "Gradient Floor Heights")]
-    [InlineData("window.gradient-ceiling-heights", "Gradient Ceiling Heights")]
-    [InlineData("window.gradientceilings", "Gradient Ceiling Heights")]
+    [InlineData("window.gradient-floor-heights", "Make Floors Gradient", "Creates a floor heights gradient over all selected sectors from the first to the last selected sector.")]
+    [InlineData("window.gradientfloors", "Make Floors Gradient", "Creates a floor heights gradient over all selected sectors from the first to the last selected sector.")]
+    [InlineData("window.gradient-ceiling-heights", "Make Ceilings Gradient", "Creates a ceiling heights gradient over all selected sectors from the first to the last selected sector.")]
+    [InlineData("window.gradientceilings", "Make Ceilings Gradient", "Creates a ceiling heights gradient over all selected sectors from the first to the last selected sector.")]
     [InlineData("window.gradient-sector-brightness", "Gradient Brightness")]
     [InlineData("window.gradientbrightness", "Gradient Brightness")]
     [InlineData("window.gradient-floor-light", "Gradient Floor Light")]
@@ -523,12 +523,13 @@ public class EditorCommandCatalogTests
     [InlineData("window.gradient-interpolation-ease-in-out-sine", "Gradient Interpolation Ease In/Out Sine")]
     [InlineData("window.gradient-interpolation-ease-in-sine", "Gradient Interpolation Ease In Sine")]
     [InlineData("window.gradient-interpolation-ease-out-sine", "Gradient Interpolation Ease Out Sine")]
-    public void GradientMenuCommandsMatchUdbActionSurface(string commandId, string title)
+    public void GradientMenuCommandsMatchUdbActionSurface(string commandId, string title, string? description = null)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        if (description != null) Assert.Equal(description, command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
