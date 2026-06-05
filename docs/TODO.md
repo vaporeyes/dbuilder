@@ -253,6 +253,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Gate the Automap parent menu by child automap flag availability.
   - [x] Gate sector color command availability by UDMF map format and selected sectors.
   - [x] Gate Tag Range command availability by taggable selected elements.
+  - [x] Reflect menu command availability in command palette usable actions.
   - [x] Add stable UDB action ids for Select All, Invert Selection, and Select None.
   - [x] Add stable UDB action ids for Flags, Custom Fields, and Tags dialogs.
   - [x] Add stable UDB action ids for Stitch Geometry, Join Sectors, and Merge Sectors.

@@ -1302,6 +1302,24 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void CommandPaletteUsabilityFollowsMenuAvailabilityWhenAvailable()
+    {
+        string code = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains(".Where(IsPaletteCommandUsable)", code, StringComparison.Ordinal);
+        Assert.Contains("if (command.Scope != EditorCommandScope.Window) return false;", code, StringComparison.Ordinal);
+        Assert.Contains("return PaletteCommandControl(command.Id)?.IsEnabled ?? true;", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.save\" or \"window.save-map\" => SaveMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.delete\" or \"window.deleteitem\" => DeleteMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.properties\" => PropertiesMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.tag-range\" or \"window.rangetagselection\" => TagRangeMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.sector-color\" => SectorColorMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.dynamic-light-color\" => DynamicLightColorMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.browse-floor-flats\" => BrowseFloorFlatsMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.edit-mode-help\" => EditModeHelpMenuItem", code, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TestMapPassesTemporaryWadToPreAndPostCommands()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));

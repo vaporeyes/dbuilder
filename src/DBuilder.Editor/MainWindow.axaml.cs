@@ -4172,9 +4172,92 @@ public partial class MainWindow : Window
 
     private IReadOnlySet<string> PaletteUsableCommandIds()
         => EditorCommandCatalog.All
-            .Where(command => command.Scope == EditorCommandScope.Window)
+            .Where(IsPaletteCommandUsable)
             .Select(command => command.Id)
             .ToHashSet(StringComparer.Ordinal);
+
+    private bool IsPaletteCommandUsable(EditorCommandDescriptor command)
+    {
+        if (command.Scope != EditorCommandScope.Window) return false;
+        return PaletteCommandControl(command.Id)?.IsEnabled ?? true;
+    }
+
+    private Control? PaletteCommandControl(string commandId)
+        => commandId switch
+        {
+            "window.open-map-in-current-wad" => OpenMapMenuItem,
+            "window.reload-map" => ReloadMapMenuItem,
+            "window.close-map" => CloseMapMenuItem,
+            "window.save" or "window.save-map" => SaveMenuItem,
+            "window.save-map-as" => SaveAsMenuItem,
+            "window.save-as-format" => SaveAsFormatMenuItem,
+            "window.map-options" => MapOptionsMenuItem,
+            "window.view-used-tags" => TagStatisticsMenuItem,
+            "window.tag-explorer" => TagExplorerMenuItem,
+            "window.view-thing-types" => ThingStatisticsMenuItem,
+            "window.center-on-coordinates" or "window.go-to-coordinates" => GoToCoordinatesMenuItem,
+            "window.browse-wall-textures" => BrowseWallTexturesMenuItem,
+            "window.browse-flats" => BrowseFlatsMenuItem,
+            "window.browse-floor-flats" => BrowseFloorFlatsMenuItem,
+            "window.browse-ceiling-flats" => BrowseCeilingFlatsMenuItem,
+            "window.browse-things" => BrowseThingsMenuItem,
+            "window.browse-linedef-actions" => BrowseLinedefActionsMenuItem,
+            "window.browse-sector-effects" => BrowseSectorEffectsMenuItem,
+            "window.cut" => CutMenuItem,
+            "window.copy" => CopyMenuItem,
+            "window.paste" => PasteMenuItem,
+            "window.paste-special" => PasteSpecialMenuItem,
+            "window.duplicate" => DuplicateMenuItem,
+            "window.copy-properties" or "window.classiccopyproperties" => CopyPropertiesMenuItem,
+            "window.paste-properties" or "window.classicpasteproperties" => PastePropertiesMenuItem,
+            "window.paste-properties-options" or "window.classicpastepropertieswithoptions" => PastePropertiesOptionsMenuItem,
+            "window.delete" or "window.deleteitem" => DeleteMenuItem,
+            "window.select-all" => SelectAllMenuItem,
+            "window.invert-selection" => InvertSelectionMenuItem,
+            "window.select-none" or "window.clearselection" => SelectNoneMenuItem,
+            "window.properties" => PropertiesMenuItem,
+            "window.flags" => FlagsMenuItem,
+            "window.custom-fields" => CustomFieldsMenuItem,
+            "window.tags" => TagsMenuItem,
+            "window.select-similar" or "window.selectsimilar" => SelectSimilarMenuItem,
+            "window.filter-selected-things" or "window.filterselectedthings" => FilterSelectedThingsMenuItem,
+            "window.change-map-element-index" or "window.changemapelementindex" => ChangeMapElementIndexMenuItem,
+            "window.stitch-geometry" => StitchMenuItem,
+            "window.join-sectors" => JoinSectorsMenuItem,
+            "window.merge-sectors" => MergeSectorsMenuItem,
+            "window.flip-selection-horizontal" or "window.flipselectionh" => FlipHorizontalMenuItem,
+            "window.flip-selection-vertical" or "window.flipselectionv" => FlipVerticalMenuItem,
+            "window.rotate-selection-cw" or "window.rotateclockwise" => RotateCwMenuItem,
+            "window.rotate-selection-ccw" or "window.rotatecounterclockwise" => RotateCcwMenuItem,
+            "window.scale-selection-up" => ScaleUpMenuItem,
+            "window.scale-selection-down" => ScaleDownMenuItem,
+            "window.align-floor-to-front" or "window.alignfloortofront" => AlignFloorToFrontMenuItem,
+            "window.align-floor-to-back" or "window.alignfloortoback" => AlignFloorToBackMenuItem,
+            "window.align-ceiling-to-front" or "window.alignceilingtofront" => AlignCeilingToFrontMenuItem,
+            "window.align-ceiling-to-back" or "window.alignceilingtoback" => AlignCeilingToBackMenuItem,
+            "window.align-things-to-wall" => AlignThingsToWallMenuItem,
+            "window.find-replace" or "window.findmode" => FindReplaceMenuItem,
+            "window.build-bridge" => BuildBridgeMenuItem,
+            "window.make-door" or "window.makedoor" => MakeDoorMenuItem,
+            "window.build-stairs" => BuildStairsMenuItem,
+            "window.tag-range" or "window.rangetagselection" => TagRangeMenuItem,
+            "window.sector-color" => SectorColorMenuItem,
+            "window.dynamic-light-color" => DynamicLightColorMenuItem,
+            "window.check-map" or "window.errorcheckmode" => CheckMapMenuItem,
+            "window.clean-up-geometry" => CleanUpGeometryMenuItem,
+            "window.test-map" => TestMapMenuItem,
+            "window.test-map-from-view" or "window.testmapfromview" => TestMapMenuItem,
+            "window.reload-resources" => ReloadResourcesMenuItem,
+            "window.grid-setup" => GridSetupMenuItem,
+            "window.usdf-conversations" or "window.usdf-dialog-editor" or "window.opendialogeditor" => UsdfConversationsMenuItem,
+            "window.import-obj-terrain" or "window.importobjasterrain" => ImportObjTerrainMenuItem,
+            "window.export-object" => ExportObjectMenuItem,
+            "window.export-image" or "window.exporttoimage" => ExportImageMenuItem,
+            "window.export-wavefront" or "window.exporttoobj" => ExportWavefrontMenuItem,
+            "window.export-idstudio" or "window.exporttoidstudio" => ExportIdStudioMenuItem,
+            "window.edit-mode-help" => EditModeHelpMenuItem,
+            _ => null,
+        };
 
     private void RunCommandFromPalette(string commandId)
     {
