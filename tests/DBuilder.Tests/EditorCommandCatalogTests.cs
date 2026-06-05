@@ -872,25 +872,24 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("window.copy-properties", "Copy Properties", "Menu")]
-    [InlineData("window.classiccopyproperties", "Copy Properties", "Ctrl/Cmd+Shift+C")]
-    [InlineData("window.paste-properties", "Paste Properties", "Menu")]
-    [InlineData("window.classicpasteproperties", "Paste Properties", "Ctrl/Cmd+Alt+V")]
-    [InlineData("window.paste-properties-options", "Paste Properties With Options", "Menu")]
-    [InlineData("window.classicpastepropertieswithoptions", "Paste Properties Special", "Ctrl/Cmd+Shift+V")]
-    public void PastePropertiesCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture)
+    [InlineData("window.copy-properties", "Copy Properties", "Menu", "Copies the targeted object properties for pasting.")]
+    [InlineData("window.classiccopyproperties", "Copy Properties", "Ctrl/Cmd+Shift+C", "Copies the properties of the highlighted or selected object for pasting.")]
+    [InlineData("window.paste-properties", "Paste Properties", "Menu", "Pastes the copied properties onto the targeted or selected object.")]
+    [InlineData("window.classicpasteproperties", "Paste Properties", "Ctrl/Cmd+Alt+V", "Pastes the copied properties onto the highlighted or selected objects.")]
+    [InlineData("window.paste-properties-options", "Paste Properties With Options", "Menu", "Pastes the copied properties onto the highlighted or selected objects allowing you to choose the properties to paste.")]
+    [InlineData("window.classicpastepropertieswithoptions", "Paste Properties Special", "Ctrl/Cmd+Shift+V", "Pastes the copied properties onto the highlighted or selected objects allowing you to choose the properties to paste.")]
+    public void PastePropertiesCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture, string description)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
         Assert.Equal(defaultGesture, command.DefaultGesture);
+        Assert.Equal(description, command.Description);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
-        if (commandId == "window.classicpastepropertieswithoptions")
-            Assert.Equal("Pastes the copied properties onto the highlighted or selected objects allowing you to choose the properties to paste.", command.Description);
     }
 
     [Theory]
