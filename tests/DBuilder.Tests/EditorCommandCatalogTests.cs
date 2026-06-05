@@ -2786,16 +2786,17 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map3d.raise-brightness-8", "Increase Brightness by 8")]
-    [InlineData("map3d.raisebrightness8", "Increase Brightness by 8")]
-    [InlineData("map3d.lower-brightness-8", "Decrease Brightness by 8")]
-    [InlineData("map3d.lowerbrightness8", "Decrease Brightness by 8")]
-    public void VisualBrightnessStepCommandsMatchUdbActionSurface(string id, string title)
+    [InlineData("map3d.raise-brightness-8", "Increase Brightness by 8", "Increases the targeted or selected sector brightness level by 8.")]
+    [InlineData("map3d.raisebrightness8", "Increase Brightness by 8", "Increases the targeted or selected sector brightness level by 8.")]
+    [InlineData("map3d.lower-brightness-8", "Decrease Brightness by 8", "Decreases the targeted or selected sector brightness level by 8.")]
+    [InlineData("map3d.lowerbrightness8", "Decrease Brightness by 8", "Decreases the targeted or selected sector brightness level by 8.")]
+    public void VisualBrightnessStepCommandsMatchUdbActionSurface(string id, string title, string description)
     {
         var command = EditorCommandCatalog.Find(id);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
