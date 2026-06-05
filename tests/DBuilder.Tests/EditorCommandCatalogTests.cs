@@ -994,24 +994,25 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("window.align-floor-to-front", "Align Floor to Front Side")]
-    [InlineData("window.alignfloortofront", "Align Floor to Front Side")]
-    [InlineData("window.align-floor-to-back", "Align Floor to Back Side")]
-    [InlineData("window.alignfloortoback", "Align Floor to Back Side")]
-    [InlineData("window.align-ceiling-to-front", "Align Ceiling to Front Side")]
-    [InlineData("window.alignceilingtofront", "Align Ceiling to Front Side")]
-    [InlineData("window.align-ceiling-to-back", "Align Ceiling to Back Side")]
-    [InlineData("window.alignceilingtoback", "Align Ceiling to Back Side")]
-    public void WindowFlatAlignmentCommandsMatchUdbActionSurface(string commandId, string title)
+    [InlineData("window.align-floor-to-front", "Align Floor Texture to Front Side", "Aligns floor textures to front sides of selected linedefs.")]
+    [InlineData("window.alignfloortofront", "Align Floor Texture to Front Side", "Aligns floor textures to front sides of selected linedefs.")]
+    [InlineData("window.align-floor-to-back", "Align Floor Texture to Back Side", "Aligns floor textures to back sides of selected linedefs.")]
+    [InlineData("window.alignfloortoback", "Align Floor Texture to Back Side", "Aligns floor textures to back sides of selected linedefs.")]
+    [InlineData("window.align-ceiling-to-front", "Align Ceiling Texture to Front Side", "Aligns ceiling textures to front sides of selected linedefs.")]
+    [InlineData("window.alignceilingtofront", "Align Ceiling Texture to Front Side", "Aligns ceiling textures to front sides of selected linedefs.")]
+    [InlineData("window.align-ceiling-to-back", "Align Ceiling Texture to Back Side", "Aligns ceiling textures to back sides of selected linedefs.")]
+    [InlineData("window.alignceilingtoback", "Align Ceiling Texture to Back Side", "Aligns ceiling textures to back sides of selected linedefs.")]
+    public void WindowFlatAlignmentCommandsMatchUdbActionSurface(string commandId, string title, string description)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
-        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowMouse);
         Assert.False(command.AllowScroll);
     }
 

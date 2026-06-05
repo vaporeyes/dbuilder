@@ -131,10 +131,10 @@
                     <MenuItem Header="Align _Horizontal" x:Name="AlignHorizontalMenuItem" Click="OnAlignTexturesX" />
                     <MenuItem Header="Align _Vertical" x:Name="AlignVerticalMenuItem" Click="OnAlignTexturesY" />
                     <MenuItem Header="_Fit Selected" x:Name="FitSelectedTexturesMenuItem" Click="OnFitSelectedTextures" />
-                    <MenuItem Header="Align _Floor to Front Side" x:Name="AlignFloorToFrontMenuItem" Click="OnAlignFloorToFront" />
-                    <MenuItem Header="Align Floor to _Back Side" x:Name="AlignFloorToBackMenuItem" Click="OnAlignFloorToBack" />
-                    <MenuItem Header="Align _Ceiling to Front Side" x:Name="AlignCeilingToFrontMenuItem" Click="OnAlignCeilingToFront" />
-                    <MenuItem Header="Align Ceiling to B_ack Side" x:Name="AlignCeilingToBackMenuItem" Click="OnAlignCeilingToBack" />
+                    <MenuItem Header="Align _Floor Texture to Front Side" x:Name="AlignFloorToFrontMenuItem" Click="OnAlignFloorToFront" />
+                    <MenuItem Header="Align Floor _Texture to Back Side" x:Name="AlignFloorToBackMenuItem" Click="OnAlignFloorToBack" />
+                    <MenuItem Header="Align _Ceiling Texture to Front Side" x:Name="AlignCeilingToFrontMenuItem" Click="OnAlignCeilingToFront" />
+                    <MenuItem Header="Align Ceiling Texture to B_ack Side" x:Name="AlignCeilingToBackMenuItem" Click="OnAlignCeilingToBack" />
                 </MenuItem>
                 <MenuItem Header="Align _Things to Wall" x:Name="AlignThingsToWallMenuItem" Click="OnAlignThingsToWall" />
                 <MenuItem Header="Update '_lightfog' Flag" x:Name="ApplyLightFogFlagMenuItem" Click="OnApplyLightFogFlag" />

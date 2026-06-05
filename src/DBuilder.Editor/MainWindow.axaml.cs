@@ -339,10 +339,10 @@ public partial class MainWindow : Window
         SetShortcutToolTip(AlignHorizontalMenuItem, "Align textures X", "map2d.align-textures-x");
         SetShortcutToolTip(AlignVerticalMenuItem, "Align textures Y", "map2d.align-textures-y");
         SetShortcutToolTip(FitSelectedTexturesMenuItem, "Fit Selected Textures", "map2d.fit-selected-textures");
-        SetShortcutToolTip(AlignFloorToFrontMenuItem, "Align Floor to Front Side", "window.align-floor-to-front");
-        SetShortcutToolTip(AlignFloorToBackMenuItem, "Align Floor to Back Side", "window.align-floor-to-back");
-        SetShortcutToolTip(AlignCeilingToFrontMenuItem, "Align Ceiling to Front Side", "window.align-ceiling-to-front");
-        SetShortcutToolTip(AlignCeilingToBackMenuItem, "Align Ceiling to Back Side", "window.align-ceiling-to-back");
+        SetShortcutToolTip(AlignFloorToFrontMenuItem, "Align Floor Texture to Front Side", "window.align-floor-to-front");
+        SetShortcutToolTip(AlignFloorToBackMenuItem, "Align Floor Texture to Back Side", "window.align-floor-to-back");
+        SetShortcutToolTip(AlignCeilingToFrontMenuItem, "Align Ceiling Texture to Front Side", "window.align-ceiling-to-front");
+        SetShortcutToolTip(AlignCeilingToBackMenuItem, "Align Ceiling Texture to Back Side", "window.align-ceiling-to-back");
         SetShortcutToolTip(AlignThingsToWallMenuItem, "Align Things to Wall", "window.align-things-to-wall");
         SetShortcutToolTip(ApplyLightFogFlagMenuItem, "Apply 'lightfog' Flag", "map2d.apply-lightfog-flag");
         SetShortcutToolTip(AutoClearSidedefTexturesMenuItem, "Auto Clear Sidedef Textures", "window.toggle-auto-clear-sidedef-textures");
