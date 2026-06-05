@@ -2532,6 +2532,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Bridge Mode", command.Title);
+        Assert.Equal("Select two lines or two series of lines, then activate this tool to draw a bezier path between them.", command.Description);
         Assert.Equal("Ctrl/Cmd+B", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -2540,6 +2541,7 @@ public class EditorCommandCatalogTests
         Assert.False(command.Repeat);
         Assert.NotNull(alias);
         Assert.Equal(command.Title, alias.Title);
+        Assert.Equal(command.Description, alias.Description);
         Assert.Equal(command.DefaultGesture, alias.DefaultGesture);
         Assert.Equal(command.Scope, alias.Scope);
         Assert.True(alias.AllowKeys);
