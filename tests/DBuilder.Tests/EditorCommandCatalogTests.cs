@@ -802,12 +802,13 @@ public class EditorCommandCatalogTests
         Assert.Equal("Selects map elements, similar to currently selected ones, based on a set of settings.", command.Description);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
-        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowMouse);
         Assert.False(command.AllowScroll);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
         Assert.Equal(command.Description, udbAlias.Description);
+        Assert.Equal(command.AllowMouse, udbAlias.AllowMouse);
     }
 
     [Fact]
