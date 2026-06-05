@@ -202,11 +202,15 @@ public static class UdmfMapWriter
     {
         if (tags.Count <= 1) return;
         var extra = new StringBuilder();
+        var seen = new HashSet<int> { tags[0] };
         for (int i = 1; i < tags.Count; i++)
         {
-            if (i > 1) extra.Append(' ');
-            extra.Append(tags[i].ToString(CultureInfo.InvariantCulture));
+            int tag = tags[i];
+            if (tag == 0 || !seen.Add(tag)) continue;
+            if (extra.Length > 0) extra.Append(' ');
+            extra.Append(tag.ToString(CultureInfo.InvariantCulture));
         }
+        if (extra.Length == 0) return;
         WriteAssignment(sb, "moreids", extra.ToString(), indent: true);
     }
 
