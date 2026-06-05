@@ -410,35 +410,44 @@ public class SelectSimilarTests
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SelectSimilarDialog.cs"));
 
         Assert.Contains("private static VertexSimilarityOptions SavedVertexOptions { get; set; } = new();", body, StringComparison.Ordinal);
-        Assert.Contains("_vertexZFloor = AddCheckBox(\"Vertex floor height\", SavedVertexOptions.ZFloor);", body, StringComparison.Ordinal);
-        Assert.Contains("_sectorFloorTextureOffsets = AddCheckBox(\"Floor texture offsets\", SavedSectorOptions.FloorTextureOffsets);", body, StringComparison.Ordinal);
-        Assert.Contains("_sectorFloorBrightness = AddCheckBox(\"Floor brightness\", SavedSectorOptions.FloorBrightness);", body, StringComparison.Ordinal);
-        Assert.Contains("_sectorFloorGlow = AddCheckBox(\"Floor glow\", SavedSectorOptions.FloorGlow);", body, StringComparison.Ordinal);
-        Assert.Contains("_sectorComment = AddCheckBox(\"Comment\", SavedSectorOptions.Comment);", body, StringComparison.Ordinal);
+        Assert.Contains("public SelectSimilarDialog(MapControl.EditMode mode, MapFormat mapFormat)", body, StringComparison.Ordinal);
+        Assert.Contains("_vertexZFloor = AddUdmfCheckBox(\"Vertex floor height\", SavedVertexOptions.ZFloor);", body, StringComparison.Ordinal);
+        Assert.Contains("_sectorFloorTextureOffsets = AddUdmfCheckBox(\"Floor texture offsets\", SavedSectorOptions.FloorTextureOffsets);", body, StringComparison.Ordinal);
+        Assert.Contains("_sectorFloorBrightness = AddUdmfCheckBox(\"Floor brightness\", SavedSectorOptions.FloorBrightness);", body, StringComparison.Ordinal);
+        Assert.Contains("_sectorFloorGlow = AddUdmfCheckBox(\"Floor glow\", SavedSectorOptions.FloorGlow);", body, StringComparison.Ordinal);
+        Assert.Contains("_sectorComment = AddUdmfCheckBox(\"Comment\", SavedSectorOptions.Comment);", body, StringComparison.Ordinal);
         Assert.Contains("_linedefAction = AddCheckBox(\"Action\", SavedLinedefOptions.Action);", body, StringComparison.Ordinal);
-        Assert.Contains("_linedefAlpha = AddCheckBox(\"Alpha\", SavedLinedefOptions.Alpha);", body, StringComparison.Ordinal);
-        Assert.Contains("_linedefRenderStyle = AddCheckBox(\"Render style\", SavedLinedefOptions.RenderStyle);", body, StringComparison.Ordinal);
-        Assert.Contains("_linedefLockNumber = AddCheckBox(\"Lock number\", SavedLinedefOptions.LockNumber);", body, StringComparison.Ordinal);
-        Assert.Contains("_linedefComment = AddCheckBox(\"Comment\", SavedLinedefOptions.Comment);", body, StringComparison.Ordinal);
+        Assert.Contains("_linedefArguments = AddSupportedCheckBox(\"Action arguments\", SavedLinedefOptions.Arguments, doom: false);", body, StringComparison.Ordinal);
+        Assert.Contains("_linedefActivation = AddSupportedCheckBox(\"Activation\", SavedLinedefOptions.Activation, doom: false, udmf: false);", body, StringComparison.Ordinal);
+        Assert.Contains("_linedefAlpha = AddUdmfCheckBox(\"Alpha\", SavedLinedefOptions.Alpha);", body, StringComparison.Ordinal);
+        Assert.Contains("_linedefRenderStyle = AddUdmfCheckBox(\"Render style\", SavedLinedefOptions.RenderStyle);", body, StringComparison.Ordinal);
+        Assert.Contains("_linedefLockNumber = AddUdmfCheckBox(\"Lock number\", SavedLinedefOptions.LockNumber);", body, StringComparison.Ordinal);
+        Assert.Contains("_linedefComment = AddUdmfCheckBox(\"Comment\", SavedLinedefOptions.Comment);", body, StringComparison.Ordinal);
         Assert.Contains("_sidedefUpperTexture = AddCheckBox(\"Upper texture\", SavedSidedefOptions.UpperTexture);", body, StringComparison.Ordinal);
-        Assert.Contains("_sidedefUpperTextureOffsets = AddCheckBox(\"Upper texture offsets\", SavedSidedefOptions.UpperTextureOffsets);", body, StringComparison.Ordinal);
-        Assert.Contains("_sidedefMiddleTextureScale = AddCheckBox(\"Middle texture scale\", SavedSidedefOptions.MiddleTextureScale);", body, StringComparison.Ordinal);
-        Assert.Contains("_sidedefBrightness = AddCheckBox(\"Brightness\", SavedSidedefOptions.Brightness);", body, StringComparison.Ordinal);
+        Assert.Contains("_sidedefUpperTextureOffsets = AddUdmfCheckBox(\"Upper texture offsets\", SavedSidedefOptions.UpperTextureOffsets);", body, StringComparison.Ordinal);
+        Assert.Contains("_sidedefMiddleTextureScale = AddUdmfCheckBox(\"Middle texture scale\", SavedSidedefOptions.MiddleTextureScale);", body, StringComparison.Ordinal);
+        Assert.Contains("_sidedefBrightness = AddUdmfCheckBox(\"Brightness\", SavedSidedefOptions.Brightness);", body, StringComparison.Ordinal);
         Assert.Contains("_thingType = AddCheckBox(\"Type\", SavedThingOptions.Type);", body, StringComparison.Ordinal);
-        Assert.Contains("_thingConversation = AddCheckBox(\"Conversation ID\", SavedThingOptions.Conversation);", body, StringComparison.Ordinal);
-        Assert.Contains("_thingGravity = AddCheckBox(\"Gravity\", SavedThingOptions.Gravity);", body, StringComparison.Ordinal);
-        Assert.Contains("_thingHealth = AddCheckBox(\"Health multiplier\", SavedThingOptions.Health);", body, StringComparison.Ordinal);
-        Assert.Contains("_thingScore = AddCheckBox(\"Score\", SavedThingOptions.Score);", body, StringComparison.Ordinal);
-        Assert.Contains("_thingFloatBobPhase = AddCheckBox(\"Float bob phase\", SavedThingOptions.FloatBobPhase);", body, StringComparison.Ordinal);
-        Assert.Contains("_thingAlpha = AddCheckBox(\"Alpha\", SavedThingOptions.Alpha);", body, StringComparison.Ordinal);
-        Assert.Contains("_thingFillColor = AddCheckBox(\"Fill color\", SavedThingOptions.FillColor);", body, StringComparison.Ordinal);
-        Assert.Contains("_thingRenderStyle = AddCheckBox(\"Render style\", SavedThingOptions.RenderStyle);", body, StringComparison.Ordinal);
-        Assert.Contains("_thingComment = AddCheckBox(\"Comment\", SavedThingOptions.Comment);", body, StringComparison.Ordinal);
+        Assert.Contains("_thingHeight = AddSupportedCheckBox(\"Z-height\", SavedThingOptions.Height, doom: false);", body, StringComparison.Ordinal);
+        Assert.Contains("_thingConversation = AddUdmfCheckBox(\"Conversation ID\", SavedThingOptions.Conversation);", body, StringComparison.Ordinal);
+        Assert.Contains("_thingGravity = AddUdmfCheckBox(\"Gravity\", SavedThingOptions.Gravity);", body, StringComparison.Ordinal);
+        Assert.Contains("_thingHealth = AddUdmfCheckBox(\"Health multiplier\", SavedThingOptions.Health);", body, StringComparison.Ordinal);
+        Assert.Contains("_thingScore = AddUdmfCheckBox(\"Score\", SavedThingOptions.Score);", body, StringComparison.Ordinal);
+        Assert.Contains("_thingFloatBobPhase = AddUdmfCheckBox(\"Float bob phase\", SavedThingOptions.FloatBobPhase);", body, StringComparison.Ordinal);
+        Assert.Contains("_thingAlpha = AddUdmfCheckBox(\"Alpha\", SavedThingOptions.Alpha);", body, StringComparison.Ordinal);
+        Assert.Contains("_thingFillColor = AddUdmfCheckBox(\"Fill color\", SavedThingOptions.FillColor);", body, StringComparison.Ordinal);
+        Assert.Contains("_thingRenderStyle = AddUdmfCheckBox(\"Render style\", SavedThingOptions.RenderStyle);", body, StringComparison.Ordinal);
+        Assert.Contains("_thingComment = AddUdmfCheckBox(\"Comment\", SavedThingOptions.Comment);", body, StringComparison.Ordinal);
+        Assert.Contains("private CheckBox? AddUdmfCheckBox(string label, bool isChecked)", body, StringComparison.Ordinal);
+        Assert.Contains("private bool SupportsCurrentMapFormat(bool doom, bool hexen, bool udmf)", body, StringComparison.Ordinal);
         Assert.Contains("SavedVertexOptions = VertexOptions;", body, StringComparison.Ordinal);
         Assert.Contains("SavedSectorOptions = SectorOptions;", body, StringComparison.Ordinal);
         Assert.Contains("SavedLinedefOptions = LinedefOptions;", body, StringComparison.Ordinal);
         Assert.Contains("SavedSidedefOptions = SidedefOptions;", body, StringComparison.Ordinal);
         Assert.Contains("SavedThingOptions = ThingOptions;", body, StringComparison.Ordinal);
+
+        string mainWindowBody = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        Assert.Contains("var dlg = new SelectSimilarDialog(MapView.CurrentEditMode, _mapFormat);", mainWindowBody, StringComparison.Ordinal);
     }
 
     private static Linedef AddLine(MapSet map, Sector sector, Vector2D start, Vector2D end, string middleTexture)

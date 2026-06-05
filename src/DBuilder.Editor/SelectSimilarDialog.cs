@@ -2,6 +2,7 @@
 // ABOUTME: Builds mode-specific similarity option objects consumed by the map selection helpers.
 
 using Avalonia.Controls;
+using DBuilder.IO;
 using DBuilder.Map;
 
 namespace DBuilder.Editor;
@@ -15,6 +16,7 @@ public sealed class SelectSimilarDialog : PropertyDialog
     private static ThingSimilarityOptions SavedThingOptions { get; set; } = new();
 
     private readonly MapControl.EditMode _mode;
+    private readonly MapFormat _mapFormat;
     private readonly CheckBox? _vertexZFloor;
     private readonly CheckBox? _vertexZCeiling;
     private readonly CheckBox? _vertexFields;
@@ -115,112 +117,113 @@ public sealed class SelectSimilarDialog : PropertyDialog
     public SidedefSimilarityOptions SidedefOptions { get; private set; } = new();
     public ThingSimilarityOptions ThingOptions { get; private set; } = new();
 
-    public SelectSimilarDialog(MapControl.EditMode mode)
+    public SelectSimilarDialog(MapControl.EditMode mode, MapFormat mapFormat)
         : base("Select Similar", "Choose which properties must match the current selection.")
     {
         _mode = mode;
+        _mapFormat = mapFormat;
         switch (mode)
         {
             case MapControl.EditMode.Vertices:
-                _vertexZFloor = AddCheckBox("Vertex floor height", SavedVertexOptions.ZFloor);
-                _vertexZCeiling = AddCheckBox("Vertex ceiling height", SavedVertexOptions.ZCeiling);
-                _vertexFields = AddCheckBox("Custom fields", SavedVertexOptions.Fields);
+                _vertexZFloor = AddUdmfCheckBox("Vertex floor height", SavedVertexOptions.ZFloor);
+                _vertexZCeiling = AddUdmfCheckBox("Vertex ceiling height", SavedVertexOptions.ZCeiling);
+                _vertexFields = AddUdmfCheckBox("Custom fields", SavedVertexOptions.Fields);
                 break;
             case MapControl.EditMode.Sectors:
                 _sectorFloorHeight = AddCheckBox("Floor height", SavedSectorOptions.FloorHeight);
                 _sectorCeilingHeight = AddCheckBox("Ceiling height", SavedSectorOptions.CeilingHeight);
                 _sectorFloorTexture = AddCheckBox("Floor texture", SavedSectorOptions.FloorTexture);
                 _sectorCeilingTexture = AddCheckBox("Ceiling texture", SavedSectorOptions.CeilingTexture);
-                _sectorFloorTextureOffsets = AddCheckBox("Floor texture offsets", SavedSectorOptions.FloorTextureOffsets);
-                _sectorCeilingTextureOffsets = AddCheckBox("Ceiling texture offsets", SavedSectorOptions.CeilingTextureOffsets);
-                _sectorFloorTextureScale = AddCheckBox("Floor texture scale", SavedSectorOptions.FloorTextureScale);
-                _sectorCeilingTextureScale = AddCheckBox("Ceiling texture scale", SavedSectorOptions.CeilingTextureScale);
-                _sectorFloorTextureRotation = AddCheckBox("Floor texture rotation", SavedSectorOptions.FloorTextureRotation);
-                _sectorCeilingTextureRotation = AddCheckBox("Ceiling texture rotation", SavedSectorOptions.CeilingTextureRotation);
-                _sectorFloorAlpha = AddCheckBox("Floor alpha", SavedSectorOptions.FloorAlpha);
-                _sectorCeilingAlpha = AddCheckBox("Ceiling alpha", SavedSectorOptions.CeilingAlpha);
-                _sectorFloorPortalAlpha = AddCheckBox("Floor portal alpha", SavedSectorOptions.FloorPortalAlpha);
-                _sectorCeilingPortalAlpha = AddCheckBox("Ceiling portal alpha", SavedSectorOptions.CeilingPortalAlpha);
+                _sectorFloorTextureOffsets = AddUdmfCheckBox("Floor texture offsets", SavedSectorOptions.FloorTextureOffsets);
+                _sectorCeilingTextureOffsets = AddUdmfCheckBox("Ceiling texture offsets", SavedSectorOptions.CeilingTextureOffsets);
+                _sectorFloorTextureScale = AddUdmfCheckBox("Floor texture scale", SavedSectorOptions.FloorTextureScale);
+                _sectorCeilingTextureScale = AddUdmfCheckBox("Ceiling texture scale", SavedSectorOptions.CeilingTextureScale);
+                _sectorFloorTextureRotation = AddUdmfCheckBox("Floor texture rotation", SavedSectorOptions.FloorTextureRotation);
+                _sectorCeilingTextureRotation = AddUdmfCheckBox("Ceiling texture rotation", SavedSectorOptions.CeilingTextureRotation);
+                _sectorFloorAlpha = AddUdmfCheckBox("Floor alpha", SavedSectorOptions.FloorAlpha);
+                _sectorCeilingAlpha = AddUdmfCheckBox("Ceiling alpha", SavedSectorOptions.CeilingAlpha);
+                _sectorFloorPortalAlpha = AddUdmfCheckBox("Floor portal alpha", SavedSectorOptions.FloorPortalAlpha);
+                _sectorCeilingPortalAlpha = AddUdmfCheckBox("Ceiling portal alpha", SavedSectorOptions.CeilingPortalAlpha);
                 _sectorBrightness = AddCheckBox("Sector brightness", SavedSectorOptions.Brightness);
-                _sectorFloorBrightness = AddCheckBox("Floor brightness", SavedSectorOptions.FloorBrightness);
-                _sectorCeilingBrightness = AddCheckBox("Ceiling brightness", SavedSectorOptions.CeilingBrightness);
-                _sectorFloorRenderStyle = AddCheckBox("Floor render style", SavedSectorOptions.FloorRenderStyle);
-                _sectorCeilingRenderStyle = AddCheckBox("Ceiling render style", SavedSectorOptions.CeilingRenderStyle);
-                _sectorFloorPortalRenderStyle = AddCheckBox("Floor portal render style", SavedSectorOptions.FloorPortalRenderStyle);
-                _sectorCeilingPortalRenderStyle = AddCheckBox("Ceiling portal render style", SavedSectorOptions.CeilingPortalRenderStyle);
+                _sectorFloorBrightness = AddUdmfCheckBox("Floor brightness", SavedSectorOptions.FloorBrightness);
+                _sectorCeilingBrightness = AddUdmfCheckBox("Ceiling brightness", SavedSectorOptions.CeilingBrightness);
+                _sectorFloorRenderStyle = AddUdmfCheckBox("Floor render style", SavedSectorOptions.FloorRenderStyle);
+                _sectorCeilingRenderStyle = AddUdmfCheckBox("Ceiling render style", SavedSectorOptions.CeilingRenderStyle);
+                _sectorFloorPortalRenderStyle = AddUdmfCheckBox("Floor portal render style", SavedSectorOptions.FloorPortalRenderStyle);
+                _sectorCeilingPortalRenderStyle = AddUdmfCheckBox("Ceiling portal render style", SavedSectorOptions.CeilingPortalRenderStyle);
                 _sectorSpecial = AddCheckBox("Effect", SavedSectorOptions.Special);
                 _sectorTags = AddCheckBox("Tags", SavedSectorOptions.Tags);
-                _sectorSlopes = AddCheckBox("Slopes", SavedSectorOptions.Slopes);
-                _sectorFlags = AddCheckBox("Flags", SavedSectorOptions.Flags);
-                _sectorFloorTerrain = AddCheckBox("Floor terrain", SavedSectorOptions.FloorTerrain);
-                _sectorCeilingTerrain = AddCheckBox("Ceiling terrain", SavedSectorOptions.CeilingTerrain);
-                _sectorLightColor = AddCheckBox("Light color", SavedSectorOptions.LightColor);
-                _sectorFadeColor = AddCheckBox("Fade color", SavedSectorOptions.FadeColor);
-                _sectorFloorColor = AddCheckBox("Floor color", SavedSectorOptions.FloorColor);
-                _sectorCeilingColor = AddCheckBox("Ceiling color", SavedSectorOptions.CeilingColor);
-                _sectorTopWallColor = AddCheckBox("Top wall color", SavedSectorOptions.TopWallColor);
-                _sectorBottomWallColor = AddCheckBox("Bottom wall color", SavedSectorOptions.BottomWallColor);
-                _sectorSpritesColor = AddCheckBox("Sprites color", SavedSectorOptions.SpritesColor);
-                _sectorFloorGlow = AddCheckBox("Floor glow", SavedSectorOptions.FloorGlow);
-                _sectorCeilingGlow = AddCheckBox("Ceiling glow", SavedSectorOptions.CeilingGlow);
-                _sectorFogDensity = AddCheckBox("Fog density", SavedSectorOptions.FogDensity);
-                _sectorDesaturation = AddCheckBox("Desaturation", SavedSectorOptions.Desaturation);
-                _sectorDamageType = AddCheckBox("Damage type", SavedSectorOptions.DamageType);
-                _sectorDamageAmount = AddCheckBox("Damage amount", SavedSectorOptions.DamageAmount);
-                _sectorDamageInterval = AddCheckBox("Damage interval", SavedSectorOptions.DamageInterval);
-                _sectorDamageLeakiness = AddCheckBox("Damage leakiness", SavedSectorOptions.DamageLeakiness);
-                _sectorSoundSequence = AddCheckBox("Sound sequence", SavedSectorOptions.SoundSequence);
-                _sectorGravity = AddCheckBox("Gravity", SavedSectorOptions.Gravity);
-                _sectorFields = AddCheckBox("Custom fields", SavedSectorOptions.Fields);
-                _sectorComment = AddCheckBox("Comment", SavedSectorOptions.Comment);
+                _sectorSlopes = AddUdmfCheckBox("Slopes", SavedSectorOptions.Slopes);
+                _sectorFlags = AddUdmfCheckBox("Flags", SavedSectorOptions.Flags);
+                _sectorFloorTerrain = AddUdmfCheckBox("Floor terrain", SavedSectorOptions.FloorTerrain);
+                _sectorCeilingTerrain = AddUdmfCheckBox("Ceiling terrain", SavedSectorOptions.CeilingTerrain);
+                _sectorLightColor = AddUdmfCheckBox("Light color", SavedSectorOptions.LightColor);
+                _sectorFadeColor = AddUdmfCheckBox("Fade color", SavedSectorOptions.FadeColor);
+                _sectorFloorColor = AddUdmfCheckBox("Floor color", SavedSectorOptions.FloorColor);
+                _sectorCeilingColor = AddUdmfCheckBox("Ceiling color", SavedSectorOptions.CeilingColor);
+                _sectorTopWallColor = AddUdmfCheckBox("Top wall color", SavedSectorOptions.TopWallColor);
+                _sectorBottomWallColor = AddUdmfCheckBox("Bottom wall color", SavedSectorOptions.BottomWallColor);
+                _sectorSpritesColor = AddUdmfCheckBox("Sprites color", SavedSectorOptions.SpritesColor);
+                _sectorFloorGlow = AddUdmfCheckBox("Floor glow", SavedSectorOptions.FloorGlow);
+                _sectorCeilingGlow = AddUdmfCheckBox("Ceiling glow", SavedSectorOptions.CeilingGlow);
+                _sectorFogDensity = AddUdmfCheckBox("Fog density", SavedSectorOptions.FogDensity);
+                _sectorDesaturation = AddUdmfCheckBox("Desaturation", SavedSectorOptions.Desaturation);
+                _sectorDamageType = AddUdmfCheckBox("Damage type", SavedSectorOptions.DamageType);
+                _sectorDamageAmount = AddUdmfCheckBox("Damage amount", SavedSectorOptions.DamageAmount);
+                _sectorDamageInterval = AddUdmfCheckBox("Damage interval", SavedSectorOptions.DamageInterval);
+                _sectorDamageLeakiness = AddUdmfCheckBox("Damage leakiness", SavedSectorOptions.DamageLeakiness);
+                _sectorSoundSequence = AddUdmfCheckBox("Sound sequence", SavedSectorOptions.SoundSequence);
+                _sectorGravity = AddUdmfCheckBox("Gravity", SavedSectorOptions.Gravity);
+                _sectorFields = AddUdmfCheckBox("Custom fields", SavedSectorOptions.Fields);
+                _sectorComment = AddUdmfCheckBox("Comment", SavedSectorOptions.Comment);
                 break;
             case MapControl.EditMode.Linedefs:
                 _linedefAction = AddCheckBox("Action", SavedLinedefOptions.Action);
-                _linedefArguments = AddCheckBox("Action arguments", SavedLinedefOptions.Arguments);
-                _linedefActivation = AddCheckBox("Activation", SavedLinedefOptions.Activation);
-                _linedefTags = AddCheckBox("Tags", SavedLinedefOptions.Tags);
+                _linedefArguments = AddSupportedCheckBox("Action arguments", SavedLinedefOptions.Arguments, doom: false);
+                _linedefActivation = AddSupportedCheckBox("Activation", SavedLinedefOptions.Activation, doom: false, udmf: false);
+                _linedefTags = AddSupportedCheckBox("Tags", SavedLinedefOptions.Tags, hexen: false);
                 _linedefFlags = AddCheckBox("Linedef flags", SavedLinedefOptions.Flags);
-                _linedefAlpha = AddCheckBox("Alpha", SavedLinedefOptions.Alpha);
-                _linedefRenderStyle = AddCheckBox("Render style", SavedLinedefOptions.RenderStyle);
-                _linedefLockNumber = AddCheckBox("Lock number", SavedLinedefOptions.LockNumber);
-                _linedefFields = AddCheckBox("Linedef custom fields", SavedLinedefOptions.Fields);
-                _linedefComment = AddCheckBox("Comment", SavedLinedefOptions.Comment);
+                _linedefAlpha = AddUdmfCheckBox("Alpha", SavedLinedefOptions.Alpha);
+                _linedefRenderStyle = AddUdmfCheckBox("Render style", SavedLinedefOptions.RenderStyle);
+                _linedefLockNumber = AddUdmfCheckBox("Lock number", SavedLinedefOptions.LockNumber);
+                _linedefFields = AddUdmfCheckBox("Linedef custom fields", SavedLinedefOptions.Fields);
+                _linedefComment = AddUdmfCheckBox("Comment", SavedLinedefOptions.Comment);
                 _sidedefUpperTexture = AddCheckBox("Upper texture", SavedSidedefOptions.UpperTexture);
                 _sidedefMiddleTexture = AddCheckBox("Middle texture", SavedSidedefOptions.MiddleTexture);
                 _sidedefLowerTexture = AddCheckBox("Lower texture", SavedSidedefOptions.LowerTexture);
                 _sidedefOffsetX = AddCheckBox("Texture offset X", SavedSidedefOptions.OffsetX);
                 _sidedefOffsetY = AddCheckBox("Texture offset Y", SavedSidedefOptions.OffsetY);
-                _sidedefUpperTextureOffsets = AddCheckBox("Upper texture offsets", SavedSidedefOptions.UpperTextureOffsets);
-                _sidedefMiddleTextureOffsets = AddCheckBox("Middle texture offsets", SavedSidedefOptions.MiddleTextureOffsets);
-                _sidedefLowerTextureOffsets = AddCheckBox("Lower texture offsets", SavedSidedefOptions.LowerTextureOffsets);
-                _sidedefUpperTextureScale = AddCheckBox("Upper texture scale", SavedSidedefOptions.UpperTextureScale);
-                _sidedefMiddleTextureScale = AddCheckBox("Middle texture scale", SavedSidedefOptions.MiddleTextureScale);
-                _sidedefLowerTextureScale = AddCheckBox("Lower texture scale", SavedSidedefOptions.LowerTextureScale);
-                _sidedefBrightness = AddCheckBox("Brightness", SavedSidedefOptions.Brightness);
-                _sidedefFlags = AddCheckBox("Sidedef flags", SavedSidedefOptions.Flags);
-                _sidedefFields = AddCheckBox("Sidedef custom fields", SavedSidedefOptions.Fields);
+                _sidedefUpperTextureOffsets = AddUdmfCheckBox("Upper texture offsets", SavedSidedefOptions.UpperTextureOffsets);
+                _sidedefMiddleTextureOffsets = AddUdmfCheckBox("Middle texture offsets", SavedSidedefOptions.MiddleTextureOffsets);
+                _sidedefLowerTextureOffsets = AddUdmfCheckBox("Lower texture offsets", SavedSidedefOptions.LowerTextureOffsets);
+                _sidedefUpperTextureScale = AddUdmfCheckBox("Upper texture scale", SavedSidedefOptions.UpperTextureScale);
+                _sidedefMiddleTextureScale = AddUdmfCheckBox("Middle texture scale", SavedSidedefOptions.MiddleTextureScale);
+                _sidedefLowerTextureScale = AddUdmfCheckBox("Lower texture scale", SavedSidedefOptions.LowerTextureScale);
+                _sidedefBrightness = AddUdmfCheckBox("Brightness", SavedSidedefOptions.Brightness);
+                _sidedefFlags = AddUdmfCheckBox("Sidedef flags", SavedSidedefOptions.Flags);
+                _sidedefFields = AddUdmfCheckBox("Sidedef custom fields", SavedSidedefOptions.Fields);
                 break;
             case MapControl.EditMode.Things:
                 _thingType = AddCheckBox("Type", SavedThingOptions.Type);
                 _thingAngle = AddCheckBox("Angle", SavedThingOptions.Angle);
-                _thingHeight = AddCheckBox("Z-height", SavedThingOptions.Height);
-                _thingPitch = AddCheckBox("Pitch", SavedThingOptions.Pitch);
-                _thingRoll = AddCheckBox("Roll", SavedThingOptions.Roll);
-                _thingScale = AddCheckBox("Scale", SavedThingOptions.Scale);
-                _thingAction = AddCheckBox("Action", SavedThingOptions.Action);
-                _thingArguments = AddCheckBox("Action arguments", SavedThingOptions.Arguments);
-                _thingTag = AddCheckBox("Tag", SavedThingOptions.Tag);
+                _thingHeight = AddSupportedCheckBox("Z-height", SavedThingOptions.Height, doom: false);
+                _thingPitch = AddUdmfCheckBox("Pitch", SavedThingOptions.Pitch);
+                _thingRoll = AddUdmfCheckBox("Roll", SavedThingOptions.Roll);
+                _thingScale = AddUdmfCheckBox("Scale", SavedThingOptions.Scale);
+                _thingAction = AddSupportedCheckBox("Action", SavedThingOptions.Action, doom: false);
+                _thingArguments = AddSupportedCheckBox("Action arguments", SavedThingOptions.Arguments, doom: false);
+                _thingTag = AddSupportedCheckBox("Tag", SavedThingOptions.Tag, doom: false);
                 _thingFlags = AddCheckBox("Flags", SavedThingOptions.Flags);
-                _thingConversation = AddCheckBox("Conversation ID", SavedThingOptions.Conversation);
-                _thingGravity = AddCheckBox("Gravity", SavedThingOptions.Gravity);
-                _thingHealth = AddCheckBox("Health multiplier", SavedThingOptions.Health);
-                _thingScore = AddCheckBox("Score", SavedThingOptions.Score);
-                _thingFloatBobPhase = AddCheckBox("Float bob phase", SavedThingOptions.FloatBobPhase);
-                _thingAlpha = AddCheckBox("Alpha", SavedThingOptions.Alpha);
-                _thingFillColor = AddCheckBox("Fill color", SavedThingOptions.FillColor);
-                _thingRenderStyle = AddCheckBox("Render style", SavedThingOptions.RenderStyle);
-                _thingFields = AddCheckBox("Custom fields", SavedThingOptions.Fields);
-                _thingComment = AddCheckBox("Comment", SavedThingOptions.Comment);
+                _thingConversation = AddUdmfCheckBox("Conversation ID", SavedThingOptions.Conversation);
+                _thingGravity = AddUdmfCheckBox("Gravity", SavedThingOptions.Gravity);
+                _thingHealth = AddUdmfCheckBox("Health multiplier", SavedThingOptions.Health);
+                _thingScore = AddUdmfCheckBox("Score", SavedThingOptions.Score);
+                _thingFloatBobPhase = AddUdmfCheckBox("Float bob phase", SavedThingOptions.FloatBobPhase);
+                _thingAlpha = AddUdmfCheckBox("Alpha", SavedThingOptions.Alpha);
+                _thingFillColor = AddUdmfCheckBox("Fill color", SavedThingOptions.FillColor);
+                _thingRenderStyle = AddUdmfCheckBox("Render style", SavedThingOptions.RenderStyle);
+                _thingFields = AddUdmfCheckBox("Custom fields", SavedThingOptions.Fields);
+                _thingComment = AddUdmfCheckBox("Comment", SavedThingOptions.Comment);
                 break;
         }
     }
@@ -352,6 +355,21 @@ public sealed class SelectSimilarDialog : PropertyDialog
                 break;
         }
     }
+
+    private CheckBox? AddUdmfCheckBox(string label, bool isChecked)
+        => AddSupportedCheckBox(label, isChecked, doom: false, hexen: false);
+
+    private CheckBox? AddSupportedCheckBox(string label, bool isChecked, bool doom = true, bool hexen = true, bool udmf = true)
+        => SupportsCurrentMapFormat(doom, hexen, udmf) ? AddCheckBox(label, isChecked) : null;
+
+    private bool SupportsCurrentMapFormat(bool doom, bool hexen, bool udmf)
+        => _mapFormat switch
+        {
+            MapFormat.Doom => doom,
+            MapFormat.Hexen => hexen,
+            MapFormat.Udmf => udmf,
+            _ => false,
+        };
 
     private static bool Checked(CheckBox? checkBox) => checkBox?.IsChecked == true;
 }

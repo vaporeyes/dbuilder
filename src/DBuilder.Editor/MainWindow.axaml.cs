@@ -2325,7 +2325,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        var dlg = new SelectSimilarDialog(MapView.CurrentEditMode);
+        var dlg = new SelectSimilarDialog(MapView.CurrentEditMode, _mapFormat);
         if (!await dlg.ShowDialog<bool>(this)) return;
 
         int changed = MapView.CurrentEditMode switch
