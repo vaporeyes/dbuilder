@@ -453,6 +453,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style sidedef update and texture setter helpers.
   - [x] Add UDB-style thing update helper.
   - [x] Add UDB-style named flag helpers for editable map elements.
+  - [x] Add UDB-style Line2D rectangle clipping edge-case regressions.
 - [ ] Add regression maps for pathological geometry.
 
 ## Map IO And Formats

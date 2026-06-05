@@ -156,4 +156,30 @@ public class Line2DTests
         Assert.Equal(l.v1, clipped.v1);
         Assert.Equal(l.v2, clipped.v2);
     }
+
+    [Fact]
+    public void ClipToRectangleClipsCrossingDiagonalToBox()
+    {
+        var rect = new RectangleF(0, 0, 10, 10);
+
+        var clipped = Line2D.ClipToRectangle(new Line2D(-5, -5, 15, 15), rect, out bool intersects);
+
+        Assert.True(intersects);
+        Assert.Equal(0, clipped.v1.x, Epsilon);
+        Assert.Equal(0, clipped.v1.y, Epsilon);
+        Assert.Equal(10, clipped.v2.x, Epsilon);
+        Assert.Equal(10, clipped.v2.y, Epsilon);
+    }
+
+    [Fact]
+    public void ClipToRectangleRejectsLineCollapsedToRectangleEdge()
+    {
+        var rect = new RectangleF(0, 0, 10, 10);
+
+        var clipped = Line2D.ClipToRectangle(new Line2D(-5, 0, 15, 0), rect, out bool intersects);
+
+        Assert.False(intersects);
+        Assert.Equal(default, clipped.v1);
+        Assert.Equal(default, clipped.v2);
+    }
 }
