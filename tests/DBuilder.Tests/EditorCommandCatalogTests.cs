@@ -185,6 +185,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal(TagRangeModel.ToolWindowTitle, command.Title);
+        Assert.Equal("Allows giving a range of tags to a selection of sectors, linedefs or things.", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
@@ -200,6 +201,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Blockmap Explorer mode", command.Title);
+        Assert.Equal("Displays the map's BLOCKMAP information", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
@@ -215,6 +217,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Reject Explorer mode", command.Title);
+        Assert.Equal("Displays the map's REJECT information", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
@@ -230,6 +233,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Nodes Viewer Mode", command.Title);
+        Assert.Equal("Switches to the Nodes Viewer mode.", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
@@ -245,6 +249,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Sound propagation mode", command.Title);
+        Assert.Equal("Shows how sound propagates through the map", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
@@ -260,6 +265,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal(SoundPropagationColorSettings.ColorConfigurationAction.Title, command.Title);
+        Assert.Equal("Configure colors for sound propagation mode", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
@@ -269,14 +275,15 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("window.setleakfinderstart", "Set leak finder start sector", "Shift+S")]
-    [InlineData("window.setleakfinderend", "Set leak finder end sector", "Shift+E")]
-    public void SoundLeakFinderCommandsMatchUdbActionSurface(string commandId, string title, string gesture)
+    [InlineData("window.setleakfinderstart", "Set leak finder start sector", "Shift+S", "Sets the starting sector for the sound leak finder")]
+    [InlineData("window.setleakfinderend", "Set leak finder end sector", "Shift+E", "Sets the ending sector for the sound leak finder")]
+    public void SoundLeakFinderCommandsMatchUdbActionSurface(string commandId, string title, string gesture, string description)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal(gesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
@@ -330,6 +337,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal(SoundEnvironmentModeModel.ModeAction.Title, command.Title);
+        Assert.Equal("Shows ZDoom sound environments", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
@@ -1978,30 +1986,32 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map2d.automapmode", "Automap mode", EditorCommandScope.Map2D, true)]
-    [InlineData("map2d.imageexamplemode", "Image Example", EditorCommandScope.Map2D, true)]
-    [InlineData("map2d.wadauthormode", "WadAuthor Mode", EditorCommandScope.Map2D, true)]
-    [InlineData("map2d.visplaneexplorermode", "Visplane Explorer Mode", EditorCommandScope.Map2D, false)]
-    [InlineData("map2d.stairsectorbuildermode", "Stair Sector Builder Mode", EditorCommandScope.Map2D, true)]
-    [InlineData("map2d.selectsectorsoutline", "Select Sectors Outline", EditorCommandScope.Map2D, true)]
-    [InlineData("window.rangetagselection", "Tag Range", EditorCommandScope.Window, true)]
-    [InlineData("window.blockmapexplorermode", "Blockmap Explorer mode", EditorCommandScope.Window, true)]
-    [InlineData("window.rejectexplorermode", "Reject Explorer mode", EditorCommandScope.Window, true)]
-    [InlineData("window.rejectexplorercolorconfiguration", "Configure colors", EditorCommandScope.Window, true)]
-    [InlineData("window.nodesviewermode", "Nodes Viewer Mode", EditorCommandScope.Window, false)]
-    [InlineData("window.soundpropagationmode", "Sound propagation mode", EditorCommandScope.Window, true)]
-    [InlineData("window.soundenvironmentmode", "Sound environment mode", EditorCommandScope.Window, true)]
-    [InlineData("window.soundpropagationcolorconfiguration", "Configure colors", EditorCommandScope.Window, true)]
+    [InlineData("map2d.automapmode", "Automap mode", EditorCommandScope.Map2D, true, null)]
+    [InlineData("map2d.imageexamplemode", "Image Example", EditorCommandScope.Map2D, true, null)]
+    [InlineData("map2d.wadauthormode", "WadAuthor Mode", EditorCommandScope.Map2D, true, null)]
+    [InlineData("map2d.visplaneexplorermode", "Visplane Explorer Mode", EditorCommandScope.Map2D, false, null)]
+    [InlineData("map2d.stairsectorbuildermode", "Stair Sector Builder Mode", EditorCommandScope.Map2D, true, null)]
+    [InlineData("map2d.selectsectorsoutline", "Select Sectors Outline", EditorCommandScope.Map2D, true, null)]
+    [InlineData("window.rangetagselection", "Tag Range", EditorCommandScope.Window, true, "Allows giving a range of tags to a selection of sectors, linedefs or things.")]
+    [InlineData("window.blockmapexplorermode", "Blockmap Explorer mode", EditorCommandScope.Window, true, "Displays the map's BLOCKMAP information")]
+    [InlineData("window.rejectexplorermode", "Reject Explorer mode", EditorCommandScope.Window, true, "Displays the map's REJECT information")]
+    [InlineData("window.rejectexplorercolorconfiguration", "Configure colors", EditorCommandScope.Window, true, "Configure colors for reject explorer mode")]
+    [InlineData("window.nodesviewermode", "Nodes Viewer Mode", EditorCommandScope.Window, false, "Switches to the Nodes Viewer mode.")]
+    [InlineData("window.soundpropagationmode", "Sound propagation mode", EditorCommandScope.Window, true, "Shows how sound propagates through the map")]
+    [InlineData("window.soundenvironmentmode", "Sound environment mode", EditorCommandScope.Window, true, "Shows ZDoom sound environments")]
+    [InlineData("window.soundpropagationcolorconfiguration", "Configure colors", EditorCommandScope.Window, true, "Configure colors for sound propagation mode")]
     public void BundledPluginActionAliasesMatchUdbActionSurface(
         string commandId,
         string title,
         EditorCommandScope scope,
-        bool allowScroll)
+        bool allowScroll,
+        string? description)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        if (description != null) Assert.Equal(description, command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(scope, command.Scope);
         Assert.True(command.AllowKeys);
