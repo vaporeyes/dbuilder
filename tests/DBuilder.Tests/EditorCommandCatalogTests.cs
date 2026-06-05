@@ -3303,7 +3303,12 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
-        Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
+        Assert.Equal("Ctrl/Cmd+Alt+A", udbAlias.DefaultGesture);
+        Assert.Equal("map3d.visualfittextures", EditorCommandCatalog.ResolveShortcut(
+            EditorCommandScope.Map3D,
+            "A",
+            accelerator: true,
+            alt: true));
     }
 
     [Theory]
