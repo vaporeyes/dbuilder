@@ -2587,7 +2587,7 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("window.findmode", "Find and Replace Mode", "F3", "Finds vertices, linedefs, sectors or things with a specific property, selects them and optionally replaces them with a given setting.")]
-    [InlineData("window.errorcheckmode", "Map Analysis Mode", "F4", "")]
+    [InlineData("window.errorcheckmode", "Map Analysis Mode", "F4", "Checks your map for errors and mistakes and reports the results.")]
     public void WindowModeAliasesMatchUdbActionSurface(string id, string title, string gesture, string description)
     {
         var command = EditorCommandCatalog.Find(id);

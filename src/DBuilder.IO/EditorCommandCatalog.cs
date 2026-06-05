@@ -214,7 +214,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.togglejoinedsectorssplitting", "Split Joined Sectors", "Menu", EditorCommandScope.Window, AllowScroll: true, Description: "When enabled, joined sectors adjacent to drawn lines will be split."),
         new EditorCommandDescriptor("window.undo-redo-panel", "Undo / Redo Panel", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.check-map", "Check Map", "Menu", EditorCommandScope.Window, AllowScroll: true),
-        new EditorCommandDescriptor("window.errorcheckmode", "Map Analysis Mode", "F4", EditorCommandScope.Window, AllowScroll: true),
+        new EditorCommandDescriptor("window.errorcheckmode", "Map Analysis Mode", "F4", EditorCommandScope.Window, AllowScroll: true, Description: "Checks your map for errors and mistakes and reports the results."),
         new EditorCommandDescriptor("window.clean-up-geometry", "Clean Up Geometry", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.test-map", "Test Map", "Menu", EditorCommandScope.Window, AllowMouse: false, Description: "Starts the game and loads this map for playing."),
         new EditorCommandDescriptor("window.testmap", "Test Map", "Menu", EditorCommandScope.Window, AllowMouse: false, Description: "Starts the game and loads this map for playing."),
