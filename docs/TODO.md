@@ -76,6 +76,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Record jitter and directional-shading guard branches as warning status entries.
   - [x] Record browser panel guard branches as warning status entries.
   - [x] Record sound propagation and door builder guard branches as warning status entries.
+  - [x] Record node and visplane guard branches as warning status entries.
   - [x] Add testable Status History header formatting with singular and plural labels.
 - [ ] Port recent file and recent map behavior to match UDB.
   - [x] Persist and reopen specific recent maps from WAD and PK3 archives.

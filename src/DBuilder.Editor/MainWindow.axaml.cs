@@ -3758,7 +3758,7 @@ public partial class MainWindow : Window
     private void OnToggleNodes(object? sender, RoutedEventArgs e)
     {
         if (MapView.ShowNodes) { MapView.ShowNodes = false; SetStatus("Nodes overlay off."); return; }
-        if (_wadPath is null || _mapMarker is null) { SetStatus("Nodes overlay needs the source WAD."); return; }
+        if (_wadPath is null || _mapMarker is null) { SetStatus("Nodes overlay needs the source WAD.", StatusHistoryKind.Warning); return; }
 
         ClassicNodesStructure structure = ReadClassicNodesStructure();
         if (structure.IsValid)
@@ -3782,7 +3782,7 @@ public partial class MainWindow : Window
         byte[]? bytes;
         using (var wad = new WAD(_wadPath, openreadonly: true)) bytes = WadMaps.ReadMapLump(wad, _mapMarker, "NODES");
         var parts = NodesReader.Parse(bytes ?? Array.Empty<byte>());
-        if (parts.Count == 0) { SetStatus($"Nodes overlay unavailable: {structure.Status}."); return; }
+        if (parts.Count == 0) { SetStatus($"Nodes overlay unavailable: {structure.Status}.", StatusHistoryKind.Warning); return; }
 
         var fallbackLines = new List<(Vector2D, Vector2D)>(parts.Count);
         foreach (var p in parts)
@@ -3796,7 +3796,7 @@ public partial class MainWindow : Window
     private void OnNodesViewer(object? sender, RoutedEventArgs e)
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
-        if (_mapMarker is null) { SetStatus("Nodes Viewer needs a map marker."); return; }
+        if (_mapMarker is null) { SetStatus("Nodes Viewer needs a map marker.", StatusHistoryKind.Warning); return; }
 
         NodesViewerLumps lumps = ReadCurrentNodesViewerLumps();
         bool rebuiltNodes = _mapDirty || !lumps.HasAnyNodes;
@@ -3804,7 +3804,7 @@ public partial class MainWindow : Window
             lumps = RebuildCurrentMapNodesForViewer();
         if (rebuiltNodes && !lumps.HasCompleteNodeSet)
         {
-            SetStatus(NodesViewerModel.NodeRebuildFailureStatusText());
+            SetStatus(NodesViewerModel.NodeRebuildFailureStatusText(), StatusHistoryKind.Warning);
             return;
         }
 
@@ -3817,14 +3817,14 @@ public partial class MainWindow : Window
             lumps.Vertices != null);
         if (!decision.CanEngage)
         {
-            SetStatus(decision.StatusText);
+            SetStatus(decision.StatusText, StatusHistoryKind.Warning);
             return;
         }
 
         ClassicNodesStructure structure = ReadClassicNodesStructure(lumps, out ZNodesPayload? zNodesPayload);
         if (!structure.IsValid && zNodesPayload?.IsValid != true)
         {
-            SetStatus(NodesViewerModel.ReadFailureStatusText());
+            SetStatus(NodesViewerModel.ReadFailureStatusText(), StatusHistoryKind.Warning);
             return;
         }
 
@@ -3836,10 +3836,10 @@ public partial class MainWindow : Window
     private void OnVisplaneExplorerMode(object? sender, RoutedEventArgs e)
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
-        if (_mapFormat == MapFormat.Udmf) { SetStatus("Visplane Explorer supports Doom and Hexen map formats."); return; }
+        if (_mapFormat == MapFormat.Udmf) { SetStatus("Visplane Explorer supports Doom and Hexen map formats.", StatusHistoryKind.Warning); return; }
 
         VisplaneExplorerPreflightResult preflight = VisplaneExplorerPreflight.CheckNodesLump(ReadCurrentMapLump("NODES"));
-        if (!preflight.Success) { SetStatus($"Visplane Explorer unavailable: {preflight.Message}."); return; }
+        if (!preflight.Success) { SetStatus($"Visplane Explorer unavailable: {preflight.Message}.", StatusHistoryKind.Warning); return; }
 
         VisplaneTileScan scan = VisplaneTileScan.CreateForMap(_map);
         IReadOnlyList<VisplaneTilePoint> queued = scan.QueuePoints(
