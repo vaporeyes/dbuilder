@@ -44,6 +44,12 @@ public static class MapElementData
     public static void SetStringField(this IFielded element, string key, string value, string defaultValue = "")
         => SetDefaultOmittingField(element, key, value, defaultValue);
 
+    public static bool GetBooleanField(this IFielded element, string key, bool defaultValue = false)
+        => element.GetField(key, defaultValue);
+
+    public static void SetBooleanField(this IFielded element, string key, bool value, bool defaultValue = false)
+        => SetDefaultOmittingField(element, key, value, defaultValue);
+
     public static void RemoveFields(this IFielded element, IEnumerable<string> keys)
     {
         foreach (var key in keys) element.Fields.Remove(key);

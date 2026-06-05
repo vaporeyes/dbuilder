@@ -68,19 +68,39 @@ public class MapElementDataTests
         sector.SetFloatField("gravity", 0.5);
         sector.SetIntegerField("lightcolor", 16711680);
         sector.SetStringField("comment", "lava", "");
+        sector.SetBooleanField("lightabsolute", true);
 
         Assert.Equal(0.5, sector.GetFloatField("gravity"));
         Assert.Equal(16711680, sector.GetIntegerField("lightcolor"));
         Assert.Equal("lava", sector.GetStringField("comment"));
+        Assert.True(sector.GetBooleanField("lightabsolute"));
 
         sector.SetFloatField("gravity", 1.0, 1.0);
         sector.SetIntegerField("lightcolor", 255, 255);
         sector.SetStringField("comment", "default", "default");
+        sector.SetBooleanField("lightabsolute", false);
 
         Assert.Equal(1.0, sector.GetFloatField("gravity", 1.0));
         Assert.Equal(255, sector.GetIntegerField("lightcolor", 255));
         Assert.Equal("default", sector.GetStringField("comment", "default"));
+        Assert.False(sector.GetBooleanField("lightabsolute"));
         Assert.Empty(sector.Fields);
+    }
+
+    [Fact]
+    public void BooleanFieldSetterSupportsTrueDefault()
+    {
+        var side = new Sidedef();
+
+        side.SetBooleanField("render", false, defaultValue: true);
+
+        Assert.False(side.GetBooleanField("render", defaultValue: true));
+        Assert.False(Assert.IsType<bool>(side.Fields["render"]));
+
+        side.SetBooleanField("render", true, defaultValue: true);
+
+        Assert.True(side.GetBooleanField("render", defaultValue: true));
+        Assert.Empty(side.Fields);
     }
 
     [Fact]
