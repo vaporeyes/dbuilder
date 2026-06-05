@@ -56,7 +56,7 @@ public sealed class ThingsFilterDraft
     public ThingsFilterInfo ToInfo(string key)
         => new(
             key,
-            Name,
+            EffectiveName(),
             Category,
             Invert,
             DisplayMode,
@@ -84,7 +84,7 @@ public sealed class ThingsFilterDraft
 
     public void WriteSettings(Configuration configuration, string path)
     {
-        configuration.WriteSetting(path + ".name", Name);
+        configuration.WriteSetting(path + ".name", EffectiveName());
         configuration.WriteSetting(path + ".category", Category);
         configuration.WriteSetting(path + ".invert", Invert);
         configuration.WriteSetting(path + ".displaymode", DisplayMode);
@@ -113,6 +113,9 @@ public sealed class ThingsFilterDraft
             configuration.WriteSetting(path + ".customfieldvalues." + key, field.Value);
         }
     }
+
+    private string EffectiveName()
+        => string.IsNullOrEmpty(Name) ? DefaultName : Name;
 
     private bool HasThingArg()
     {

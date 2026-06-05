@@ -407,6 +407,24 @@ public class ThingsFilterEvaluatorTests
     }
 
     [Fact]
+    public void DraftDefaultsEmptyFilterNamesLikeUdb()
+    {
+        var draft = new ThingsFilterDraft
+        {
+            Name = "",
+            ThingType = 3001,
+        };
+
+        var info = draft.ToInfo("custom0");
+        var configuration = new Configuration(sorted: true);
+        draft.WriteSettings(configuration, "thingsfilters.custom0");
+
+        var filter = Assert.Single(GameConfiguration.FromText(configuration.OutputConfiguration("\n")).ThingsFilters);
+        Assert.Equal(ThingsFilterDraft.DefaultName, info.Name);
+        Assert.Equal(ThingsFilterDraft.DefaultName, filter.Name);
+    }
+
+    [Fact]
     public void CollectionDraftSortsAddsDeletesAndPreservesActiveFilterByName()
     {
         var config = GameConfiguration.FromText("""
