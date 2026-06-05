@@ -686,6 +686,12 @@ public sealed class MapControlCommandTests
     [InlineData("map3d.showvisualthings", "CycleVisualThings3D()")]
     [InlineData("map3d.alphabasedtexturehighlighting", "ToggleAlphaBasedTextureHighlighting()")]
     [InlineData("map3d.gztoggleenhancedrendering", "ToggleEnhancedRenderingEffects()")]
+    [InlineData("map3d.toggledynamiclightsrendering", "CycleLightRenderMode()")]
+    [InlineData("map3d.toggleclassicrendering", "ToggleClassicRendering()")]
+    [InlineData("map3d.togglefogrendering", "ToggleDrawFog()")]
+    [InlineData("map3d.toggleskyrendering", "ToggleDrawSky()")]
+    [InlineData("map3d.toggleeventlines", "ToggleEventLines()")]
+    [InlineData("map3d.togglevisualvertices", "ToggleVisualVertices()")]
     public void UdbVisualThingActionAliasesAreDispatched(string commandId, string handlerCall)
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));

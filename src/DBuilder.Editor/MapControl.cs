@@ -6428,6 +6428,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 Target3DChanged?.Invoke($"Models rendering mode: {ThingModelRenderPlanner.StatusLabel(_modelRenderMode)}");
                 return true;
             case "map3d.toggle-dynamic-lights-rendering":
+            case "map3d.toggledynamiclightsrendering":
                 CycleLightRenderMode();
                 Target3DChanged?.Invoke($"Dynamic lights rendering mode: {ThingLightRenderPlanner.StatusLabel(_lightRenderMode)}");
                 return true;
@@ -6437,22 +6438,27 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 Target3DChanged?.Invoke($"Enhanced rendering effects are {(_enhancedRenderingEffects ? "ENABLED" : "DISABLED")}");
                 return true;
             case "map3d.toggle-classic-rendering":
+            case "map3d.toggleclassicrendering":
                 ToggleClassicRendering();
                 Target3DChanged?.Invoke($"Classic rendering is {(_classicRendering ? "ENABLED" : "DISABLED")}");
                 return true;
             case "map3d.toggle-fog-rendering":
+            case "map3d.togglefogrendering":
                 ToggleDrawFog();
                 Target3DChanged?.Invoke($"Fog rendering is {(_drawFog ? "ENABLED" : "DISABLED")}");
                 return true;
             case "map3d.toggle-sky-rendering":
+            case "map3d.toggleskyrendering":
                 ToggleDrawSky();
                 Target3DChanged?.Invoke($"Sky rendering is {(_drawSky ? "ENABLED" : "DISABLED")}");
                 return true;
             case "map3d.toggle-event-lines":
+            case "map3d.toggleeventlines":
                 ToggleEventLines();
                 Target3DChanged?.Invoke($"Event lines are {(_showEventLines ? "ENABLED" : "DISABLED")}");
                 return true;
             case "map3d.toggle-visual-vertices":
+            case "map3d.togglevisualvertices":
                 ToggleVisualVertices();
                 Target3DChanged?.Invoke($"Visual vertices are {(_showVisualVertices ? "ENABLED" : "DISABLED")}");
                 return true;

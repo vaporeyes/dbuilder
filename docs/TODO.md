@@ -1487,6 +1487,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Toggle models rendering action alias for model render mode cycling.
   - [x] Add UDB-style Toggle dynamic lights rendering action and persisted display-mode cycling.
   - [x] Add UDB-style Toggle Enhanced Rendering Effects action for the available visual rendering effect bundle.
+  - [x] Add UDB-style non-hyphen aliases for visual rendering toggle actions.
   - [x] Include fog and sky state in the available UDB-style enhanced rendering effect bundle.
   - [x] Add loaded model mesh render-batch planning with texture, tint, triangle count, and world transforms.
   - [x] Prepare transformed loaded-model vertices with tint and normals for render-device upload.

@@ -2799,6 +2799,29 @@ public class EditorCommandCatalogTests
         Assert.False(command.Repeat);
     }
 
+    [Theory]
+    [InlineData("map3d.toggle-dynamic-lights-rendering", "map3d.toggledynamiclightsrendering")]
+    [InlineData("map3d.toggle-classic-rendering", "map3d.toggleclassicrendering")]
+    [InlineData("map3d.toggle-fog-rendering", "map3d.togglefogrendering")]
+    [InlineData("map3d.toggle-sky-rendering", "map3d.toggleskyrendering")]
+    [InlineData("map3d.toggle-event-lines", "map3d.toggleeventlines")]
+    [InlineData("map3d.toggle-visual-vertices", "map3d.togglevisualvertices")]
+    public void VisualRenderingToggleAliasesShareCanonicalMetadata(string canonicalId, string aliasId)
+    {
+        var canonical = EditorCommandCatalog.Find(canonicalId);
+        var alias = EditorCommandCatalog.Find(aliasId);
+
+        Assert.NotNull(canonical);
+        Assert.NotNull(alias);
+        Assert.Equal(canonical.Title, alias.Title);
+        Assert.Equal(canonical.DefaultGesture, alias.DefaultGesture);
+        Assert.Equal(canonical.Scope, alias.Scope);
+        Assert.Equal(canonical.AllowKeys, alias.AllowKeys);
+        Assert.Equal(canonical.AllowMouse, alias.AllowMouse);
+        Assert.Equal(canonical.AllowScroll, alias.AllowScroll);
+        Assert.Equal(canonical.Repeat, alias.Repeat);
+    }
+
     [Fact]
     public void EventLineToggleExistsInClassicMapScopeWithoutStealingInsertShortcut()
     {
