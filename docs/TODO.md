@@ -331,6 +331,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add raw UDB snap-to-geometry and split-joined-sectors toggle surfaces.
   - [x] Add raw UDB held pan-view action alias.
   - [x] Add raw UDB model and dynamic-light rendering toggle aliases.
+  - [x] Add raw UDB script editor action alias.
   - [x] Add UDB-style singular and plural labels to Filter Selected Things status text.
 
 ## Plugin Architecture

@@ -29,6 +29,7 @@ public sealed class MainWindowCommandTests
     [InlineData("window.edit-mode-help", "OnEditModeHelp")]
     [InlineData("window.open-command-palette", "OnOpenCommandPalette")]
     [InlineData("window.opencommandpalette", "OnOpenCommandPalette")]
+    [InlineData("window.openscripteditor", "OnUdbScriptDocker")]
     [InlineData("window.shortcuts", "OnShortcuts")]
     [InlineData("window.about", "OnAbout")]
     [InlineData("window.centeroncoordinates", "OnGoToCoordinates")]
@@ -1487,6 +1488,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("commandId.StartsWith(\"window.assigngroup\", StringComparison.Ordinal)", code, StringComparison.Ordinal);
         Assert.Contains("commandId.StartsWith(\"window.clear-group-\", StringComparison.Ordinal)", code, StringComparison.Ordinal);
         Assert.Contains("commandId.StartsWith(\"window.cleargroup\", StringComparison.Ordinal)", code, StringComparison.Ordinal);
+        Assert.Contains("commandId == \"window.openscripteditor\"", code, StringComparison.Ordinal);
         Assert.Contains("commandId == \"window.udbscriptexecute\"", code, StringComparison.Ordinal);
         Assert.Contains("commandId.StartsWith(\"window.udbscriptexecuteslot\", StringComparison.Ordinal)", code, StringComparison.Ordinal);
         Assert.Contains("\"window.togglebrightness\" => ToggleFullBrightnessMenuItem", code, StringComparison.Ordinal);

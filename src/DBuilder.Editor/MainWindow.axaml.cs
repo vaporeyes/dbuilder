@@ -1555,6 +1555,7 @@ public partial class MainWindow : Window
             case "window.view-used-tags": OnTagStatistics(this, new RoutedEventArgs()); return true;
             case "window.tag-explorer": OnTagExplorer(this, new RoutedEventArgs()); return true;
             case "window.udbscripts": OnUdbScriptDocker(this, new RoutedEventArgs()); return true;
+            case "window.openscripteditor": OnUdbScriptDocker(this, new RoutedEventArgs()); return true;
             case "window.comments-panel": OnCommentsPanel(this, new RoutedEventArgs()); return true;
             case "window.view-thing-types": OnThingStatistics(this, new RoutedEventArgs()); return true;
             case "window.center-on-coordinates": OnGoToCoordinates(this, new RoutedEventArgs()); return true;
@@ -4460,6 +4461,7 @@ public partial class MainWindow : Window
 
     private static bool IsUdbScriptPaletteCommand(string commandId)
         => commandId == "window.udbscripts"
+            || commandId == "window.openscripteditor"
             || commandId == "window.udbscriptexecute"
             || commandId.StartsWith("window.udbscriptexecuteslot", StringComparison.Ordinal);
 

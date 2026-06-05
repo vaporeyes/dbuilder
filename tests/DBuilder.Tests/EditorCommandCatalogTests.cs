@@ -1626,6 +1626,24 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void OpenScriptEditorCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.openscripteditor");
+
+        Assert.NotNull(command);
+        Assert.Equal("Script Editor", command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.False(command.Repeat);
+        Assert.Equal(
+            "This opens the script editor that allows you to edit any scripts in your map or any script files.",
+            command.Description);
+    }
+
+    [Fact]
     public void UdbScriptExecutionPlansMatchUdbActionDispatch()
     {
         var current = new UdbScriptInfo("Current", "Description", 1, "/scripts/current.js", "hash-current", null, Array.Empty<UdbScriptOption>());

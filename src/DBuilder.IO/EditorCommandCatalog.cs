@@ -226,6 +226,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.reloadresources", "Reload Resources", "Menu", EditorCommandScope.Window, AllowMouse: false, Description: "Reloads all data resources such as game configuration, textures and flats. Useful when resource files have been changed outside of Doom Builder."),
         new EditorCommandDescriptor("window.open-command-palette", "Open Command Palette", "Menu", EditorCommandScope.Window, AllowScroll: true, Description: "Opens the command palette."),
         new EditorCommandDescriptor("window.opencommandpalette", "Open Command Palette", "Menu", EditorCommandScope.Window, AllowScroll: true, Description: "Opens the command palette."),
+        new EditorCommandDescriptor("window.openscripteditor", "Script Editor", "Menu", EditorCommandScope.Window, Description: "This opens the script editor that allows you to edit any scripts in your map or any script files."),
         new EditorCommandDescriptor("window.grid-setup", "Grid and Backdrop Setup", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.gridsetup", "Grid and Backdrop Setup", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.usdf-conversations", "USDF Conversations", "Menu", EditorCommandScope.Window, AllowScroll: true),
