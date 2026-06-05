@@ -71,6 +71,9 @@ public class EditorCommandCatalogTests
     [InlineData("window.insertprefabfile", "Prefabs")]
     [InlineData("window.insertpreviousprefab", "Prefabs")]
     [InlineData("window.select-group-1", "Selecting")]
+    [InlineData("window.selectgroup1", "Selecting")]
+    [InlineData("window.assigngroup1", "Selecting")]
+    [InlineData("window.cleargroup1", "Selecting")]
     [InlineData("window.udbscripts", "Scripting")]
     [InlineData("window.model-render-all", "Rendering")]
     [InlineData("map2d.mode-vertices", "Modes")]
@@ -1259,9 +1262,11 @@ public class EditorCommandCatalogTests
     [InlineData("clear", "Clear Group", "Ctrl/Cmd+Shift")]
     public void SelectionGroupCommandsMatchUdbActionSurface(string verb, string titlePrefix, string gesturePrefix)
     {
+        string rawVerb = verb.Replace("-", "", StringComparison.Ordinal);
         for (int group = 1; group <= 10; group++)
         {
             var command = EditorCommandCatalog.Find($"window.{verb}-group-{group}");
+            var udbAlias = EditorCommandCatalog.Find($"window.{rawVerb}group{group}");
 
             Assert.NotNull(command);
             Assert.Equal($"{titlePrefix} {group}", command.Title);
@@ -1270,6 +1275,10 @@ public class EditorCommandCatalogTests
             Assert.True(command.AllowMouse);
             Assert.False(command.AllowScroll);
             Assert.StartsWith(gesturePrefix, command.DefaultGesture, StringComparison.Ordinal);
+            Assert.NotNull(udbAlias);
+            Assert.Equal(command.Title, udbAlias.Title);
+            Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
+            Assert.Equal(command.CategoryTitle, udbAlias.CategoryTitle);
         }
     }
 

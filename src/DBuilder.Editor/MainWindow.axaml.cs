@@ -1885,10 +1885,18 @@ public partial class MainWindow : Window
     private bool RunSelectionGroupCommand(string commandId)
     {
         const string selectPrefix = "window.select-group-";
+        const string rawSelectPrefix = "window.selectgroup";
         const string assignPrefix = "window.assign-group-";
+        const string rawAssignPrefix = "window.assigngroup";
         const string clearPrefix = "window.clear-group-";
+        const string rawClearPrefix = "window.cleargroup";
 
         if (TryReadSelectionGroup(commandId, selectPrefix, out int selectGroup))
+        {
+            SelectGroup(selectGroup);
+            return true;
+        }
+        if (TryReadSelectionGroup(commandId, rawSelectPrefix, out selectGroup))
         {
             SelectGroup(selectGroup);
             return true;
@@ -1898,7 +1906,17 @@ public partial class MainWindow : Window
             AddSelectionToGroup(assignGroup);
             return true;
         }
+        if (TryReadSelectionGroup(commandId, rawAssignPrefix, out assignGroup))
+        {
+            AddSelectionToGroup(assignGroup);
+            return true;
+        }
         if (TryReadSelectionGroup(commandId, clearPrefix, out int clearGroup))
+        {
+            ClearGroup(clearGroup);
+            return true;
+        }
+        if (TryReadSelectionGroup(commandId, rawClearPrefix, out clearGroup))
         {
             ClearGroup(clearGroup);
             return true;
@@ -4380,8 +4398,11 @@ public partial class MainWindow : Window
 
     private static bool IsSelectionGroupCommand(string commandId)
         => commandId.StartsWith("window.select-group-", StringComparison.Ordinal)
+            || commandId.StartsWith("window.selectgroup", StringComparison.Ordinal)
             || commandId.StartsWith("window.assign-group-", StringComparison.Ordinal)
-            || commandId.StartsWith("window.clear-group-", StringComparison.Ordinal);
+            || commandId.StartsWith("window.assigngroup", StringComparison.Ordinal)
+            || commandId.StartsWith("window.clear-group-", StringComparison.Ordinal)
+            || commandId.StartsWith("window.cleargroup", StringComparison.Ordinal);
 
     private static bool IsUdbScriptPaletteCommand(string commandId)
         => commandId == "window.udbscripts"

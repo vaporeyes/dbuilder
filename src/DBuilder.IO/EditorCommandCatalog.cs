@@ -250,6 +250,16 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.select-group-8", "Select Group 8", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.select-group-9", "Select Group 9", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.select-group-10", "Select Group 10", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.selectgroup1", "Select Group 1", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.selectgroup2", "Select Group 2", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.selectgroup3", "Select Group 3", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.selectgroup4", "Select Group 4", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.selectgroup5", "Select Group 5", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.selectgroup6", "Select Group 6", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.selectgroup7", "Select Group 7", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.selectgroup8", "Select Group 8", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.selectgroup9", "Select Group 9", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.selectgroup10", "Select Group 10", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.assign-group-1", "Assign Group 1", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.assign-group-2", "Assign Group 2", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.assign-group-3", "Assign Group 3", "Menu", EditorCommandScope.Window),
@@ -260,6 +270,16 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.assign-group-8", "Assign Group 8", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.assign-group-9", "Assign Group 9", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.assign-group-10", "Assign Group 10", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.assigngroup1", "Assign Group 1", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.assigngroup2", "Assign Group 2", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.assigngroup3", "Assign Group 3", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.assigngroup4", "Assign Group 4", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.assigngroup5", "Assign Group 5", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.assigngroup6", "Assign Group 6", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.assigngroup7", "Assign Group 7", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.assigngroup8", "Assign Group 8", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.assigngroup9", "Assign Group 9", "Menu", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.assigngroup10", "Assign Group 10", "Menu", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.clear-group-1", "Clear Group 1", "Ctrl/Cmd+Shift+1", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.clear-group-2", "Clear Group 2", "Ctrl/Cmd+Shift+2", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.clear-group-3", "Clear Group 3", "Ctrl/Cmd+Shift+3", EditorCommandScope.Window),
@@ -270,6 +290,16 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.clear-group-8", "Clear Group 8", "Ctrl/Cmd+Shift+8", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.clear-group-9", "Clear Group 9", "Ctrl/Cmd+Shift+9", EditorCommandScope.Window),
         new EditorCommandDescriptor("window.clear-group-10", "Clear Group 10", "Ctrl/Cmd+Shift+0", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.cleargroup1", "Clear Group 1", "Ctrl/Cmd+Shift+1", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.cleargroup2", "Clear Group 2", "Ctrl/Cmd+Shift+2", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.cleargroup3", "Clear Group 3", "Ctrl/Cmd+Shift+3", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.cleargroup4", "Clear Group 4", "Ctrl/Cmd+Shift+4", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.cleargroup5", "Clear Group 5", "Ctrl/Cmd+Shift+5", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.cleargroup6", "Clear Group 6", "Ctrl/Cmd+Shift+6", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.cleargroup7", "Clear Group 7", "Ctrl/Cmd+Shift+7", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.cleargroup8", "Clear Group 8", "Ctrl/Cmd+Shift+8", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.cleargroup9", "Clear Group 9", "Ctrl/Cmd+Shift+9", EditorCommandScope.Window),
+        new EditorCommandDescriptor("window.cleargroup10", "Clear Group 10", "Ctrl/Cmd+Shift+0", EditorCommandScope.Window),
 
         new EditorCommandDescriptor("map2d.select", "Select element", "Click", EditorCommandScope.Map2D, DisregardShift: true, DisregardAccelerator: true, DisregardAlt: true),
         new EditorCommandDescriptor("map2d.classicpaintselect", "Paint Selection", "Menu", EditorCommandScope.Map2D, AllowScroll: false, DisregardShift: true, DisregardAccelerator: true, DisregardAlt: true),
@@ -824,7 +854,10 @@ public static class EditorCommandCatalog
         string id = command.Id;
         if (id.Contains("udbscript", StringComparison.OrdinalIgnoreCase))
             return UdbScriptActions.CategoryTitle;
-        if (id.Contains("-group-", StringComparison.Ordinal))
+        if (id.Contains("-group-", StringComparison.Ordinal)
+            || id.Contains("selectgroup", StringComparison.OrdinalIgnoreCase)
+            || id.Contains("assigngroup", StringComparison.OrdinalIgnoreCase)
+            || id.Contains("cleargroup", StringComparison.OrdinalIgnoreCase))
             return "Selecting";
         if (id.Contains("prefab", StringComparison.OrdinalIgnoreCase))
             return "Prefabs";

@@ -699,8 +699,11 @@ public sealed class MainWindowCommandTests
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
         Assert.Contains("return RunUdbScriptCommand(commandId) || RunSelectionGroupCommand(commandId);", body, StringComparison.Ordinal);
         Assert.Contains("const string selectPrefix = \"window.select-group-\";", body, StringComparison.Ordinal);
+        Assert.Contains("const string rawSelectPrefix = \"window.selectgroup\";", body, StringComparison.Ordinal);
         Assert.Contains("const string assignPrefix = \"window.assign-group-\";", body, StringComparison.Ordinal);
+        Assert.Contains("const string rawAssignPrefix = \"window.assigngroup\";", body, StringComparison.Ordinal);
         Assert.Contains("const string clearPrefix = \"window.clear-group-\";", body, StringComparison.Ordinal);
+        Assert.Contains("const string rawClearPrefix = \"window.cleargroup\";", body, StringComparison.Ordinal);
         Assert.Contains("SelectGroup(selectGroup);", body, StringComparison.Ordinal);
         Assert.Contains("AddSelectionToGroup(assignGroup);", body, StringComparison.Ordinal);
         Assert.Contains("ClearGroup(clearGroup);", body, StringComparison.Ordinal);
@@ -1433,8 +1436,11 @@ public sealed class MainWindowCommandTests
         Assert.Contains("if (IsUdbScriptPaletteCommand(commandId)) return UdbScriptDockerMenuItem;", code, StringComparison.Ordinal);
         Assert.Contains("if (commandId == \"window.cancel-draw\") return DrawMenuItem;", code, StringComparison.Ordinal);
         Assert.Contains("commandId.StartsWith(\"window.select-group-\", StringComparison.Ordinal)", code, StringComparison.Ordinal);
+        Assert.Contains("commandId.StartsWith(\"window.selectgroup\", StringComparison.Ordinal)", code, StringComparison.Ordinal);
         Assert.Contains("commandId.StartsWith(\"window.assign-group-\", StringComparison.Ordinal)", code, StringComparison.Ordinal);
+        Assert.Contains("commandId.StartsWith(\"window.assigngroup\", StringComparison.Ordinal)", code, StringComparison.Ordinal);
         Assert.Contains("commandId.StartsWith(\"window.clear-group-\", StringComparison.Ordinal)", code, StringComparison.Ordinal);
+        Assert.Contains("commandId.StartsWith(\"window.cleargroup\", StringComparison.Ordinal)", code, StringComparison.Ordinal);
         Assert.Contains("commandId == \"window.udbscriptexecute\"", code, StringComparison.Ordinal);
         Assert.Contains("commandId.StartsWith(\"window.udbscriptexecuteslot\", StringComparison.Ordinal)", code, StringComparison.Ordinal);
         Assert.Contains("\"window.undo\" => UndoMenuItem", code, StringComparison.Ordinal);

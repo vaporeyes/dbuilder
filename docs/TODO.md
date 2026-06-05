@@ -1185,6 +1185,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add active-mode select all and invert selection.
   - [x] Add menu commands to add, select, and clear selection groups.
   - [x] Add UDB-style stable selection-group action ids and clear-group shortcuts.
+  - [x] Add raw UDB selection-group action aliases to shortcut metadata and dispatch.
   - [x] Add UDB-style singular and plural labels to selection group status text.
   - [x] Add UDB-style singular and plural labels to cut and delete selection status text.
   - [x] Add menu commands to scale the current selection.
