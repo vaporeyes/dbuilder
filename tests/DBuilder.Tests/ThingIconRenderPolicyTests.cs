@@ -43,7 +43,7 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
-    public void KeepsSpritesWhenZoomedInOrAlreadyUsingArrowMarkers()
+    public void KeepsSpritesWhenZoomedInAndCompactsArrowMarkersAtOverviewScale()
     {
         Assert.False(ThingIconRenderPolicy.UseCompactMarkers(
             ThingIconRenderPolicy.CompactMarkerScaleThreshold - 0.01,
@@ -53,7 +53,7 @@ public sealed class ThingIconRenderPolicyTests
             ThingIconRenderPolicy.CompactMarkerScaleThreshold - 0.01,
             fixedThingsScale: false,
             thingArrows: false));
-        Assert.False(ThingIconRenderPolicy.UseCompactMarkers(
+        Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
             ThingIconRenderPolicy.CompactMarkerScaleThreshold,
             fixedThingsScale: true,
             thingArrows: true));
@@ -102,6 +102,9 @@ public sealed class ThingIconRenderPolicyTests
             viewScale: 0.3,
             thingArrows: false));
         Assert.False(ThingIconRenderPolicy.UseOverviewMarkers(
+            ThingIconRenderPolicy.OverviewMarkerScaleThreshold - 0.01,
+            thingArrows: true));
+        Assert.True(ThingIconRenderPolicy.UseOverviewMarkers(
             ThingIconRenderPolicy.OverviewMarkerScaleThreshold,
             thingArrows: true));
         Assert.True(ThingIconRenderPolicy.MarkerBaseSize(compactMarkers: true, overviewMarkers: true)
@@ -114,7 +117,7 @@ public sealed class ThingIconRenderPolicyTests
         Assert.True(ThingIconRenderPolicy.UseFarOverviewMarkers(
             ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
             thingArrows: false));
-        Assert.False(ThingIconRenderPolicy.UseFarOverviewMarkers(
+        Assert.True(ThingIconRenderPolicy.UseFarOverviewMarkers(
             ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
             thingArrows: true));
         Assert.True(ThingIconRenderPolicy.MarkerBaseSize(
@@ -174,7 +177,7 @@ public sealed class ThingIconRenderPolicyTests
         Assert.Equal(160.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
             ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
             thingArrows: false));
-        Assert.Equal(96.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
+        Assert.Equal(160.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
             ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
             thingArrows: true));
         Assert.Equal(0, ThingIconRenderPolicy.OverviewCullCell(

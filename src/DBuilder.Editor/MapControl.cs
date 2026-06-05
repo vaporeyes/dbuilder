@@ -4746,7 +4746,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 // Arrow mode: Doom-Builder-style colored disc + direction arrow (no sprites).
                 if (_thingArrows)
                 {
-                    BuildThingDisc(tv, t, gldefs);
+                    BuildThingDisc(tv, t, gldefs, s);
                     continue;
                 }
 
@@ -5047,9 +5047,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     }
 
     // Appends a Doom-Builder-style colored disc + direction arrow for a thing into the (untextured) list.
-    private void BuildThingDisc(System.Collections.Generic.List<FlatVertex> list, Thing t, Gldefs? gldefs)
+    private void BuildThingDisc(System.Collections.Generic.List<FlatVertex> list, Thing t, Gldefs? gldefs, double radius)
     {
-        double radius = ThingMarkerSize(11);
         const int segments = 14;
         var p = t.Position;
         int catColor = DynamicLightDisplay.ThingColor(t, _gameConfig, gldefs)

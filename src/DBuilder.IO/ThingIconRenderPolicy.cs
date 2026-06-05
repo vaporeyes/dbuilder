@@ -21,13 +21,13 @@ public static class ThingIconRenderPolicy
     public const double RegularDirectionTickBaseSize = 18.0;
 
     public static bool UseCompactMarkers(double viewScale, bool fixedThingsScale, bool thingArrows)
-        => !thingArrows && viewScale >= CompactMarkerScaleThreshold;
+        => viewScale >= CompactMarkerScaleThreshold;
 
     public static bool UseOverviewMarkers(double viewScale, bool thingArrows)
-        => !thingArrows && viewScale >= OverviewMarkerScaleThreshold;
+        => viewScale >= OverviewMarkerScaleThreshold;
 
     public static bool UseFarOverviewMarkers(double viewScale, bool thingArrows)
-        => !thingArrows && viewScale >= FarOverviewMarkerScaleThreshold;
+        => viewScale >= FarOverviewMarkerScaleThreshold;
 
     public static bool ShouldDrawDirectionTicks(double viewScale, bool thingArrows)
         => !thingArrows && viewScale < CompactMarkerScaleThreshold;
