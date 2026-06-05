@@ -411,6 +411,36 @@ public class ThreeDFloorsTests
     }
 
     [Fact]
+    public void ResolvesBackOnlyControlLine()
+    {
+        var map = new MapSet();
+        var control = map.AddSector();
+        control.FloorHeight = -16;
+        control.CeilHeight = 48;
+        control.CeilTexture = "TOP3D";
+        control.FloorTexture = "BOT3D";
+        var target = map.AddSector();
+        target.Tag = 7;
+
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        var side = map.AddSidedef(line, false, control);
+        side.MidTexture = "BACKSIDE";
+        line.Action = ThreeDFloors.Sector3DFloorAction;
+        line.Args[0] = 7;
+        line.Args[3] = 192;
+        map.BuildIndexes();
+
+        ThreeDFloor floor = Assert.Single(ThreeDFloors.Resolve(map)[target]);
+
+        Assert.Same(control, floor.Control);
+        Assert.Equal(-16, floor.Bottom);
+        Assert.Equal(48, floor.Top);
+        Assert.Equal("BACKSIDE", floor.SideTexture);
+        Assert.Equal("TOP3D", floor.TopFlat);
+        Assert.Equal("BOT3D", floor.BottomFlat);
+    }
+
+    [Fact]
     public void NonMatchingTagYieldsNothing()
     {
         var (map, _, target) = Setup(tag: 5, alpha: 255);

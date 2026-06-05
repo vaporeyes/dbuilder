@@ -2363,6 +2363,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 - [ ] Port 3D floor control-sector editing.
   - [x] Add selected-sector 3D floor discovery and shared 3D floor filtering model.
+  - [x] Resolve 3D floor control sectors from back-only action linedefs.
   - [x] Add UDB-style control-sector edit snapshots, geometry mutation, and orphan action-line cleanup.
   - [x] Add UDB-style 3D floor mode/action metadata and command catalog entries.
   - [x] Add UDB-style control-sector area settings and custom tag range allocation.

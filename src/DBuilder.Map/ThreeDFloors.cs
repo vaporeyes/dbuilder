@@ -385,7 +385,8 @@ public static class ThreeDFloors
         foreach (var line in map.Linedefs)
         {
             if (line.Action != Sector3DFloorAction) continue;
-            var control = line.Front?.Sector;
+            Sidedef? controlSide = line.Front?.Sector != null ? line.Front : line.Back?.Sector != null ? line.Back : null;
+            var control = controlSide?.Sector;
             if (control == null) continue;
             if (requireManagedControlSector && !IsManagedControlSector(control, udmf)) continue;
             int tag = line.Args[0];
@@ -393,7 +394,7 @@ public static class ThreeDFloors
 
             double bottom = control.FloorHeight, top = control.CeilHeight;
             int alpha = Math.Clamp(line.Args[3], 0, 255);
-            string side = line.Front?.MidTexture ?? "-";
+            string side = controlSide?.MidTexture ?? "-";
 
             foreach (var t in targets)
             {
