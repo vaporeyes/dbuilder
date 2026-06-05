@@ -1160,6 +1160,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Treat unsupported things filter display modes as always-on during evaluation.
   - [x] Select the active configured thing filter by stable key in the filter window.
   - [x] Show nested thing category titles in the thing filter window like UDB.
+  - [x] Sort configured thing filters by name in the filter window like UDB.
 - [ ] Port custom things filters.
   - [x] Add UI-independent custom things filter drafts and UDB settings write-back.
   - [x] Add custom things filter list add, delete, sort, and active-name preservation behavior.

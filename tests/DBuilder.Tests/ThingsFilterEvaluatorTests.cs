@@ -578,6 +578,22 @@ public class ThingsFilterEvaluatorTests
     }
 
     [Fact]
+    public void ThingFilterWindowSortsConfiguredFiltersByNameLikeUdb()
+    {
+        var filters = new[]
+        {
+            Filter("zed", "Zed"),
+            Filter("active", "Active"),
+            Filter("alpha", "alpha"),
+            Filter("active-copy", "Active"),
+        };
+
+        IReadOnlyList<ThingsFilterInfo> sorted = ThingFilterWindow.SortedFilters(filters);
+
+        Assert.Equal(["active", "active-copy", "alpha", "zed"], sorted.Select(filter => filter.Key).ToArray());
+    }
+
+    [Fact]
     public void ThingFilterWindowBuildsNestedCategoryLabelsLikeUdb()
     {
         const string cfg = """
@@ -603,4 +619,21 @@ public class ThingsFilterEvaluatorTests
         Assert.Equal("monsters.bosses", choice.Key);
         Assert.Equal("Monsters / Bosses", choice.Label);
     }
+
+    private static ThingsFilterInfo Filter(string key, string name)
+        => new(
+            key,
+            name,
+            "",
+            false,
+            0,
+            3001,
+            -1,
+            int.MinValue,
+            -1,
+            [-1, -1, -1, -1, -1],
+            -1,
+            [],
+            [],
+            new Dictionary<string, ThingsFilterCustomFieldInfo>());
 }

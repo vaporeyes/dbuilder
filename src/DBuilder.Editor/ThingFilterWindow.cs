@@ -42,7 +42,7 @@ public sealed class ThingFilterWindow : Window
         {
             stack.Children.Add(new TextBlock { Text = "Configured filter:", Foreground = Brushes.LightSkyBlue, Margin = new Avalonia.Thickness(0, 0, 0, 4) });
             var choices = new List<FilterChoice> { new(null) };
-            foreach (var filter in filters) choices.Add(new FilterChoice(filter));
+            foreach (var filter in SortedFilters(filters)) choices.Add(new FilterChoice(filter));
             var combo = new ComboBox
             {
                 ItemsSource = choices,
@@ -71,6 +71,12 @@ public sealed class ThingFilterWindow : Window
 
     private static bool IsActiveFilter(ThingsFilterInfo? choice, ThingsFilterInfo? active)
         => choice != null && active != null && string.Equals(choice.Key, active.Key, StringComparison.Ordinal);
+
+    public static IReadOnlyList<ThingsFilterInfo> SortedFilters(IReadOnlyList<ThingsFilterInfo> filters)
+        => filters
+            .OrderBy(filter => filter.Name, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(filter => filter.Key, StringComparer.OrdinalIgnoreCase)
+            .ToList();
 
     public static IReadOnlyList<ThingFilterCategoryChoice> CategoryChoices(GameConfiguration config)
     {
