@@ -1642,6 +1642,58 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapWrapperSelectsAllAndInvertsSelectedElements()
+    {
+        var map = new MapSet();
+        var firstVertex = map.AddVertex(new Vector2D(0, 0));
+        var secondVertex = map.AddVertex(new Vector2D(64, 0));
+        var firstLine = map.AddLinedef(firstVertex, secondVertex);
+        var secondLine = map.AddLinedef(map.AddVertex(new Vector2D(128, 0)), map.AddVertex(new Vector2D(192, 0)));
+        var firstSector = map.AddSector();
+        var secondSector = map.AddSector();
+        var firstSide = map.AddSidedef(firstLine, isFront: true, firstSector);
+        var secondSide = map.AddSidedef(secondLine, isFront: true, secondSector);
+        var firstThing = map.AddThing(new Vector2D(16, 16), 3001);
+        var secondThing = map.AddThing(new Vector2D(32, 32), 3002);
+        var wrapper = new UdbScriptMapWrapper(map);
+
+        wrapper.selectAllVertices();
+        wrapper.selectAllLinedefs();
+        wrapper.selectAllSidedefs();
+        wrapper.selectAllSectors();
+        wrapper.selectAllThings();
+
+        Assert.Equal(4, wrapper.getSelectedVertices().Length);
+        Assert.Equal(2, wrapper.getSelectedLinedefs().Length);
+        Assert.Equal(2, wrapper.getSelectedSidedefs().Length);
+        Assert.Equal(2, wrapper.getSelectedSectors().Length);
+        Assert.Equal(2, wrapper.getSelectedThings().Length);
+
+        firstVertex.Selected = true;
+        secondVertex.Selected = false;
+        firstLine.Selected = true;
+        secondLine.Selected = false;
+        firstSide.Selected = true;
+        secondSide.Selected = false;
+        firstSector.Selected = true;
+        secondSector.Selected = false;
+        firstThing.Selected = true;
+        secondThing.Selected = false;
+
+        wrapper.invertSelectedVertices();
+        wrapper.invertSelectedLinedefs();
+        wrapper.invertSelectedSidedefs();
+        wrapper.invertSelectedSectors();
+        wrapper.invertSelectedThings();
+
+        Assert.Same(secondVertex, Assert.Single(wrapper.getSelectedVertices()).Vertex);
+        Assert.Same(secondLine, Assert.Single(wrapper.getSelectedLinedefs()).Linedef);
+        Assert.Same(secondSide, Assert.Single(wrapper.getSelectedSidedefs()).Sidedef);
+        Assert.Same(secondSector, Assert.Single(wrapper.getSelectedSectors()).Sector);
+        Assert.Same(secondThing, Assert.Single(wrapper.getSelectedThings()).Thing);
+    }
+
+    [Fact]
     public void MapWrapperCreatesVerticesAndThings()
     {
         var map = new MapSet();

@@ -3830,6 +3830,66 @@ public sealed class UdbScriptMapWrapper
         map.ClearSelectedSidedefs();
     }
 
+    public void selectAllVertices()
+    {
+        ThrowIfDisposed("selectAllVertices");
+        map.SelectAllVertices();
+    }
+
+    public void selectAllLinedefs()
+    {
+        ThrowIfDisposed("selectAllLinedefs");
+        map.SelectAllLinedefs();
+    }
+
+    public void selectAllSidedefs()
+    {
+        ThrowIfDisposed("selectAllSidedefs");
+        map.SelectAllSidedefs();
+    }
+
+    public void selectAllSectors()
+    {
+        ThrowIfDisposed("selectAllSectors");
+        map.SelectAllSectors();
+    }
+
+    public void selectAllThings()
+    {
+        ThrowIfDisposed("selectAllThings");
+        map.SelectAllThings();
+    }
+
+    public void invertSelectedVertices()
+    {
+        ThrowIfDisposed("invertSelectedVertices");
+        map.InvertSelectedVertices();
+    }
+
+    public void invertSelectedLinedefs()
+    {
+        ThrowIfDisposed("invertSelectedLinedefs");
+        map.InvertSelectedLinedefs();
+    }
+
+    public void invertSelectedSidedefs()
+    {
+        ThrowIfDisposed("invertSelectedSidedefs");
+        map.InvertSelectedSidedefs();
+    }
+
+    public void invertSelectedSectors()
+    {
+        ThrowIfDisposed("invertSelectedSectors");
+        map.InvertSelectedSectors();
+    }
+
+    public void invertSelectedThings()
+    {
+        ThrowIfDisposed("invertSelectedThings");
+        map.InvertSelectedThings();
+    }
+
     public UdbScriptVertexWrapper createVertex(object pos)
     {
         ThrowIfDisposed("createVertex");
