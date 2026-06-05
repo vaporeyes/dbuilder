@@ -4749,7 +4749,7 @@ public partial class MainWindow : Window
     // Saves the current map to a temporary PWAD (with nodes if a builder is configured) and launches a source port on it.
     private void TestMap(bool testFromCurrentPosition)
     {
-        if (_map is null || _mapMarker is null) { SetStatus("No map loaded to test."); return; }
+        if (_map is null || _mapMarker is null) { SetStatus("No map loaded to test.", StatusHistoryKind.Warning); return; }
 
         // Source port: env, else settings, else a standard GZDoom install.
         string? port = Environment.GetEnvironmentVariable("DBUILDER_TESTPORT");
@@ -4757,7 +4757,7 @@ public partial class MainWindow : Window
         if (string.IsNullOrWhiteSpace(port) || !System.IO.File.Exists(port)) port = DefaultGzdoomPath;
         if (string.IsNullOrWhiteSpace(port) || !System.IO.File.Exists(port))
         {
-            SetStatus("Set a source port in Settings (or DBUILDER_TESTPORT) to use Test Map.");
+            SetStatus("Set a source port in Settings (or DBUILDER_TESTPORT) to use Test Map.", StatusHistoryKind.Warning);
             return;
         }
 
@@ -4767,7 +4767,7 @@ public partial class MainWindow : Window
         if (string.IsNullOrWhiteSpace(iwad) || !System.IO.File.Exists(iwad)) iwad = _iwadPath;
         if (string.IsNullOrWhiteSpace(iwad) || !System.IO.File.Exists(iwad))
         {
-            SetStatus("No IWAD for testing - set one in Settings/DBUILDER_TESTIWAD, or open/add an IWAD.");
+            SetStatus("No IWAD for testing - set one in Settings/DBUILDER_TESTIWAD, or open/add an IWAD.", StatusHistoryKind.Warning);
             return;
         }
 
@@ -4784,7 +4784,7 @@ public partial class MainWindow : Window
                     usesHubPlayerStartArgs);
                 if (!placement.Success || placement.Map is null)
                 {
-                    SetStatus(placement.Message);
+                    SetStatus(placement.Message, StatusHistoryKind.Warning);
                     return;
                 }
 
@@ -4804,7 +4804,7 @@ public partial class MainWindow : Window
                 var preResult = ExternalCommand.Run(preCommand, "Before test map", temp);
                 if (!preResult.Success)
                 {
-                    SetStatus(preResult.Message);
+                    SetStatus(preResult.Message, StatusHistoryKind.Warning);
                     return;
                 }
             }
@@ -4827,7 +4827,7 @@ public partial class MainWindow : Window
                 var postResult = ExternalCommand.Run(postCommand, "After test map", temp);
                 if (!postResult.Success)
                 {
-                    SetStatus(postResult.Message);
+                    SetStatus(postResult.Message, StatusHistoryKind.Warning);
                     return;
                 }
             }
