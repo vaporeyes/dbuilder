@@ -145,16 +145,16 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
-    public void CompactMarkersCullOverlappingScreenCells()
+    public void OverviewCullingStartsBeforeCompactMarkers()
     {
         Assert.True(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(
-            ThingIconRenderPolicy.CompactMarkerScaleThreshold,
+            ThingIconRenderPolicy.OverlapCullScaleThreshold,
             thingArrows: false));
         Assert.False(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(
-            ThingIconRenderPolicy.CompactMarkerScaleThreshold - 0.01,
+            ThingIconRenderPolicy.OverlapCullScaleThreshold - 0.01,
             thingArrows: false));
         Assert.True(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(
-            viewScale: 0.1,
+            ThingIconRenderPolicy.CompactMarkerScaleThreshold - 0.01,
             thingArrows: true));
         Assert.True(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(
             ThingIconRenderPolicy.CompactMarkerScaleThreshold,
