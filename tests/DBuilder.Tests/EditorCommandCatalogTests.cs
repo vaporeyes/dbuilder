@@ -3043,14 +3043,15 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map2d.classicselect", "Select", "Click")]
-    [InlineData("map2d.classicedit", "Edit", "Menu")]
-    public void ClassicSelectAndEditCommandsMatchUdbActionSurface(string commandId, string title, string gesture)
+    [InlineData("map2d.classicselect", "Select", "Click", "Selects the highlighted item. Also allows selection by dragging a rectangle. Hold shift while dragging a rectangle to toggle additive or normal selection. Hold Ctrl to enable subtractive selection. Hold Ctrl-Shift to intersect with current selection.")]
+    [InlineData("map2d.classicedit", "Edit", "Menu", "Edits the properties of the selected items or drags the selected items. Also initiates drawing or inserts new things when no selection is made. Can be used in combination with Control and Shift for the first drawn vertex.")]
+    public void ClassicSelectAndEditCommandsMatchUdbActionSurface(string commandId, string title, string gesture, string description)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal(gesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);

@@ -317,7 +317,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.cleargroup10", "Clear Group 10", "Ctrl/Cmd+Shift+0", EditorCommandScope.Window),
 
         new EditorCommandDescriptor("map2d.select", "Select element", "Click", EditorCommandScope.Map2D, DisregardShift: true, DisregardAccelerator: true, DisregardAlt: true),
-        new EditorCommandDescriptor("map2d.classicselect", "Select", "Click", EditorCommandScope.Map2D, DisregardShift: true, DisregardAccelerator: true, DisregardAlt: true),
+        new EditorCommandDescriptor("map2d.classicselect", "Select", "Click", EditorCommandScope.Map2D, DisregardShift: true, DisregardAccelerator: true, DisregardAlt: true, Description: "Selects the highlighted item. Also allows selection by dragging a rectangle. Hold shift while dragging a rectangle to toggle additive or normal selection. Hold Ctrl to enable subtractive selection. Hold Ctrl-Shift to intersect with current selection."),
         new EditorCommandDescriptor("map2d.classicpaintselect", "Paint Selection", "Menu", EditorCommandScope.Map2D, AllowScroll: false, DisregardShift: true, DisregardAccelerator: true, DisregardAlt: true),
         new EditorCommandDescriptor("map2d.box-select", "Box-select or move a grabbed vertex/thing", "Left-drag", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.pan", "Pan the view", "Right-drag", EditorCommandScope.Map2D),
@@ -325,7 +325,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.zoom", "Zoom out / in", "Wheel / - =", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.fit", "Fit map to view", "R", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.edit-properties", "Edit properties", "Double-click", EditorCommandScope.Map2D),
-        new EditorCommandDescriptor("map2d.classicedit", "Edit", "Menu", EditorCommandScope.Map2D, DisregardShift: true, DisregardAccelerator: true, DisregardAlt: true),
+        new EditorCommandDescriptor("map2d.classicedit", "Edit", "Menu", EditorCommandScope.Map2D, DisregardShift: true, DisregardAccelerator: true, DisregardAlt: true, Description: "Edits the properties of the selected items or drags the selected items. Also initiates drawing or inserts new things when no selection is made. Can be used in combination with Control and Shift for the first drawn vertex."),
         new EditorCommandDescriptor("map2d.split-line", "Split Linedefs", "Right-click", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.zoom-in", "Zoom In", "+", EditorCommandScope.Map2D, AllowScroll: true, Repeat: true, Description: "Zooms in on the map at the current mouse location."),
         new EditorCommandDescriptor("map2d.zoomin", "Zoom In", "+", EditorCommandScope.Map2D, AllowScroll: true, Repeat: true, Description: "Zooms in on the map at the current mouse location."),
