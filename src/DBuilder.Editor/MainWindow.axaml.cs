@@ -5312,7 +5312,7 @@ public partial class MainWindow : Window
         int selected = TagRangeModel.SelectedInitialTags(_map, target).Count;
         if (selected == 0)
         {
-            SetStatus(TagRangeModel.NoSelectionWarning);
+            SetStatus(TagRangeModel.NoSelectionWarning, StatusHistoryKind.Warning);
             return;
         }
 
@@ -5329,7 +5329,7 @@ public partial class MainWindow : Window
         IReadOnlyList<int> initialTags = TagRangeModel.SelectedInitialTags(_map, dlg.ResultTarget);
         if (initialTags.Count == 0)
         {
-            SetStatus(TagRangeModel.EmptySelectionStatus(dlg.ResultTarget));
+            SetStatus(TagRangeModel.EmptySelectionStatus(dlg.ResultTarget), StatusHistoryKind.Warning);
             return;
         }
 
@@ -5337,7 +5337,7 @@ public partial class MainWindow : Window
         TagRangeResult result = TagRangeModel.CreateRange(initialTags, usedTags, dlg.ResultOptions);
         if (result.OutOfTags)
         {
-            SetStatus(TagRangeModel.OutOfTagsStatus(result.Tags.Count));
+            SetStatus(TagRangeModel.OutOfTagsStatus(result.Tags.Count), StatusHistoryKind.Warning);
             return;
         }
 

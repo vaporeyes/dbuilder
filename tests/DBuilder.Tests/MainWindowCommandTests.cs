@@ -769,7 +769,9 @@ public sealed class MainWindowCommandTests
         Assert.Contains("bool hasTagRangeSelection = TagRangeModel.HasSelection(", body, StringComparison.Ordinal);
         Assert.Contains("(_map?.SelectedSectorsCount ?? 0) + (_map?.SelectedLinedefsCount ?? 0) + (_map?.SelectedThingsCount ?? 0));", body, StringComparison.Ordinal);
         Assert.Contains("SetEnabled(hasTagRangeSelection, TagRangeMenuItem, TagRangeButton);", body, StringComparison.Ordinal);
-        Assert.Contains("SetStatus(TagRangeModel.NoSelectionWarning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(TagRangeModel.NoSelectionWarning, StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(TagRangeModel.EmptySelectionStatus(dlg.ResultTarget), StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(TagRangeModel.OutOfTagsStatus(result.Tags.Count), StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
     }
 
     [Fact]
