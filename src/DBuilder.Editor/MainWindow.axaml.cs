@@ -1181,17 +1181,17 @@ public partial class MainWindow : Window
             bool savingActiveSource = savedCurrentFormat && IsSamePath(outPath, _wadPath);
             if (savingActiveSource && FileSaveStamp.HasChanged(_wadPath, _sourceWadStamp))
             {
-                SetStatus("Save blocked: the source WAD changed on disk. Reload the map or use Save WAD As.");
+                SetStatus("Save blocked: the source WAD changed on disk. Reload the map or use Save WAD As.", StatusHistoryKind.Warning);
                 return;
             }
             if (savingActiveSource && FileSaveStamp.IsReadOnly(_wadPath))
             {
-                SetStatus("Save blocked: the source WAD is read-only. Use Save WAD As or clear the read-only flag.");
+                SetStatus("Save blocked: the source WAD is read-only. Use Save WAD As or clear the read-only flag.", StatusHistoryKind.Warning);
                 return;
             }
             if (!savingActiveSource && FileSaveStamp.ExistingPathWriteBlockStatus(outPath) is { } writeBlockStatus)
             {
-                SetStatus(writeBlockStatus);
+                SetStatus(writeBlockStatus, StatusHistoryKind.Warning);
                 return;
             }
 
@@ -1215,7 +1215,7 @@ public partial class MainWindow : Window
                     {
                         if (!WadMaps.RenameMap(dst, _sourceMapMarker, marker))
                         {
-                            SetStatus($"Save blocked: target map {marker} already exists.");
+                            SetStatus($"Save blocked: target map {marker} already exists.", StatusHistoryKind.Warning);
                             return;
                         }
                     }

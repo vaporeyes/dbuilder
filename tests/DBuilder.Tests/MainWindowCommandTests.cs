@@ -974,7 +974,7 @@ public sealed class MainWindowCommandTests
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
 
         Assert.Contains("if (!WadMaps.RenameMap(dst, _sourceMapMarker, marker))", body, StringComparison.Ordinal);
-        Assert.Contains("Save blocked: target map {marker} already exists.", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus($\"Save blocked: target map {marker} already exists.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -1008,11 +1008,20 @@ public sealed class MainWindowCommandTests
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
 
         Assert.Contains("FileSaveStamp.ExistingPathWriteBlockStatus(outPath)", body, StringComparison.Ordinal);
-        Assert.Contains("SetStatus(writeBlockStatus);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(writeBlockStatus, StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
         Assert.Contains("System.IO.File.WriteAllBytes(outPath, bytes);", body, StringComparison.Ordinal);
         Assert.True(
             body.IndexOf("FileSaveStamp.ExistingPathWriteBlockStatus(outPath)", StringComparison.Ordinal)
             < body.IndexOf("System.IO.File.WriteAllBytes(outPath, bytes);", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void SaveBackSourceBlocksUseWarningStatusKind()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("SetStatus(\"Save blocked: the source WAD changed on disk. Reload the map or use Save WAD As.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(\"Save blocked: the source WAD is read-only. Use Save WAD As or clear the read-only flag.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
     }
 
     [Fact]
