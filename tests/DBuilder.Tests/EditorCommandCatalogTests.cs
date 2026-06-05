@@ -2770,6 +2770,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Match Brightness", command.Title);
+        Assert.Equal("Makes the brightness of selected surfaces the same as the brightness of highlighted surface (UDMF only).", command.Description);
         Assert.Equal("Ctrl/Cmd+M", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -2778,6 +2779,7 @@ public class EditorCommandCatalogTests
         Assert.False(command.Repeat);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
@@ -3386,6 +3388,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Fit Textures", command.Title);
+        Assert.Equal("Scales textures to match the size of selected surfaces.", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -3395,6 +3398,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal("Ctrl/Cmd+Alt+A", udbAlias.DefaultGesture);
         Assert.Equal("map3d.visualfittextures", EditorCommandCatalog.ResolveShortcut(
             EditorCommandScope.Map3D,
