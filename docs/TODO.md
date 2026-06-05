@@ -334,6 +334,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add raw UDB script editor action alias.
   - [x] Add raw UDB MODELDEF/VOXELDEF and GLDEFS reload action aliases.
   - [x] Add raw UDB screenshot action aliases with PNG output.
+  - [x] Add raw UDB linedef color setup action alias and preset matching model.
   - [x] Add UDB-style singular and plural labels to Filter Selected Things status text.
 
 ## Plugin Architecture

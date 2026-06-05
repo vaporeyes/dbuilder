@@ -811,6 +811,21 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void LinedefColorsSetupCommandMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("window.linedefcolorssetup");
+
+        Assert.NotNull(command);
+        Assert.Equal(LinedefColorPresetModel.ConfigureActionTitle, command.Title);
+        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.False(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.Equal(LinedefColorPresetModel.ConfigureActionDescription, command.Description);
+    }
+
+    [Fact]
     public void ChangeMapElementIndexCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("window.change-map-element-index");

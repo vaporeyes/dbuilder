@@ -1702,6 +1702,7 @@ public partial class MainWindow : Window
             case "window.testmapfromview": OnTestMapFromView(this, new RoutedEventArgs()); return true;
             case "window.things-filters-setup": OnThingFilter(this, new RoutedEventArgs()); return true;
             case "window.thingsfilterssetup": OnThingFilter(this, new RoutedEventArgs()); return true;
+            case "window.linedefcolorssetup": OnLinedefColorsSetup(this, new RoutedEventArgs()); return true;
             case "window.reload-resources": OnReloadResources(this, new RoutedEventArgs()); return true;
             case "window.reloadresources": OnReloadResources(this, new RoutedEventArgs()); return true;
             case "window.gzreloadmodeldef": OnReloadResources(this, new RoutedEventArgs()); return true;
@@ -2445,6 +2446,12 @@ public partial class MainWindow : Window
             SetStatus(ThingSelectionFilter.FilterStatusText(kept));
         }
 
+        MapView.Focus();
+    }
+
+    private void OnLinedefColorsSetup(object? sender, RoutedEventArgs e)
+    {
+        SetStatus(LinedefColorPresetModel.EditorPendingStatusText, StatusHistoryKind.Warning);
         MapView.Focus();
     }
 
@@ -4437,6 +4444,7 @@ public partial class MainWindow : Window
             "window.test-map" => TestMapMenuItem,
             "window.test-map-from-view" or "window.testmapfromview" => TestMapFromViewMenuItem,
             "window.things-filters-setup" or "window.thingsfilterssetup" => ThingFilterMenuItem,
+            "window.linedefcolorssetup" => ThingFilterMenuItem,
             "window.reload-resources" => ReloadResourcesMenuItem,
             "window.open-command-palette" or "window.opencommandpalette" => CommandPaletteMenuItem,
             "window.grid-setup" => GridSetupMenuItem,

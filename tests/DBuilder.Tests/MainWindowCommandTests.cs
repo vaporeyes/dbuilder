@@ -194,6 +194,7 @@ public sealed class MainWindowCommandTests
     [InlineData("window.selectsimilar", "OnSelectSimilar")]
     [InlineData("window.filterselectedthings", "OnFilterSelectedThings")]
     [InlineData("window.thingsfilterssetup", "OnThingFilter")]
+    [InlineData("window.linedefcolorssetup", "OnLinedefColorsSetup")]
     [InlineData("window.changemapelementindex", "OnChangeMapElementIndex")]
     [InlineData("window.flipselectionh", "OnFlipH")]
     [InlineData("window.flipselectionv", "OnFlipV")]
@@ -1560,6 +1561,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("\"window.undo-redo-panel\" => UndoRedoPanelMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.test-map-from-view\" or \"window.testmapfromview\" => TestMapFromViewMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.things-filters-setup\" or \"window.thingsfilterssetup\" => ThingFilterMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.linedefcolorssetup\" => ThingFilterMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.open-command-palette\" or \"window.opencommandpalette\" => CommandPaletteMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.reference-manual\" => ReferenceManualMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.edit-mode-help\" => EditModeHelpMenuItem", code, StringComparison.Ordinal);
