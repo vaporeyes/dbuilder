@@ -1392,6 +1392,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port render passes and layers.
 - [ ] Port render modes and view modes.
   - [x] Add UDB-style classic 2D view mode action ids and renderer switching for wireframe, brightness, floor textures, and ceiling textures.
+  - [x] Add raw UDB classic view mode and highlight action aliases.
   - [x] Persist UDB-style default classic 2D view mode setting and apply it on startup.
   - [x] Add UDB-style highlight toggle action ids, default shortcut, persisted setting, menu state, and 3D target overlay gating.
   - [x] Add UDB-style full-brightness display toggle for 2D and 3D rendering.

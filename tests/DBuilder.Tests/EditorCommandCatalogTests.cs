@@ -1337,11 +1337,17 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("map2d.view-mode-wireframe", "View Wireframe")]
+    [InlineData("map2d.viewmodenormal", "View Wireframe")]
     [InlineData("map2d.view-mode-brightness", "View Brightness Levels")]
+    [InlineData("map2d.viewmodebrightness", "View Brightness Levels")]
     [InlineData("map2d.view-mode-floors", "View Floor Textures")]
+    [InlineData("map2d.viewmodefloors", "View Floor Textures")]
     [InlineData("map2d.view-mode-ceilings", "View Ceiling Textures")]
+    [InlineData("map2d.viewmodeceilings", "View Ceiling Textures")]
     [InlineData("map2d.next-view-mode", "Next View Mode")]
+    [InlineData("map2d.nextviewmode", "Next View Mode")]
     [InlineData("map2d.previous-view-mode", "Previous View Mode")]
+    [InlineData("map2d.previousviewmode", "Previous View Mode")]
     public void ClassicViewModeCommandsMatchUdbActionSurface(string commandId, string title)
     {
         var command = EditorCommandCatalog.Find(commandId);
@@ -1407,7 +1413,9 @@ public class EditorCommandCatalogTests
 
     [Theory]
     [InlineData("map2d.toggle-highlight", EditorCommandScope.Map2D)]
+    [InlineData("map2d.togglehighlight", EditorCommandScope.Map2D)]
     [InlineData("map3d.toggle-highlight", EditorCommandScope.Map3D)]
+    [InlineData("map3d.togglehighlight", EditorCommandScope.Map3D)]
     public void HighlightCommandsMatchUdbActionSurface(string commandId, EditorCommandScope scope)
     {
         var command = EditorCommandCatalog.Find(commandId);

@@ -5884,26 +5884,34 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map2d.toggle-highlight":
             case "map3d.toggle-highlight":
+            case "map2d.togglehighlight":
+            case "map3d.togglehighlight":
                 ToggleHighlight();
                 return true;
             case "map2d.view-mode-wireframe":
+            case "map2d.viewmodenormal":
                 SetViewMode2D(ClassicViewMode.Wireframe);
                 return true;
             case "map2d.view-mode-brightness":
+            case "map2d.viewmodebrightness":
                 SetViewMode2D(ClassicViewMode.Brightness);
                 return true;
             case "map2d.view-mode-floors":
+            case "map2d.viewmodefloors":
             case "map2d.flooralignmode":
                 SetViewMode2D(ClassicViewMode.FloorTextures);
                 return true;
             case "map2d.view-mode-ceilings":
+            case "map2d.viewmodeceilings":
             case "map2d.ceilingalignmode":
                 SetViewMode2D(ClassicViewMode.CeilingTextures);
                 return true;
             case "map2d.next-view-mode":
+            case "map2d.nextviewmode":
                 NextViewMode2D();
                 return true;
             case "map2d.previous-view-mode":
+            case "map2d.previousviewmode":
                 PreviousViewMode2D();
                 return true;
             case "map2d.editselectionmode":
