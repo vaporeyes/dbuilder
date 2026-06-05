@@ -6,6 +6,7 @@ using DBuilder.Map;
 namespace DBuilder.IO;
 
 public sealed record MapFormatViolation(string Field, int Value, int Min, int Max);
+public sealed record MapCoordinateLimits(int MinCoordinate, int MaxCoordinate);
 
 public static class MapFormatConstraints
 {
@@ -68,6 +69,12 @@ public static class MapFormatConstraints
         }
 
         return issues;
+    }
+
+    public static MapCoordinateLimits CoordinateLimits(MapFormat format)
+    {
+        var limits = Limits.For(format);
+        return new MapCoordinateLimits(limits.MinCoordinate, limits.MaxCoordinate);
     }
 
     public static void ThrowIfInvalid(MapSet map, MapFormat format)

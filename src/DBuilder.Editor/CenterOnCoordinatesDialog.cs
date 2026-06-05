@@ -3,6 +3,8 @@
 
 using System.Globalization;
 using Avalonia.Controls;
+using DBuilder.IO;
+using DBuilder.Map;
 using Vec2D = DBuilder.Geometry.Vector2D;
 
 namespace DBuilder.Editor;
@@ -11,13 +13,15 @@ public sealed class CenterOnCoordinatesDialog : PropertyDialog
 {
     private readonly TextBox _x;
     private readonly TextBox _y;
+    private readonly MapFormat _format;
 
     public double ResultX { get; private set; }
     public double ResultY { get; private set; }
 
-    public CenterOnCoordinatesDialog(Vec2D currentCenter)
+    public CenterOnCoordinatesDialog(Vec2D currentCenter, MapFormat format)
         : base("Go To Coordinates", "Center the 2D view on the entered map coordinates.")
     {
+        _format = format;
         ResultX = currentCenter.x;
         ResultY = currentCenter.y;
 
@@ -27,7 +31,7 @@ public sealed class CenterOnCoordinatesDialog : PropertyDialog
 
     protected override void OnConfirm()
     {
-        ResultX = ParseDouble(_x, ResultX);
-        ResultY = ParseDouble(_y, ResultY);
+        ResultX = CenterOnCoordinatesModel.ParseCoordinate(_x.Text, ResultX, _format);
+        ResultY = CenterOnCoordinatesModel.ParseCoordinate(_y.Text, ResultY, _format);
     }
 }

@@ -3735,7 +3735,7 @@ public partial class MainWindow : Window
 
     private async void OnGoToCoordinates(object? sender, RoutedEventArgs e)
     {
-        var dlg = new CenterOnCoordinatesDialog(MapView.ViewCenter);
+        var dlg = new CenterOnCoordinatesDialog(MapView.ViewCenter, _mapFormat);
         if (await dlg.ShowDialog<bool>(this))
         {
             MapView.CenterOn(dlg.ResultX, dlg.ResultY);
