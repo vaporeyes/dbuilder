@@ -67,6 +67,31 @@ public sealed class RecentMenuModelTests
     }
 
     [Fact]
+    public void BuildCapsCombinedRecentMapAndFileRowsToConfiguredLimit()
+    {
+        var settings = new Settings
+        {
+            MaxRecentFiles = Settings.MinMaxRecentFiles,
+            RecentMaps = Enumerable.Range(1, 5)
+                .Select(i => new RecentMapReference { Path = $"/maps/map{i}.wad", MapName = $"MAP{i:00}" })
+                .ToList(),
+            RecentFiles = Enumerable.Range(1, 5)
+                .Select(i => $"/files/file{i}.wad")
+                .ToList(),
+        };
+
+        IReadOnlyList<RecentMenuEntry> entries = RecentMenuModel.Build(settings, _ => true);
+        RecentMenuEntry[] recentRows = entries.Where(entry => entry.IsMap || entry.IsFile).ToArray();
+
+        Assert.Equal(Settings.MinMaxRecentFiles, recentRows.Length);
+        Assert.Equal(5, recentRows.Count(entry => entry.IsMap));
+        Assert.Equal(3, recentRows.Count(entry => entry.IsFile));
+        Assert.True(entries[5].IsSeparator);
+        Assert.Equal("&1  /files/file1.wad", entries[6].Header);
+        Assert.DoesNotContain(entries, entry => entry.Header.Contains("file4.wad", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void DisplayFilenameTrimsLongPathsLikeUdbRecentFiles()
     {
         string path = "/" + new string('a', 90) + "/maps/doom2.wad";

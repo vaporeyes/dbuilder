@@ -34,8 +34,11 @@ public static class RecentMenuModel
         var entries = new List<RecentMenuEntry>();
         IReadOnlyList<RecentMapReference> recentMaps = settings.ExistingRecentMaps(fileExists);
         IReadOnlyList<string> recentFiles = settings.ExistingRecentFiles(fileExists);
+        int maxRows = settings.NormalizedMaxRecentFiles;
+        int mapRows = Math.Min(recentMaps.Count, maxRows);
+        int fileRows = Math.Min(recentFiles.Count, maxRows - mapRows);
 
-        for (int i = 0; i < recentMaps.Count; i++)
+        for (int i = 0; i < mapRows; i++)
         {
             RecentMapReference map = recentMaps[i];
             entries.Add(new RecentMenuEntry(
@@ -46,10 +49,10 @@ public static class RecentMenuModel
                 map.ArchivePath));
         }
 
-        if (recentMaps.Count > 0 && recentFiles.Count > 0)
+        if (mapRows > 0 && fileRows > 0)
             entries.Add(new RecentMenuEntry(RecentMenuEntryKind.Separator, ""));
 
-        for (int i = 0; i < recentFiles.Count; i++)
+        for (int i = 0; i < fileRows; i++)
         {
             string path = recentFiles[i];
             entries.Add(new RecentMenuEntry(
