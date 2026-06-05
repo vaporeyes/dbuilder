@@ -1763,6 +1763,37 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapWrapperFlipsSelectedLinedefsAndSidedefs()
+    {
+        var map = new MapSet();
+        var start = map.AddVertex(new Vector2D(0, 0));
+        var end = map.AddVertex(new Vector2D(64, 0));
+        var line = map.AddLinedef(start, end);
+        var frontSector = map.AddSector();
+        var backSector = map.AddSector();
+        var front = map.AddSidedef(line, isFront: true, frontSector);
+        var back = map.AddSidedef(line, isFront: false, backSector);
+        line.Selected = true;
+        var wrapper = new UdbScriptMapWrapper(map);
+
+        int flippedLines = wrapper.flipSelectedLinedefs();
+
+        Assert.Equal(1, flippedLines);
+        Assert.Same(end, line.Start);
+        Assert.Same(start, line.End);
+        Assert.Same(back, line.Front);
+        Assert.Same(front, line.Back);
+
+        int flippedSides = wrapper.flipSelectedSidedefs();
+
+        Assert.Equal(1, flippedSides);
+        Assert.Same(front, line.Front);
+        Assert.Same(back, line.Back);
+        Assert.Same(end, line.Start);
+        Assert.Same(start, line.End);
+    }
+
+    [Fact]
     public void MapWrapperCreatesVerticesAndThings()
     {
         var map = new MapSet();

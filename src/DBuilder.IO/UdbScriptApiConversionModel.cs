@@ -3938,6 +3938,22 @@ public sealed class UdbScriptMapWrapper
         return map.MoveSelectedThingsBy(ToVector2D(delta));
     }
 
+    public int flipSelectedLinedefs()
+    {
+        ThrowIfDisposed("flipSelectedLinedefs");
+        int flipped = map.FlipSelectedLinedefs();
+        map.BuildIndexes();
+        return flipped;
+    }
+
+    public int flipSelectedSidedefs()
+    {
+        ThrowIfDisposed("flipSelectedSidedefs");
+        int flipped = map.FlipSelectedSidedefs();
+        map.BuildIndexes();
+        return flipped;
+    }
+
     public UdbScriptVertexWrapper createVertex(object pos)
     {
         ThrowIfDisposed("createVertex");
