@@ -307,6 +307,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Randomize", command.Title);
+        Assert.Equal("Allows to apply a variety of randomized transformations to the selection.", command.Description);
         Assert.Equal("Ctrl/Cmd+J", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
@@ -323,6 +324,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Apply Directional Shading", command.Title);
+        Assert.Equal("Allows to apply directional colored flat shading to the selection.", command.Description);
         Assert.Equal("Ctrl/Cmd+L", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
