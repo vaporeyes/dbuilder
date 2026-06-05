@@ -1740,6 +1740,29 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void MapWrapperMovesSelectedVerticesAndThings()
+    {
+        var map = new MapSet();
+        var selectedVertex = map.AddVertex(new Vector2D(0, 0));
+        var unselectedVertex = map.AddVertex(new Vector2D(64, 0));
+        var selectedThing = map.AddThing(new Vector2D(16, 16), 3001);
+        var unselectedThing = map.AddThing(new Vector2D(32, 32), 3002);
+        selectedVertex.Selected = true;
+        selectedThing.Selected = true;
+        var wrapper = new UdbScriptMapWrapper(map);
+
+        int movedVertices = wrapper.moveSelectedVerticesBy(new object[] { 8.0, -4.0 });
+        int movedThings = wrapper.moveSelectedThingsBy(new UdbScriptVector2DWrapper(-2, 6));
+
+        Assert.Equal(1, movedVertices);
+        Assert.Equal(1, movedThings);
+        Assert.Equal(new Vector2D(8, -4), selectedVertex.Position);
+        Assert.Equal(new Vector2D(64, 0), unselectedVertex.Position);
+        Assert.Equal(new Vector2D(14, 22), selectedThing.Position);
+        Assert.Equal(new Vector2D(32, 32), unselectedThing.Position);
+    }
+
+    [Fact]
     public void MapWrapperCreatesVerticesAndThings()
     {
         var map = new MapSet();

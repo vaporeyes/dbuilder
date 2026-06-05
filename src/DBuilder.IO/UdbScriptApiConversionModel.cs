@@ -3926,6 +3926,18 @@ public sealed class UdbScriptMapWrapper
         map.SelectThingsByGroup(MapSet.GroupMask(groupIndex));
     }
 
+    public int moveSelectedVerticesBy(object delta)
+    {
+        ThrowIfDisposed("moveSelectedVerticesBy");
+        return map.MoveSelectedVerticesBy(ToVector2D(delta));
+    }
+
+    public int moveSelectedThingsBy(object delta)
+    {
+        ThrowIfDisposed("moveSelectedThingsBy");
+        return map.MoveSelectedThingsBy(ToVector2D(delta));
+    }
+
     public UdbScriptVertexWrapper createVertex(object pos)
     {
         ThrowIfDisposed("createVertex");
