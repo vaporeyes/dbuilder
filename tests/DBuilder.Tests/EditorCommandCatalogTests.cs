@@ -1062,19 +1062,20 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("window.align-things-to-wall", "Align Things to Wall")]
-    [InlineData("window.find-replace", "Find and Replace")]
-    public void WindowEditUtilityCommandsMatchUdbActionSurface(string commandId, string title)
+    [InlineData("window.align-things-to-wall", "Align Things to Wall", "Aligns selected things to the nearest linedef.")]
+    [InlineData("window.find-replace", "Find and Replace", "Finds vertices, linedefs, sectors or things with a specific property, selects them and optionally replaces them with a given setting.")]
+    public void WindowEditUtilityCommandsMatchUdbActionSurface(string commandId, string title, string description)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
-        Assert.False(command.AllowScroll);
+        Assert.True(command.AllowScroll);
     }
 
     [Theory]
