@@ -2467,7 +2467,7 @@ public partial class MainWindow : Window
 
     private async void OnLinedefColorsSetup(object? sender, RoutedEventArgs e)
     {
-        var dlg = new LinedefColorPresetsDialog(_settings.NormalizedLinedefColorPresets);
+        var dlg = new LinedefColorPresetsDialog(_settings.NormalizedLinedefColorPresets, _mapFormat == MapFormat.Udmf);
         if (await dlg.ShowDialog<bool>(this))
         {
             _settings.LinedefColorPresets = dlg.ResultPresets.ToList();

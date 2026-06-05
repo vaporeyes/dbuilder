@@ -47,6 +47,23 @@ public class LinedefColorPresetModelTests
         Assert.Same(presets, LinedefColorPresetModel.MovePreset(presets, index: -1, offset: 1));
     }
 
+    [Fact]
+    public void ValidationWarningMatchesUdbPresetForm()
+    {
+        var invalid = new LinedefColorPreset("Unused", 1);
+        var validByAction = invalid with { Action = 1 };
+        var validByActivation = invalid with { Activation = 1 };
+        var validByFlags = invalid with { Flags = new[] { "secret" } };
+        var validByRestrictedFlags = invalid with { RestrictedFlags = new[] { "blocking" } };
+
+        Assert.Equal(LinedefColorPresetModel.InvalidClassicPresetWarning, LinedefColorPresetModel.ValidationWarning(invalid, isUdmf: false));
+        Assert.Equal(LinedefColorPresetModel.InvalidUdmfPresetWarning, LinedefColorPresetModel.ValidationWarning(invalid, isUdmf: true));
+        Assert.Null(LinedefColorPresetModel.ValidationWarning(validByAction, isUdmf: false));
+        Assert.Null(LinedefColorPresetModel.ValidationWarning(validByActivation, isUdmf: false));
+        Assert.Null(LinedefColorPresetModel.ValidationWarning(validByFlags, isUdmf: false));
+        Assert.Null(LinedefColorPresetModel.ValidationWarning(validByRestrictedFlags, isUdmf: false));
+    }
+
     private static Linedef Line(int action = 0, int activation = 0, params string[] flags)
     {
         var line = new Linedef(

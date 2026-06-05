@@ -29,6 +29,8 @@ public static class LinedefColorPresetModel
     public const string ConfigureActionTitle = "Configure Linedefs Colors";
     public const string DialogTitle = "Linedef Color Presets";
     public const string NewPresetName = "Unnamed preset";
+    public const string InvalidUdmfPresetWarning = "Invalid preset: no flags, action or activation type selected!";
+    public const string InvalidClassicPresetWarning = "Invalid preset: no flags or action selected!";
     public const string ConfigureActionDescription = "Shows the Linedef Color Presets setup dialog, which allows you to add, remove and change linedef color presets.";
 
     public static IReadOnlyList<LinedefColorPreset> DefaultPresets { get; } =
@@ -51,6 +53,17 @@ public static class LinedefColorPresetModel
         (moved[index], moved[target]) = (moved[target], moved[index]);
         return moved;
     }
+
+    public static bool IsValid(LinedefColorPreset preset)
+        => preset.Action != 0
+            || preset.Activation != 0
+            || preset.RequiredFlags.Count > 0
+            || preset.DisallowedFlags.Count > 0;
+
+    public static string? ValidationWarning(LinedefColorPreset preset, bool isUdmf)
+        => IsValid(preset)
+            ? null
+            : isUdmf ? InvalidUdmfPresetWarning : InvalidClassicPresetWarning;
 
     public static string FormatColor(int color)
         => unchecked((uint)color).ToString("X8", CultureInfo.InvariantCulture);

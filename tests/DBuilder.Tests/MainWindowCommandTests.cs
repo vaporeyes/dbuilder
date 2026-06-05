@@ -881,7 +881,7 @@ public sealed class MainWindowCommandTests
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
 
-        Assert.Contains("var dlg = new LinedefColorPresetsDialog(_settings.NormalizedLinedefColorPresets);", body, StringComparison.Ordinal);
+        Assert.Contains("var dlg = new LinedefColorPresetsDialog(_settings.NormalizedLinedefColorPresets, _mapFormat == MapFormat.Udmf);", body, StringComparison.Ordinal);
         Assert.Contains("_settings.LinedefColorPresets = dlg.ResultPresets.ToList();", body, StringComparison.Ordinal);
         Assert.Contains("MapView.LinedefColorPresets = _settings.NormalizedLinedefColorPresets;", body, StringComparison.Ordinal);
         Assert.Contains("SaveSettings();", body, StringComparison.Ordinal);

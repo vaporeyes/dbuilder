@@ -19,15 +19,18 @@ public sealed class LinedefColorPresetsDialog : Window
     private readonly TextBox _flags = new();
     private readonly TextBox _restrictedFlags = new();
     private readonly CheckBox _enabled = new() { Content = "Enabled" };
+    private readonly TextBlock _warning = new() { Foreground = Brushes.DarkRed, TextWrapping = TextWrapping.Wrap, IsVisible = false };
     private readonly List<LinedefColorPreset> _presets;
+    private readonly bool _isUdmf;
     private int _selectedIndex = -1;
     private bool _syncing;
 
     public IReadOnlyList<LinedefColorPreset> ResultPresets { get; private set; }
 
-    public LinedefColorPresetsDialog(IReadOnlyList<LinedefColorPreset> presets)
+    public LinedefColorPresetsDialog(IReadOnlyList<LinedefColorPreset> presets, bool isUdmf)
     {
         _presets = LinedefColorPresetModel.NormalizedPresets(presets).Select(preset => preset with { }).ToList();
+        _isUdmf = isUdmf;
         ResultPresets = _presets;
 
         Title = LinedefColorPresetModel.DialogTitle;
@@ -98,6 +101,7 @@ public sealed class LinedefColorPresetsDialog : Window
         editor.Children.Add(Row("Activation", _activation));
         editor.Children.Add(Row("Required flags", _flags));
         editor.Children.Add(Row("Restricted flags", _restrictedFlags));
+        editor.Children.Add(_warning);
         Grid.SetColumn(editor, 1);
         root.Children.Add(editor);
 
@@ -190,6 +194,7 @@ public sealed class LinedefColorPresetsDialog : Window
     {
         if (_syncing || _selectedIndex < 0 || _selectedIndex >= _presets.Count) return;
         _presets[_selectedIndex] = ReadFields(_presets[_selectedIndex]);
+        RefreshWarning(_presets[_selectedIndex]);
         RefreshList(preserveSelection: true);
     }
 
@@ -219,6 +224,7 @@ public sealed class LinedefColorPresetsDialog : Window
                 _flags.Text = "";
                 _restrictedFlags.Text = "";
                 _enabled.IsChecked = false;
+                RefreshWarning(null);
                 return;
             }
 
@@ -230,6 +236,7 @@ public sealed class LinedefColorPresetsDialog : Window
             _flags.Text = LinedefColorPresetModel.FormatFlags(preset.RequiredFlags);
             _restrictedFlags.Text = LinedefColorPresetModel.FormatFlags(preset.DisallowedFlags);
             _enabled.IsChecked = preset.Enabled;
+            RefreshWarning(preset);
         }
         finally
         {
@@ -254,6 +261,13 @@ public sealed class LinedefColorPresetsDialog : Window
 
     private static string PresetLabel(LinedefColorPreset preset)
         => (preset.Enabled ? "" : "[off] ") + preset.Name;
+
+    private void RefreshWarning(LinedefColorPreset? preset)
+    {
+        string? warning = preset == null ? null : LinedefColorPresetModel.ValidationWarning(preset, _isUdmf);
+        _warning.Text = warning ?? "";
+        _warning.IsVisible = warning != null;
+    }
 
     private static int ParseInt(string? text, int fallback)
         => int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value) ? value : fallback;

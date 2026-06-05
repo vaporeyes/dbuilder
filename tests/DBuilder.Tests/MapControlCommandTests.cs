@@ -36,6 +36,8 @@ public sealed class MapControlCommandTests
         Assert.Contains("Title = LinedefColorPresetModel.DialogTitle;", body, StringComparison.Ordinal);
         Assert.Contains("Content = \"Delete\"", body, StringComparison.Ordinal);
         Assert.Contains("LinedefColorPresetModel.NewPresetName", body, StringComparison.Ordinal);
+        Assert.Contains("private readonly TextBlock _warning", body, StringComparison.Ordinal);
+        Assert.Contains("LinedefColorPresetModel.ValidationWarning(preset, _isUdmf)", body, StringComparison.Ordinal);
         Assert.Contains("int index = Math.Max(0, _list.SelectedIndex);", body, StringComparison.Ordinal);
         Assert.Contains("_presets.Insert(index, new LinedefColorPreset", body, StringComparison.Ordinal);
         Assert.DoesNotContain("if (_presets.Count == 0) _presets.AddRange(LinedefColorPresetModel.DefaultPresets);", body, StringComparison.Ordinal);
