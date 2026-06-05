@@ -1467,16 +1467,17 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map2d.align-linedefs", "Align Linedefs")]
-    [InlineData("map2d.alignlinedefs", "Align Linedefs")]
-    [InlineData("map2d.split-linedefs", "Split Linedefs")]
-    [InlineData("map2d.splitlinedefs", "Split Linedefs")]
-    public void LinedefEditCommandsMatchUdbActionSurface(string commandId, string title)
+    [InlineData("map2d.align-linedefs", "Align Linedefs", "This aligns the selected linedefs, so their front (or back) point towards (or away from) the same sector.")]
+    [InlineData("map2d.alignlinedefs", "Align Linedefs", "This aligns the selected linedefs, so their front (or back) point towards (or away from) the same sector.")]
+    [InlineData("map2d.split-linedefs", "Split Linedefs", "")]
+    [InlineData("map2d.splitlinedefs", "Split Linedefs", "")]
+    public void LinedefEditCommandsMatchUdbActionSurface(string commandId, string title, string description)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
