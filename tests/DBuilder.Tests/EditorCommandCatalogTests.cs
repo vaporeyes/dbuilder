@@ -1904,6 +1904,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Edit Selection Mode", command.Title);
+        Assert.Equal("Allows rotating, resizing and moving a selection.", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -2411,6 +2412,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Make Sector Mode", command.Title);
+        Assert.Equal("Switches to the Make Sector editing mode. This mode allows creating and/or fixing split sectors by clicking within a closed region.", command.Description);
         Assert.Equal("M", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -2484,14 +2486,15 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("window.findmode", "Find and Replace Mode", "F3")]
-    [InlineData("window.errorcheckmode", "Map Analysis Mode", "F4")]
-    public void WindowModeAliasesMatchUdbActionSurface(string id, string title, string gesture)
+    [InlineData("window.findmode", "Find and Replace Mode", "F3", "Finds vertices, linedefs, sectors or things with a specific property, selects them and optionally replaces them with a given setting.")]
+    [InlineData("window.errorcheckmode", "Map Analysis Mode", "F4", "")]
+    public void WindowModeAliasesMatchUdbActionSurface(string id, string title, string gesture, string description)
     {
         var command = EditorCommandCatalog.Find(id);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal(gesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
