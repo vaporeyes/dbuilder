@@ -3714,6 +3714,19 @@ public sealed class UdbScriptMapWrapper
         return linedef == null ? null : new UdbScriptLinedefWrapper(linedef, map, grid, highlightedObject, mapFormat, config);
     }
 
+    public UdbScriptSidedefWrapper? getHighlightedSidedef()
+    {
+        ThrowIfDisposed("getHighlightedSidedef");
+        Sidedef? sidedef = highlightedObject switch
+        {
+            Sidedef side when !side.IsDisposed => side,
+            UdbScriptHighlightedSidedefPart highlighted when !highlighted.Sidedef.IsDisposed => highlighted.Sidedef,
+            _ => null,
+        };
+
+        return sidedef == null ? null : new UdbScriptSidedefWrapper(sidedef, map, grid, highlightedObject, mapFormat, config);
+    }
+
     public UdbScriptLinedefWrapper[] getSelectedOrHighlightedLinedefs()
     {
         ThrowIfDisposed("getSelectedOrHighlightedLinedefs");

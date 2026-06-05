@@ -1937,6 +1937,8 @@ localsidedeftextureoffsets = true;
         Assert.Same(first, new UdbScriptMapWrapper(map, highlightedObject: first).getHighlightedSector()!.Sector);
         Assert.Same(shared, new UdbScriptMapWrapper(map, highlightedObject: shared).getHighlightedLinedef()!.Linedef);
         Assert.Same(shared, new UdbScriptMapWrapper(map, highlightedObject: shared.Front).getHighlightedLinedef()!.Linedef);
+        Assert.Same(shared.Front, new UdbScriptMapWrapper(map, highlightedObject: shared.Front).getHighlightedSidedef()!.Sidedef);
+        Assert.Null(new UdbScriptMapWrapper(map, highlightedObject: shared).getHighlightedSidedef());
     }
 
     [Fact]
@@ -1958,6 +1960,7 @@ localsidedeftextureoffsets = true;
         Assert.True(sideWrapper.middleHighlighted);
         Assert.False(sideWrapper.lowerHighlighted);
         Assert.Same(shared, new UdbScriptMapWrapper(map, highlightedObject: sidePart).getHighlightedLinedef()!.Linedef);
+        Assert.True(new UdbScriptMapWrapper(map, highlightedObject: sidePart).getHighlightedSidedef()!.middleHighlighted);
         Assert.True(new UdbScriptSidedefWrapper(side, highlightedObject: side).upperHighlighted);
         Assert.True(new UdbScriptSidedefWrapper(side, highlightedObject: side).middleHighlighted);
         Assert.True(new UdbScriptSidedefWrapper(side, highlightedObject: side).lowerHighlighted);

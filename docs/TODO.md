@@ -1870,6 +1870,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript Linedef wrapper split access.
   - [x] Add UDBScript Sidedef wrapper core texture, offset, and link access.
   - [x] Add UDBScript sidedef and sector highlighted surface access.
+  - [x] Add UDBScript Map wrapper highlighted sidedef access.
   - [x] Add UDBScript Sector wrapper core property, slope, tag, and sidedef access.
   - [x] Add UDBScript Sector wrapper selected-linedef synchronization.
   - [x] Add UDBScript Sector wrapper label-position and triangle access.
@@ -2316,6 +2317,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript Linedef wrapper split access.
 - [x] Add UDBScript Sidedef wrapper core texture, offset, and link access.
 - [x] Add UDBScript sidedef and sector highlighted surface access.
+- [x] Add UDBScript Map wrapper highlighted sidedef access.
 - [x] Add UDBScript Sector wrapper core property, slope, tag, and sidedef access.
 - [x] Add UDBScript Sector wrapper selected-linedef synchronization.
 - [x] Add UDBScript Sector wrapper label-position and triangle access.
