@@ -1134,7 +1134,9 @@ public static class EditorCommandCatalog
         if (key.Equals("Del", StringComparison.OrdinalIgnoreCase)) return "Delete";
         if (key.Equals("Backspace", StringComparison.OrdinalIgnoreCase)) return "Back";
         if (key.Equals("Prior", StringComparison.OrdinalIgnoreCase)) return "PageUp";
+        if (key.Equals("PgUp", StringComparison.OrdinalIgnoreCase)) return "PageUp";
         if (key.Equals("Next", StringComparison.OrdinalIgnoreCase)) return "PageDown";
+        if (key.Equals("PgDn", StringComparison.OrdinalIgnoreCase)) return "PageDown";
         if (key.Equals("Capital", StringComparison.OrdinalIgnoreCase)) return "CapsLock";
         if (key.Equals("CapsLock", StringComparison.OrdinalIgnoreCase)) return "CapsLock";
         if (key.Equals("Spacebar", StringComparison.OrdinalIgnoreCase)) return "Space";

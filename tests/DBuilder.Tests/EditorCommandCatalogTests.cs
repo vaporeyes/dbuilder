@@ -3355,6 +3355,19 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void PageKeyAbbreviationsResolveToAvaloniaKeyNames()
+    {
+        var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]
+        {
+            new EditorShortcutBinding("map3d.raise-sector-to-nearest", EditorCommandScope.Map3D, "PgUp"),
+            new EditorShortcutBinding("map3d.lower-sector-to-nearest", EditorCommandScope.Map3D, "PgDn"),
+        });
+
+        Assert.Equal("map3d.raise-sector-to-nearest", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Map3D, "PageUp"));
+        Assert.Equal("map3d.lower-sector-to-nearest", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Map3D, "PageDown"));
+    }
+
+    [Fact]
     public void TopRowDigitAliasesResolveToAvaloniaKeyNames()
     {
         var bindings = EditorCommandCatalog.EffectiveShortcuts(new[]
