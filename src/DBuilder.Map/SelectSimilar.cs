@@ -31,6 +31,13 @@ public sealed class SidedefSimilarityOptions
     public bool LowerTexture { get; init; } = true;
     public bool OffsetX { get; init; } = true;
     public bool OffsetY { get; init; } = true;
+    public bool UpperTextureOffsets { get; init; } = true;
+    public bool MiddleTextureOffsets { get; init; } = true;
+    public bool LowerTextureOffsets { get; init; } = true;
+    public bool UpperTextureScale { get; init; } = true;
+    public bool MiddleTextureScale { get; init; } = true;
+    public bool LowerTextureScale { get; init; } = true;
+    public bool Brightness { get; init; } = true;
     public bool Flags { get; init; } = true;
     public bool Fields { get; init; } = true;
 }
@@ -167,6 +174,13 @@ public static class SelectSimilar
         if (options.MiddleTexture && !TextMatches(source.MidTexture, target.MidTexture)) return false;
         if (options.LowerTexture && !TextMatches(source.LowTexture, target.LowTexture)) return false;
         if (options.Flags && !SetMatches(source.UdmfFlags, target.UdmfFlags)) return false;
+        if (options.UpperTextureOffsets && !FieldValuesMatch(source.Fields, target.Fields, "offsetx_top", "offsety_top")) return false;
+        if (options.MiddleTextureOffsets && !FieldValuesMatch(source.Fields, target.Fields, "offsetx_mid", "offsety_mid")) return false;
+        if (options.LowerTextureOffsets && !FieldValuesMatch(source.Fields, target.Fields, "offsetx_bottom", "offsety_bottom")) return false;
+        if (options.UpperTextureScale && !FieldValuesMatch(source.Fields, target.Fields, "scalex_top", "scaley_top")) return false;
+        if (options.MiddleTextureScale && !FieldValuesMatch(source.Fields, target.Fields, "scalex_mid", "scaley_mid")) return false;
+        if (options.LowerTextureScale && !FieldValuesMatch(source.Fields, target.Fields, "scalex_bottom", "scaley_bottom")) return false;
+        if (options.Brightness && !FieldValuesMatch(source.Fields, target.Fields, "light", "lightabsolute")) return false;
         return !options.Fields || FieldsMatch(source.Fields, target.Fields);
     }
 
@@ -286,6 +300,13 @@ public static class SelectSimilar
         if (sourceHas != targetHas) return false;
         return !sourceHas || ValuesMatch(sourceValue!, targetValue!);
     }
+
+    private static bool FieldValuesMatch(
+        IReadOnlyDictionary<string, object> source,
+        IReadOnlyDictionary<string, object> target,
+        string firstKey,
+        string secondKey)
+        => FieldValueMatches(source, target, firstKey) && FieldValueMatches(source, target, secondKey);
 
     private static bool TextMatches(string source, string target)
         => string.Equals(source, target, StringComparison.OrdinalIgnoreCase);

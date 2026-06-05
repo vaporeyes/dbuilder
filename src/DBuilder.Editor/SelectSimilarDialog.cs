@@ -43,6 +43,13 @@ public sealed class SelectSimilarDialog : PropertyDialog
     private readonly CheckBox? _sidedefLowerTexture;
     private readonly CheckBox? _sidedefOffsetX;
     private readonly CheckBox? _sidedefOffsetY;
+    private readonly CheckBox? _sidedefUpperTextureOffsets;
+    private readonly CheckBox? _sidedefMiddleTextureOffsets;
+    private readonly CheckBox? _sidedefLowerTextureOffsets;
+    private readonly CheckBox? _sidedefUpperTextureScale;
+    private readonly CheckBox? _sidedefMiddleTextureScale;
+    private readonly CheckBox? _sidedefLowerTextureScale;
+    private readonly CheckBox? _sidedefBrightness;
     private readonly CheckBox? _sidedefFlags;
     private readonly CheckBox? _sidedefFields;
     private readonly CheckBox? _thingType;
@@ -111,6 +118,13 @@ public sealed class SelectSimilarDialog : PropertyDialog
                 _sidedefLowerTexture = AddCheckBox("Lower texture", SavedSidedefOptions.LowerTexture);
                 _sidedefOffsetX = AddCheckBox("Texture offset X", SavedSidedefOptions.OffsetX);
                 _sidedefOffsetY = AddCheckBox("Texture offset Y", SavedSidedefOptions.OffsetY);
+                _sidedefUpperTextureOffsets = AddCheckBox("Upper texture offsets", SavedSidedefOptions.UpperTextureOffsets);
+                _sidedefMiddleTextureOffsets = AddCheckBox("Middle texture offsets", SavedSidedefOptions.MiddleTextureOffsets);
+                _sidedefLowerTextureOffsets = AddCheckBox("Lower texture offsets", SavedSidedefOptions.LowerTextureOffsets);
+                _sidedefUpperTextureScale = AddCheckBox("Upper texture scale", SavedSidedefOptions.UpperTextureScale);
+                _sidedefMiddleTextureScale = AddCheckBox("Middle texture scale", SavedSidedefOptions.MiddleTextureScale);
+                _sidedefLowerTextureScale = AddCheckBox("Lower texture scale", SavedSidedefOptions.LowerTextureScale);
+                _sidedefBrightness = AddCheckBox("Brightness", SavedSidedefOptions.Brightness);
                 _sidedefFlags = AddCheckBox("Sidedef flags", SavedSidedefOptions.Flags);
                 _sidedefFields = AddCheckBox("Sidedef custom fields", SavedSidedefOptions.Fields);
                 break;
@@ -189,6 +203,13 @@ public sealed class SelectSimilarDialog : PropertyDialog
                     LowerTexture = Checked(_sidedefLowerTexture),
                     OffsetX = Checked(_sidedefOffsetX),
                     OffsetY = Checked(_sidedefOffsetY),
+                    UpperTextureOffsets = Checked(_sidedefUpperTextureOffsets),
+                    MiddleTextureOffsets = Checked(_sidedefMiddleTextureOffsets),
+                    LowerTextureOffsets = Checked(_sidedefLowerTextureOffsets),
+                    UpperTextureScale = Checked(_sidedefUpperTextureScale),
+                    MiddleTextureScale = Checked(_sidedefMiddleTextureScale),
+                    LowerTextureScale = Checked(_sidedefLowerTextureScale),
+                    Brightness = Checked(_sidedefBrightness),
                     Flags = Checked(_sidedefFlags),
                     Fields = Checked(_sidedefFields),
                 };

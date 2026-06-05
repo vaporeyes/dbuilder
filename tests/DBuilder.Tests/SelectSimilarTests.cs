@@ -281,6 +281,56 @@ public class SelectSimilarTests
     }
 
     [Fact]
+    public void SelectLinedefsMatchesUdbManagedSidedefFieldsIndependentlyFromCustomFields()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var source = AddLine(map, sector, new Vector2D(0, 0), new Vector2D(64, 0), "STARTAN3");
+        source.Selected = true;
+        SetSidedefManagedFields(source.Front!);
+        source.Front!.Fields["portal"] = "blue";
+
+        var match = AddLine(map, sector, new Vector2D(0, 64), new Vector2D(64, 64), "STARTAN3");
+        SetSidedefManagedFields(match.Front!);
+        match.Front!.Fields["portal"] = "red";
+
+        var differentScale = AddLine(map, sector, new Vector2D(0, 128), new Vector2D(64, 128), "STARTAN3");
+        SetSidedefManagedFields(differentScale.Front!);
+        differentScale.Front!.Fields["scalex_mid"] = 2.0;
+        differentScale.Front!.Fields["portal"] = "blue";
+
+        var sideOptions = new SidedefSimilarityOptions { Fields = false };
+
+        Assert.Equal(1, SelectSimilar.SelectLinedefs(map, sidedefOptions: sideOptions));
+        Assert.True(match.Selected);
+        Assert.False(differentScale.Selected);
+    }
+
+    [Fact]
+    public void SelectLinedefsCanIgnoreUdbManagedSidedefFieldsWhenDisabled()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var source = AddLine(map, sector, new Vector2D(0, 0), new Vector2D(64, 0), "STARTAN3");
+        source.Selected = true;
+        source.Front!.Fields["light"] = 160;
+        source.Front!.Fields["lightabsolute"] = false;
+
+        var target = AddLine(map, sector, new Vector2D(0, 64), new Vector2D(64, 64), "STARTAN3");
+        target.Front!.Fields["light"] = 192;
+        target.Front!.Fields["lightabsolute"] = true;
+
+        var sideOptions = new SidedefSimilarityOptions
+        {
+            Brightness = false,
+            Fields = false,
+        };
+
+        Assert.Equal(1, SelectSimilar.SelectLinedefs(map, sidedefOptions: sideOptions));
+        Assert.True(target.Selected);
+    }
+
+    [Fact]
     public void SelectVerticesMatchesUdmfHeightsAndCustomFields()
     {
         var map = new MapSet();
@@ -318,6 +368,9 @@ public class SelectSimilarTests
         Assert.Contains("_linedefLockNumber = AddCheckBox(\"Lock number\", SavedLinedefOptions.LockNumber);", body, StringComparison.Ordinal);
         Assert.Contains("_linedefComment = AddCheckBox(\"Comment\", SavedLinedefOptions.Comment);", body, StringComparison.Ordinal);
         Assert.Contains("_sidedefUpperTexture = AddCheckBox(\"Upper texture\", SavedSidedefOptions.UpperTexture);", body, StringComparison.Ordinal);
+        Assert.Contains("_sidedefUpperTextureOffsets = AddCheckBox(\"Upper texture offsets\", SavedSidedefOptions.UpperTextureOffsets);", body, StringComparison.Ordinal);
+        Assert.Contains("_sidedefMiddleTextureScale = AddCheckBox(\"Middle texture scale\", SavedSidedefOptions.MiddleTextureScale);", body, StringComparison.Ordinal);
+        Assert.Contains("_sidedefBrightness = AddCheckBox(\"Brightness\", SavedSidedefOptions.Brightness);", body, StringComparison.Ordinal);
         Assert.Contains("_thingType = AddCheckBox(\"Type\", SavedThingOptions.Type);", body, StringComparison.Ordinal);
         Assert.Contains("_thingConversation = AddCheckBox(\"Conversation ID\", SavedThingOptions.Conversation);", body, StringComparison.Ordinal);
         Assert.Contains("_thingGravity = AddCheckBox(\"Gravity\", SavedThingOptions.Gravity);", body, StringComparison.Ordinal);
@@ -341,5 +394,23 @@ public class SelectSimilarTests
         var side = map.AddSidedef(line, isFront: true, sector);
         side.MidTexture = middleTexture;
         return line;
+    }
+
+    private static void SetSidedefManagedFields(Sidedef side)
+    {
+        side.Fields["offsetx_top"] = 1;
+        side.Fields["offsety_top"] = 2;
+        side.Fields["offsetx_mid"] = 3;
+        side.Fields["offsety_mid"] = 4;
+        side.Fields["offsetx_bottom"] = 5;
+        side.Fields["offsety_bottom"] = 6;
+        side.Fields["scalex_top"] = 1.0;
+        side.Fields["scaley_top"] = 1.5;
+        side.Fields["scalex_mid"] = 1.25;
+        side.Fields["scaley_mid"] = 1.75;
+        side.Fields["scalex_bottom"] = 0.75;
+        side.Fields["scaley_bottom"] = 0.5;
+        side.Fields["light"] = 160;
+        side.Fields["lightabsolute"] = false;
     }
 }
