@@ -1366,6 +1366,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("commandId.StartsWith(\"window.udbscriptexecuteslot\", StringComparison.Ordinal)", code, StringComparison.Ordinal);
         Assert.Contains("\"window.undo\" => UndoMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.redo\" => RedoMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.new-map\" => NewMapMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.open-map\" => OpenWadMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.open-map-in-current-wad\" => OpenMapMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.reload-map\" => ReloadMapMenuItem", code, StringComparison.Ordinal);
@@ -1373,6 +1374,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("\"window.map-options\" => MapOptionsMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.snap-selection-to-grid\" => SnapSelectionToGridMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.game-configurations\" => LoadGameConfigMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.exit\" => ExitMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.show-errors\" => ErrorLogMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.model-render-all\" => ModelRenderAllMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.next-model-render-mode\" => NextModelRenderModeMenuItem", code, StringComparison.Ordinal);

@@ -4207,6 +4207,7 @@ public partial class MainWindow : Window
         {
             "window.undo" => UndoMenuItem,
             "window.redo" => RedoMenuItem,
+            "window.new-map" => NewMapMenuItem,
             "window.open-map" => OpenWadMenuItem,
             "window.recover-autosave" => RecoverAutosaveMenuItem,
             "window.open-map-in-current-wad" => OpenMapMenuItem,
@@ -4221,6 +4222,7 @@ public partial class MainWindow : Window
             "window.snap-selection-to-grid" => SnapSelectionToGridMenuItem,
             "window.game-configurations" => LoadGameConfigMenuItem,
             "window.preferences" => SettingsMenuItem,
+            "window.exit" => ExitMenuItem,
             "window.view-used-tags" => TagStatisticsMenuItem,
             "window.tag-explorer" => TagExplorerMenuItem,
             "window.comments-panel" => CommentsPanelMenuItem,
