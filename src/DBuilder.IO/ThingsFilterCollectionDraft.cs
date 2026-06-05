@@ -57,7 +57,10 @@ public sealed class ThingsFilterCollectionDraft
     {
         configuration.DeleteSetting(path);
         foreach (var entry in filters)
+        {
+            if (!entry.Draft.IsValid()) continue;
             entry.Draft.WriteSettings(configuration, path + "." + entry.Key);
+        }
     }
 
     private string NextKey()

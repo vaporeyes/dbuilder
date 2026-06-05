@@ -496,6 +496,28 @@ public class ThingsFilterEvaluatorTests
     }
 
     [Fact]
+    public void CollectionDraftSkipsInvalidFiltersDuringWriteBack()
+    {
+        var configuration = new Configuration(sorted: true);
+
+        var collection = new ThingsFilterCollectionDraft();
+        var invalid = collection.AddNew();
+        invalid.Draft.Name = "Empty";
+        var valid = collection.AddNew();
+        valid.Draft.Name = "Valid";
+        valid.Draft.ThingType = 3001;
+
+        collection.WriteSettings(configuration);
+
+        var config = GameConfiguration.FromText(configuration.OutputConfiguration("\n"));
+
+        var filter = Assert.Single(config.ThingsFilters);
+        Assert.Equal("filter1", filter.Key);
+        Assert.Equal("Valid", filter.Name);
+        Assert.Equal(3001, filter.ThingType);
+    }
+
+    [Fact]
     public void ThingFilterWindowSelectsActiveFilterByStableKey()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/ThingFilterWindow.cs"));
