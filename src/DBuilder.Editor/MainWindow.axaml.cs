@@ -1569,11 +1569,13 @@ public partial class MainWindow : Window
             case "window.shortcuts": OnShortcuts(this, new RoutedEventArgs()); return true;
             case "window.about": OnAbout(this, new RoutedEventArgs()); return true;
             case "window.view-used-tags": OnTagStatistics(this, new RoutedEventArgs()); return true;
+            case "window.viewusedtags": OnTagStatistics(this, new RoutedEventArgs()); return true;
             case "window.tag-explorer": OnTagExplorer(this, new RoutedEventArgs()); return true;
             case "window.udbscripts": OnUdbScriptDocker(this, new RoutedEventArgs()); return true;
             case "window.openscripteditor": OnUdbScriptDocker(this, new RoutedEventArgs()); return true;
             case "window.comments-panel": OnCommentsPanel(this, new RoutedEventArgs()); return true;
             case "window.view-thing-types": OnThingStatistics(this, new RoutedEventArgs()); return true;
+            case "window.viewthingtypes": OnThingStatistics(this, new RoutedEventArgs()); return true;
             case "window.center-on-coordinates": OnGoToCoordinates(this, new RoutedEventArgs()); return true;
             case "window.centeroncoordinates": OnGoToCoordinates(this, new RoutedEventArgs()); return true;
             case "window.go-to-coordinates": OnGoToCoordinates(this, new RoutedEventArgs()); return true;
@@ -1596,6 +1598,7 @@ public partial class MainWindow : Window
             case "window.toggle-blockmap": OnToggleBlockmap(this, new RoutedEventArgs()); return true;
             case "window.toggle-nodes": OnToggleNodes(this, new RoutedEventArgs()); return true;
             case "window.toggle-info-panel": OnToggleInfoPanel(this, new RoutedEventArgs()); return true;
+            case "window.toggleinfopanel": OnToggleInfoPanel(this, new RoutedEventArgs()); return true;
             case "window.togglebrightness": OnToggleFullBrightness(this, new RoutedEventArgs()); return true;
             case "window.cut": OnCut(this, new RoutedEventArgs()); return true;
             case "window.copy": OnCopy(this, new RoutedEventArgs()); return true;
@@ -1706,6 +1709,7 @@ public partial class MainWindow : Window
             case "window.dynamic-light-color": OnDynamicLightColor(this, new RoutedEventArgs()); return true;
             case "window.togglelightpannel": OnToggleLightPanel(this, new RoutedEventArgs()); return true;
             case "window.toggle-auto-clear-sidedef-textures": OnToggleAutoClearSidedefTextures(this, new RoutedEventArgs()); return true;
+            case "window.toggleautoclearsidetextures": OnToggleAutoClearSidedefTextures(this, new RoutedEventArgs()); return true;
             case "window.toggleautomerge": OnToggleAutoMerge(this, new RoutedEventArgs()); return true;
             case "window.togglejoinedsectorssplitting": OnToggleSplitJoinedSectors(this, new RoutedEventArgs()); return true;
             case "window.undo-redo-panel": OnUndoRedoPanel(this, new RoutedEventArgs()); return true;
