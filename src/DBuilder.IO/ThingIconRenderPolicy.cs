@@ -5,12 +5,12 @@ namespace DBuilder.IO;
 
 public static class ThingIconRenderPolicy
 {
-    public const double CompactMarkerScaleThreshold = 0.25;
+    public const double CompactMarkerScaleThreshold = 0.125;
     public const double FixedThingScreenRadius = 48.0;
     public const double ThingSpriteShrink = 2.0;
-    public const double OverviewMarkerScaleThreshold = 1.0;
+    public const double OverviewMarkerScaleThreshold = 0.25;
     public const double OverviewMarkerBaseSize = 2.0;
-    public const double OverviewCullCellPixels = 48.0;
+    public const double OverviewCullCellPixels = 64.0;
     public const double CompactMarkerBaseSize = 4.0;
     public const double RegularMarkerBaseSize = 10.0;
     public const double CompactDirectionTickBaseSize = 7.0;

@@ -28,7 +28,16 @@ public sealed class ThingIconRenderPolicyTests
     public void UsesCompactMarkersAtOverviewZoomWithoutFixedThingScale()
     {
         Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
-            viewScale: 0.3,
+            viewScale: 0.2,
+            fixedThingsScale: false,
+            thingArrows: false));
+    }
+
+    [Fact]
+    public void KeepsSpritesOnlyWhenZoomedInCloseEnoughForIconsToSeparate()
+    {
+        Assert.False(ThingIconRenderPolicy.UseCompactMarkers(
+            viewScale: 0.1,
             fixedThingsScale: false,
             thingArrows: false));
     }
@@ -64,6 +73,9 @@ public sealed class ThingIconRenderPolicyTests
     {
         Assert.True(ThingIconRenderPolicy.UseOverviewMarkers(
             ThingIconRenderPolicy.OverviewMarkerScaleThreshold,
+            thingArrows: false));
+        Assert.True(ThingIconRenderPolicy.UseOverviewMarkers(
+            viewScale: 0.3,
             thingArrows: false));
         Assert.False(ThingIconRenderPolicy.UseOverviewMarkers(
             ThingIconRenderPolicy.OverviewMarkerScaleThreshold,
@@ -110,7 +122,7 @@ public sealed class ThingIconRenderPolicyTests
             ThingIconRenderPolicy.OverviewCullCellPixels - 0.01));
         Assert.Equal(1, ThingIconRenderPolicy.OverviewCullCell(
             ThingIconRenderPolicy.OverviewCullCellPixels));
-        Assert.Equal(48.0, ThingIconRenderPolicy.OverviewCullCellPixels);
+        Assert.Equal(64.0, ThingIconRenderPolicy.OverviewCullCellPixels);
     }
 
     [Fact]
