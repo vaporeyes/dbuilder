@@ -2637,8 +2637,8 @@ public class EditorCommandCatalogTests
     [InlineData("map2d.removepoint", "Remove Last Vertex", "Menu", "Removes the last drawn vertex from the drawing session.", false, false, false)]
     [InlineData("map2d.remove-first-draw-point", "Remove First Vertex", "Ctrl/Cmd+Backspace", "Removes the first drawn vertex from the drawing session.", false, false, false)]
     [InlineData("map2d.removefirstpoint", "Remove First Vertex", "Ctrl/Cmd+Backspace", "Removes the first drawn vertex from the drawing session.", false, false, false)]
-    [InlineData("map2d.finish-draw", "Finish Drawing", "Enter", "", false, false, false)]
-    [InlineData("map2d.finishdraw", "Finish Drawing", "Enter", "", false, false, false)]
+    [InlineData("map2d.finish-draw", "Finish Drawing", "Enter", "Finishes the drawing and creates the geometry.", false, false, false)]
+    [InlineData("map2d.finishdraw", "Finish Drawing", "Enter", "Finishes the drawing and creates the geometry.", false, false, false)]
     [InlineData("map2d.acceptmode", "Accept Action", "Enter", "Accepts the changes in the current action and switches back to normal editing mode.", false, false, false)]
     [InlineData("map2d.cancelmode", "Cancel Action", "Esc", "Cancels the current action and switches back to normal editing mode.", false, false, false)]
     public void DrawSessionCommandsMatchUdbActionSurface(
