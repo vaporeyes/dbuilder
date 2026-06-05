@@ -3079,12 +3079,16 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
+    [InlineData("map3d.nudge-offset-left", "Nudge texture offset left", "Moves the offset of the targeted or selected textures to the left by 1 pixel.")]
     [InlineData("map3d.move-texture-left-1", "Move Texture Left by 1", "Moves the offset of the targeted or selected textures to the left by 1 pixel.")]
     [InlineData("map3d.movetextureleft", "Move Texture Left by 1", "Moves the offset of the targeted or selected textures to the left by 1 pixel.")]
+    [InlineData("map3d.nudge-offset-right", "Nudge texture offset right", "Moves the offset of the targeted or selected textures to the right by 1 pixel.")]
     [InlineData("map3d.move-texture-right-1", "Move Texture Right by 1", "Moves the offset of the targeted or selected textures to the right by 1 pixel.")]
     [InlineData("map3d.movetextureright", "Move Texture Right by 1", "Moves the offset of the targeted or selected textures to the right by 1 pixel.")]
+    [InlineData("map3d.nudge-offset-up", "Nudge texture offset up", "Moves the offset of the targeted or selected textures up by 1 pixel.")]
     [InlineData("map3d.move-texture-up-1", "Move Texture Up by 1", "Moves the offset of the targeted or selected textures up by 1 pixel.")]
     [InlineData("map3d.movetextureup", "Move Texture Up by 1", "Moves the offset of the targeted or selected textures up by 1 pixel.")]
+    [InlineData("map3d.nudge-offset-down", "Nudge texture offset down", "Moves the offset of the targeted or selected textures down by 1 pixel.")]
     [InlineData("map3d.move-texture-down-1", "Move Texture Down by 1", "Moves the offset of the targeted or selected textures down by 1 pixel.")]
     [InlineData("map3d.movetexturedown", "Move Texture Down by 1", "Moves the offset of the targeted or selected textures down by 1 pixel.")]
     [InlineData("map3d.move-texture-left-8", "Move Texture Left by 8", "Moves the offset of the targeted or selected textures to the left by 8 pixels.")]
@@ -3110,11 +3114,18 @@ public class EditorCommandCatalogTests
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
         Assert.Equal(description, command.Description);
-        Assert.Equal("Menu", command.DefaultGesture);
+        Assert.Equal(id switch
+        {
+            "map3d.nudge-offset-left" => "Shift+Left",
+            "map3d.nudge-offset-right" => "Shift+Right",
+            "map3d.nudge-offset-up" => "Shift+Up",
+            "map3d.nudge-offset-down" => "Shift+Down",
+            _ => "Menu",
+        }, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
-        Assert.True(command.AllowScroll);
+        Assert.Equal(!id.StartsWith("map3d.nudge-offset-", StringComparison.Ordinal), command.AllowScroll);
         Assert.True(command.Repeat);
     }
 
