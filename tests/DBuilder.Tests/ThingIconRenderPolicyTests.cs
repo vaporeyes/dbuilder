@@ -174,10 +174,10 @@ public sealed class ThingIconRenderPolicyTests
         Assert.Equal(96.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
             ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold - 0.01,
             thingArrows: false));
-        Assert.Equal(160.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
+        Assert.Equal(240.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
             ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
             thingArrows: false));
-        Assert.Equal(160.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
+        Assert.Equal(240.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
             ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
             thingArrows: true));
         Assert.Equal(0, ThingIconRenderPolicy.OverviewCullCell(
