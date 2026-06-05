@@ -727,6 +727,14 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void CurveLinedefsWarningMatchesUdbText()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("const string message = \"This action requres a selection!\";", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void GridRenderingCommandControlsVisibleGridOnly()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));

@@ -7698,7 +7698,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         if (selected.Count == 0)
         {
-            const string message = "This action requires a selection!";
+            const string message = "This action requres a selection!";
             Picked?.Invoke(message);
             return message;
         }
