@@ -116,6 +116,8 @@ public sealed class MainWindowCommandTests
     [InlineData("window.test-map-from-view", "OnTestMapFromView")]
     [InlineData("window.testmapfromview", "OnTestMapFromView")]
     [InlineData("window.reloadresources", "OnReloadResources")]
+    [InlineData("window.gzreloadmodeldef", "OnReloadResources")]
+    [InlineData("window.gzreloadgldefs", "OnReloadResources")]
     [InlineData("window.gridsetup", "OnGridSetup")]
     [InlineData("window.createprefab", "OnSavePrefab")]
     [InlineData("window.insertprefabfile", "OnInsertPrefab")]

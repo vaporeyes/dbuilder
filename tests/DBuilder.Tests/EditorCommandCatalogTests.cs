@@ -1023,6 +1023,24 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
+    [InlineData("window.gzreloadmodeldef", "Reload MODELDEF/VOXELDEF", "Ctrl/Cmd+F5", "Reloads MODELDEF and VOXELDEF. Useful when resource files have been changed outside of Doom Builder.")]
+    [InlineData("window.gzreloadgldefs", "Reload GLDEFS", "Ctrl/Cmd+F6", "Reloads GLDEFS. Useful when resource files have been changed outside of Doom Builder.")]
+    public void GzReloadCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture, string description)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal(title, command.Title);
+        Assert.Equal(defaultGesture, command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.False(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+        Assert.False(command.Repeat);
+        Assert.Equal(description, command.Description);
+    }
+
+    [Theory]
     [InlineData("window.test-map-from-view")]
     [InlineData("window.testmapfromview")]
     public void TestMapFromViewCommandMatchesUdbActionSurface(string commandId)

@@ -1704,6 +1704,8 @@ public partial class MainWindow : Window
             case "window.thingsfilterssetup": OnThingFilter(this, new RoutedEventArgs()); return true;
             case "window.reload-resources": OnReloadResources(this, new RoutedEventArgs()); return true;
             case "window.reloadresources": OnReloadResources(this, new RoutedEventArgs()); return true;
+            case "window.gzreloadmodeldef": OnReloadResources(this, new RoutedEventArgs()); return true;
+            case "window.gzreloadgldefs": OnReloadResources(this, new RoutedEventArgs()); return true;
             case "window.grid-setup": OnGridSetup(this, new RoutedEventArgs()); return true;
             case "window.gridsetup": OnGridSetup(this, new RoutedEventArgs()); return true;
             case "window.usdf-conversations": OnUsdfConversations(this, new RoutedEventArgs()); return true;
