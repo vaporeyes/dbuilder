@@ -2995,24 +2995,25 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map3d.scale-up", "Increase Scale", "NumPad9")]
-    [InlineData("map3d.scaleup", "Increase Scale", "NumPad9")]
-    [InlineData("map3d.scale-down", "Decrease Scale", "NumPad7")]
-    [InlineData("map3d.scaledown", "Decrease Scale", "NumPad7")]
-    [InlineData("map3d.scale-up-x", "Increase Horizontal Scale", "NumPad6")]
-    [InlineData("map3d.scaleupx", "Increase Horizontal Scale", "NumPad6")]
-    [InlineData("map3d.scale-down-x", "Decrease Horizontal Scale", "NumPad4")]
-    [InlineData("map3d.scaledownx", "Decrease Horizontal Scale", "NumPad4")]
-    [InlineData("map3d.scale-up-y", "Increase Vertical Scale", "NumPad8")]
-    [InlineData("map3d.scaleupy", "Increase Vertical Scale", "NumPad8")]
-    [InlineData("map3d.scale-down-y", "Decrease Vertical Scale", "NumPad5")]
-    [InlineData("map3d.scaledowny", "Decrease Vertical Scale", "NumPad5")]
-    public void VisualScaleCommandsMatchUdbActionSurface(string id, string title, string gesture)
+    [InlineData("map3d.scale-up", "Increase Scale", "NumPad9", "Increases the scale of targeted or selected textures or things by 0.1 (UDMF only).")]
+    [InlineData("map3d.scaleup", "Increase Scale", "NumPad9", "Increases the scale of targeted or selected textures or things by 0.1 (UDMF only).")]
+    [InlineData("map3d.scale-down", "Decrease Scale", "NumPad7", "Decreases the scale of targeted or selected textures or things by 0.1 (UDMF only).")]
+    [InlineData("map3d.scaledown", "Decrease Scale", "NumPad7", "Decreases the scale of targeted or selected textures or things by 0.1 (UDMF only).")]
+    [InlineData("map3d.scale-up-x", "Increase Horizontal Scale", "NumPad6", "Increases horizontal scale of targeted or selected textures or things by 0.1 (UDMF only).")]
+    [InlineData("map3d.scaleupx", "Increase Horizontal Scale", "NumPad6", "Increases horizontal scale of targeted or selected textures or things by 0.1 (UDMF only).")]
+    [InlineData("map3d.scale-down-x", "Decrease Horizontal Scale", "NumPad4", "Decreases horizontal scale of targeted or selected textures or things by 0.1 (UDMF only).")]
+    [InlineData("map3d.scaledownx", "Decrease Horizontal Scale", "NumPad4", "Decreases horizontal scale of targeted or selected textures or things by 0.1 (UDMF only).")]
+    [InlineData("map3d.scale-up-y", "Increase Vertical Scale", "NumPad8", "Increases vertical scale of targeted or selected textures or things by 0.1 (UDMF only).")]
+    [InlineData("map3d.scaleupy", "Increase Vertical Scale", "NumPad8", "Increases vertical scale of targeted or selected textures or things by 0.1 (UDMF only).")]
+    [InlineData("map3d.scale-down-y", "Decrease Vertical Scale", "NumPad5", "Decreases vertical scale of targeted or selected textures or things by 0.1 (UDMF only).")]
+    [InlineData("map3d.scaledowny", "Decrease Vertical Scale", "NumPad5", "Decreases vertical scale of targeted or selected textures or things by 0.1 (UDMF only).")]
+    public void VisualScaleCommandsMatchUdbActionSurface(string id, string title, string gesture, string description)
     {
         var command = EditorCommandCatalog.Find(id);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal(gesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
