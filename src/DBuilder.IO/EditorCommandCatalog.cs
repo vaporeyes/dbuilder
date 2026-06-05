@@ -1125,7 +1125,7 @@ public static class EditorCommandCatalog
 
             string commandId = rawEntry[..equals].Trim();
             string gesture = rawEntry[(equals + 1)..].Trim();
-            if (!byId.TryGetValue(commandId, out var command)) continue;
+            if (!TryResolveOverrideCommand(commandId, byId, out commandId, out var command)) continue;
             if (IsUnboundGesture(gesture))
             {
                 result.Add(new EditorShortcutBinding(commandId, command.Scope, ""));
@@ -1166,7 +1166,35 @@ public static class EditorCommandCatalog
         if (equals < 0) return false;
 
         string candidate = text[idStart..equals].Trim();
-        return candidate.Length > 0 && commandsById.ContainsKey(candidate);
+        return candidate.Length > 0 && TryResolveOverrideCommand(candidate, commandsById, out _, out _);
+    }
+
+    private static bool TryResolveOverrideCommand(
+        string commandId,
+        IReadOnlyDictionary<string, EditorCommandDescriptor> commandsById,
+        out string resolvedCommandId,
+        out EditorCommandDescriptor command)
+    {
+        if (commandsById.TryGetValue(commandId, out command!))
+        {
+            resolvedCommandId = commandId;
+            return true;
+        }
+
+        string actionId = commandId;
+        int separator = actionId.LastIndexOf('_');
+        if (separator >= 0)
+            actionId = actionId[(separator + 1)..];
+
+        if (!actionId.StartsWith("udbscriptexecute", StringComparison.Ordinal))
+        {
+            resolvedCommandId = commandId;
+            command = null!;
+            return false;
+        }
+
+        resolvedCommandId = "window." + actionId;
+        return commandsById.TryGetValue(resolvedCommandId, out command!);
     }
 
     public static bool TryParseGesture(string commandId, EditorCommandScope scope, string gesture, out EditorShortcutBinding binding)

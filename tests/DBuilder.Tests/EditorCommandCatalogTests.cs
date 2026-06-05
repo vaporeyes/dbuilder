@@ -3594,6 +3594,19 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void ParseOverrideTextReadsUdbScriptActionNames()
+    {
+        var overrides = EditorCommandCatalog.ParseOverrideText("""
+            udbscriptexecute=Ctrl+F8, udbscript_udbscriptexecuteslot12=Shift+F8
+            udbscript__udbscriptexecuteslot30=Alt+F8
+            """);
+
+        Assert.Contains(overrides, b => b.CommandId == "window.udbscriptexecute" && b.Key == "F8" && b.Accelerator);
+        Assert.Contains(overrides, b => b.CommandId == "window.udbscriptexecuteslot12" && b.Key == "F8" && b.Shift);
+        Assert.Contains(overrides, b => b.CommandId == "window.udbscriptexecuteslot30" && b.Key == "F8" && b.Alt);
+    }
+
+    [Fact]
     public void ParseOverrideTextKeepsCommaShortcutKeys()
     {
         var overrides = EditorCommandCatalog.ParseOverrideText("map2d.fit=,");
