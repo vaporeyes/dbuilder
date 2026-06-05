@@ -241,6 +241,8 @@
                 <MenuItem Header="Command _Palette..." x:Name="CommandPaletteMenuItem" Click="OnOpenCommandPalette" />
                 <MenuItem Header="_Scripts..." x:Name="UdbScriptDockerMenuItem" Click="OnUdbScriptDocker" />
                 <MenuItem Header="Sound _Propagation" x:Name="SoundPropagationMenuItem" Click="OnSoundPropagation" />
+                <MenuItem Header="Set Sound Leak _Start" x:Name="SetLeakFinderStartMenuItem" Click="OnSetLeakFinderStart" />
+                <MenuItem Header="Set Sound Leak _End" x:Name="SetLeakFinderEndMenuItem" Click="OnSetLeakFinderEnd" />
                 <MenuItem Header="Sound _Environments..." x:Name="SoundEnvironmentsMenuItem" Click="OnSoundEnvironments" />
                 <MenuItem Header="Sound Propagation _Colors..." x:Name="SoundPropagationColorsMenuItem" Click="OnSoundPropagationColors" />
                 <MenuItem Header="_Blockmap Explorer..." x:Name="BlockmapExplorerMenuItem" Click="OnBlockmapExplorer" />

@@ -1716,6 +1716,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style default overlay colors and rotating domain color palette.
   - [x] Add UDB-style Sound Propagation and Sound Environment edit-mode metadata.
   - [x] Add UDB-style Sound Propagation mode action metadata and window command dispatch.
+  - [x] Add Tools menu actions for setting sound leak start and end sectors.
   - [x] Render UDB-style highlighted-domain sector overlay colors from the editor command.
   - [x] Add UDB-style format-aware linedef sound-blocking toggle model.
   - [x] Render UDB-style red sound leak path overlays from the editor command when two sectors are selected.

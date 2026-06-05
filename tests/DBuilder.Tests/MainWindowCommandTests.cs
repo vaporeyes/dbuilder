@@ -1306,6 +1306,9 @@ public sealed class MainWindowCommandTests
         Assert.Contains("x:Name=\"ApplyDirectionalShadingMenuItem\"", xaml, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(UdbScriptDockerMenuItem, \"Scripts\", \"window.udbscripts\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(SoundPropagationMenuItem, \"Sound Propagation\", \"window.sound-propagation-mode\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(SetLeakFinderStartMenuItem, \"Set leak finder start sector\", \"window.setleakfinderstart\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(SetLeakFinderEndMenuItem, \"Set leak finder end sector\", \"window.setleakfinderend\");", code, StringComparison.Ordinal);
+        Assert.Contains("SoundPropagationMenuItem, SetLeakFinderStartMenuItem, SetLeakFinderEndMenuItem, SoundEnvironmentsMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(GradientFloorHeightsMenuItem, \"Gradient Floor Heights\", \"window.gradient-floor-heights\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ApplyJitterMenuItem, \"Randomize\", \"window.applyjitter\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ApplyDirectionalShadingMenuItem, \"Apply Directional Shading\", \"window.applydirectionalshading\");", code, StringComparison.Ordinal);
@@ -1380,6 +1383,8 @@ public sealed class MainWindowCommandTests
         Assert.Contains("\"window.blockmap-explorer\" or \"window.blockmapexplorermode\" => BlockmapExplorerMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.nodes-viewer\" or \"window.nodesviewermode\" => NodesViewerMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.sound-propagation-mode\" or \"window.soundpropagationmode\" => SoundPropagationMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.setleakfinderstart\" => SetLeakFinderStartMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.setleakfinderend\" => SetLeakFinderEndMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.sound-environment-mode\" or \"window.soundenvironmentmode\" => SoundEnvironmentsMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.applyjitter\" => ApplyJitterMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.applydirectionalshading\" => ApplyDirectionalShadingMenuItem", code, StringComparison.Ordinal);
