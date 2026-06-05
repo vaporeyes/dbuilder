@@ -2146,40 +2146,41 @@ public class EditorCommandCatalogTests
     [Fact]
     public void VisualThingMovementCommandsMatchUdbActionSurface()
     {
-        var expected = new Dictionary<string, (string Title, bool AllowScroll, bool Repeat)>
+        var expected = new Dictionary<string, (string Title, bool AllowScroll, bool Repeat, string Description)>
         {
-            ["map3d.move-thing-left"] = ("Move Thing Left", true, true),
-            ["map3d.movethingleft"] = ("Move Thing Left", true, true),
-            ["map3d.move-thing-right"] = ("Move Thing Right", true, true),
-            ["map3d.movethingright"] = ("Move Thing Right", true, true),
-            ["map3d.move-thing-forward"] = ("Move Thing Forward", true, true),
-            ["map3d.movethingfwd"] = ("Move Thing Forward", true, true),
-            ["map3d.move-thing-backward"] = ("Move Thing Backward", true, true),
-            ["map3d.movethingback"] = ("Move Thing Backward", true, true),
-            ["map3d.insert-item"] = ("Insert Item", true, false),
-            ["map3d.insertitem"] = ("Insert Item", true, false),
-            ["map3d.copy-selection"] = ("Copy Selection", false, false),
-            ["map3d.copyselection"] = ("Copy Selection", false, false),
-            ["map3d.cut-selection"] = ("Cut Selection", false, false),
-            ["map3d.cutselection"] = ("Cut Selection", false, false),
-            ["map3d.paste-selection"] = ("Paste Selection", false, false),
-            ["map3d.pasteselection"] = ("Paste Selection", false, false),
-            ["map3d.place-thing-at-cursor"] = ("Move Thing to Cursor Location", false, false),
-            ["map3d.placethingatcursor"] = ("Move Thing to Cursor Location", false, false),
-            ["map3d.rotate-thing-clockwise"] = ("Rotate Thing Clockwise", true, true),
-            ["map3d.rotate-thing-counterclockwise"] = ("Rotate Thing Counter-clockwise", true, true),
-            ["map3d.pitch-thing-clockwise"] = ("Pitch Thing Clockwise", true, true),
-            ["map3d.pitch-thing-counterclockwise"] = ("Pitch Thing Counter-clockwise", true, true),
-            ["map3d.roll-thing-clockwise"] = ("Roll Thing Clockwise", true, true),
-            ["map3d.roll-thing-counterclockwise"] = ("Roll Thing Counter-clockwise", true, true),
+            ["map3d.move-thing-left"] = ("Move Thing Left", true, true, "Moves selected Things left in Visual Modes."),
+            ["map3d.movethingleft"] = ("Move Thing Left", true, true, "Moves selected Things left in Visual Modes."),
+            ["map3d.move-thing-right"] = ("Move Thing Right", true, true, "Moves selected Things right in Visual Modes."),
+            ["map3d.movethingright"] = ("Move Thing Right", true, true, "Moves selected Things right in Visual Modes."),
+            ["map3d.move-thing-forward"] = ("Move Thing Forward", true, true, "Moves selected Things away from camera in Visual Modes."),
+            ["map3d.movethingfwd"] = ("Move Thing Forward", true, true, "Moves selected Things away from camera in Visual Modes."),
+            ["map3d.move-thing-backward"] = ("Move Thing Backward", true, true, "Moves selected Things closer to camera in Visual Modes."),
+            ["map3d.movethingback"] = ("Move Thing Backward", true, true, "Moves selected Things closer to camera in Visual Modes."),
+            ["map3d.insert-item"] = ("Insert Item", true, false, ""),
+            ["map3d.insertitem"] = ("Insert Item", true, false, ""),
+            ["map3d.copy-selection"] = ("Copy Selection", false, false, ""),
+            ["map3d.copyselection"] = ("Copy Selection", false, false, ""),
+            ["map3d.cut-selection"] = ("Cut Selection", false, false, ""),
+            ["map3d.cutselection"] = ("Cut Selection", false, false, ""),
+            ["map3d.paste-selection"] = ("Paste Selection", false, false, ""),
+            ["map3d.pasteselection"] = ("Paste Selection", false, false, ""),
+            ["map3d.place-thing-at-cursor"] = ("Move Thing to Cursor Location", false, false, "Moves selected Things to cursor location preserving relative offsets in Visual Modes."),
+            ["map3d.placethingatcursor"] = ("Move Thing to Cursor Location", false, false, "Moves selected Things to cursor location preserving relative offsets in Visual Modes."),
+            ["map3d.rotate-thing-clockwise"] = ("Rotate Thing Clockwise", true, true, "Rotates selected or highlighted things clockwise. Also rotates floor/ceiling textures in UDMF map format, and rotates the selection in Edit Selection mode."),
+            ["map3d.rotate-thing-counterclockwise"] = ("Rotate Thing Counter-clockwise", true, true, "Rotates selected or highlighted things counterclockwise. Also rotates floor/ceiling textures in UDMF map format, and rotates the selection in Edit Selection mode."),
+            ["map3d.pitch-thing-clockwise"] = ("Pitch Thing Clockwise", true, true, "Increases pitch of selected or highlighted things (UDMF only)."),
+            ["map3d.pitch-thing-counterclockwise"] = ("Pitch Thing Counter-clockwise", true, true, "Decreases pitch of selected or highlighted things (UDMF only)."),
+            ["map3d.roll-thing-clockwise"] = ("Roll Thing Clockwise", true, true, "Increases roll of selected or highlighted things (UDMF only)."),
+            ["map3d.roll-thing-counterclockwise"] = ("Roll Thing Counter-clockwise", true, true, "Decreases roll of selected or highlighted things (UDMF only)."),
         };
 
-        foreach ((string commandId, (string title, bool allowScroll, bool repeat)) in expected)
+        foreach ((string commandId, (string title, bool allowScroll, bool repeat, string description)) in expected)
         {
             var command = EditorCommandCatalog.Find(commandId);
 
             Assert.NotNull(command);
             Assert.Equal(title, command.Title);
+            Assert.Equal(description, command.Description);
             Assert.Equal(EditorCommandScope.Map3D, command.Scope);
             Assert.True(command.AllowKeys);
             Assert.True(command.AllowMouse);
@@ -2192,25 +2193,26 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map3d.rotate-clockwise", "map3d.rotate-thing-clockwise", "Rotate Clockwise", "Ctrl/Cmd+Shift+ScrollUp")]
-    [InlineData("map3d.rotateclockwise", "map3d.rotate-thing-clockwise", "Rotate Clockwise", "Ctrl/Cmd+Shift+ScrollUp")]
-    [InlineData("map3d.rotate-counterclockwise", "map3d.rotate-thing-counterclockwise", "Rotate Counterclockwise", "Ctrl/Cmd+Shift+ScrollDown")]
-    [InlineData("map3d.rotatecounterclockwise", "map3d.rotate-thing-counterclockwise", "Rotate Counterclockwise", "Ctrl/Cmd+Shift+ScrollDown")]
-    [InlineData("map3d.pitch-clockwise", "map3d.pitch-thing-clockwise", "Change Pitch Clockwise", "Ctrl/Cmd+Alt+ScrollUp")]
-    [InlineData("map3d.pitchclockwise", "map3d.pitch-thing-clockwise", "Change Pitch Clockwise", "Ctrl/Cmd+Alt+ScrollUp")]
-    [InlineData("map3d.pitch-counterclockwise", "map3d.pitch-thing-counterclockwise", "Change Pitch Counterclockwise", "Ctrl/Cmd+Alt+ScrollDown")]
-    [InlineData("map3d.pitchcounterclockwise", "map3d.pitch-thing-counterclockwise", "Change Pitch Counterclockwise", "Ctrl/Cmd+Alt+ScrollDown")]
-    [InlineData("map3d.roll-clockwise", "map3d.roll-thing-clockwise", "Change Roll Clockwise", "Alt+ScrollUp")]
-    [InlineData("map3d.rollclockwise", "map3d.roll-thing-clockwise", "Change Roll Clockwise", "Alt+ScrollUp")]
-    [InlineData("map3d.roll-counterclockwise", "map3d.roll-thing-counterclockwise", "Change Roll Counterclockwise", "Alt+ScrollDown")]
-    [InlineData("map3d.rollcounterclockwise", "map3d.roll-thing-counterclockwise", "Change Roll Counterclockwise", "Alt+ScrollDown")]
-    public void VisualRotationAliasesMatchUdbActionSurface(string id, string legacyId, string title, string gesture)
+    [InlineData("map3d.rotate-clockwise", "map3d.rotate-thing-clockwise", "Rotate Clockwise", "Ctrl/Cmd+Shift+ScrollUp", "Rotates selected or highlighted things clockwise. Also rotates floor/ceiling textures in UDMF map format, and rotates the selection in Edit Selection mode.")]
+    [InlineData("map3d.rotateclockwise", "map3d.rotate-thing-clockwise", "Rotate Clockwise", "Ctrl/Cmd+Shift+ScrollUp", "Rotates selected or highlighted things clockwise. Also rotates floor/ceiling textures in UDMF map format, and rotates the selection in Edit Selection mode.")]
+    [InlineData("map3d.rotate-counterclockwise", "map3d.rotate-thing-counterclockwise", "Rotate Counterclockwise", "Ctrl/Cmd+Shift+ScrollDown", "Rotates selected or highlighted things counterclockwise. Also rotates floor/ceiling textures in UDMF map format, and rotates the selection in Edit Selection mode.")]
+    [InlineData("map3d.rotatecounterclockwise", "map3d.rotate-thing-counterclockwise", "Rotate Counterclockwise", "Ctrl/Cmd+Shift+ScrollDown", "Rotates selected or highlighted things counterclockwise. Also rotates floor/ceiling textures in UDMF map format, and rotates the selection in Edit Selection mode.")]
+    [InlineData("map3d.pitch-clockwise", "map3d.pitch-thing-clockwise", "Change Pitch Clockwise", "Ctrl/Cmd+Alt+ScrollUp", "Increases pitch of selected or highlighted things (UDMF only).")]
+    [InlineData("map3d.pitchclockwise", "map3d.pitch-thing-clockwise", "Change Pitch Clockwise", "Ctrl/Cmd+Alt+ScrollUp", "Increases pitch of selected or highlighted things (UDMF only).")]
+    [InlineData("map3d.pitch-counterclockwise", "map3d.pitch-thing-counterclockwise", "Change Pitch Counterclockwise", "Ctrl/Cmd+Alt+ScrollDown", "Decreases pitch of selected or highlighted things (UDMF only).")]
+    [InlineData("map3d.pitchcounterclockwise", "map3d.pitch-thing-counterclockwise", "Change Pitch Counterclockwise", "Ctrl/Cmd+Alt+ScrollDown", "Decreases pitch of selected or highlighted things (UDMF only).")]
+    [InlineData("map3d.roll-clockwise", "map3d.roll-thing-clockwise", "Change Roll Clockwise", "Alt+ScrollUp", "Increases roll of selected or highlighted things (UDMF only).")]
+    [InlineData("map3d.rollclockwise", "map3d.roll-thing-clockwise", "Change Roll Clockwise", "Alt+ScrollUp", "Increases roll of selected or highlighted things (UDMF only).")]
+    [InlineData("map3d.roll-counterclockwise", "map3d.roll-thing-counterclockwise", "Change Roll Counterclockwise", "Alt+ScrollDown", "Decreases roll of selected or highlighted things (UDMF only).")]
+    [InlineData("map3d.rollcounterclockwise", "map3d.roll-thing-counterclockwise", "Change Roll Counterclockwise", "Alt+ScrollDown", "Decreases roll of selected or highlighted things (UDMF only).")]
+    public void VisualRotationAliasesMatchUdbActionSurface(string id, string legacyId, string title, string gesture, string description)
     {
         var command = EditorCommandCatalog.Find(id);
         var legacyAlias = EditorCommandCatalog.Find(legacyId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal(gesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -2220,6 +2222,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(legacyAlias);
         Assert.Equal(EditorCommandScope.Map3D, legacyAlias.Scope);
+        Assert.Equal(description, legacyAlias.Description);
     }
 
     [Fact]
