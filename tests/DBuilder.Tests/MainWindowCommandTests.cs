@@ -759,6 +759,10 @@ public sealed class MainWindowCommandTests
         Assert.Contains("SelectedVisualSectors: MapView.SelectedVisualSurfacesForActions().Count", body, StringComparison.Ordinal);
         Assert.Contains("OnDynamicLightColor(sender, e);", body, StringComparison.Ordinal);
         Assert.Contains("OnSectorColor(sender, e);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(ColorPickerModel.SectorColorsRequireUdmfWarning, StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(ColorPickerModel.NoSelectedSectorsWarning, StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(ColorPickerModel.NoDynamicLightsWarning, StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(decision.WarningText, StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -5124,14 +5124,14 @@ public partial class MainWindow : Window
         if (_map is null || _undo is null) { SetStatus("No map loaded."); return; }
         if (!ColorPickerModel.CanEditSectorColors(_mapFormat == MapFormat.Udmf))
         {
-            SetStatus(ColorPickerModel.SectorColorsRequireUdmfWarning);
+            SetStatus(ColorPickerModel.SectorColorsRequireUdmfWarning, StatusHistoryKind.Warning);
             return;
         }
 
         var sectors = _map.GetSelectedSectors();
         if (sectors.Count == 0)
         {
-            SetStatus(ColorPickerModel.NoSelectedSectorsWarning);
+            SetStatus(ColorPickerModel.NoSelectedSectorsWarning, StatusHistoryKind.Warning);
             return;
         }
 
@@ -5156,7 +5156,7 @@ public partial class MainWindow : Window
         var targets = ColorPickerModel.InternalDynamicLightEditTargets(_map.GetSelectedThings());
         if (targets.Count == 0)
         {
-            SetStatus(ColorPickerModel.NoDynamicLightsWarning);
+            SetStatus(ColorPickerModel.NoDynamicLightsWarning, StatusHistoryKind.Warning);
             return;
         }
 
@@ -5211,7 +5211,7 @@ public partial class MainWindow : Window
                 OnSectorColor(sender, e);
                 return;
             default:
-                SetStatus(decision.WarningText);
+                SetStatus(decision.WarningText, StatusHistoryKind.Warning);
                 return;
         }
     }
