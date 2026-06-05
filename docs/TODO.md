@@ -1208,6 +1208,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Honor UDB-style place-things-at-vertices draw settings for rectangles, ellipses, and curves.
   - [x] Wire draw-grid mode into the editor box-drag workflow.
   - [x] Add UDB-style selected thing align-to-wall command.
+  - [x] Add UDB-style classic thing align-to-wall action alias.
   - [x] Add UDB-style point selected thing to cursor command.
 - [ ] Port sector gradient tools.
   - [x] Add UDB-style selected-sector floor, ceiling, and brightness gradient commands.

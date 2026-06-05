@@ -677,6 +677,7 @@ public sealed class MapControlCommandTests
     }
 
     [Theory]
+    [InlineData("map2d.thingaligntowall", "AlignSelectedThingsToWall()")]
     [InlineData("map3d.insertitem", "InsertThingAtTarget3D()")]
     [InlineData("map3d.copyselection", "CopyVisualThingSelection3D()")]
     [InlineData("map3d.cutselection", "CutVisualThingSelection3D()")]

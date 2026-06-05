@@ -1066,6 +1066,20 @@ public class EditorCommandCatalogTests
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
+    [Fact]
+    public void ClassicThingAlignToWallAliasMatchesUdbActionSurface()
+    {
+        var command = EditorCommandCatalog.Find("map2d.thingaligntowall");
+
+        Assert.NotNull(command);
+        Assert.Equal("Align Things to Nearest Linedef", command.Title);
+        Assert.Equal("Ctrl/Cmd+Shift+A", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+    }
+
     [Theory]
     [InlineData("map2d.join-sectors", "Join Sectors")]
     [InlineData("map2d.joinsectors", "Join Sectors")]

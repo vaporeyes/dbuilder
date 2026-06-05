@@ -359,6 +359,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.placevisualstart", "Place Visual Mode Camera", "Ctrl/Cmd+W", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.place-things", "Place Things", "Menu", EditorCommandScope.Map2D, AllowMouse: false),
         new EditorCommandDescriptor("map2d.placethings", "Place Things", "Menu", EditorCommandScope.Map2D, AllowMouse: false),
+        new EditorCommandDescriptor("map2d.thingaligntowall", "Align Things to Nearest Linedef", "Ctrl/Cmd+Shift+A", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.point-thing-to-cursor", "Point Thing to Cursor", "Shift+L", EditorCommandScope.Map2D, AllowScroll: true, DisregardAccelerator: true),
         new EditorCommandDescriptor("map2d.thinglookatcursor", "Point Thing to Cursor", "Shift+L", EditorCommandScope.Map2D, AllowScroll: true, DisregardAccelerator: true),
         new EditorCommandDescriptor("map2d.syncedthingedit", "Synchronized Things Editing", "Shift+T", EditorCommandScope.Map2D),

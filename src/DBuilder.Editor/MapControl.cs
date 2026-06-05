@@ -5976,6 +5976,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.placethings":
                 PlaceThingsFromSelection();
                 return true;
+            case "map2d.thingaligntowall":
+                AlignSelectedThingsToWall();
+                return true;
             case "map2d.point-thing-to-cursor":
             case "map2d.thinglookatcursor":
                 PointThingsToCursor(awayFromCursor: modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta));
