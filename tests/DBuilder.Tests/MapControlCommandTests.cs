@@ -22,6 +22,19 @@ public sealed class MapControlCommandTests
         Assert.Contains("LinedefColorPresetModel.WithAlpha(presetColor, LinedefColorPresetModel.DefaultDoubleSidedAlpha)", body, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void LinedefColorPresetDialogEditsPersistedPresetFields()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/LinedefColorPresetsDialog.cs"));
+
+        Assert.Contains("public sealed class LinedefColorPresetsDialog : Window", body, StringComparison.Ordinal);
+        Assert.Contains("new LinedefColorPreset(", body, StringComparison.Ordinal);
+        Assert.Contains("LinedefColorPresetModel.ParseColor(_color.Text, fallback.Color)", body, StringComparison.Ordinal);
+        Assert.Contains("LinedefColorPresetModel.ParseFlags(_flags.Text)", body, StringComparison.Ordinal);
+        Assert.Contains("LinedefColorPresetModel.ParseFlags(_restrictedFlags.Text)", body, StringComparison.Ordinal);
+        Assert.Contains("LinedefColorPresetModel.DefaultPresets", body, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("FLOOR0_1", VisualHitKind.Floor, "Pasted flat \"FLOOR0_1\" on floor.")]
     [InlineData("CEIL1_1", VisualHitKind.Ceiling, "Pasted flat \"CEIL1_1\" on ceiling.")]

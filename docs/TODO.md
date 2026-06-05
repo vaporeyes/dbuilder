@@ -337,6 +337,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add raw UDB linedef color setup action alias and preset matching model.
   - [x] Apply UDB default linedef color presets during 2D line rendering.
   - [x] Persist UDB-style linedef color presets and feed them into 2D rendering.
+  - [x] Open a linedef color presets editor from the UDB setup action.
   - [x] Add UDB-style singular and plural labels to Filter Selected Things status text.
 
 ## Plugin Architecture

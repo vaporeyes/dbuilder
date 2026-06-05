@@ -110,4 +110,22 @@ public class LinedefColorPresetModelTests
     {
         Assert.Equal(unchecked((int)0x40112233), LinedefColorPresetModel.WithAlpha(unchecked((int)0xff112233), 0x40));
     }
+
+    [Fact]
+    public void ColorAndFlagTextRoundTripForPresetDialog()
+    {
+        Assert.Equal("FF112233", LinedefColorPresetModel.FormatColor(unchecked((int)0xff112233)));
+        Assert.Equal(unchecked((int)0xff112233), LinedefColorPresetModel.ParseColor("#FF112233", 0));
+        Assert.Equal(unchecked((int)0xff112233), LinedefColorPresetModel.ParseColor("0xFF112233", 0));
+        Assert.Equal(7, LinedefColorPresetModel.ParseColor("not-a-color", 7));
+
+        Assert.Equal("secret^blocking", LinedefColorPresetModel.FormatFlags(["secret", "blocking"]));
+        Assert.Equal(new[] { "secret", "blocking" }, LinedefColorPresetModel.ParseFlags("secret^blocking, secret"));
+    }
+
+    [Theory]
+    [InlineData(1, "Saved 1 linedef color preset.")]
+    [InlineData(2, "Saved 2 linedef color presets.")]
+    public void SavedStatusTextUsesSingularAndPlural(int count, string expected)
+        => Assert.Equal(expected, LinedefColorPresetModel.SavedStatusText(count));
 }

@@ -2450,9 +2450,17 @@ public partial class MainWindow : Window
         MapView.Focus();
     }
 
-    private void OnLinedefColorsSetup(object? sender, RoutedEventArgs e)
+    private async void OnLinedefColorsSetup(object? sender, RoutedEventArgs e)
     {
-        SetStatus(LinedefColorPresetModel.EditorPendingStatusText, StatusHistoryKind.Warning);
+        var dlg = new LinedefColorPresetsDialog(_settings.NormalizedLinedefColorPresets);
+        if (await dlg.ShowDialog<bool>(this))
+        {
+            _settings.LinedefColorPresets = dlg.ResultPresets.ToList();
+            MapView.LinedefColorPresets = _settings.NormalizedLinedefColorPresets;
+            SaveSettings();
+            SetStatus(LinedefColorPresetModel.SavedStatusText(_settings.NormalizedLinedefColorPresets.Count));
+        }
+
         MapView.Focus();
     }
 

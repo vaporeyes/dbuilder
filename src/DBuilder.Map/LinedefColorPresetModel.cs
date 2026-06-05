@@ -3,6 +3,8 @@
 
 namespace DBuilder.Map;
 
+using System.Globalization;
+
 public sealed record LinedefColorPreset(
     string Name,
     int Color,
@@ -23,9 +25,9 @@ public static class LinedefColorPresetModel
     public const int DefaultAnyActionActivation = 0;
     public const int PaleGreenArgb = unchecked((int)0xff98fb98);
     public const byte DefaultDoubleSidedAlpha = 0x80;
+    public const string FlagsSeparator = "^";
     public const string ConfigureActionTitle = "Configure Linedefs Colors";
     public const string ConfigureActionDescription = "Shows the Linedef Color Presets setup dialog, which allows you to add, remove and change linedef color presets.";
-    public const string EditorPendingStatusText = "Linedef color preset editor is pending.";
 
     public static IReadOnlyList<LinedefColorPreset> DefaultPresets { get; } =
     [
@@ -36,6 +38,33 @@ public static class LinedefColorPresetModel
         => presets is { Count: > 0 }
             ? presets
             : DefaultPresets;
+
+    public static string FormatColor(int color)
+        => unchecked((uint)color).ToString("X8", CultureInfo.InvariantCulture);
+
+    public static int ParseColor(string? text, int fallback)
+    {
+        string value = (text ?? "").Trim();
+        if (value.StartsWith("#", StringComparison.Ordinal)) value = value[1..];
+        if (value.StartsWith("0x", StringComparison.OrdinalIgnoreCase)) value = value[2..];
+        if (uint.TryParse(value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out uint hex))
+            return unchecked((int)hex);
+        if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int numeric))
+            return numeric;
+        return fallback;
+    }
+
+    public static string FormatFlags(IEnumerable<string> flags)
+        => string.Join(FlagsSeparator, flags.Where(flag => !string.IsNullOrWhiteSpace(flag)).Select(flag => flag.Trim()));
+
+    public static IReadOnlyList<string> ParseFlags(string? text)
+        => (text ?? "")
+            .Split(['^', ',', ';', ' ', '\t', '\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+    public static string SavedStatusText(int count)
+        => count == 1 ? "Saved 1 linedef color preset." : $"Saved {count} linedef color presets.";
 
     public static bool Matches(Linedef line, LinedefColorPreset preset, bool isUdmf = false)
     {

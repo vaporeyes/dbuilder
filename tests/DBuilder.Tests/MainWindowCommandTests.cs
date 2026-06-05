@@ -873,6 +873,19 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void LinedefColorSetupOpensPresetDialogAndPersistsResult()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("var dlg = new LinedefColorPresetsDialog(_settings.NormalizedLinedefColorPresets);", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.LinedefColorPresets = dlg.ResultPresets.ToList();", body, StringComparison.Ordinal);
+        Assert.Contains("MapView.LinedefColorPresets = _settings.NormalizedLinedefColorPresets;", body, StringComparison.Ordinal);
+        Assert.Contains("SaveSettings();", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(LinedefColorPresetModel.SavedStatusText(_settings.NormalizedLinedefColorPresets.Count));", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("LinedefColorPresetModel.EditorPendingStatusText", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TagRangeCommandAvailabilityReflectsTaggableSelection()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
