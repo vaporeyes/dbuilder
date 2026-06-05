@@ -1148,6 +1148,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Grid and Backdrop Setup", command.Title);
+        Assert.Equal("Shows the Custom Grid Setup dialog which allows you to set custom grid sizes and a background image.", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
@@ -1155,6 +1156,7 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowScroll);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
         Assert.Equal(command.CategoryTitle, udbAlias.CategoryTitle);
     }
