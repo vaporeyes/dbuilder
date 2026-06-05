@@ -80,10 +80,21 @@ public sealed class StatusHistoryWindow : Window
     {
         var grid = RowGrid();
         AddText(grid, entry.Timestamp.LocalDateTime.ToString("g", CultureInfo.CurrentCulture), 0, Brushes.Khaki);
-        AddText(grid, entry.Kind.ToString(), 1, Brushes.LightSkyBlue);
+        AddText(grid, entry.Kind.ToString(), 1, KindBrush(entry.Kind));
         AddText(grid, entry.Message, 2, new SolidColorBrush(Color.FromRgb(0xd0, 0xd8, 0xe0)));
         return grid;
     }
+
+    private static IBrush KindBrush(StatusHistoryKind kind)
+        => kind switch
+        {
+            StatusHistoryKind.Warning => Brushes.Orange,
+            StatusHistoryKind.Busy => Brushes.Khaki,
+            StatusHistoryKind.Action => Brushes.LightGreen,
+            StatusHistoryKind.Selection => Brushes.LightSteelBlue,
+            StatusHistoryKind.Ready => Brushes.LightGreen,
+            _ => Brushes.LightSkyBlue,
+        };
 
     private static Grid RowGrid()
         => new() { ColumnDefinitions = new ColumnDefinitions("150,90,*") };

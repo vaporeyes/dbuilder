@@ -106,8 +106,18 @@ public class StatusHistoryTests
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/StatusHistoryWindow.cs"));
 
         Assert.Contains("AddText(grid, \"Kind\", 1, Brushes.LightSkyBlue, FontWeight.Bold);", body, StringComparison.Ordinal);
-        Assert.Contains("AddText(grid, entry.Kind.ToString(), 1, Brushes.LightSkyBlue);", body, StringComparison.Ordinal);
+        Assert.Contains("AddText(grid, entry.Kind.ToString(), 1, KindBrush(entry.Kind));", body, StringComparison.Ordinal);
         Assert.Contains("ColumnDefinitions = new ColumnDefinitions(\"150,90,*\")", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void StatusHistoryWindowColorsStatusKinds()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/StatusHistoryWindow.cs"));
+
+        Assert.Contains("private static IBrush KindBrush(StatusHistoryKind kind)", body, StringComparison.Ordinal);
+        Assert.Contains("StatusHistoryKind.Warning => Brushes.Orange", body, StringComparison.Ordinal);
+        Assert.Contains("StatusHistoryKind.Action => Brushes.LightGreen", body, StringComparison.Ordinal);
     }
 
     [Fact]
