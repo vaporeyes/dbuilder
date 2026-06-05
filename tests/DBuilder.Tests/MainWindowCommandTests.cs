@@ -1452,6 +1452,15 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void MakeDoorUsesUdbUndoAndStatusText()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("CreateUndo($\"Make door ({options.DoorTexture})\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus($\"Created a {options.DoorTexture} door.\");", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void NodeAndVisplaneGuardsUseWarningStatusKind()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));

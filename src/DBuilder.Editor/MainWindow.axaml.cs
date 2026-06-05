@@ -6562,11 +6562,11 @@ public partial class MainWindow : Window
 
         _settings.MakeDoorSettings = MakeDoorSettingsFrom(options);
         SaveSettings();
-        CreateUndo("Make door");
-        MakeDoorResult result = MakeDoorTool.Apply(_map, sectors, options);
+        CreateUndo($"Make door ({options.DoorTexture})");
+        MakeDoorTool.Apply(_map, sectors, options);
         MapView.MarkGeometryDirty();
         UpdateInfo();
-        SetStatus(result.StatusText);
+        SetStatus($"Created a {options.DoorTexture} door.");
         MapView.Focus();
     }
 
