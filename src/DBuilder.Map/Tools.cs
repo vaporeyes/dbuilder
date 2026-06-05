@@ -384,6 +384,45 @@ public static class Tools
         return newSector;
     }
 
+    /// <summary>Rebuilds invalid one or two sided sectors from surrounding geometry, matching UDB Tools.MergeInvalidSectors.</summary>
+    public static void MergeInvalidSectors(
+        MapSet map,
+        IReadOnlyDictionary<Sector, Vector2D> toMerge,
+        SectorCreationOptions? options = null,
+        bool autoClearSidedefTextures = true)
+    {
+        map.BuildIndexes();
+
+        foreach (var group in toMerge)
+        {
+            Sector sector = group.Key;
+            if (sector.IsDisposed || sector.Sidedefs.Count == 0 || sector.Sidedefs.Count >= 3) continue;
+
+            foreach (Sidedef side in sector.Sidedefs.ToArray())
+                map.RemoveSidedef(side);
+            map.RemoveSector(sector);
+            map.BuildIndexes();
+
+            List<LinedefSide>? sides = FindPotentialSectorAt(map, group.Value);
+            if (sides == null) continue;
+
+            var sideLines = sides.Select(side => side.Line).ToHashSet(ReferenceEqualityComparer.Instance);
+            var nearbyLines = map.Linedefs.Where(line => !sideLines.Contains(line)).ToList();
+            Sector? rebuilt = MakeSector(
+                map,
+                sides,
+                nearbyLines,
+                useOverrides: false,
+                options,
+                autoClearSidedefTextures);
+            if (rebuilt == null) continue;
+
+            map.BuildIndexes();
+            FlipBackOnlyLinedefs(rebuilt);
+            map.BuildIndexes();
+        }
+    }
+
     /// <summary>Creates or reuses loop linedefs, then materializes a sector through UDB-style traced-side creation.</summary>
     public static Sector? MakeSectorFromLoop(
         MapSet map,

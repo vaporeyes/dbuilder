@@ -738,6 +738,41 @@ public class ToolsTraceTests
     }
 
     [Fact]
+    public void MergeInvalidSectorsRebuildsTwoSidedSectorFromPotentialLoop()
+    {
+        var map = new MapSet();
+        Vertex a = map.AddVertex(new Vector2D(0, 0));
+        Vertex b = map.AddVertex(new Vector2D(96, 0));
+        Vertex c = map.AddVertex(new Vector2D(0, 96));
+        Linedef ab = map.AddLinedef(a, b);
+        Linedef bc = map.AddLinedef(b, c);
+        Linedef ca = map.AddLinedef(c, a);
+        Sector invalid = map.AddSector();
+        map.AddSidedef(ab, isFront: true, invalid);
+        map.AddSidedef(bc, isFront: true, invalid);
+        map.BuildIndexes();
+
+        Tools.MergeInvalidSectors(
+            map,
+            new Dictionary<Sector, Vector2D> { [invalid] = new Vector2D(24, 24) },
+            options: new Tools.SectorCreationOptions { DefaultMiddleTexture = "WALL" });
+        map.BuildIndexes();
+
+        Assert.True(invalid.IsDisposed);
+        Sector rebuilt = Assert.Single(map.Sectors);
+        Assert.NotSame(invalid, rebuilt);
+        Assert.Equal(3, rebuilt.Sidedefs.Count);
+        Assert.All(new[] { ab, bc, ca }, line =>
+        {
+            Sidedef? side = ReferenceEquals(line.Front?.Sector, rebuilt) ? line.Front : line.Back;
+            Assert.NotNull(side);
+            Assert.Same(rebuilt, side!.Sector);
+            Assert.True(line.Front == null || line.Back == null);
+            Assert.Equal("WALL", side.MidTexture);
+        });
+    }
+
+    [Fact]
     public void MakeSectorFromLoopCreatesLoopLinesAndUsesUdbDefaults()
     {
         var map = new MapSet();
