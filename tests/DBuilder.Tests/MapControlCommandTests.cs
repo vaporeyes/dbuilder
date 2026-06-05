@@ -753,6 +753,24 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void DissolveItemUsesHighlightedTargetsAndSilentNoOpLikeUdb()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("public string DissolveItem()", StringComparison.Ordinal);
+        int vertexIndex = body.IndexOf("EditMode.Vertices => (vertices = SelectedVerticesOrHighlighted()).Count", methodIndex, StringComparison.Ordinal);
+        int linedefIndex = body.IndexOf("EditMode.Linedefs => (linedefs = SelectedLinedefsOrHighlighted()).Count", methodIndex, StringComparison.Ordinal);
+        int sectorIndex = body.IndexOf("EditMode.Sectors => (sectors = SelectedSectorsOrHighlighted()).Count", methodIndex, StringComparison.Ordinal);
+        int noTargetIndex = body.IndexOf("if (targetCount == 0)", methodIndex, StringComparison.Ordinal);
+        int returnIndex = body.IndexOf("return \"\";", noTargetIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(vertexIndex > methodIndex);
+        Assert.True(linedefIndex > methodIndex);
+        Assert.True(sectorIndex > methodIndex);
+        Assert.True(returnIndex > noTargetIndex);
+    }
+
+    [Fact]
     public void GridRenderingCommandControlsVisibleGridOnly()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));

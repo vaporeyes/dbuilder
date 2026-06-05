@@ -7859,19 +7859,21 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         if (_map == null) return "No map loaded.";
 
+        IReadOnlyList<Vertex> vertices = [];
+        IReadOnlyList<Linedef> linedefs = [];
+        IReadOnlyList<Sector> sectors = [];
+
         int targetCount = _editMode switch
         {
-            EditMode.Vertices => _map.GetSelectedVertices().Count,
-            EditMode.Linedefs => _map.GetSelectedLinedefs().Count,
-            EditMode.Sectors => _map.GetSelectedSectors().Count,
+            EditMode.Vertices => (vertices = SelectedVerticesOrHighlighted()).Count,
+            EditMode.Linedefs => (linedefs = SelectedLinedefsOrHighlighted()).Count,
+            EditMode.Sectors => (sectors = SelectedSectorsOrHighlighted()).Count,
             _ => 0,
         };
 
         if (targetCount == 0)
         {
-            const string message = "This action requires a selection!";
-            Picked?.Invoke(message);
-            return message;
+            return "";
         }
 
         string target = _editMode switch
@@ -7885,9 +7887,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         EditBegun?.Invoke(targetCount == 1 ? "Dissolve " + target : "Dissolve " + targetCount + " " + target);
         int dissolved = _editMode switch
         {
-            EditMode.Vertices => _map.DissolveSelectedVertices(),
-            EditMode.Linedefs => _map.DissolveSelectedLinedefs(),
-            EditMode.Sectors => _map.DissolveSelectedSectors(),
+            EditMode.Vertices => DissolveVertices(vertices),
+            EditMode.Linedefs => DissolveLinedefs(linedefs),
+            EditMode.Sectors => DissolveSectors(sectors),
             _ => 0,
         };
         _map.BuildIndexes();
@@ -7896,6 +7898,30 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         string status = dissolved == 1 ? "Dissolved a " + target + "." : "Dissolved " + dissolved + " " + target + ".";
         Picked?.Invoke(status);
         return status;
+    }
+
+    private int DissolveVertices(IReadOnlyList<Vertex> vertices)
+    {
+        if (_map == null) return 0;
+        foreach (Vertex vertex in vertices)
+            vertex.Selected = true;
+        return _map.DissolveSelectedVertices();
+    }
+
+    private int DissolveLinedefs(IReadOnlyList<Linedef> linedefs)
+    {
+        if (_map == null) return 0;
+        foreach (Linedef linedef in linedefs)
+            linedef.Selected = true;
+        return _map.DissolveSelectedLinedefs();
+    }
+
+    private int DissolveSectors(IReadOnlyList<Sector> sectors)
+    {
+        if (_map == null) return 0;
+        foreach (Sector sector in sectors)
+            sector.Selected = true;
+        return _map.DissolveSelectedSectors();
     }
 
     public string KeepSelectedLinedefsBySidedness(bool doubleSided)
