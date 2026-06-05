@@ -1767,7 +1767,7 @@ public partial class MainWindow : Window
             {
                 runner.ApplyLog($"Script feature version rejected: {script.Version}");
                 runner.Finish(runner.ElapsedRuntime, autoClose: false);
-                SetStatus($"UDBScript feature version rejected: {script.Name}");
+                SetStatus($"UDBScript feature version rejected: {script.Name}", StatusHistoryKind.Warning);
                 return;
             }
             if (versionDecision.SetIgnoreVersion)
@@ -1789,7 +1789,7 @@ public partial class MainWindow : Window
             {
                 runner.ApplyLog($"Script source file not found: {loadedSources.MissingPath}");
                 runner.Finish(runner.ElapsedRuntime, autoClose: false);
-                SetStatus($"UDBScript source file not found: {loadedSources.MissingPath}");
+                SetStatus($"UDBScript source file not found: {loadedSources.MissingPath}", StatusHistoryKind.Warning);
                 return;
             }
 
@@ -1804,7 +1804,7 @@ public partial class MainWindow : Window
             {
                 runner.ApplyLog("Script aborted by runtime constraint prompt.");
                 runner.Finish(runner.ElapsedRuntime, autoClose: false);
-                SetStatus($"UDBScript runtime constraint aborted: {script.Name}");
+                SetStatus($"UDBScript runtime constraint aborted: {script.Name}", StatusHistoryKind.Warning);
                 return;
             }
             if (runtimeConstraint.RestartStopwatch)

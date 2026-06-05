@@ -72,4 +72,16 @@ public class MainWindowUdbScriptTests
         Assert.Contains("SetStatus($\"UDBScript folder not found: {folderPath}\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
         Assert.Contains("SetStatus($\"UDBScript has no options: {script.Name}\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void MainWindowRecordsUdbScriptPreflightAbortsAsWarnings()
+    {
+        string body = File.ReadAllText(Path.Combine(
+            AppContext.BaseDirectory,
+            "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("SetStatus($\"UDBScript feature version rejected: {script.Name}\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus($\"UDBScript source file not found: {loadedSources.MissingPath}\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus($\"UDBScript runtime constraint aborted: {script.Name}\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+    }
 }
