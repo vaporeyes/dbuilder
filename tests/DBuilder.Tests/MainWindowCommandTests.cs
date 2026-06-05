@@ -1593,9 +1593,9 @@ public sealed class MainWindowCommandTests
         Assert.Contains("SelectedUsableRow", palette, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ToggleAutomapSecretLineMenuItem, \"Toggle Selected Line Secret\", \"window.toggle-automap-secret-line\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ExportObjectMenuItem, \"Export Object OBJ\", \"window.export-object\");", code, StringComparison.Ordinal);
-        Assert.Contains("SetShortcutToolTip(ExportImageMenuItem, \"Export Image PNG\", \"window.export-image\");", code, StringComparison.Ordinal);
-        Assert.Contains("SetShortcutToolTip(ExportWavefrontMenuItem, \"Export Wavefront OBJ\", \"window.export-wavefront\");", code, StringComparison.Ordinal);
-        Assert.Contains("SetShortcutToolTip(ExportIdStudioMenuItem, \"Export idStudio\", \"window.export-idstudio\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ExportImageMenuItem, \"Export to image\", \"window.export-image\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ExportWavefrontMenuItem, \"Export to Wavefront .obj\", \"window.export-wavefront\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ExportIdStudioMenuItem, \"Export to idStudio .map\", \"window.export-idstudio\");", code, StringComparison.Ordinal);
     }
 
     [Fact]

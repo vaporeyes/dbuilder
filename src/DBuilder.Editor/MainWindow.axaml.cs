@@ -470,9 +470,9 @@ public partial class MainWindow : Window
         SetShortcutToolTip(ImageExampleMenuItem, "Image Example", "map2d.mode-image-example");
         SetShortcutToolTip(ImportObjTerrainMenuItem, "Import OBJ Terrain", "window.import-obj-terrain");
         SetShortcutToolTip(ExportObjectMenuItem, "Export Object OBJ", "window.export-object");
-        SetShortcutToolTip(ExportImageMenuItem, "Export Image PNG", "window.export-image");
-        SetShortcutToolTip(ExportWavefrontMenuItem, "Export Wavefront OBJ", "window.export-wavefront");
-        SetShortcutToolTip(ExportIdStudioMenuItem, "Export idStudio", "window.export-idstudio");
+        SetShortcutToolTip(ExportImageMenuItem, "Export to image", "window.export-image");
+        SetShortcutToolTip(ExportWavefrontMenuItem, "Export to Wavefront .obj", "window.export-wavefront");
+        SetShortcutToolTip(ExportIdStudioMenuItem, "Export to idStudio .map", "window.export-idstudio");
         SetShortcutToolTip(RejectViewerMenuItem, "Reject Explorer", "window.reject-explorer");
         SetShortcutToolTip(ReferenceManualMenuItem, "Reference Manual", "window.reference-manual");
         SetShortcutToolTip(EditModeHelpMenuItem, "About This Editing Mode", "window.edit-mode-help");
@@ -6645,7 +6645,7 @@ public partial class MainWindow : Window
         if (top is null) return;
         var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "Export Image PNG",
+            Title = "Export to image",
             SuggestedFileName = DefaultImageExportFileName(),
             DefaultExtension = "png",
             FileTypeChoices = new[] { new FilePickerFileType("PNG Image") { Patterns = new[] { "*.png" } } },
@@ -6777,7 +6777,7 @@ public partial class MainWindow : Window
         if (top is null) return;
         var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "Export Wavefront OBJ",
+            Title = "Export to Wavefront .obj",
             SuggestedFileName = DefaultWavefrontFileName(),
             DefaultExtension = "obj",
             FileTypeChoices = new[] { new FilePickerFileType("Wavefront OBJ") { Patterns = new[] { "*.obj" } } },

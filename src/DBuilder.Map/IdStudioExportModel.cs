@@ -68,7 +68,7 @@ public sealed record IdStudioExportFormState(
     string SuccessTitle,
     string SuccessMessage)
 {
-    public const string TitleText = "Export to idStudio";
+    public const string TitleText = "Export to idStudio .map";
     public const string ModFolderLabelText = "Mod Folder:";
     public const string FileNameLabelText = "File Name:";
     public const string TransformationsTextValue = "Transformations";

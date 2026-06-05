@@ -292,9 +292,9 @@
                 <MenuItem Header="_Image Example" x:Name="ImageExampleMenuItem" ToggleType="CheckBox" Click="OnImageExample" />
                 <MenuItem Header="Import _OBJ Terrain..." x:Name="ImportObjTerrainMenuItem" Click="OnImportObjTerrain" />
                 <MenuItem Header="Export _Object OBJ..." x:Name="ExportObjectMenuItem" Click="OnExportObject" />
-                <MenuItem Header="Export _Image PNG..." x:Name="ExportImageMenuItem" Click="OnExportImage" />
-                <MenuItem Header="Export _Wavefront OBJ..." x:Name="ExportWavefrontMenuItem" Click="OnExportWavefront" />
-                <MenuItem Header="Export _idStudio..." x:Name="ExportIdStudioMenuItem" Click="OnExportIdStudio" />
+                <MenuItem Header="Export to _image..." x:Name="ExportImageMenuItem" Click="OnExportImage" />
+                <MenuItem Header="Export to _Wavefront .obj..." x:Name="ExportWavefrontMenuItem" Click="OnExportWavefront" />
+                <MenuItem Header="Export to _idStudio .map..." x:Name="ExportIdStudioMenuItem" Click="OnExportIdStudio" />
                 <MenuItem Header="Re_ject Viewer" x:Name="RejectViewerMenuItem" Click="OnRejectViewer" />
             </MenuItem>
             <MenuItem Header="_Help">

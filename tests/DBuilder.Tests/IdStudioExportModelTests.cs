@@ -57,7 +57,7 @@ public class IdStudioExportModelTests
         Assert.Equal(17, state.AllTextureExportCount);
         Assert.Equal("6 TGA images and 6 material2 decls will be created.", state.MapTextureCountText);
         Assert.Equal("17 TGA images and 17 material2 decls will be created.", state.AllTextureCountText);
-        Assert.Equal("Export to idStudio", state.Title);
+        Assert.Equal("Export to idStudio .map", state.Title);
         Assert.Equal("Mod Folder:", state.ModFolderLabel);
         Assert.Equal("File Name:", state.FileNameLabel);
         Assert.Equal("Transformations", state.TransformationsText);

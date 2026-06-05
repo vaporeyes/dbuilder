@@ -602,26 +602,27 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("window.import-obj-terrain", "Import OBJ Terrain")]
-    [InlineData("window.importobjasterrain", "Import OBJ Terrain")]
-    [InlineData("window.export-object", "Export Object OBJ")]
-    [InlineData("window.export-image", "Export Image PNG")]
-    [InlineData("window.exporttoimage", "Export Image PNG")]
-    [InlineData("window.export-wavefront", "Export Wavefront OBJ")]
-    [InlineData("window.exporttoobj", "Export Wavefront OBJ")]
-    [InlineData("window.export-idstudio", "Export idStudio")]
-    [InlineData("window.exporttoidstudio", "Export idStudio")]
-    public void ImportExportToolCommandsMatchUdbActionSurface(string commandId, string title)
+    [InlineData("window.import-obj-terrain", "Import OBJ Terrain", null, true, true)]
+    [InlineData("window.importobjasterrain", "Import OBJ Terrain", null, true, true)]
+    [InlineData("window.export-object", "Export Object OBJ", null, true, true)]
+    [InlineData("window.export-image", "Export to image", "Exports selected sectors (or the whole map if no sectors selected) to an image", false, false)]
+    [InlineData("window.exporttoimage", "Export to image", "Exports selected sectors (or the whole map if no sectors selected) to an image", false, false)]
+    [InlineData("window.export-wavefront", "Export to Wavefront .obj", "Exports selected sectors (or the whole map if no sectors selected) to Wavefront .obj", false, false)]
+    [InlineData("window.exporttoobj", "Export to Wavefront .obj", "Exports selected sectors (or the whole map if no sectors selected) to Wavefront .obj", false, false)]
+    [InlineData("window.export-idstudio", "Export to idStudio .map", "Exports level to a set of .map files useable by idStudio", false, false)]
+    [InlineData("window.exporttoidstudio", "Export to idStudio .map", "Exports level to a set of .map files useable by idStudio", false, false)]
+    public void ImportExportToolCommandsMatchUdbActionSurface(string commandId, string title, string? description, bool allowMouse, bool allowScroll)
     {
         var command = EditorCommandCatalog.Find(commandId);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        if (description != null) Assert.Equal(description, command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
-        Assert.True(command.AllowMouse);
-        Assert.True(command.AllowScroll);
+        Assert.Equal(allowMouse, command.AllowMouse);
+        Assert.Equal(allowScroll, command.AllowScroll);
     }
 
     [Theory]
@@ -1774,12 +1775,12 @@ public class EditorCommandCatalogTests
         var command = EditorCommandCatalog.Find("window.export-wavefront");
 
         Assert.NotNull(command);
-        Assert.Equal("Export Wavefront OBJ", command.Title);
+        Assert.Equal("Export to Wavefront .obj", command.Title);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
-        Assert.True(command.AllowMouse);
-        Assert.True(command.AllowScroll);
+        Assert.False(command.AllowMouse);
+        Assert.False(command.AllowScroll);
     }
 
     [Fact]
@@ -1788,12 +1789,12 @@ public class EditorCommandCatalogTests
         var command = EditorCommandCatalog.Find("window.export-image");
 
         Assert.NotNull(command);
-        Assert.Equal("Export Image PNG", command.Title);
+        Assert.Equal("Export to image", command.Title);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Window, command.Scope);
         Assert.True(command.AllowKeys);
-        Assert.True(command.AllowMouse);
-        Assert.True(command.AllowScroll);
+        Assert.False(command.AllowMouse);
+        Assert.False(command.AllowScroll);
     }
 
     [Fact]
