@@ -2076,6 +2076,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Normalize persisted draw-grid planner options before shape creation.
 - [ ] Port sector drawing options.
   - [x] Apply UDB-style map drawing overrides to newly drawn sectors.
+  - [x] Cover UDB-style upper and lower texture overrides for two-sided drawn sectors.
 - [ ] Port sector gradient tools.
   - [x] Add UDB-style selected-sector floor, ceiling, and brightness gradient model and editor commands.
   - [x] Add UDB-style UDMF sector surface light and light/fade color gradient model and editor commands.

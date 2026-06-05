@@ -63,6 +63,42 @@ public class SectorDrawingDefaultsTests
         Assert.All(sector.Sidedefs, side => Assert.Equal("MIDOPT", side.MidTexture));
     }
 
+    [Fact]
+    public void AppliesUpperAndLowerOverridesToRequiredTwoSidedParts()
+    {
+        var map = new MapSet();
+        var target = map.AddSector();
+        target.FloorHeight = -16;
+        target.CeilHeight = 128;
+        var neighbor = map.AddSector();
+        neighbor.FloorHeight = 0;
+        neighbor.CeilHeight = 64;
+        var v0 = map.AddVertex(new Vector2D(0, 0));
+        var v1 = map.AddVertex(new Vector2D(64, 0));
+        var line = map.AddLinedef(v0, v1);
+        var front = map.AddSidedef(line, true, target);
+        map.AddSidedef(line, false, neighbor);
+        map.BuildIndexes();
+        var options = new MapOptions
+        {
+            OverrideTopTexture = true,
+            DefaultTopTexture = "UPPEROPT",
+            OverrideBottomTexture = true,
+            DefaultBottomTexture = "LOWEROPT",
+            OverrideMiddleTexture = true,
+            DefaultWallTexture = "MIDOPT",
+        };
+
+        SectorDrawingDefaults.Apply(map, target, options, null);
+
+        Assert.True(front.HighRequired());
+        Assert.True(front.LowRequired());
+        Assert.False(front.MiddleRequired());
+        Assert.Equal("UPPEROPT", front.HighTexture);
+        Assert.Equal("LOWEROPT", front.LowTexture);
+        Assert.Equal("-", front.MidTexture);
+    }
+
     private static Sector CreateSquareSector(MapSet map)
     {
         var loop = new[]
