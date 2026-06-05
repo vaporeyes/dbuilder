@@ -300,6 +300,43 @@ public class ThingsFilterEvaluatorTests
     }
 
     [Fact]
+    public void UnsupportedDisplayModesEvaluateAsAlwaysLikeUdb()
+    {
+        var config = GameConfiguration.FromText("""
+            thingsfilters
+            {
+                low
+                {
+                    name = "Low";
+                    type = 3001;
+                    displaymode = -20;
+                }
+                high
+                {
+                    name = "High";
+                    type = 3001;
+                    displaymode = 20;
+                }
+            }
+            """);
+        var map = new MapSet();
+        var match = map.AddThing(new Vector2D(0, 0), 3001);
+        var miss = map.AddThing(new Vector2D(64, 0), 1);
+
+        var low = ThingsFilterEvaluator.Evaluate(map, config, config.ThingsFilters[0]);
+        var high = ThingsFilterEvaluator.Evaluate(map, config, config.ThingsFilters[1]);
+
+        Assert.Equal(new[] { match }, low.VisibleThings);
+        Assert.Equal(new[] { miss }, low.HiddenThings);
+        Assert.True(low.VisualVisibility[match]);
+        Assert.False(low.VisualVisibility[miss]);
+        Assert.Equal(low.VisibleThings, high.VisibleThings);
+        Assert.Equal(low.HiddenThings, high.HiddenThings);
+        Assert.Equal(low.VisualVisibility[match], high.VisualVisibility[match]);
+        Assert.Equal(low.VisualVisibility[miss], high.VisualVisibility[miss]);
+    }
+
+    [Fact]
     public void DraftUsesUdbDefaultsAndValidationRules()
     {
         var draft = new ThingsFilterDraft();

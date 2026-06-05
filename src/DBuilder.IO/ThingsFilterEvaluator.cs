@@ -28,8 +28,9 @@ public static class ThingsFilterEvaluator
         foreach (var thing in map.Things)
         {
             bool qualifies = Qualifies(thing, config, filter);
-            bool classicVisible = qualifies || filter.DisplayMode == (int)ThingsFilterDisplayMode.VisualModesOnly;
-            bool visualVisible = qualifies || filter.DisplayMode == (int)ThingsFilterDisplayMode.ClassicModesOnly;
+            int displayMode = SupportedDisplayMode(filter.DisplayMode);
+            bool classicVisible = qualifies || displayMode == (int)ThingsFilterDisplayMode.VisualModesOnly;
+            bool visualVisible = qualifies || displayMode == (int)ThingsFilterDisplayMode.ClassicModesOnly;
 
             if (classicVisible) visible.Add(thing);
             else hidden.Add(thing);
@@ -39,6 +40,11 @@ public static class ThingsFilterEvaluator
 
         return new ThingsFilterResult(visible, hidden, visualVisibility);
     }
+
+    private static int SupportedDisplayMode(int displayMode)
+        => Enum.IsDefined(typeof(ThingsFilterDisplayMode), displayMode)
+            ? displayMode
+            : (int)ThingsFilterDisplayMode.Always;
 
     public static bool Qualifies(Thing thing, GameConfiguration config, ThingsFilterInfo filter)
     {
