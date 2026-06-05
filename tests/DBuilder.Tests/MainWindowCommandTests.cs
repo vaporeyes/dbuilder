@@ -1333,6 +1333,17 @@ public sealed class MainWindowCommandTests
         Assert.Contains("\"window.nodes-viewer\" or \"window.nodesviewermode\" => NodesViewerMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.sound-propagation-mode\" or \"window.soundpropagationmode\" => SoundPropagationMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.sound-environment-mode\" or \"window.soundenvironmentmode\" => SoundEnvironmentsMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.create-prefab\" => SavePrefabMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.insert-prefab-file\" => InsertPrefabMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.insert-previous-prefab\" => InsertPreviousPrefabMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.apply-slope-arch\" => ApplySlopeArchMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.gradient-floor-heights\" or \"window.gradientfloors\" => GradientFloorHeightsMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.gradient-linedef-brightness\" => GradientLinedefBrightnessMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.gradient-interpolation-linear\" => GradientInterpolationLinearMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.toggle-automap-secret-line\" => ToggleAutomapSecretLineMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.toggle-automap-textured-hidden-sector\" => ToggleAutomapTexturedHiddenSectorMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.toggle-auto-clear-sidedef-textures\" => AutoClearSidedefTexturesMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.undo-redo-panel\" => UndoRedoPanelMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.things-filters-setup\" => ThingFilterMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.reference-manual\" => ReferenceManualMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.edit-mode-help\" => EditModeHelpMenuItem", code, StringComparison.Ordinal);
