@@ -164,6 +164,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Show ignored shortcut modifiers in the Help shortcut reference.
   - [x] Show stable action ids in the Help shortcut reference.
   - [x] Show UDB-style action descriptions in the Help shortcut reference.
+  - [x] Add UDB-style Reference Manual and About This Editing Mode Help menu actions.
 - [ ] Port toolbar/menu command synchronization.
   - [x] Synchronize menu and toolbar enabled state for undo, redo, save and delete commands.
   - [x] Synchronize menu and toolbar enabled state for map, archive, selection and sector-selection commands.

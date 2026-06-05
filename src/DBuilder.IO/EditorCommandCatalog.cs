@@ -58,6 +58,8 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.game-configurations", "Game Configurations", "Menu", EditorCommandScope.Window, AllowMouse: false, Description: "Shows the Game Configurations dialog which allows you to configure settings such as nodebuilder, testing program and resources."),
         new EditorCommandDescriptor("window.preferences", "Preferences", "Menu", EditorCommandScope.Window, AllowMouse: false, Description: "Shows the Preferences dialog."),
         new EditorCommandDescriptor("window.exit", "Exit", "Menu", EditorCommandScope.Window, AllowMouse: false),
+        new EditorCommandDescriptor("window.reference-manual", "Reference Manual", "Menu", EditorCommandScope.Window, AllowMouse: false),
+        new EditorCommandDescriptor("window.edit-mode-help", "About This Editing Mode", "Menu", EditorCommandScope.Window, AllowMouse: false),
         new EditorCommandDescriptor("window.shortcuts", "Shortcuts", "Menu", EditorCommandScope.Window, AllowMouse: false),
         new EditorCommandDescriptor("window.about", "About", "Menu", EditorCommandScope.Window, AllowMouse: false),
         new EditorCommandDescriptor("window.view-used-tags", "View Used Tags", "Menu", EditorCommandScope.Window, AllowMouse: false, Description: "Opens Tag Statistics form, which shows all tags, which are used in current map, and allows to create and edit tag labels."),

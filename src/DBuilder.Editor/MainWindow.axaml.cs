@@ -457,6 +457,8 @@ public partial class MainWindow : Window
         SetShortcutToolTip(ExportWavefrontMenuItem, "Export Wavefront OBJ", "window.export-wavefront");
         SetShortcutToolTip(ExportIdStudioMenuItem, "Export idStudio", "window.export-idstudio");
         SetShortcutToolTip(RejectViewerMenuItem, "Reject Explorer", "window.reject-explorer");
+        SetShortcutToolTip(ReferenceManualMenuItem, "Reference Manual", "window.reference-manual");
+        SetShortcutToolTip(EditModeHelpMenuItem, "About This Editing Mode", "window.edit-mode-help");
         SetShortcutToolTip(ShortcutsMenuItem, "Shortcuts", "window.shortcuts");
         SetShortcutToolTip(AboutMenuItem, "About", "window.about");
     }
@@ -1466,6 +1468,8 @@ public partial class MainWindow : Window
             case "window.game-configurations": OnLoadConfig(this, new RoutedEventArgs()); return true;
             case "window.preferences": OnSettings(this, new RoutedEventArgs()); return true;
             case "window.exit": OnExit(this, new RoutedEventArgs()); return true;
+            case "window.reference-manual": OnReferenceManual(this, new RoutedEventArgs()); return true;
+            case "window.edit-mode-help": OnEditModeHelp(this, new RoutedEventArgs()); return true;
             case "window.shortcuts": OnShortcuts(this, new RoutedEventArgs()); return true;
             case "window.about": OnAbout(this, new RoutedEventArgs()); return true;
             case "window.view-used-tags": OnTagStatistics(this, new RoutedEventArgs()); return true;
@@ -3958,6 +3962,24 @@ public partial class MainWindow : Window
     private async void OnAbout(object? sender, RoutedEventArgs e)
     {
         await new AboutWindow().ShowDialog(this);
+        MapView.Focus();
+    }
+
+    private void OnReferenceManual(object? sender, RoutedEventArgs e)
+    {
+        SetStatus("Reference Manual: introduction.html");
+        MapView.Focus();
+    }
+
+    private void OnEditModeHelp(object? sender, RoutedEventArgs e)
+    {
+        if (_map is null)
+        {
+            SetStatus("No map loaded.");
+            return;
+        }
+
+        SetStatus($"Editing mode help: {MapView.CurrentEditMode}");
         MapView.Focus();
     }
 
@@ -6783,6 +6805,7 @@ public partial class MainWindow : Window
             LowerFloor8MenuItem, RaiseFloor8MenuItem, LowerCeiling8MenuItem, RaiseBrightness8MenuItem, LowerBrightness8MenuItem, EditModeMenuItem, VerticesModeMenuItem,
             LinedefsModeMenuItem, SectorsModeMenuItem, ThingsModeMenuItem, FitMenuItem,
             GoToCoordinatesMenuItem, AutomapModeMenuItem, WadAuthorModeMenuItem, VisplaneExplorerModeMenuItem, TagStatisticsMenuItem, TagExplorerMenuItem, ThingStatisticsMenuItem, UndoRedoPanelMenuItem, CommentsPanelMenuItem, ToggleCommentsMenuItem, NodesViewerMenuItem, Toggle3DModeMenuItem,
+            EditModeHelpMenuItem,
             MoveCameraToCursorMenuItem, ToggleFullBrightnessMenuItem, ToggleHighlightMenuItem, ViewModeMenuItem, ViewModeWireframeMenuItem, ViewModeBrightnessMenuItem, ViewModeFloorsMenuItem, ViewModeCeilingsMenuItem, NextViewModeMenuItem, PreviousViewModeMenuItem,
             ModelRenderingMenuItem, ModelRenderNoneMenuItem, ModelRenderSelectionMenuItem, ModelRenderActiveFilterMenuItem, ModelRenderAllMenuItem, NextModelRenderModeMenuItem,
             ToggleSectorFillsMenuItem, ToggleThingsMenuItem, ToggleThingArrowsMenuItem, ToggleFixedThingsScaleMenuItem, ToggleAlwaysShowVerticesMenuItem,

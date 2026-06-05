@@ -317,6 +317,8 @@ public class EditorCommandCatalogTests
     [InlineData("window.game-configurations", "Game Configurations", "Menu")]
     [InlineData("window.preferences", "Preferences", "Menu")]
     [InlineData("window.exit", "Exit", "Menu")]
+    [InlineData("window.reference-manual", "Reference Manual", "Menu")]
+    [InlineData("window.edit-mode-help", "About This Editing Mode", "Menu")]
     [InlineData("window.shortcuts", "Shortcuts", "Menu")]
     [InlineData("window.about", "About", "Menu")]
     [InlineData("window.view-used-tags", "View Used Tags", "Menu")]

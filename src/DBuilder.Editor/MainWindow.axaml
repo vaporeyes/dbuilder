@@ -286,6 +286,8 @@
                 <MenuItem Header="Re_ject Viewer" x:Name="RejectViewerMenuItem" Click="OnRejectViewer" />
             </MenuItem>
             <MenuItem Header="_Help">
+                <MenuItem Header="_Reference Manual" x:Name="ReferenceManualMenuItem" Click="OnReferenceManual" />
+                <MenuItem Header="About This _Editing Mode" x:Name="EditModeHelpMenuItem" Click="OnEditModeHelp" />
                 <MenuItem Header="_Shortcuts..." x:Name="ShortcutsMenuItem" Click="OnShortcuts" />
                 <MenuItem Header="_About" x:Name="AboutMenuItem" Click="OnAbout" />
             </MenuItem>

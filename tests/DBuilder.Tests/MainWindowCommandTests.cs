@@ -16,6 +16,8 @@ public sealed class MainWindowCommandTests
     [InlineData("window.add-resource-directory", "OnAddResourceDirectory")]
     [InlineData("window.save-as-format", "OnSaveAsFormat")]
     [InlineData("window.exit", "OnExit")]
+    [InlineData("window.reference-manual", "OnReferenceManual")]
+    [InlineData("window.edit-mode-help", "OnEditModeHelp")]
     [InlineData("window.shortcuts", "OnShortcuts")]
     [InlineData("window.about", "OnAbout")]
     [InlineData("window.select-all", "OnSelectAll")]
@@ -1022,8 +1024,15 @@ public sealed class MainWindowCommandTests
 
         Assert.Contains("x:Name=\"ShortcutsMenuItem\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"AboutMenuItem\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"ReferenceManualMenuItem\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"EditModeHelpMenuItem\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ReferenceManualMenuItem, \"Reference Manual\", \"window.reference-manual\");", code, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(EditModeHelpMenuItem, \"About This Editing Mode\", \"window.edit-mode-help\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ShortcutsMenuItem, \"Shortcuts\", \"window.shortcuts\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(AboutMenuItem, \"About\", \"window.about\");", code, StringComparison.Ordinal);
+        Assert.Contains("case \"window.reference-manual\": OnReferenceManual(this, new RoutedEventArgs()); return true;", code, StringComparison.Ordinal);
+        Assert.Contains("case \"window.edit-mode-help\": OnEditModeHelp(this, new RoutedEventArgs()); return true;", code, StringComparison.Ordinal);
+        Assert.Contains("EditModeHelpMenuItem,", code, StringComparison.Ordinal);
     }
 
     [Fact]
