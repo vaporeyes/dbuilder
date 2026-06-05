@@ -498,6 +498,7 @@ public partial class MainWindow : Window
         SetShortcutToolTip(CleanUpGeometryButton, "Clean Up Geometry", "window.clean-up-geometry");
         SetShortcutToolTip(ReloadResourcesButton, "Reload Resources", "window.reload-resources");
         SetShortcutToolTip(TestMapButton, "Test Map", "window.test-map");
+        SetShortcutToolTip(TestMapFromViewButton, "Test Map from Current Position", "window.testmapfromview");
         SetShortcutToolTip(BuildBridgeButton, "Build Bridge", "window.build-bridge");
         SetShortcutToolTip(MakeDoorButton, "Make Door", "window.make-door");
         SetShortcutToolTip(BuildStairsButton, "Build Stairs", "window.build-stairs");
@@ -7232,7 +7233,7 @@ public partial class MainWindow : Window
             FitButton, Toggle3DModeButton, VerticesModeButton, LinedefsModeButton,
             SectorsModeButton, ThingsModeButton, InsertAtCursorButton, MakeSectorAtCursorButton, DrawSectorButton,
             DrawLinesButton, DrawCurveButton, DrawRectangleButton, DrawEllipseButton, DrawGridButton, CheckMapButton,
-            CleanUpGeometryButton, TestMapButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplyJitterButton, ApplyDirectionalShadingButton, ApplySlopeArchButton, ApplySlopesButton, SectorColorButton, DynamicLightColorButton, TagRangeButton, ImportObjTerrainButton, WadAuthorModeButton);
+            CleanUpGeometryButton, TestMapButton, TestMapFromViewButton, BuildBridgeButton, MakeDoorButton, BuildStairsButton, ApplyJitterButton, ApplyDirectionalShadingButton, ApplySlopeArchButton, ApplySlopesButton, SectorColorButton, DynamicLightColorButton, TagRangeButton, ImportObjTerrainButton, WadAuthorModeButton);
         SetEnabled(canSave, SaveMenuItem, SaveButton);
         SetEnabled(canInsertPreviousPrefab, InsertPreviousPrefabMenuItem);
         SetEnabled(canPlaceThings, PlaceThingsMenuItem);

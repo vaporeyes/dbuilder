@@ -408,6 +408,9 @@
                 <Button Classes="toolbarButton" ToolTip.Tip="Test Map" x:Name="TestMapButton" Click="OnTestMap">
                     <PathIcon Data="M7,4 L19,12 L7,20 Z" />
                 </Button>
+                <Button Classes="toolbarButton" ToolTip.Tip="Test Map from Current Position" x:Name="TestMapFromViewButton" Click="OnTestMapFromView">
+                    <PathIcon Data="M6,4 L18,12 L6,20 Z M18,5 L20,5 L20,9 L18,9 Z M18,15 L20,15 L20,19 L18,19 Z M3,11 L7,11 L7,13 L3,13 Z" />
+                </Button>
                 <Button Classes="toolbarButton" ToolTip.Tip="Build Bridge" x:Name="BuildBridgeButton" Click="OnBuildBridge">
                     <PathIcon Data="M4,16 C8,8 16,8 20,16 L18,18 C15,13 9,13 6,18 Z M7,16 L9,16 M11,14 L13,14 M15,16 L17,16" />
                 </Button>

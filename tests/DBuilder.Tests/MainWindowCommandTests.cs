@@ -983,9 +983,11 @@ public sealed class MainWindowCommandTests
 
         Assert.Contains("ApplyToolbarShortcutTooltips();", body, StringComparison.Ordinal);
         Assert.Contains("x:Name=\"OpenWadButton\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"TestMapFromViewButton\"", xaml, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(OpenWadButton, \"Open WAD\", \"window.open-map\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(SaveButton, \"Save WAD\", \"window.save\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(OpenMapButton, \"Open Map\", \"window.open-map-in-current-wad\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(TestMapFromViewButton, \"Test Map from Current Position\", \"window.testmapfromview\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(VerticesModeButton, \"Vertices Mode\", \"map2d.mode-vertices\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ApplyJitterButton, \"Randomize\", \"window.applyjitter\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ApplyDirectionalShadingButton, \"Apply Directional Shading\", \"window.applydirectionalshading\");", body, StringComparison.Ordinal);
@@ -1452,6 +1454,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("x:Name=\"TestMapFromViewMenuItem\"", xaml, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(TestMapFromViewMenuItem, \"Test map from current position\", \"window.testmapfromview\");", body, StringComparison.Ordinal);
         Assert.Contains("TestMapMenuItem, TestMapFromViewMenuItem, SoundPropagationMenuItem", body, StringComparison.Ordinal);
+        Assert.Contains("TestMapButton, TestMapFromViewButton, BuildBridgeButton", body, StringComparison.Ordinal);
         Assert.Contains("private void RebuildTestMapMenu()", body, StringComparison.Ordinal);
         Assert.Contains("TestMapMenuModel.Build(skills, _settings.NormalizedTestSkill, _settings.TestMonsters)", body, StringComparison.Ordinal);
         Assert.Contains("ToggleType = MenuItemToggleType.CheckBox", body, StringComparison.Ordinal);
