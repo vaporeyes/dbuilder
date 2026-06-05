@@ -1535,31 +1535,36 @@ localsidedeftextureoffsets = true;
         var second = map.AddVertex(new Vector2D(64, 0));
         var line = map.AddLinedef(first, second);
         var sector = map.AddSector();
-        map.AddSidedef(line, isFront: true, sector);
+        var side = map.AddSidedef(line, isFront: true, sector);
         var thing = map.AddThing(new Vector2D(16, 16), 3001);
         first.Selected = true;
         line.Selected = true;
+        side.Selected = true;
         sector.Selected = true;
         thing.Selected = true;
         var wrapper = new UdbScriptMapWrapper(map);
 
         wrapper.markSelectedVertices();
         wrapper.markSelectedLinedefs();
+        wrapper.markSelectedSidedefs();
         wrapper.markSelectedSectors();
         wrapper.markSelectedThings();
 
         Assert.Same(first, Assert.Single(wrapper.getMarkedVertices()).Vertex);
         Assert.Same(line, Assert.Single(wrapper.getMarkedLinedefs()).Linedef);
+        Assert.Same(side, Assert.Single(wrapper.getMarkedSidedefs()).Sidedef);
         Assert.Same(sector, Assert.Single(wrapper.getMarkedSectors()).Sector);
         Assert.Same(thing, Assert.Single(wrapper.getMarkedThings()).Thing);
 
         wrapper.markSelectedVertices(mark: false);
         wrapper.markSelectedLinedefs(mark: false);
+        wrapper.markSelectedSidedefs(mark: false);
         wrapper.markSelectedSectors(mark: false);
         wrapper.markSelectedThings(mark: false);
 
         Assert.Empty(wrapper.getMarkedVertices());
         Assert.Empty(wrapper.getMarkedLinedefs());
+        Assert.Empty(wrapper.getMarkedSidedefs());
         Assert.Empty(wrapper.getMarkedSectors());
         Assert.Empty(wrapper.getMarkedThings());
     }
@@ -1585,6 +1590,7 @@ localsidedeftextureoffsets = true;
         Assert.Same(first, Assert.Single(wrapper.getSelectedVertices()).Vertex);
         Assert.Same(second, Assert.Single(wrapper.getSelectedVertices(selected: false)).Vertex);
         Assert.Same(line, Assert.Single(wrapper.getSelectedLinedefs()).Linedef);
+        Assert.Same(side, Assert.Single(wrapper.getSelectedSidedefs()).Sidedef);
         Assert.Same(side, Assert.Single(wrapper.getSidedefsFromSelectedLinedefs()).Sidedef);
         Assert.Same(sector, Assert.Single(wrapper.getSelectedSectors()).Sector);
         Assert.Same(selectedThing, Assert.Single(wrapper.getSelectedThings()).Thing);
@@ -1616,7 +1622,7 @@ localsidedeftextureoffsets = true;
 
         Assert.Empty(wrapper.getSelectedVertices());
         Assert.Empty(wrapper.getSelectedLinedefs());
-        Assert.Empty(map.GetSelectedSidedefs());
+        Assert.Empty(wrapper.getSelectedSidedefs());
         Assert.Empty(wrapper.getSelectedSectors());
         Assert.Empty(wrapper.getSelectedThings());
 

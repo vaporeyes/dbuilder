@@ -3592,6 +3592,12 @@ public sealed class UdbScriptMapWrapper
         map.MarkSelectedLinedefs(selected: true, mark);
     }
 
+    public void markSelectedSidedefs(bool mark = true)
+    {
+        ThrowIfDisposed("markSelectedSidedefs");
+        map.MarkSelectedSidedefs(selected: true, mark);
+    }
+
     public void markSelectedSectors(bool mark = true)
     {
         ThrowIfDisposed("markSelectedSectors");
@@ -3696,6 +3702,15 @@ public sealed class UdbScriptMapWrapper
         return map.GetSelectedLinedefs(selected)
             .Where(linedef => !linedef.IsDisposed)
             .Select(linedef => new UdbScriptLinedefWrapper(linedef, map, grid, highlightedObject, mapFormat, config))
+            .ToArray();
+    }
+
+    public UdbScriptSidedefWrapper[] getSelectedSidedefs(bool selected = true)
+    {
+        ThrowIfDisposed("getSelectedSidedefs");
+        return map.GetSelectedSidedefs(selected)
+            .Where(sidedef => !sidedef.IsDisposed)
+            .Select(sidedef => new UdbScriptSidedefWrapper(sidedef, map, grid, highlightedObject, mapFormat, config))
             .ToArray();
     }
 
