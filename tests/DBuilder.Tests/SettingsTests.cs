@@ -199,6 +199,39 @@ public class SettingsTests
     }
 
     [Fact]
+    public void ExistingRecentFilesCapsVisibleRowsToConfiguredUdbLimit()
+    {
+        var s = new Settings
+        {
+            MaxRecentFiles = Settings.MinMaxRecentFiles,
+            RecentFiles = Enumerable.Range(0, Settings.MinMaxRecentFiles + 3)
+                .Select(i => $"/wad{i}.wad")
+                .ToList(),
+        };
+
+        Assert.Equal(
+            Enumerable.Range(0, Settings.MinMaxRecentFiles).Select(i => $"/wad{i}.wad"),
+            s.ExistingRecentFiles(_ => true));
+    }
+
+    [Fact]
+    public void ExistingRecentFilesCapsAfterSkippingMissingRows()
+    {
+        var s = new Settings
+        {
+            MaxRecentFiles = Settings.MinMaxRecentFiles,
+            RecentFiles = Enumerable.Range(0, Settings.MinMaxRecentFiles + 2)
+                .Select(i => $"/wad{i}.wad")
+                .Prepend("/missing.wad")
+                .ToList(),
+        };
+
+        Assert.Equal(
+            Enumerable.Range(0, Settings.MinMaxRecentFiles).Select(i => $"/wad{i}.wad"),
+            s.ExistingRecentFiles(path => path != "/missing.wad"));
+    }
+
+    [Fact]
     public void ExistingRecentMapsSkipsMissingArchivePaths()
     {
         var s = new Settings
@@ -213,6 +246,24 @@ public class SettingsTests
         var map = Assert.Single(s.ExistingRecentMaps(path => path.Contains("present")));
         Assert.Equal("MAP02", map.MapName);
         Assert.Equal("maps/b.wad", map.ArchivePath);
+    }
+
+    [Fact]
+    public void ExistingRecentMapsCapsVisibleRowsToConfiguredUdbLimit()
+    {
+        var s = new Settings
+        {
+            MaxRecentFiles = Settings.MinMaxRecentFiles,
+            RecentMaps = Enumerable.Range(0, Settings.MinMaxRecentFiles + 3)
+                .Select(i => new RecentMapReference { Path = $"/maps/{i}.wad", MapName = $"MAP{i:00}" })
+                .ToList(),
+        };
+
+        IReadOnlyList<RecentMapReference> maps = s.ExistingRecentMaps(_ => true);
+
+        Assert.Equal(Settings.MinMaxRecentFiles, maps.Count);
+        Assert.Equal("MAP00", maps[0].MapName);
+        Assert.Equal($"MAP{Settings.MinMaxRecentFiles - 1:00}", maps[^1].MapName);
     }
 
     [Fact]

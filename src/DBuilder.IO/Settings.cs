@@ -184,13 +184,19 @@ public sealed class Settings
     public IReadOnlyList<string> ExistingRecentFiles(Func<string, bool> fileExists)
     {
         RecentFiles ??= new();
-        return RecentFiles.Where(fileExists).ToArray();
+        return RecentFiles
+            .Where(fileExists)
+            .Take(NormalizedMaxRecentFiles)
+            .ToArray();
     }
 
     public IReadOnlyList<RecentMapReference> ExistingRecentMaps(Func<string, bool> fileExists)
     {
         RecentMaps ??= new();
-        return RecentMaps.Where(map => fileExists(map.Path)).ToArray();
+        return RecentMaps
+            .Where(map => fileExists(map.Path))
+            .Take(NormalizedMaxRecentFiles)
+            .ToArray();
     }
 
     public DataLocationList ResourcesForConfiguration(string configNameOrPath)
