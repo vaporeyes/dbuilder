@@ -2606,7 +2606,7 @@ public partial class MainWindow : Window
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
         int selected = CountSelection();
-        if (selected == 0) { SetStatus("Select elements before adding them to a group."); return; }
+        if (selected == 0) { SetStatus("Select elements before adding them to a group.", StatusHistoryKind.Warning); return; }
 
         CreateUndo($"Add selection to group {groupIndex + 1}");
         _map.AddSelectionToGroup(groupIndex);
@@ -2636,7 +2636,7 @@ public partial class MainWindow : Window
         if (_map is null) { SetStatus("No map loaded."); return; }
         int mask = MapSet.GroupMask(groupIndex);
         int grouped = CountGroup(mask);
-        if (grouped == 0) { SetStatus($"Group {groupIndex + 1} is empty."); return; }
+        if (grouped == 0) { SetStatus($"Group {groupIndex + 1} is empty.", StatusHistoryKind.Warning); return; }
 
         CreateUndo($"Clear group {groupIndex + 1}");
         _map.ClearGroup(mask);
@@ -2764,7 +2764,7 @@ public partial class MainWindow : Window
     {
         if (_mapFormat != MapFormat.Udmf)
         {
-            SetStatus("Flat alignment to linedefs is only available for UDMF maps.");
+            SetStatus("Flat alignment to linedefs is only available for UDMF maps.", StatusHistoryKind.Warning);
             return;
         }
 
@@ -2780,7 +2780,7 @@ public partial class MainWindow : Window
         if (_map is null || _undo is null) return;
         if (_map.SelectedGeometryVertices().Count == 0 && _map.SelectedThingsCount == 0)
         {
-            SetStatus("Select elements to transform first.");
+            SetStatus("Select elements to transform first.", StatusHistoryKind.Warning);
             return;
         }
         CreateUndo(desc);
@@ -2797,7 +2797,7 @@ public partial class MainWindow : Window
         if (_map is null || _undo is null) return;
         if (_map.SelectedGeometryVertices().Count == 0 && _map.SelectedThingsCount == 0)
         {
-            SetStatus("Select elements to transform first.");
+            SetStatus("Select elements to transform first.", StatusHistoryKind.Warning);
             return;
         }
         CreateUndo(desc);
@@ -2814,7 +2814,7 @@ public partial class MainWindow : Window
         var selected = _map.GetSelectedSectors();
         if (selected.Count < SectorGradient.MinimumSectorCount)
         {
-            SetStatus("Select at least 3 sectors first!");
+            SetStatus("Select at least 3 sectors first!", StatusHistoryKind.Warning);
             return;
         }
 
@@ -2844,14 +2844,14 @@ public partial class MainWindow : Window
         if (_map is null || _undo is null) return;
         if (_mapFormat != MapFormat.Udmf)
         {
-            SetStatus("Linedef brightness gradients are only available for UDMF maps.");
+            SetStatus("Linedef brightness gradients are only available for UDMF maps.", StatusHistoryKind.Warning);
             return;
         }
 
         var selected = _map.GetSelectedLinedefs();
         if (selected.Count < LinedefGradient.MinimumLinedefCount)
         {
-            SetStatus("Select at least 3 linedefs first!");
+            SetStatus("Select at least 3 linedefs first!", StatusHistoryKind.Warning);
             return;
         }
 
