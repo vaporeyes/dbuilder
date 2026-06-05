@@ -597,6 +597,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style singular and plural labels to map-load resource status text.
 - [ ] Port resource list warnings.
   - [x] Warn when configured required archives are missing or duplicated.
+  - [x] Match required archive warning metadata case-insensitively.
   - [x] Model UDB's map-resource warning for editing without resources.
   - [x] Use shared UDB-style test-exclusion defaults when adding map resources.
 - [ ] Port lazy and threaded resource loading.

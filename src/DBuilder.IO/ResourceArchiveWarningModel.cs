@@ -26,17 +26,17 @@ public static class ResourceArchiveWarningModel
         {
             foreach (var archive in configuration.RequiredArchives)
             {
-                if (!requiredArchives.Contains(archive.Name))
+                if (!requiredArchives.Contains(archive.Name, StringComparer.OrdinalIgnoreCase))
                     warnings.Add(MissingArchiveWarning(archive.Filename));
             }
 
             for (int i = 0; i < requiredArchives.Count; i++)
             {
-                if (requiredArchives.IndexOf(requiredArchives[i]) == i) continue;
+                if (requiredArchives.FindIndex(name => string.Equals(name, requiredArchives[i], StringComparison.OrdinalIgnoreCase)) == i) continue;
 
                 foreach (var archive in configuration.RequiredArchives)
                 {
-                    if (archive.Name == requiredArchives[i])
+                    if (string.Equals(archive.Name, requiredArchives[i], StringComparison.OrdinalIgnoreCase))
                         warnings.Add(DuplicateArchiveWarning(archive.Filename));
                 }
             }

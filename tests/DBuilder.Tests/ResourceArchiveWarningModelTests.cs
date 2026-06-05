@@ -65,6 +65,55 @@ public class ResourceArchiveWarningModelTests
     }
 
     [Fact]
+    public void BuildWarningsMatchesRequiredArchiveNamesIgnoringCase()
+    {
+        var config = GameConfiguration.FromText("""
+            requiredarchives
+            {
+                gzdoom { filename = "gzdoom.pk3"; }
+            }
+            """);
+        var resources = new DataLocationList
+        {
+            new(DataLocationType.Pk3, "/tmp/gzdoom.pk3")
+            {
+                RequiredArchives = new List<string> { "GZDoom" },
+            },
+        };
+
+        var warnings = ResourceArchiveWarningModel.BuildWarnings(config, resources);
+
+        Assert.Empty(warnings);
+    }
+
+    [Fact]
+    public void BuildWarningsReportsCaseInsensitiveDuplicateRequiredArchives()
+    {
+        var config = GameConfiguration.FromText("""
+            requiredarchives
+            {
+                gzdoom { filename = "gzdoom.pk3"; }
+            }
+            """);
+        var resources = new DataLocationList
+        {
+            new(DataLocationType.Pk3, "/tmp/gzdoom-a.pk3")
+            {
+                RequiredArchives = new List<string> { "GZDoom" },
+            },
+            new(DataLocationType.Pk3, "/tmp/gzdoom-b.pk3")
+            {
+                RequiredArchives = new List<string> { "gzdoom" },
+            },
+        };
+
+        var warnings = ResourceArchiveWarningModel.BuildWarnings(config, resources);
+
+        var warning = Assert.Single(warnings);
+        Assert.Contains("\"gzdoom.pk3\"", warning);
+    }
+
+    [Fact]
     public void BuildWarningsIgnoresAbsentConfiguration()
     {
         var warnings = ResourceArchiveWarningModel.BuildWarnings(null, new DataLocationList
