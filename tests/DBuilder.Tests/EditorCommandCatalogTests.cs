@@ -2740,32 +2740,33 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map3d.lower-sector-1", "Lower Floor/Ceiling/Thing by 1 mp")]
-    [InlineData("map3d.lowersector1", "Lower Floor/Ceiling/Thing by 1 mp")]
-    [InlineData("map3d.raise-sector-1", "Raise Floor/Ceiling/Thing by 1 mp")]
-    [InlineData("map3d.raisesector1", "Raise Floor/Ceiling/Thing by 1 mp")]
-    [InlineData("map3d.lower-sector-8", "Lower Floor/Ceiling/Thing by 8 mp")]
-    [InlineData("map3d.lowersector8", "Lower Floor/Ceiling/Thing by 8 mp")]
-    [InlineData("map3d.raise-sector-8", "Raise Floor/Ceiling/Thing by 8 mp")]
-    [InlineData("map3d.raisesector8", "Raise Floor/Ceiling/Thing by 8 mp")]
-    [InlineData("map3d.lower-sector-128", "Lower Floor/Ceiling/Thing by 128 mp")]
-    [InlineData("map3d.lowersector128", "Lower Floor/Ceiling/Thing by 128 mp")]
-    [InlineData("map3d.raise-sector-128", "Raise Floor/Ceiling/Thing by 128 mp")]
-    [InlineData("map3d.raisesector128", "Raise Floor/Ceiling/Thing by 128 mp")]
-    [InlineData("map3d.lower-map-element-by-grid-size", "Lower Floor/Ceiling/Thing by grid size")]
-    [InlineData("map3d.lowermapelementbygridsize", "Lower Floor/Ceiling/Thing by grid size")]
-    [InlineData("map3d.raise-map-element-by-grid-size", "Raise Floor/Ceiling/Thing by grid size")]
-    [InlineData("map3d.raisemapelementbygridsize", "Raise Floor/Ceiling/Thing by grid size")]
-    [InlineData("map3d.lower-sector-to-nearest", "Lower Floor/Ceiling/Thing to adjacent Sector/Thing")]
-    [InlineData("map3d.lowersectortonearest", "Lower Floor/Ceiling/Thing to adjacent Sector/Thing")]
-    [InlineData("map3d.raise-sector-to-nearest", "Raise Floor/Ceiling/Thing to adjacent Sector/Thing")]
-    [InlineData("map3d.raisesectortonearest", "Raise Floor/Ceiling/Thing to adjacent Sector/Thing")]
-    public void VisualHeightStepCommandsMatchUdbActionSurface(string id, string title)
+    [InlineData("map3d.lower-sector-1", "Lower Floor/Ceiling/Thing by 1 mp", "Lowers the targeted or selected floors/ceilings by 1 mp. This also lowers selected or targeted things.")]
+    [InlineData("map3d.lowersector1", "Lower Floor/Ceiling/Thing by 1 mp", "Lowers the targeted or selected floors/ceilings by 1 mp. This also lowers selected or targeted things.")]
+    [InlineData("map3d.raise-sector-1", "Raise Floor/Ceiling/Thing by 1 mp", "Raises the targeted or selected floors/ceilings by 1 mp. This also raises selected or targeted things.")]
+    [InlineData("map3d.raisesector1", "Raise Floor/Ceiling/Thing by 1 mp", "Raises the targeted or selected floors/ceilings by 1 mp. This also raises selected or targeted things.")]
+    [InlineData("map3d.lower-sector-8", "Lower Floor/Ceiling/Thing by 8 mp", "Lowers the targeted or selected floors/ceilings by 8 mp. This also lowers selected or targeted things.")]
+    [InlineData("map3d.lowersector8", "Lower Floor/Ceiling/Thing by 8 mp", "Lowers the targeted or selected floors/ceilings by 8 mp. This also lowers selected or targeted things.")]
+    [InlineData("map3d.raise-sector-8", "Raise Floor/Ceiling/Thing by 8 mp", "Raises the targeted or selected floors/ceilings by 8 mp. This also raises selected or targeted things.")]
+    [InlineData("map3d.raisesector8", "Raise Floor/Ceiling/Thing by 8 mp", "Raises the targeted or selected floors/ceilings by 8 mp. This also raises selected or targeted things.")]
+    [InlineData("map3d.lower-sector-128", "Lower Floor/Ceiling/Thing by 128 mp", "Lowers the targeted or selected floors/ceilings by 128 mp. This also lowers selected or targeted things.")]
+    [InlineData("map3d.lowersector128", "Lower Floor/Ceiling/Thing by 128 mp", "Lowers the targeted or selected floors/ceilings by 128 mp. This also lowers selected or targeted things.")]
+    [InlineData("map3d.raise-sector-128", "Raise Floor/Ceiling/Thing by 128 mp", "Raises the targeted or selected floors/ceilings by 128 mp. This also raises selected or targeted things.")]
+    [InlineData("map3d.raisesector128", "Raise Floor/Ceiling/Thing by 128 mp", "Raises the targeted or selected floors/ceilings by 128 mp. This also raises selected or targeted things.")]
+    [InlineData("map3d.lower-map-element-by-grid-size", "Lower Floor/Ceiling/Thing by grid size", "Lowers the targeted or selected floors/ceilings by the current grid size. This also lowers selected or targeted things.")]
+    [InlineData("map3d.lowermapelementbygridsize", "Lower Floor/Ceiling/Thing by grid size", "Lowers the targeted or selected floors/ceilings by the current grid size. This also lowers selected or targeted things.")]
+    [InlineData("map3d.raise-map-element-by-grid-size", "Raise Floor/Ceiling/Thing by grid size", "Raises the targeted or selected floors/ceilings by the current grid size. This also raises selected or targeted things.")]
+    [InlineData("map3d.raisemapelementbygridsize", "Raise Floor/Ceiling/Thing by grid size", "Raises the targeted or selected floors/ceilings by the current grid size. This also raises selected or targeted things.")]
+    [InlineData("map3d.lower-sector-to-nearest", "Lower Floor/Ceiling/Thing to adjacent Sector/Thing", "Lowers the targeted or selected floors/ceilings to match the height of adjacent sector. Hold Ctrl to lower to lowest surface in selection. Also drops targeted or selected things to the nearest floor or ceiling or on top of another thing.")]
+    [InlineData("map3d.lowersectortonearest", "Lower Floor/Ceiling/Thing to adjacent Sector/Thing", "Lowers the targeted or selected floors/ceilings to match the height of adjacent sector. Hold Ctrl to lower to lowest surface in selection. Also drops targeted or selected things to the nearest floor or ceiling or on top of another thing.")]
+    [InlineData("map3d.raise-sector-to-nearest", "Raise Floor/Ceiling/Thing to adjacent Sector/Thing", "Raises the targeted or selected floors/ceilings to match the height of adjacent sector. Hold Ctrl to raise to highest surface in selection. Also raises targeted or selected things to the nearest ceiling or floor or puts them on top of another thing.")]
+    [InlineData("map3d.raisesectortonearest", "Raise Floor/Ceiling/Thing to adjacent Sector/Thing", "Raises the targeted or selected floors/ceilings to match the height of adjacent sector. Hold Ctrl to raise to highest surface in selection. Also raises targeted or selected things to the nearest ceiling or floor or puts them on top of another thing.")]
+    public void VisualHeightStepCommandsMatchUdbActionSurface(string id, string title, string description)
     {
         var command = EditorCommandCatalog.Find(id);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal(id switch
         {
             "map3d.lower-sector-to-nearest" => "PageDown",
