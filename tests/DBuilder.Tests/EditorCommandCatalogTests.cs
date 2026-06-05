@@ -1553,9 +1553,16 @@ public class EditorCommandCatalogTests
         {
             var command = EditorCommandCatalog.Find($"window.{verb}-group-{group}");
             var udbAlias = EditorCommandCatalog.Find($"window.{rawVerb}group{group}");
+            string description = verb switch
+            {
+                "select" => $"Selects all geometry that was assigned to group {group}",
+                "assign" => $"Assigns the selected geometry to group {group}",
+                _ => $"Clears group {group}",
+            };
 
             Assert.NotNull(command);
             Assert.Equal($"{titlePrefix} {group}", command.Title);
+            Assert.Equal(description, command.Description);
             Assert.Equal(EditorCommandScope.Window, command.Scope);
             Assert.True(command.AllowKeys);
             Assert.True(command.AllowMouse);
@@ -1563,6 +1570,7 @@ public class EditorCommandCatalogTests
             Assert.StartsWith(gesturePrefix, command.DefaultGesture, StringComparison.Ordinal);
             Assert.NotNull(udbAlias);
             Assert.Equal(command.Title, udbAlias.Title);
+            Assert.Equal(command.Description, udbAlias.Description);
             Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
             Assert.Equal(command.CategoryTitle, udbAlias.CategoryTitle);
         }
