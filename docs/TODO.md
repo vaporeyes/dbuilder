@@ -1546,6 +1546,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match MODELDEF model display to actor sprite frames and disabled frame indexes.
   - [x] Build UDB-style MODELDEF display parts with model paths, skin paths, surface skins, frames, and transform metadata.
   - [x] Share MODELDEF, VOXELDEF, sprite, and marker display-source planning for 2D and 3D billboard fallback rendering.
+  - [x] Collapse zoomed-out 2D thing sprites to overview markers and cull overlapping marker cells.
   - [x] Add UDB-style model render mode gating and MODELDEF/thing transform planning for future mesh rendering.
   - [x] Add UDB-style model render mode cycling, persistence, menu state, and 3D billboard fallback gating.
   - [x] Add UDB-style Toggle models rendering action alias for model render mode cycling.
