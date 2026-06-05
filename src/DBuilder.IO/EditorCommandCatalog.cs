@@ -115,7 +115,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.paste-properties", "Paste Properties", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.classicpasteproperties", "Paste Properties", "Ctrl/Cmd+Alt+V", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.paste-properties-options", "Paste Properties With Options", "Menu", EditorCommandScope.Window, AllowScroll: true),
-        new EditorCommandDescriptor("window.classicpastepropertieswithoptions", "Paste Properties With Options", "Ctrl/Cmd+Shift+V", EditorCommandScope.Window, AllowScroll: true),
+        new EditorCommandDescriptor("window.classicpastepropertieswithoptions", "Paste Properties Special", "Ctrl/Cmd+Shift+V", EditorCommandScope.Window, AllowScroll: true, Description: "Pastes the copied properties onto the highlighted or selected objects allowing you to choose the properties to paste."),
         new EditorCommandDescriptor("window.delete", "Remove selection", "Delete", EditorCommandScope.Window, Description: "Deletes the highlighted or selected items, depending on the editing mode you are in."),
         new EditorCommandDescriptor("window.deleteitem", "Remove selection", "Delete", EditorCommandScope.Window, Description: "Deletes the highlighted or selected items, depending on the editing mode you are in."),
         new EditorCommandDescriptor("window.select-all", "Select all", "Menu", EditorCommandScope.Window),

@@ -1502,7 +1502,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("SetShortcutToolTip(CopyMenuItem, \"Copy selection\", \"window.copy\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(CopyPropertiesMenuItem, \"Copy Properties\", \"window.classiccopyproperties\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(PastePropertiesMenuItem, \"Paste Properties\", \"window.classicpasteproperties\");", body, StringComparison.Ordinal);
-        Assert.Contains("SetShortcutToolTip(PastePropertiesOptionsMenuItem, \"Paste Properties With Options\", \"window.classicpastepropertieswithoptions\");", body, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(PastePropertiesOptionsMenuItem, \"Paste Properties Special\", \"window.classicpastepropertieswithoptions\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(SelectSimilarMenuItem, \"Select Similar Map Elements\", \"window.select-similar\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(SnapSelectionToGridMenuItem, \"Snap Selected Map Elements to Grid\", \"window.snap-selection-to-grid\");", body, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(LowerFloor8MenuItem, \"Lower Floor by 8 mp\", \"map2d.lowerfloor8\");", body, StringComparison.Ordinal);

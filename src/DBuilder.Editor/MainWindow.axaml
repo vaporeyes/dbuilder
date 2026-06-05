@@ -87,7 +87,7 @@
                 <Separator />
                 <MenuItem Header="Copy _Properties" x:Name="CopyPropertiesMenuItem" Click="OnCopyProperties" />
                 <MenuItem Header="Paste Properties" x:Name="PastePropertiesMenuItem" Click="OnPasteProperties" />
-                <MenuItem Header="Paste Properties With _Options..." x:Name="PastePropertiesOptionsMenuItem" Click="OnPastePropertiesWithOptions" />
+                <MenuItem Header="Paste Properties _Special..." x:Name="PastePropertiesOptionsMenuItem" Click="OnPastePropertiesWithOptions" />
                 <Separator />
                 <MenuItem Header="_Delete selection" x:Name="DeleteMenuItem" Click="OnDelete" />
                 <MenuItem Header="Select _all" x:Name="SelectAllMenuItem" Click="OnSelectAll" />

@@ -864,7 +864,7 @@ public class EditorCommandCatalogTests
     [InlineData("window.paste-properties", "Paste Properties", "Menu")]
     [InlineData("window.classicpasteproperties", "Paste Properties", "Ctrl/Cmd+Alt+V")]
     [InlineData("window.paste-properties-options", "Paste Properties With Options", "Menu")]
-    [InlineData("window.classicpastepropertieswithoptions", "Paste Properties With Options", "Ctrl/Cmd+Shift+V")]
+    [InlineData("window.classicpastepropertieswithoptions", "Paste Properties Special", "Ctrl/Cmd+Shift+V")]
     public void PastePropertiesCommandsMatchUdbActionSurface(string commandId, string title, string defaultGesture)
     {
         var command = EditorCommandCatalog.Find(commandId);
@@ -876,6 +876,8 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
+        if (commandId == "window.classicpastepropertieswithoptions")
+            Assert.Equal("Pastes the copied properties onto the highlighted or selected objects allowing you to choose the properties to paste.", command.Description);
     }
 
     [Theory]
