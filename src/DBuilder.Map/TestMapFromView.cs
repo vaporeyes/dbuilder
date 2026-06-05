@@ -36,11 +36,15 @@ public static class TestMapFromView
         if (sector.CeilHeight - sector.FloorHeight < requiredHeight)
             return new TestMapFromViewResult(false, null, "Can't test from current position: sector is too low!");
 
+        if (placement.VisualMode && FindVisualPlayerStart(source) is null)
+            return new TestMapFromViewResult(false, null, "Can't test from current position: no Player 1 start found!");
+
         MapSet map = source.Clone();
         map.BuildIndexes();
         Sector clonedSector = map.Sectors[source.Sectors.IndexOf(sector)];
-        Thing start = FindPlayerStart(map, usesHubPlayerStartArgs)
-            ?? map.AddThing(placement.Position, PlayerStartType);
+        Thing start = placement.VisualMode
+            ? FindVisualPlayerStart(map)!
+            : FindPlayerStart(map, usesHubPlayerStartArgs) ?? map.AddThing(placement.Position, PlayerStartType);
 
         double z = placement.VisualMode
             ? Math.Clamp(placement.Height - clonedSector.FloorHeight, 0, clonedSector.CeilHeight - clonedSector.FloorHeight - VisualPlayerHeight)
@@ -62,4 +66,7 @@ public static class TestMapFromView
             .OrderByDescending(pair => pair.index)
             .Select(pair => pair.thing)
             .FirstOrDefault();
+
+    private static Thing? FindVisualPlayerStart(MapSet map)
+        => map.Things.FirstOrDefault(thing => thing.Type == PlayerStartType);
 }

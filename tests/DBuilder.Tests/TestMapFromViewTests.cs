@@ -84,6 +84,7 @@ public sealed class TestMapFromViewTests
     public void PrepareAppliesVisualHeightAndAngle()
     {
         MapSet map = BuildBoxMap(floor: 16, ceiling: 96);
+        map.AddThing(new Vector2D(16, 16), TestMapFromView.PlayerStartType);
 
         TestMapFromViewResult result = TestMapFromView.Prepare(
             map,
@@ -98,6 +99,49 @@ public sealed class TestMapFromViewTests
         Thing start = Assert.Single(result.Map!.Things);
         Assert.Equal(39, start.Height);
         Assert.Equal(180, start.Angle);
+    }
+
+    [Fact]
+    public void PrepareRejectsVisualModeWithoutPlayerStart()
+    {
+        MapSet map = BuildBoxMap();
+
+        TestMapFromViewResult result = TestMapFromView.Prepare(
+            map,
+            new TestMapFromViewPlacement(
+                new Vector2D(64, 64),
+                0,
+                Angle2D.DegToRad(90),
+                VisualMode: true),
+            usesHubPlayerStartArgs: false);
+
+        Assert.False(result.Success);
+        Assert.Null(result.Map);
+        Assert.Equal("Can't test from current position: no Player 1 start found!", result.Message);
+        Assert.Empty(map.Things);
+    }
+
+    [Fact]
+    public void PrepareUsesFirstVisualPlayerStartWithoutHubArgFiltering()
+    {
+        MapSet map = BuildBoxMap();
+        Thing first = map.AddThing(new Vector2D(8, 8), TestMapFromView.PlayerStartType);
+        first.Args[0] = 2;
+        map.AddThing(new Vector2D(16, 16), TestMapFromView.PlayerStartType);
+
+        TestMapFromViewResult result = TestMapFromView.Prepare(
+            map,
+            new TestMapFromViewPlacement(
+                new Vector2D(64, 64),
+                0,
+                Angle2D.DegToRad(90),
+                VisualMode: true),
+            usesHubPlayerStartArgs: true);
+
+        Assert.True(result.Success, result.Message);
+        Assert.Equal(new Vector2D(64, 64), result.Map!.Things[0].Position);
+        Assert.Equal(new Vector2D(16, 16), result.Map.Things[1].Position);
+        Assert.Equal(new Vector2D(8, 8), first.Position);
     }
 
     private static MapSet BuildBoxMap(int floor = 0, int ceiling = 128)
