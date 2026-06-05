@@ -192,6 +192,10 @@ public static class MapFormatConverter
             linedef.Args[4] = linedef.Args[0] / 256;
             linedef.Args[0] %= 256;
         }
+        else if (linedef.Args[0] < 0)
+        {
+            return;
+        }
         else if (linedef.Tag is > 0 and <= 255)
         {
             linedef.Args[4] = linedef.Tag;

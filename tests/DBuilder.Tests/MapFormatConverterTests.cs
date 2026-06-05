@@ -369,6 +369,24 @@ thingflagstranslation
     }
 
     [Fact]
+    public void UdmfSector3DFloorKeepsLineIdOutOfArg4WhenTargetTagIsNegative()
+    {
+        var gc = GameConfiguration.FromText(Cfg);
+        var map = MapWithLine(0, 0);
+        var line = map.Linedefs[0];
+        line.Action = 160;
+        line.Args[0] = -1;
+        line.Tag = 12;
+
+        MapFormatConverter.Convert(map, MapFormat.Udmf, MapFormat.Hexen, gc);
+
+        Assert.Equal(-1, line.Args[0]);
+        Assert.Equal(0, line.Args[4]);
+        Assert.Equal(0, line.Args[1]);
+        Assert.Equal(0, line.Tag);
+    }
+
+    [Fact]
     public void LargeUdmfLineIdWithoutActionConvertsToHexenLineSetIdentification()
     {
         var gc = GameConfiguration.FromText(Cfg);
