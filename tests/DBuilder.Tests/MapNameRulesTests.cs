@@ -26,6 +26,16 @@ public class MapNameRulesTests
         Assert.Equal("MAP01", MapNameRules.NormalizeMarker(input));
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData(null)]
+    [InlineData("---")]
+    public void IsValidMarkerRejectsEmptyInputBeforeFallback(string? input)
+    {
+        Assert.False(MapNameRules.IsValidMarker(input));
+    }
+
     [Fact]
     public void IsValidMarkerRejectsConfiguredMapLumpNamesAfterNormalization()
     {

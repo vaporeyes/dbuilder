@@ -12,6 +12,19 @@ public static class MapNameRules
     public static string NormalizeMarker(string? value, string fallback = "MAP01")
     {
         string source = string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+        string marker = MarkerChars(source);
+        return marker.Length == 0 ? NormalizeMarker(fallback, "MAP01") : marker;
+    }
+
+    public static bool IsValidMarker(string? value, GameConfiguration? config = null)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return false;
+        string marker = MarkerChars(value.Trim());
+        return marker.Length > 0 && config?.ValidateMapName(marker) != false;
+    }
+
+    private static string MarkerChars(string source)
+    {
         var builder = new StringBuilder(MaxClassicNameLength);
         foreach (char ch in source.ToUpperInvariant())
         {
@@ -19,13 +32,7 @@ public static class MapNameRules
             if (IsMarkerChar(ch)) builder.Append(ch);
         }
 
-        return builder.Length == 0 ? NormalizeMarker(fallback, "MAP01") : builder.ToString();
-    }
-
-    public static bool IsValidMarker(string? value, GameConfiguration? config = null)
-    {
-        string marker = NormalizeMarker(value);
-        return config?.ValidateMapName(marker) != false;
+        return builder.ToString();
     }
 
     private static bool IsMarkerChar(char ch)
