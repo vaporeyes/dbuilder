@@ -12,7 +12,7 @@ public static class CenterOnCoordinatesModel
     {
         double value = double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsed)
             ? parsed
-            : fallback;
+            : (int)fallback;
         var limits = MapFormatConstraints.CoordinateLimits(format);
         return Math.Round(Math.Clamp(value, limits.MinCoordinate, limits.MaxCoordinate));
     }

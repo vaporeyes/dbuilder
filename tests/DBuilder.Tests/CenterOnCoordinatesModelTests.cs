@@ -18,8 +18,8 @@ public sealed class CenterOnCoordinatesModelTests
     }
 
     [Fact]
-    public void ParseCoordinateFallsBackBeforeRoundingAndClamping()
+    public void ParseCoordinateUsesIntegerFallbackLikeUdb()
     {
-        Assert.Equal(4, CenterOnCoordinatesModel.ParseCoordinate("not a number", fallback: 3.6, MapFormat.Doom));
+        Assert.Equal(3, CenterOnCoordinatesModel.ParseCoordinate("not a number", fallback: 3.6, MapFormat.Doom));
     }
 }
