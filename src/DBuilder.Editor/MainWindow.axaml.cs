@@ -2336,7 +2336,7 @@ public partial class MainWindow : Window
         if (_map is null) { SetStatus("No map loaded."); return; }
         if (CountSelectionInCurrentMode() == 0)
         {
-            SetStatus($"Select one or more {MapView.CurrentEditMode.ToString().ToLowerInvariant()} first.", StatusHistoryKind.Warning);
+            SetStatus("This action requires a selection!", StatusHistoryKind.Warning);
             return;
         }
 

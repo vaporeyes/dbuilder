@@ -1186,7 +1186,7 @@ public sealed class MainWindowCommandTests
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
 
-        Assert.Contains("SetStatus($\"Select one or more {MapView.CurrentEditMode.ToString().ToLowerInvariant()} first.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(\"This action requires a selection!\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
         Assert.Contains("SetStatus($\"No similar {MapView.CurrentEditMode.ToString().ToLowerInvariant()} found.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
         Assert.Contains("SetStatus(\"This action requires a selection!\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
         Assert.Contains("SetStatus(error, StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
