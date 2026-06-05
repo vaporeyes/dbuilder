@@ -36,7 +36,27 @@ public class SectorBuilderTests
         Assert.Equal(4, map.Linedefs.Count);
         Assert.Equal(4, map.Sidedefs.Count);
         Assert.Equal(4, sector!.Sidedefs.Count);
+        Assert.True(sector.Marked);
         Assert.All(map.Sidedefs, sd => Assert.Same(sector, sd.Sector));
+    }
+
+    [Fact]
+    public void CreatesMarkedSectorFromTracedSidesLikeUdb()
+    {
+        var map = new MapSet();
+        var loop = Square(map, 64, ccw: true);
+        var sides = new List<LinedefSide>();
+        for (int i = 0; i < loop.Count; i++)
+        {
+            Linedef line = map.AddLinedef(loop[i], loop[(i + 1) % loop.Count]);
+            sides.Add(new LinedefSide(line, true));
+        }
+
+        Sector sector = SectorBuilder.CreateSectorFromSides(map, sides)!;
+
+        Assert.True(sector.Marked);
+        Assert.Equal(4, map.Sidedefs.Count);
+        Assert.All(map.Sidedefs, side => Assert.Same(sector, side.Sector));
     }
 
     [Fact]

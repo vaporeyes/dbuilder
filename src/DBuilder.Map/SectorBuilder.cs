@@ -33,6 +33,7 @@ public static class SectorBuilder
         if (SignedArea(verts) > 0) verts.Reverse();
 
         var sector = map.AddSector();
+        sector.Marked = true;
         if (copyFrom != null) CopyProperties(copyFrom, sector);
 
         int n = verts.Count;
@@ -63,6 +64,7 @@ public static class SectorBuilder
     {
         if (sides.Count == 0) return null;
         var sector = map.AddSector();
+        sector.Marked = true;
         if (copyFrom != null) CopyProperties(copyFrom, sector);
 
         foreach (var ls in sides)
