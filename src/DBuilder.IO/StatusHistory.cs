@@ -6,7 +6,17 @@ using System.Collections.Generic;
 
 namespace DBuilder.IO;
 
-public sealed record StatusHistoryEntry(string Message, DateTimeOffset Timestamp);
+public enum StatusHistoryKind
+{
+    Ready,
+    Selection,
+    Action,
+    Info,
+    Busy,
+    Warning,
+}
+
+public sealed record StatusHistoryEntry(string Message, DateTimeOffset Timestamp, StatusHistoryKind Kind = StatusHistoryKind.Info);
 
 public sealed class StatusHistory
 {
@@ -38,10 +48,10 @@ public sealed class StatusHistory
         if (_entries.Count > Capacity) _entries.RemoveRange(Capacity, _entries.Count - Capacity);
     }
 
-    public void Add(string message)
+    public void Add(string message, StatusHistoryKind kind = StatusHistoryKind.Info)
     {
         if (string.IsNullOrWhiteSpace(message)) return;
-        _entries.Insert(0, new StatusHistoryEntry(message.Trim(), _clock()));
+        _entries.Insert(0, new StatusHistoryEntry(message.Trim(), _clock(), kind));
         if (_entries.Count > Capacity) _entries.RemoveRange(Capacity, _entries.Count - Capacity);
     }
 

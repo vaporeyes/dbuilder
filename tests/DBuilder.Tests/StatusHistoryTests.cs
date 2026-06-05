@@ -54,6 +54,7 @@ public class StatusHistoryTests
 
         Assert.Equal("second", history.Entries[0].Message);
         Assert.Equal("first", history.Entries[1].Message);
+        Assert.Equal(StatusHistoryKind.Info, history.Entries[0].Kind);
         Assert.Equal(timestamp, history.Entries[0].Timestamp);
         Assert.Equal("2 recent status messages.", history.HeaderText);
     }
@@ -85,6 +86,28 @@ public class StatusHistoryTests
 
         Assert.Equal(2, history.Capacity);
         Assert.Equal(new[] { "three", "two" }, history.Entries.Select(e => e.Message));
+    }
+
+    [Fact]
+    public void AddStoresUdbStyleStatusKind()
+    {
+        var history = new StatusHistory();
+
+        history.Add("saved", StatusHistoryKind.Action);
+        history.Add("blocked", StatusHistoryKind.Warning);
+
+        Assert.Equal(StatusHistoryKind.Warning, history.Entries[0].Kind);
+        Assert.Equal(StatusHistoryKind.Action, history.Entries[1].Kind);
+    }
+
+    [Fact]
+    public void StatusHistoryWindowShowsStatusKindColumn()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/StatusHistoryWindow.cs"));
+
+        Assert.Contains("AddText(grid, \"Kind\", 1, Brushes.LightSkyBlue, FontWeight.Bold);", body, StringComparison.Ordinal);
+        Assert.Contains("AddText(grid, entry.Kind.ToString(), 1, Brushes.LightSkyBlue);", body, StringComparison.Ordinal);
+        Assert.Contains("ColumnDefinitions = new ColumnDefinitions(\"150,90,*\")", body, StringComparison.Ordinal);
     }
 
     [Fact]

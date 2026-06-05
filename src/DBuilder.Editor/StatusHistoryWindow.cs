@@ -71,7 +71,8 @@ public sealed class StatusHistoryWindow : Window
     {
         var grid = RowGrid();
         AddText(grid, "Time", 0, Brushes.LightSkyBlue, FontWeight.Bold);
-        AddText(grid, "Message", 1, Brushes.LightSkyBlue, FontWeight.Bold);
+        AddText(grid, "Kind", 1, Brushes.LightSkyBlue, FontWeight.Bold);
+        AddText(grid, "Message", 2, Brushes.LightSkyBlue, FontWeight.Bold);
         return grid;
     }
 
@@ -79,12 +80,13 @@ public sealed class StatusHistoryWindow : Window
     {
         var grid = RowGrid();
         AddText(grid, entry.Timestamp.LocalDateTime.ToString("g", CultureInfo.CurrentCulture), 0, Brushes.Khaki);
-        AddText(grid, entry.Message, 1, new SolidColorBrush(Color.FromRgb(0xd0, 0xd8, 0xe0)));
+        AddText(grid, entry.Kind.ToString(), 1, Brushes.LightSkyBlue);
+        AddText(grid, entry.Message, 2, new SolidColorBrush(Color.FromRgb(0xd0, 0xd8, 0xe0)));
         return grid;
     }
 
     private static Grid RowGrid()
-        => new() { ColumnDefinitions = new ColumnDefinitions("150,*") };
+        => new() { ColumnDefinitions = new ColumnDefinitions("150,90,*") };
 
     private static void AddText(Grid grid, string text, int column, IBrush brush, FontWeight weight = default)
     {
