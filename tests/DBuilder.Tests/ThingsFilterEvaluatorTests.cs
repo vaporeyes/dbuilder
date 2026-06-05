@@ -2,6 +2,7 @@
 // ABOUTME: Covers scalar matching, category lookup, fields, inversion, and display mode visibility.
 
 using DBuilder.Geometry;
+using DBuilder.Editor;
 using DBuilder.IO;
 using DBuilder.Map;
 
@@ -574,5 +575,32 @@ public class ThingsFilterEvaluatorTests
         Assert.Contains("choices.FindIndex(c => IsActiveFilter(c.Filter, activeFilter))", body, StringComparison.Ordinal);
         Assert.Contains("string.Equals(choice.Key, active.Key, StringComparison.Ordinal)", body, StringComparison.Ordinal);
         Assert.DoesNotContain("ReferenceEquals(c.Filter, activeFilter)", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ThingFilterWindowBuildsNestedCategoryLabelsLikeUdb()
+    {
+        const string cfg = """
+            thingtypes
+            {
+                monsters
+                {
+                    title = "Monsters";
+
+                    bosses
+                    {
+                        title = "Bosses";
+                        3003 = "Baron of Hell";
+                    }
+                }
+            }
+            """;
+        GameConfiguration config = GameConfiguration.FromText(cfg);
+
+        IReadOnlyList<ThingFilterCategoryChoice> choices = ThingFilterWindow.CategoryChoices(config);
+
+        ThingFilterCategoryChoice choice = Assert.Single(choices);
+        Assert.Equal("monsters.bosses", choice.Key);
+        Assert.Equal("Monsters / Bosses", choice.Label);
     }
 }

@@ -3661,14 +3661,7 @@ public partial class MainWindow : Window
     private void OnThingFilter(object? sender, RoutedEventArgs e)
     {
         if (_config is null || _config.Things.Count == 0) { SetStatus("Load a game config to filter thing categories.", StatusHistoryKind.Warning); return; }
-        var cats = new List<string>();
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var t in _config.Things.Values)
-        {
-            string key = MapControl.ThingCategoryKey(t.Category);
-            if (seen.Add(key)) cats.Add(key);
-        }
-        cats.Sort(StringComparer.OrdinalIgnoreCase);
+        IReadOnlyList<ThingFilterCategoryChoice> cats = ThingFilterWindow.CategoryChoices(_config);
 
         var win = new ThingFilterWindow(cats, MapView.IsThingCategoryHidden, _config.ThingsFilters, MapView.ActiveThingsFilter);
         win.FilterSelected += filter =>

@@ -9,6 +9,8 @@ using DBuilder.IO;
 
 namespace DBuilder.Editor;
 
+public sealed record ThingFilterCategoryChoice(string Key, string Label);
+
 public sealed class ThingFilterWindow : Window
 {
     /// <summary>Raised with (categoryKey, hidden) when a category checkbox is toggled.</summary>
@@ -17,6 +19,15 @@ public sealed class ThingFilterWindow : Window
 
     public ThingFilterWindow(
         IReadOnlyList<string> categories,
+        Func<string, bool> isHidden,
+        IReadOnlyList<ThingsFilterInfo> filters,
+        ThingsFilterInfo? activeFilter)
+        : this(categories.Select(category => new ThingFilterCategoryChoice(category, category)).ToList(), isHidden, filters, activeFilter)
+    {
+    }
+
+    public ThingFilterWindow(
+        IReadOnlyList<ThingFilterCategoryChoice> categories,
         Func<string, bool> isHidden,
         IReadOnlyList<ThingsFilterInfo> filters,
         ThingsFilterInfo? activeFilter)
@@ -47,10 +58,10 @@ public sealed class ThingFilterWindow : Window
 
         stack.Children.Add(new TextBlock { Text = "Show thing categories:", Foreground = Brushes.LightSkyBlue, Margin = new Avalonia.Thickness(0, 0, 0, 4) });
 
-        foreach (var cat in categories)
+        foreach (var category in categories)
         {
-            string key = cat;
-            var cb = new CheckBox { Content = cat, IsChecked = !isHidden(cat) };
+            string key = category.Key;
+            var cb = new CheckBox { Content = category.Label, IsChecked = !isHidden(key) };
             cb.IsCheckedChanged += (_, _) => CategoryToggled?.Invoke(key, cb.IsChecked != true);
             stack.Children.Add(cb);
         }
@@ -60,6 +71,36 @@ public sealed class ThingFilterWindow : Window
 
     private static bool IsActiveFilter(ThingsFilterInfo? choice, ThingsFilterInfo? active)
         => choice != null && active != null && string.Equals(choice.Key, active.Key, StringComparison.Ordinal);
+
+    public static IReadOnlyList<ThingFilterCategoryChoice> CategoryChoices(GameConfiguration config)
+    {
+        var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (ThingTypeInfo thing in config.Things.Values)
+            used.Add(MapControl.ThingCategoryKey(thing.Category));
+
+        return used
+            .Select(key => new ThingFilterCategoryChoice(key, CategoryLabel(key, config.ThingCategories)))
+            .OrderBy(choice => choice.Label, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private static string CategoryLabel(string key, IReadOnlyDictionary<string, ThingCategoryInfo> categories)
+    {
+        if (key == MapControl.ThingCategoryKey("")) return key;
+        if (!categories.TryGetValue(key, out ThingCategoryInfo? category)) return key;
+
+        string title = string.IsNullOrWhiteSpace(category.Title) ? LastCategorySegment(key) : category.Title;
+        if (string.IsNullOrEmpty(category.ParentKey) || !categories.ContainsKey(category.ParentKey))
+            return title;
+
+        return CategoryLabel(category.ParentKey, categories) + " / " + title;
+    }
+
+    private static string LastCategorySegment(string key)
+    {
+        int dot = key.LastIndexOf('.');
+        return dot >= 0 ? key[(dot + 1)..] : key;
+    }
 
     private sealed class FilterChoice
     {
