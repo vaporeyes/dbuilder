@@ -85,6 +85,12 @@ public sealed class ShortcutHelpModelTests
         Assert.Contains(gesture.SelectMany(section => section.Rows), row => row.Command.Id == "window.save");
         Assert.Contains(gesture, section => section.TotalRows > section.Rows.Count);
 
+        var actionDescription = ShortcutHelpModel.BuildSections(
+            EditorCommandCatalog.All,
+            EditorCommandCatalog.DefaultShortcuts,
+            "opened source WAD");
+        Assert.Contains(actionDescription.SelectMany(section => section.Rows), row => row.Command.Id == "window.save");
+
         var modifiers = ShortcutHelpModel.BuildSections(
             EditorCommandCatalog.All,
             EditorCommandCatalog.DefaultShortcuts,
@@ -124,6 +130,20 @@ public sealed class ShortcutHelpModelTests
     }
 
     [Fact]
+    public void ShortcutRowsExposeUdbStyleActionDescriptions()
+    {
+        var sections = ShortcutHelpModel.BuildSections(
+            EditorCommandCatalog.All,
+            EditorCommandCatalog.DefaultShortcuts,
+            filter: "opened source WAD");
+
+        ShortcutHelpRow save = Assert.Single(sections.SelectMany(section => section.Rows));
+        Assert.Equal("window.save", save.Command.Id);
+        Assert.Equal("Saves the current map to the opened source WAD file.", save.DescriptionText);
+        Assert.Equal(save.Command.Description, save.DescriptionText);
+    }
+
+    [Fact]
     public void ShortcutRowsShowStableActionIds()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/ShortcutsWindow.cs"));
@@ -146,6 +166,8 @@ public sealed class ShortcutHelpModelTests
         Assert.Contains("ShortcutColumnHeader", body, StringComparison.Ordinal);
         Assert.Contains("OptionColumnHeader", body, StringComparison.Ordinal);
         Assert.Contains("CommandColumnHeader", body, StringComparison.Ordinal);
+        Assert.Contains("DescriptionColumnHeader", body, StringComparison.Ordinal);
+        Assert.Contains("Text = row.DescriptionText", body, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -204,7 +226,7 @@ public sealed class ShortcutHelpModelTests
     public void SectionCountTextDescribesFilteredAndUnfilteredRows()
     {
         var command = EditorCommandCatalog.Find("window.save")!;
-        var row = new ShortcutHelpRow(command, "Ctrl/Cmd+S", "");
+        var row = new ShortcutHelpRow(command, "Ctrl/Cmd+S", "", command.HelpDescription);
         var section = new ShortcutHelpSection("File and configuration", "Project commands.", [row], true, 12);
 
         Assert.Equal("1 shortcut", ShortcutHelpModel.SectionCountText(section, searching: false));

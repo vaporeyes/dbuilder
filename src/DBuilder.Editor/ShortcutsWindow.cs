@@ -17,6 +17,7 @@ public sealed class ShortcutsWindow : Window
     private const string ShortcutColumnHeader = "Shortcut";
     private const string OptionColumnHeader = "Options";
     private const string CommandColumnHeader = "Command";
+    private const string DescriptionColumnHeader = "Description";
 
     private readonly IReadOnlyList<EditorShortcutBinding> _bindings;
     private readonly StackPanel _sections = new() { Spacing = 8 };
@@ -191,12 +192,13 @@ public sealed class ShortcutsWindow : Window
     {
         var grid = new Grid
         {
-            ColumnDefinitions = new ColumnDefinitions("150,110,*"),
+            ColumnDefinitions = new ColumnDefinitions("135,95,190,*"),
             Margin = new Avalonia.Thickness(0, 0, 0, 2),
         };
         grid.Children.Add(HeaderText(ShortcutColumnHeader, 0));
         grid.Children.Add(HeaderText(OptionColumnHeader, 1));
         grid.Children.Add(HeaderText(CommandColumnHeader, 2));
+        grid.Children.Add(HeaderText(DescriptionColumnHeader, 3));
         return new Border
         {
             Background = PanelBrush,
@@ -223,7 +225,7 @@ public sealed class ShortcutsWindow : Window
     {
         var grid = new Grid
         {
-            ColumnDefinitions = new ColumnDefinitions("150,110,*"),
+            ColumnDefinitions = new ColumnDefinitions("135,95,190,*"),
             Margin = new Avalonia.Thickness(0, 1),
         };
         grid.Children.Add(new TextBlock
@@ -264,6 +266,16 @@ public sealed class ShortcutsWindow : Window
         });
         Grid.SetColumn(description, 2);
         grid.Children.Add(description);
+
+        var help = new TextBlock
+        {
+            Text = row.DescriptionText,
+            Foreground = MutedBrush,
+            FontSize = 12,
+            TextWrapping = TextWrapping.Wrap,
+        };
+        Grid.SetColumn(help, 3);
+        grid.Children.Add(help);
 
         return new Border
         {

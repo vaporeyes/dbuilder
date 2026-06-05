@@ -3,7 +3,11 @@
 
 namespace DBuilder.IO;
 
-public sealed record ShortcutHelpRow(EditorCommandDescriptor Command, string GestureText, string ModifierText);
+public sealed record ShortcutHelpRow(
+    EditorCommandDescriptor Command,
+    string GestureText,
+    string ModifierText,
+    string DescriptionText);
 
 public sealed record ShortcutHelpSection(
     string Title,
@@ -41,7 +45,11 @@ public static class ShortcutHelpModel
         {
             var allRows = commands
                 .Where(command => string.Equals(GroupTitle(command), title, StringComparison.Ordinal))
-                .Select(command => new ShortcutHelpRow(command, EditorCommandCatalog.GestureText(command.Id, bindings), ModifierText(command)))
+                .Select(command => new ShortcutHelpRow(
+                    command,
+                    EditorCommandCatalog.GestureText(command.Id, bindings),
+                    ModifierText(command),
+                    command.HelpDescription))
                 .Where(row => row.GestureText != "-")
                 .OrderBy(row => row.Command.Title, StringComparer.Ordinal)
                 .ToArray();
@@ -107,7 +115,8 @@ public static class ShortcutHelpModel
             || Contains(row.Command.Id, token)
             || Contains(ScopeTitle(row.Command.Scope), token)
             || Contains(row.GestureText, token)
-            || Contains(row.ModifierText, token));
+            || Contains(row.ModifierText, token)
+            || Contains(row.DescriptionText, token));
     }
 
     public static string ModifierText(EditorCommandDescriptor command)
