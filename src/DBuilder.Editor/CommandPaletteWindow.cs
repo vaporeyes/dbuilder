@@ -118,7 +118,7 @@ public sealed class CommandPaletteWindow : Window
             _groups.Children.Add(Group(group));
 
         if (_groups.Children.Count == 0)
-            _groups.Children.Add(new TextBlock { Text = "No commands found.", Foreground = MutedBrush, Margin = new Avalonia.Thickness(2, 12) });
+            _groups.Children.Add(new TextBlock { Text = "No results found", Foreground = MutedBrush, Margin = new Avalonia.Thickness(2, 12) });
 
         int matchCount = groups.Sum(group => group.Rows.Count);
         _matchSummary.Text = text.Length == 0

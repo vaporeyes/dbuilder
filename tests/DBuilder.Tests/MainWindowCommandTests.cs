@@ -1314,6 +1314,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("RunCommandFromPalette", code, StringComparison.Ordinal);
         Assert.Contains("CommandPaletteModel.BuildGroups", palette, StringComparison.Ordinal);
         Assert.Contains("Watermark = \"Search commands\"", palette, StringComparison.Ordinal);
+        Assert.Contains("Text = \"No results found\"", palette, StringComparison.Ordinal);
         Assert.Contains("Key.Enter", palette, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ToggleAutomapSecretLineMenuItem, \"Toggle Selected Line Secret\", \"window.toggle-automap-secret-line\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ExportObjectMenuItem, \"Export Object OBJ\", \"window.export-object\");", code, StringComparison.Ordinal);
