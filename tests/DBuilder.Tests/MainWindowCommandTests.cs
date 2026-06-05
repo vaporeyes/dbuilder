@@ -841,10 +841,21 @@ public sealed class MainWindowCommandTests
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
 
         Assert.Contains("bool hasSelectedThingInThingsMode = hasSelectedThing && MapView.CurrentEditMode == MapControl.EditMode.Things;", body, StringComparison.Ordinal);
-        Assert.Contains("SetEnabled(hasSelectedThing, AlignThingsToWallMenuItem);\n        SetEnabled(hasSelectedThingInThingsMode, FilterSelectedThingsMenuItem);", body, StringComparison.Ordinal);
+        Assert.Contains("SetEnabled(hasSelectedThingInThingsMode, AlignThingsToWallMenuItem);\n        SetEnabled(hasSelectedThingInThingsMode, FilterSelectedThingsMenuItem);", body, StringComparison.Ordinal);
         Assert.Contains("if (MapView.CurrentEditMode != MapControl.EditMode.Things)", body, StringComparison.Ordinal);
         Assert.Contains("SetStatus(\"Filter Selected Things is only available in Things mode.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
         Assert.Contains("\"window.filter-selected-things\" or \"window.filterselectedthings\" => FilterSelectedThingsMenuItem", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AlignThingsToWallAvailabilityReflectsThingsModeLikeUdb()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("bool hasSelectedThingInThingsMode = hasSelectedThing && MapView.CurrentEditMode == MapControl.EditMode.Things;", body, StringComparison.Ordinal);
+        Assert.Contains("SetEnabled(hasSelectedThingInThingsMode, AlignThingsToWallMenuItem);\n        SetEnabled(hasSelectedThingInThingsMode, FilterSelectedThingsMenuItem);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(\"Align Things to Wall is only available in Things mode.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("\"window.align-things-to-wall\" => AlignThingsToWallMenuItem", body, StringComparison.Ordinal);
     }
 
     [Fact]

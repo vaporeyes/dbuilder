@@ -2759,6 +2759,12 @@ public partial class MainWindow : Window
 
     private void AlignThingsToWall()
     {
+        if (MapView.CurrentEditMode != MapControl.EditMode.Things)
+        {
+            SetStatus("Align Things to Wall is only available in Things mode.", StatusHistoryKind.Warning);
+            return;
+        }
+
         string status = MapView.AlignSelectedThingsToWall();
         UpdateInfo();
         MapView.Focus();
@@ -7268,7 +7274,7 @@ public partial class MainWindow : Window
             ScaleUpMenuItem, ScaleDownMenuItem);
         SetEnabled(canAlignTextures, AlignTexturesMenuItem);
         SetEnabled(hasSelectedLinedefWithFront, AlignHorizontalMenuItem, AlignVerticalMenuItem, FitSelectedTexturesMenuItem);
-        SetEnabled(hasSelectedThing, AlignThingsToWallMenuItem);
+        SetEnabled(hasSelectedThingInThingsMode, AlignThingsToWallMenuItem);
         SetEnabled(hasSelectedThingInThingsMode, FilterSelectedThingsMenuItem);
         SetEnabled(canEditSectorColor, SectorColorMenuItem, SectorColorButton);
         SetEnabled(hasSelectedInternalDynamicLight, DynamicLightColorMenuItem, DynamicLightColorButton);
