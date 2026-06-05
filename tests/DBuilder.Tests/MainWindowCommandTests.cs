@@ -1112,6 +1112,16 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void PrefabGuardsUseWarningStatusKind()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("SetStatus(\"Select something to save as a prefab.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(\"Open a map first.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(\"No previous prefab file available.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void EditMenuTooltipsRefreshFromEffectiveShortcutBindings()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));

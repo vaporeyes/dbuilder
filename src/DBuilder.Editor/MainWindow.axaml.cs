@@ -2894,7 +2894,7 @@ public partial class MainWindow : Window
     {
         if (_map is null) { SetStatus("No map loaded."); return; }
         var data = MapView.GetSelectionPrefab();
-        if (data is null) { SetStatus("Select something to save as a prefab."); return; }
+        if (data is null) { SetStatus("Select something to save as a prefab.", StatusHistoryKind.Warning); return; }
         var top = GetTopLevel(this);
         if (top is null) return;
         var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
@@ -2912,7 +2912,7 @@ public partial class MainWindow : Window
     // Inserts a .prefab file at the cursor (undoable via the EditBegun hook).
     private async void OnInsertPrefab(object? sender, RoutedEventArgs e)
     {
-        if (_map is null) { SetStatus("Open a map first."); return; }
+        if (_map is null) { SetStatus("Open a map first.", StatusHistoryKind.Warning); return; }
         var top = GetTopLevel(this);
         if (top is null) return;
         var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
@@ -2932,10 +2932,10 @@ public partial class MainWindow : Window
 
     private void OnInsertPreviousPrefab(object? sender, RoutedEventArgs e)
     {
-        if (_map is null) { SetStatus("Open a map first."); return; }
+        if (_map is null) { SetStatus("Open a map first.", StatusHistoryKind.Warning); return; }
         if (string.IsNullOrWhiteSpace(_lastPrefabPath) || !System.IO.File.Exists(_lastPrefabPath))
         {
-            SetStatus("No previous prefab file available.");
+            SetStatus("No previous prefab file available.", StatusHistoryKind.Warning);
             return;
         }
 
