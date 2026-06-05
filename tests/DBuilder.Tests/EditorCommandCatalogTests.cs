@@ -1699,21 +1699,26 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map2d.verticesmode", "Vertices Mode", "V")]
-    [InlineData("map2d.linedefsmode", "Linedefs Mode", "L")]
-    [InlineData("map2d.sectorsmode", "Sectors Mode", "S")]
-    [InlineData("map2d.thingsmode", "Things Mode", "T")]
-    public void ClassicModeAliasesMatchUdbActionSurface(string id, string title, string gesture)
+    [InlineData("map2d.mode-vertices", "Vertices mode", "1", "Switches to vertices editing mode.", false)]
+    [InlineData("map2d.verticesmode", "Vertices Mode", "V", "Switches to vertices editing mode.", true)]
+    [InlineData("map2d.mode-linedefs", "Linedefs mode", "2", "Switches to linedefs editing mode.", false)]
+    [InlineData("map2d.linedefsmode", "Linedefs Mode", "L", "Switches to linedefs editing mode.", true)]
+    [InlineData("map2d.mode-sectors", "Sectors mode", "3", "Switches to sectors editing mode.", false)]
+    [InlineData("map2d.sectorsmode", "Sectors Mode", "S", "Switches to sectors editing mode.", true)]
+    [InlineData("map2d.mode-things", "Things mode", "4", "Switches to things editing mode.", false)]
+    [InlineData("map2d.thingsmode", "Things Mode", "T", "Switches to things editing mode.", true)]
+    public void ClassicModeAliasesMatchUdbActionSurface(string id, string title, string gesture, string description, bool allowScroll)
     {
         var command = EditorCommandCatalog.Find(id);
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal(gesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
-        Assert.True(command.AllowScroll);
+        Assert.Equal(allowScroll, command.AllowScroll);
     }
 
     [Theory]
