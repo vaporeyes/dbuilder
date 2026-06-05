@@ -768,10 +768,14 @@ public sealed class MainWindowCommandTests
     public void ColorPickerCommandAvailabilityReflectsMapFormatAndSelection()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        string xaml = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml"));
 
         Assert.Contains("bool canEditSectorColor = ColorPickerModel.CanEditSectorColors(_mapFormat == MapFormat.Udmf) && hasSelectedSector;", body, StringComparison.Ordinal);
         Assert.Contains("SetEnabled(canEditSectorColor, SectorColorMenuItem, SectorColorButton);", body, StringComparison.Ordinal);
         Assert.Contains("SetEnabled(hasSelectedInternalDynamicLight, DynamicLightColorMenuItem, DynamicLightColorButton);", body, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"ToggleLightPanelMenuItem\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(ToggleLightPanelMenuItem, \"Open Color Picker\", \"window.togglelightpannel\");", body, StringComparison.Ordinal);
+        Assert.Contains("SectorColorMenuItem, DynamicLightColorMenuItem, ToggleLightPanelMenuItem, TagRangeMenuItem", body, StringComparison.Ordinal);
         Assert.Contains("private void OnToggleLightPanel(object? sender, RoutedEventArgs e)", body, StringComparison.Ordinal);
         Assert.Contains("ColorPickerModel.ToggleLightPanelDecision(ColorPickerToggleContext())", body, StringComparison.Ordinal);
         Assert.Contains("private ColorPickerToggleContext ColorPickerToggleContext()", body, StringComparison.Ordinal);
@@ -1379,6 +1383,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("\"window.tag-range\" or \"window.rangetagselection\" => TagRangeMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.sector-color\" => SectorColorMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.dynamic-light-color\" => DynamicLightColorMenuItem", code, StringComparison.Ordinal);
+        Assert.Contains("\"window.togglelightpannel\" => ToggleLightPanelMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.browse-floor-flats\" => BrowseFloorFlatsMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.blockmap-explorer\" or \"window.blockmapexplorermode\" => BlockmapExplorerMenuItem", code, StringComparison.Ordinal);
         Assert.Contains("\"window.nodes-viewer\" or \"window.nodesviewermode\" => NodesViewerMenuItem", code, StringComparison.Ordinal);

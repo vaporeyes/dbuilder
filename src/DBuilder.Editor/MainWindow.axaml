@@ -280,6 +280,7 @@
                 </MenuItem>
                 <MenuItem Header="Sector _Color..." x:Name="SectorColorMenuItem" Click="OnSectorColor" />
                 <MenuItem Header="Dynamic _Light Color..." x:Name="DynamicLightColorMenuItem" Click="OnDynamicLightColor" />
+                <MenuItem Header="Open Color _Picker" x:Name="ToggleLightPanelMenuItem" Click="OnToggleLightPanel" />
                 <MenuItem Header="Tag _Range..." x:Name="TagRangeMenuItem" Click="OnTagRange" />
                 <MenuItem Header="_Image Example" x:Name="ImageExampleMenuItem" ToggleType="CheckBox" Click="OnImageExample" />
                 <MenuItem Header="Import _OBJ Terrain..." x:Name="ImportObjTerrainMenuItem" Click="OnImportObjTerrain" />

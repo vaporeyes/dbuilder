@@ -1673,6 +1673,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style singular and plural labels to selected-sector color status text.
   - [x] Add UDB-style Color Picker toggle routing and warning metadata.
   - [x] Route editor Color Picker toggle through UDB-style mode and selection decisions.
+  - [x] Add a Tools menu action for the Color Picker toggle.
 - [ ] Port `CommentsPanel`.
   - [x] Add UDB-style comment grouping over vertex, linedef, sidedef, sector, and thing UDMF fields.
   - [x] Add UDB-style comment selection targets and view-area calculation.
