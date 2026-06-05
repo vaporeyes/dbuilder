@@ -749,8 +749,8 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map3d.visual-edit", "Edit", "Enter", EditorCommandScope.Map3D, Description: "Edits the properties of the selected items or drags the selected items."),
         new EditorCommandDescriptor("map3d.visualedit", "Edit", "Enter", EditorCommandScope.Map3D, Description: "Edits the properties of the selected items or drags the selected items."),
         new EditorCommandDescriptor("map3d.edit-properties", "Edit properties", "Enter", EditorCommandScope.Map3D, Description: "Edits the properties of the selected items or drags the selected items."),
-        new EditorCommandDescriptor("map3d.delete-target", "Delete Item", "Delete", EditorCommandScope.Map3D, Description: "Deletes the highlighted or selected items, depending on the editing mode you are in."),
-        new EditorCommandDescriptor("map3d.deleteitem", "Delete Item", "Delete", EditorCommandScope.Map3D, Description: "Deletes the highlighted or selected items, depending on the editing mode you are in."),
+        new EditorCommandDescriptor("map3d.delete-target", "Delete Item", "Delete", EditorCommandScope.Map3D, AllowScroll: true, Description: "Deletes the highlighted or selected items, depending on the editing mode you are in."),
+        new EditorCommandDescriptor("map3d.deleteitem", "Delete Item", "Delete", EditorCommandScope.Map3D, AllowScroll: true, Description: "Deletes the highlighted or selected items, depending on the editing mode you are in."),
         new EditorCommandDescriptor("map3d.toggle-2d", "Back to 2D mode", "Tab", EditorCommandScope.Map3D),
     }.Concat(UdbScriptActions.CommandDescriptors).ToArray();
 

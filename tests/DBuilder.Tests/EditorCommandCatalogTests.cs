@@ -3145,10 +3145,12 @@ public class EditorCommandCatalogTests
         Assert.Equal("Deletes the highlighted or selected items, depending on the editing mode you are in.", command.Description);
         Assert.Equal("Delete", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
+        Assert.True(command.AllowScroll);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
         Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
+        Assert.Equal(command.AllowScroll, udbAlias.AllowScroll);
     }
 
     [Theory]
