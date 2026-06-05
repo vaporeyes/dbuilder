@@ -3099,6 +3099,23 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void ClassicEditPropertiesStableCommandCarriesUdbDescription()
+    {
+        var command = EditorCommandCatalog.Find("map2d.edit-properties");
+        var udbAlias = EditorCommandCatalog.Find("map2d.classicedit");
+
+        Assert.NotNull(command);
+        Assert.NotNull(udbAlias);
+        Assert.Equal("Edit properties", command.Title);
+        Assert.Equal("Double-click", command.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, command.Scope);
+        Assert.Equal(udbAlias.Description, command.Description);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.False(command.AllowScroll);
+    }
+
+    [Fact]
     public void VisualDeleteCommandMatchesUdbDeleteItemAction()
     {
         var command = EditorCommandCatalog.Find("map3d.delete-target");
