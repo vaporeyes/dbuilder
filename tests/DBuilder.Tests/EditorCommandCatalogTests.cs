@@ -2949,6 +2949,9 @@ public class EditorCommandCatalogTests
         Assert.Equal(
             EditorCommandCatalog.ShortcutReleasePrefix(EditorCommandScope.Map2D, "OemPlus"),
             EditorCommandCatalog.ShortcutReleasePrefix(EditorCommandScope.Map2D, "+"));
+        Assert.Equal(
+            EditorCommandCatalog.ShortcutPressKey(EditorCommandScope.Map2D, "D", accelerator: true, shift: true, alt: true),
+            EditorCommandCatalog.ShortcutPressKey(EditorCommandScope.Map2D, "D"));
     }
 
     [Fact]

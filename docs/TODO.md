@@ -229,6 +229,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Reflect active view and draw toggle state in menu checkmarks.
   - [x] Reflect Info Panel visibility in its menu checkmark.
   - [x] Suppress repeated keydown dispatch for non-repeatable commands.
+  - [x] Track repeated keydown state by UDB-style modifier-stripped key identity.
   - [x] Show repeatable command state in the Help shortcut reference.
 - [ ] Port command availability rules for selection, mode, and map state.
   - [x] Gate selection commands by exact selection, transformable selection, and sidedef availability.

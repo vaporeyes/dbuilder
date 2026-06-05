@@ -1277,7 +1277,7 @@ public static class EditorCommandCatalog
     public static bool IsRepeatable(string commandId) => Find(commandId)?.Repeat ?? false;
 
     public static string ShortcutPressKey(EditorCommandScope scope, string key, bool accelerator = false, bool shift = false, bool alt = false)
-        => $"{scope}:{NormalizeKey(key)}:{accelerator}:{shift}:{alt}";
+        => $"{scope}:{NormalizeKey(key)}:";
 
     public static string ShortcutReleasePrefix(EditorCommandScope scope, string key)
         => $"{scope}:{NormalizeKey(key)}:";
