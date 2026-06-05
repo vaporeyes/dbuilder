@@ -476,6 +476,29 @@ public class UdbScriptDiscoveryTests
     }
 
     [Fact]
+    public void DiscoverySortsFoldersAndScriptsForStableUdbDockerOrder()
+    {
+        string app = TempDir();
+        try
+        {
+            string scripts = Path.Combine(app, "UDBScript", "Scripts");
+            Directory.CreateDirectory(Path.Combine(scripts, "Zulu"));
+            Directory.CreateDirectory(Path.Combine(scripts, "Alpha"));
+            File.WriteAllText(Path.Combine(scripts, "zeta.js"), "`#name Zeta Script`;");
+            File.WriteAllText(Path.Combine(scripts, "alpha.js"), "`#name Alpha Script`;");
+
+            UdbScriptDirectory root = UdbScriptDiscovery.DiscoverFromAppPath(app);
+
+            Assert.Equal(new[] { "Alpha", "Zulu" }, root.Directories.Select(directory => directory.Name).ToArray());
+            Assert.Equal(new[] { "Alpha Script", "Zeta Script" }, root.Scripts.Select(script => script.Name).ToArray());
+        }
+        finally
+        {
+            Directory.Delete(app, recursive: true);
+        }
+    }
+
+    [Fact]
     public void MissingScriptDirectoryProducesEmptyRoot()
     {
         string dir = Path.Combine(Path.GetTempPath(), "dbuilder_missing_udbscript_" + Guid.NewGuid().ToString("N"));

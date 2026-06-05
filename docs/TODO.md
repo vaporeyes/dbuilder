@@ -2261,6 +2261,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript top-level host message dialog and runner prompt hook.
 - [x] Add UDBScript top-level host API property surface metadata.
 - [ ] Port script discovery and execution.
+  - [x] Discover UDBScript folders and scripts in stable docker order.
 - [ ] Port script options.
 - [ ] Port script docker UI integration.
   - [x] Show effective UDBScript slot hotkeys in the script docker.

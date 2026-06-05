@@ -103,6 +103,7 @@ public static class UdbScriptDiscovery
 
         var directories = Directory.EnumerateDirectories(scriptsPath)
             .Where(path => !Path.GetFileName(path).StartsWith(".", StringComparison.Ordinal))
+            .OrderBy(path => Path.GetFileName(path), StringComparer.Ordinal)
             .Select(Discover)
             .ToArray();
 
@@ -110,6 +111,7 @@ public static class UdbScriptDiscovery
             .Select(LoadScriptWithRetry)
             .Where(result => result.Succeeded && result.Script is not null)
             .Select(result => result.Script!)
+            .OrderBy(script => script.Name, StringComparer.Ordinal)
             .ToArray();
 
         return new UdbScriptDirectory(scriptsPath, name, HashPath(scriptsPath), directories, scripts);
