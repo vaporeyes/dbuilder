@@ -489,7 +489,9 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.gridinc", "Increase grid size", "]", EditorCommandScope.Map2D, Repeat: true),
         new EditorCommandDescriptor("map2d.finish-draw", "Finish Drawing", "Enter", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.finishdraw", "Finish Drawing", "Enter", EditorCommandScope.Map2D, AllowScroll: true),
+        new EditorCommandDescriptor("map2d.acceptmode", "Accept Action", "Enter", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.cancel-draw", "Cancel drawing", "Esc", EditorCommandScope.Map2D),
+        new EditorCommandDescriptor("map2d.cancelmode", "Cancel Action", "Esc", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.toggle-3d", "Enter 3D mode", "Tab", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.gzdbvisualmode", "Visual Mode", "Q", EditorCommandScope.Map2D, AllowScroll: true, DisregardShift: true, DisregardAccelerator: true),
 

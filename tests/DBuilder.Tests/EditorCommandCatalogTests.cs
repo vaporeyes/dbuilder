@@ -2286,6 +2286,8 @@ public class EditorCommandCatalogTests
     [InlineData("map2d.removefirstpoint", "Remove First Vertex", "Ctrl/Cmd+Backspace", false, false, false)]
     [InlineData("map2d.finish-draw", "Finish Drawing", "Enter", false, false, false)]
     [InlineData("map2d.finishdraw", "Finish Drawing", "Enter", false, false, false)]
+    [InlineData("map2d.acceptmode", "Accept Action", "Enter", false, false, false)]
+    [InlineData("map2d.cancelmode", "Cancel Action", "Esc", false, false, false)]
     public void DrawSessionCommandsMatchUdbActionSurface(
         string id,
         string title,

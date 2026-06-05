@@ -586,6 +586,8 @@ public sealed class MapControlCommandTests
     [InlineData("map2d.removepoint", "RemoveDrawPoint(_drawPoints.Count - 1)")]
     [InlineData("map2d.removefirstpoint", "RemoveDrawPoint(0)")]
     [InlineData("map2d.finishdraw", "FinishDraw()")]
+    [InlineData("map2d.acceptmode", "FinishDraw()")]
+    [InlineData("map2d.cancelmode", "ExitDrawModes()")]
     [InlineData("map2d.insertitem", "InsertAtCursor()")]
     [InlineData("map2d.makesectormode", "MakeSectorAtCursor()")]
     [InlineData("map2d.placevisualstart", "PlaceVisualStart()")]
