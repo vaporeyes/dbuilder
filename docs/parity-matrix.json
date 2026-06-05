@@ -69,13 +69,13 @@
       "udbArea": "Source/Core/IO",
       "status": "partial",
       "dbuilderLocation": "DBuilder.IO",
-      "notes": "Doom, Hexen, and UDMF map loading and writing have focused compatibility coverage, including invalid element filtering, unsigned binary fields, UDMF block and field order, custom fields, stream facades, map conversion, config-aware WAD and PK3 embedded-WAD map discovery, and PK3/WAD resource IO. Directory and PK3 resource options expose root textures and flats like UDB, and nested directory WAD high-resolution replacements participate in priority order. Classic texture composition honors UDB patch offset compatibility flags and WAD patch fallback ordering around flat ranges. Full universal IO parity remains incomplete."
+      "notes": "Doom, Hexen, and UDMF map loading and writing have focused compatibility coverage, including invalid element filtering, unsigned binary fields, UDMF block and field order, custom fields, false boolean custom-field preservation on linedefs and things, stream facades, map conversion, config-aware WAD and PK3 embedded-WAD map discovery, and PK3/WAD resource IO. Directory and PK3 resource options expose root textures and flats like UDB, and nested directory WAD high-resolution replacements participate in priority order. Classic texture composition honors UDB patch offset compatibility flags and WAD patch fallback ordering around flat ranges. Full universal IO parity remains incomplete."
     },
     {
       "udbArea": "Source/Core/Map",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Map",
-      "notes": "Map model coverage includes element collections, maintained element list indexes, map options, grid setup persistence, persisted grid background scale limits, selection groups, marks, tags, argument handling, custom UDMF field name validation and quoted string preservation for editable fields, property copying, clone and clipboard snapshots, binary format cleanup, blockmap population, UDB-style sidedef unused texture cleanup, map-level sidedef texture cleanup, traced-side sector joining, and several geometry mutation helpers. Full UDB MapSet behavior remains incomplete."
+      "notes": "Map model coverage includes element collections, maintained element list indexes, map options, grid setup persistence, persisted grid background scale limits, selection groups, marks, tags, argument handling, custom UDMF field name validation, quoted string preservation for editable fields, false boolean custom field preservation, property copying, clone and clipboard snapshots, binary format cleanup, blockmap population, UDB-style sidedef unused texture cleanup, map-level sidedef texture cleanup, traced-side sector joining, and several geometry mutation helpers. Full UDB MapSet behavior remains incomplete."
     },
     {
       "udbArea": "Source/Core/Plugins",

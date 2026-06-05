@@ -488,6 +488,31 @@ public class UdmfMapWriterTests
     }
 
     [Fact]
+    public void FalseBooleanLinedefAndThingCustomFieldsRoundTrip()
+    {
+        const string udmf = """
+            namespace = "ZDoom";
+            vertex { x = 0.0; y = 0.0; }
+            vertex { x = 64.0; y = 0.0; }
+            linedef { v1 = 0; v2 = 1; sidefront = -1; sideback = -1; user_enabled = false; }
+            thing { x = 8.0; y = 16.0; type = 3001; user_enabled = false; }
+            """;
+
+        var map = UdmfMapLoader.Load(udmf, out _)!;
+
+        Assert.False(Assert.IsType<bool>(map.Linedefs[0].Fields["user_enabled"]));
+        Assert.False(Assert.IsType<bool>(map.Things[0].Fields["user_enabled"]));
+
+        var written = UdmfMapWriter.Write(map);
+        Assert.Contains("user_enabled = false;", written);
+
+        var reloaded = UdmfMapLoader.Load(written, out var parser)!;
+        Assert.Equal(0, parser.ErrorResult);
+        Assert.False(Assert.IsType<bool>(reloaded.Linedefs[0].Fields["user_enabled"]));
+        Assert.False(Assert.IsType<bool>(reloaded.Things[0].Fields["user_enabled"]));
+    }
+
+    [Fact]
     public void ManagedFieldsNotDuplicatedIntoCustomFields()
     {
         var map = UdmfMapLoader.Load(SimpleRoom, out _)!;

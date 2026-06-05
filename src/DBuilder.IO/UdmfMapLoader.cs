@@ -328,7 +328,7 @@ public static class UdmfMapLoader
     }
 
     // Copies non-managed entries into the destination Fields dictionary, normalizing the boxed value to one of
-    // bool/int/double/string. Linedefs and things skip bools here because unknown bools are retained as UDMF flags.
+    // bool/int/double/string. Linedefs and things skip true bools here because unknown true bools are UDMF flags.
     private static void CollectCustomFields(UniversalCollection c, Dictionary<string, object> fields, HashSet<string> managed, bool preserveBoolFields)
     {
         foreach (var e in c)
@@ -337,6 +337,7 @@ public static class UdmfMapLoader
             switch (e.Value)
             {
                 case bool b when preserveBoolFields: fields[e.Key] = b; break;
+                case bool falseValue when !falseValue: fields[e.Key] = falseValue; break;
                 case bool: continue;
                 case int i: fields[e.Key] = i; break;
                 case long l: fields[e.Key] = l; break;
