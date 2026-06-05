@@ -336,7 +336,7 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("map2d.scrolleast", "Scroll East", "Menu", EditorCommandScope.Map2D, AllowScroll: true, Repeat: true),
         new EditorCommandDescriptor("map2d.scrollnorth", "Scroll North", "Menu", EditorCommandScope.Map2D, AllowScroll: true, Repeat: true),
         new EditorCommandDescriptor("map2d.scrollsouth", "Scroll South", "Menu", EditorCommandScope.Map2D, AllowScroll: true, Repeat: true),
-        new EditorCommandDescriptor("map2d.toggle-event-lines", "Toggle Event lines", "Menu", EditorCommandScope.Map2D, AllowMouse: false),
+        new EditorCommandDescriptor("map2d.toggle-event-lines", "Toggle Event lines", "Menu", EditorCommandScope.Map2D, AllowMouse: false, Description: "When enabled, shows order, in which patrol points and interpolation points are connected. Also shows action target for currently highlighted item in 2D modes."),
         new EditorCommandDescriptor("map2d.mode-vertices", "Vertices mode", "1", EditorCommandScope.Map2D),
         new EditorCommandDescriptor("map2d.verticesmode", "Vertices Mode", "V", EditorCommandScope.Map2D, AllowScroll: true),
         new EditorCommandDescriptor("map2d.mode-linedefs", "Linedefs mode", "2", EditorCommandScope.Map2D),

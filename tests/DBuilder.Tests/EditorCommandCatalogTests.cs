@@ -3485,6 +3485,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Toggle Event lines", command.Title);
+        Assert.Equal("When enabled, shows order, in which patrol points and interpolation points are connected. Also shows action target for currently highlighted item in 2D modes.", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.False(command.AllowMouse);
