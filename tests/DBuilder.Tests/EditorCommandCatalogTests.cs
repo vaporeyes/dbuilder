@@ -1240,7 +1240,7 @@ public class EditorCommandCatalogTests
         Assert.True(command.AllowKeys);
         Assert.True(command.AllowMouse);
         Assert.True(command.AllowScroll);
-        Assert.True(command.Repeat);
+        Assert.False(command.Repeat);
     }
 
     [Theory]
