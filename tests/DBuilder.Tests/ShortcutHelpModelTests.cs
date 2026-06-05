@@ -129,6 +129,30 @@ public sealed class ShortcutHelpModelTests
         Assert.Contains(titleAndGesture.SelectMany(section => section.Rows), row => row.Command.Id == "window.save");
     }
 
+    [Theory]
+    [InlineData("Toggle Classic Rendering", "tcl", true)]
+    [InlineData("Toggle Classic Rendering", "to cl", true)]
+    [InlineData("Toggle Classic Rendering", "le cl", true)]
+    [InlineData("Open Map", "mo", false)]
+    public void MatchesTextUsesUdbStyleWordStartFallback(string text, string search, bool expected)
+        => Assert.Equal(expected, ShortcutHelpModel.MatchesText(text, search));
+
+    [Fact]
+    public void BuildSectionsUsesUdbStyleWordStartFallbackAcrossMetadata()
+    {
+        var title = ShortcutHelpModel.BuildSections(
+            EditorCommandCatalog.All,
+            EditorCommandCatalog.DefaultShortcuts,
+            "tof");
+        Assert.Contains(title.SelectMany(section => section.Rows), row => row.Command.Id == "map2d.toggle-full-brightness");
+
+        var metadata = ShortcutHelpModel.BuildSections(
+            EditorCommandCatalog.All,
+            EditorCommandCatalog.DefaultShortcuts,
+            "win co");
+        Assert.Contains(metadata.SelectMany(section => section.Rows), row => row.Command.Id == "window.copy");
+    }
+
     [Fact]
     public void ShortcutRowsExposeUdbStyleActionDescriptions()
     {

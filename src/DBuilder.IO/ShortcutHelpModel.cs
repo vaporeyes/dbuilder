@@ -109,15 +109,18 @@ public static class ShortcutHelpModel
     {
         string[] tokens = SearchTokens(filter);
         return tokens.All(token =>
-            Contains(groupTitle, token)
-            || Contains(groupDescription, token)
-            || Contains(row.Command.Title, token)
-            || Contains(row.Command.Id, token)
-            || Contains(ScopeTitle(row.Command.Scope), token)
-            || Contains(row.GestureText, token)
-            || Contains(row.ModifierText, token)
-            || Contains(row.DescriptionText, token));
+            MatchesText(groupTitle, token)
+            || MatchesText(groupDescription, token)
+            || MatchesText(row.Command.Title, token)
+            || MatchesText(row.Command.Id, token)
+            || MatchesText(ScopeTitle(row.Command.Scope), token)
+            || MatchesText(row.GestureText, token)
+            || MatchesText(row.ModifierText, token)
+            || MatchesText(row.DescriptionText, token));
     }
+
+    public static bool MatchesText(string value, string filter)
+        => CommandPaletteModel.MatchesText(value, filter);
 
     public static string ModifierText(EditorCommandDescriptor command)
     {
