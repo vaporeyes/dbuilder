@@ -7,6 +7,7 @@ using DBuilder.Geometry;
 
 public class Vertex : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
 {
+    public int Index { get; set; }
     public Vector2D Position { get; set; }
 
     /// <summary>True after this element has been removed from its owning map.</summary>

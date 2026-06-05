@@ -20,6 +20,7 @@ public class MapElementIndexTests
 
         Assert.True(changed);
         Assert.Equal([second, third, first], map.Vertices);
+        AssertIndexes(map.Vertices);
     }
 
     [Fact]
@@ -36,6 +37,7 @@ public class MapElementIndexTests
 
         Assert.True(changed);
         Assert.Equal([third, first, second], map.Linedefs);
+        AssertIndexes(map.Linedefs);
     }
 
     [Fact]
@@ -50,9 +52,7 @@ public class MapElementIndexTests
 
         Assert.True(changed);
         Assert.Equal([third, first, second], map.Sectors);
-        Assert.Equal(0, third.Index);
-        Assert.Equal(1, first.Index);
-        Assert.Equal(2, second.Index);
+        AssertIndexes(map.Sectors);
     }
 
     [Fact]
@@ -66,5 +66,63 @@ public class MapElementIndexTests
 
         Assert.False(changed);
         Assert.Equal([first, second], map.Things);
+        AssertIndexes(map.Things);
+    }
+
+    [Fact]
+    public void AddedElementsReceiveListIndexes()
+    {
+        var map = new MapSet();
+        var firstVertex = map.AddVertex(new Vector2D(0, 0));
+        var secondVertex = map.AddVertex(new Vector2D(1, 0));
+        var line = map.AddLinedef(firstVertex, secondVertex);
+        var sector = map.AddSector();
+        var side = map.AddSidedef(line, true, sector);
+        var thing = map.AddThing(new Vector2D(2, 0), 3001);
+
+        Assert.Equal(0, firstVertex.Index);
+        Assert.Equal(1, secondVertex.Index);
+        Assert.Equal(0, line.Index);
+        Assert.Equal(0, sector.Index);
+        Assert.Equal(0, side.Index);
+        Assert.Equal(0, thing.Index);
+    }
+
+    [Fact]
+    public void RemovingElementsReindexesRemainingElements()
+    {
+        var map = new MapSet();
+        Vertex firstVertex = map.AddVertex(new Vector2D(0, 0));
+        Vertex secondVertex = map.AddVertex(new Vector2D(1, 0));
+        Vertex thirdVertex = map.AddVertex(new Vector2D(2, 0));
+        Thing firstThing = map.AddThing(new Vector2D(0, 0), 1);
+        Thing secondThing = map.AddThing(new Vector2D(1, 0), 2);
+
+        map.RemoveVertex(firstVertex);
+        map.RemoveThing(firstThing);
+
+        Assert.Equal([secondVertex, thirdVertex], map.Vertices);
+        Assert.Equal([secondThing], map.Things);
+        AssertIndexes(map.Vertices);
+        AssertIndexes(map.Things);
+    }
+
+    [Fact]
+    public void BuildIndexesRefreshesManuallyMutatedListIndexes()
+    {
+        var map = new MapSet();
+        Vertex first = map.AddVertex(new Vector2D(0, 0));
+        Vertex second = map.AddVertex(new Vector2D(1, 0));
+
+        map.Vertices.Reverse();
+        map.BuildIndexes();
+
+        Assert.Equal([second, first], map.Vertices);
+        AssertIndexes(map.Vertices);
+    }
+
+    private static void AssertIndexes<T>(IReadOnlyList<T> elements) where T : IMapElement
+    {
+        for (int i = 0; i < elements.Count; i++) Assert.Equal(i, elements[i].Index);
     }
 }

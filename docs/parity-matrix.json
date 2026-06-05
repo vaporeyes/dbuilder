@@ -75,7 +75,7 @@
       "udbArea": "Source/Core/Map",
       "status": "partial",
       "dbuilderLocation": "DBuilder.Map",
-      "notes": "Map model coverage includes element collections, map options, grid setup persistence, persisted grid background scale limits, selection groups, marks, tags, argument handling, custom UDMF field name validation and quoted string preservation for editable fields, property copying, clone and clipboard snapshots, binary format cleanup, blockmap population, UDB-style sidedef unused texture cleanup, map-level sidedef texture cleanup, traced-side sector joining, and several geometry mutation helpers. Full UDB MapSet behavior remains incomplete."
+      "notes": "Map model coverage includes element collections, maintained element list indexes, map options, grid setup persistence, persisted grid background scale limits, selection groups, marks, tags, argument handling, custom UDMF field name validation and quoted string preservation for editable fields, property copying, clone and clipboard snapshots, binary format cleanup, blockmap population, UDB-style sidedef unused texture cleanup, map-level sidedef texture cleanup, traced-side sector joining, and several geometry mutation helpers. Full UDB MapSet behavior remains incomplete."
     },
     {
       "udbArea": "Source/Core/Plugins",

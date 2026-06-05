@@ -12,6 +12,7 @@ public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
     public const int BlockingFlagBit = 1;
     public const int TwoSidedFlagBit = 4;
 
+    public int Index { get; set; }
     public Vertex Start { get; set; } = null!;
     public Vertex End { get; set; } = null!;
     public double Angle { get; set; }

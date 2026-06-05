@@ -7,6 +7,7 @@ using DBuilder.Geometry;
 
 public class Sidedef : IMapElement, ISelectable, IMarkable, IFielded
 {
+    public int Index { get; set; }
     public Linedef Line { get; set; } = null!;
     public Sector? Sector { get; set; }
     public bool IsFront { get; set; }

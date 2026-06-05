@@ -103,6 +103,7 @@ public class MapSet : IDisposable
     /// </summary>
     public void BuildIndexes()
     {
+        ReindexAllElements();
         foreach (var v in Vertices) v.Linedefs.Clear();
         foreach (var s in Sectors)  s.Sidedefs.Clear();
         foreach (var sd in Sidedefs) sd.Other = null;
@@ -138,21 +139,21 @@ public class MapSet : IDisposable
 
     public Vertex AddVertex(Vector2D position)
     {
-        var v = new Vertex(position);
+        var v = new Vertex(position) { Index = Vertices.Count };
         Vertices.Add(v);
         return v;
     }
 
     public Linedef AddLinedef(Vertex start, Vertex end)
     {
-        var l = new Linedef(start, end);
+        var l = new Linedef(start, end) { Index = Linedefs.Count };
         Linedefs.Add(l);
         return l;
     }
 
     public Sidedef AddSidedef(Linedef line, bool isFront, Sector? sector)
     {
-        var sd = new Sidedef(line, isFront) { Sector = sector };
+        var sd = new Sidedef(line, isFront) { Index = Sidedefs.Count, Sector = sector };
         if (isFront) line.Front = sd; else line.Back = sd;
         Sidedefs.Add(sd);
         return sd;
@@ -167,7 +168,7 @@ public class MapSet : IDisposable
 
     public Thing AddThing(Vector2D position, int type)
     {
-        var t = new Thing(position, type);
+        var t = new Thing(position, type) { Index = Things.Count };
         Things.Add(t);
         return t;
     }
@@ -425,7 +426,11 @@ public class MapSet : IDisposable
             if (ReferenceEquals(sd.Line.Front, sd)) sd.Line.Front = null;
             if (ReferenceEquals(sd.Line.Back, sd)) sd.Line.Back = null;
         }
-        if (Sidedefs.Remove(sd)) DisposeElement(sd);
+        if (Sidedefs.Remove(sd))
+        {
+            DisposeElement(sd);
+            ReindexElements(Sidedefs);
+        }
     }
 
     /// <summary>Removes a linedef along with its front and back sidedefs.</summary>
@@ -441,7 +446,12 @@ public class MapSet : IDisposable
         }
         l.Front = null;
         l.Back = null;
-        if (Linedefs.Remove(l)) DisposeElement(l);
+        if (Linedefs.Remove(l))
+        {
+            DisposeElement(l);
+            ReindexElements(Linedefs);
+            ReindexElements(Sidedefs);
+        }
     }
 
     /// <summary>Removes a vertex and every linedef touching it (which in turn removes those linedefs' sidedefs).</summary>
@@ -452,7 +462,11 @@ public class MapSet : IDisposable
             var l = Linedefs[i];
             if (ReferenceEquals(l.Start, v) || ReferenceEquals(l.End, v)) RemoveLinedef(l);
         }
-        if (Vertices.Remove(v)) DisposeElement(v);
+        if (Vertices.Remove(v))
+        {
+            DisposeElement(v);
+            ReindexElements(Vertices);
+        }
     }
 
     /// <summary>Removes a sector; sidedefs that referenced it are left in place with a null sector reference.</summary>
@@ -460,7 +474,11 @@ public class MapSet : IDisposable
     {
         foreach (var sd in Sidedefs)
             if (ReferenceEquals(sd.Sector, s)) sd.Sector = null;
-        if (Sectors.Remove(s)) DisposeElement(s);
+        if (Sectors.Remove(s))
+        {
+            DisposeElement(s);
+            ReindexSectors();
+        }
     }
 
     /// <summary>Removes UDB virtual sectors from pasted or cloned geometry and clears their sidedef references.</summary>
@@ -480,7 +498,11 @@ public class MapSet : IDisposable
 
     public void RemoveThing(Thing t)
     {
-        if (Things.Remove(t)) DisposeElement(t);
+        if (Things.Remove(t))
+        {
+            DisposeElement(t);
+            ReindexElements(Things);
+        }
     }
 
     /// <summary>
@@ -539,6 +561,7 @@ public class MapSet : IDisposable
             }
         }
 
+        if (repairs > 0) ReindexAllElements();
         return repairs;
     }
 
@@ -587,8 +610,20 @@ public class MapSet : IDisposable
     }
 
     private void ReindexSectors()
+        => ReindexElements(Sectors);
+
+    private void ReindexAllElements()
     {
-        for (int i = 0; i < Sectors.Count; i++) Sectors[i].Index = i;
+        ReindexElements(Vertices);
+        ReindexElements(Linedefs);
+        ReindexElements(Sidedefs);
+        ReindexElements(Sectors);
+        ReindexElements(Things);
+    }
+
+    private static void ReindexElements<T>(List<T> elements) where T : IMapElement
+    {
+        for (int i = 0; i < elements.Count; i++) elements[i].Index = i;
     }
 
     /// <summary>
@@ -685,7 +720,11 @@ public class MapSet : IDisposable
             if (ReferenceEquals(l.Start, remove)) l.Start = keep;
             if (ReferenceEquals(l.End, remove)) l.End = keep;
         }
-        if (Vertices.Remove(remove)) DisposeElement(remove);
+        if (Vertices.Remove(remove))
+        {
+            DisposeElement(remove);
+            ReindexElements(Vertices);
+        }
 
         // Drop linedefs that collapsed to a point, and refresh angles on the rest.
         for (int i = Linedefs.Count - 1; i >= 0; i--)
@@ -1154,7 +1193,11 @@ public class MapSet : IDisposable
             }
 
             RemoveLinedef(remove);
-            if (Vertices.Remove(vertex)) DisposeElement(vertex);
+            if (Vertices.Remove(vertex))
+            {
+                DisposeElement(vertex);
+                ReindexElements(Vertices);
+            }
             removed++;
         }
 
@@ -1171,7 +1214,11 @@ public class MapSet : IDisposable
 
         remove.Front = null;
         remove.Back = null;
-        if (Linedefs.Remove(remove)) DisposeElement(remove);
+        if (Linedefs.Remove(remove))
+        {
+            DisposeElement(remove);
+            ReindexElements(Linedefs);
+        }
     }
 
     private void TransferSidedef(Linedef targetLine, bool isFront, Sidedef? source)
@@ -1213,6 +1260,7 @@ public class MapSet : IDisposable
             Vertices.RemoveAt(i);
             removed++;
         }
+        if (removed > 0) ReindexElements(Vertices);
         return removed;
     }
 
@@ -1229,6 +1277,7 @@ public class MapSet : IDisposable
             Sectors.RemoveAt(i);
             removed++;
         }
+        if (removed > 0) ReindexSectors();
         return removed;
     }
 
@@ -1802,15 +1851,13 @@ public class MapSet : IDisposable
 
     public bool ChangeSectorIndex(Sector sector, int newIndex)
     {
-        bool changed = ChangeIndex(Sectors, sector, newIndex);
-        if (changed) ReindexSectors();
-        return changed;
+        return ChangeIndex(Sectors, sector, newIndex);
     }
 
     public bool ChangeThingIndex(Thing thing, int newIndex)
         => ChangeIndex(Things, thing, newIndex);
 
-    private static bool ChangeIndex<T>(List<T> list, T item, int newIndex) where T : class
+    private static bool ChangeIndex<T>(List<T> list, T item, int newIndex) where T : class, IMapElement
     {
         int oldIndex = list.IndexOf(item);
         if (oldIndex < 0 || newIndex < 0 || newIndex >= list.Count) return false;
@@ -1818,6 +1865,7 @@ public class MapSet : IDisposable
 
         list.RemoveAt(oldIndex);
         list.Insert(newIndex, item);
+        ReindexElements(list);
         return true;
     }
 
@@ -1965,7 +2013,11 @@ public class MapSet : IDisposable
                     if (ReferenceEquals(lines[0].Start, vertex)) lines[0].SetStartVertex(otherB);
                     else lines[0].SetEndVertex(otherB);
                     RemoveLinedef(lines[1]);
-                    if (Vertices.Remove(vertex)) DisposeElement(vertex);
+                    if (Vertices.Remove(vertex))
+                    {
+                        DisposeElement(vertex);
+                        ReindexElements(Vertices);
+                    }
                     dissolved++;
                     continue;
                 }
@@ -2087,7 +2139,8 @@ public class MapSet : IDisposable
         int removed = 0;
 
         for (int i = Things.Count - 1; i >= 0; i--)
-            if (Things[i].Selected) { Things.RemoveAt(i); removed++; }
+            if (Things[i].Selected) { DisposeElement(Things[i]); Things.RemoveAt(i); removed++; }
+        ReindexElements(Things);
 
         for (int i = Sectors.Count - 1; i >= 0; i--)
             if (Sectors[i].Selected) { RemoveSector(Sectors[i]); removed++; }
