@@ -2063,6 +2063,9 @@ public class EditorCommandCatalogTests
             Assert.Equal(allowScroll, command.AllowScroll);
             Assert.Equal(repeat, command.Repeat);
         }
+
+        Assert.Equal("Menu", EditorCommandCatalog.Find("map3d.place-thing-at-cursor")?.DefaultGesture);
+        Assert.Equal("Ctrl/Cmd+M", EditorCommandCatalog.Find("map3d.placethingatcursor")?.DefaultGesture);
     }
 
     [Theory]
@@ -2545,11 +2548,11 @@ public class EditorCommandCatalogTests
         Assert.Equal("map3d.copy-selection", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "C", accelerator: true));
         Assert.Equal("map3d.cut-selection", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "X", accelerator: true));
         Assert.Equal("map3d.paste-selection", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "V", accelerator: true));
+        Assert.Equal("map3d.placethingatcursor", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "M", accelerator: true));
         Assert.Equal("map3d.toggle-full-brightness", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "B"));
         Assert.Equal("map3d.togglehighlight", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "H"));
         Assert.Equal("map3d.lowerbrightness8", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "["));
         Assert.Equal("map3d.raisebrightness8", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "]"));
-        Assert.Equal("map3d.matchbrightness", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "M", accelerator: true));
         Assert.Equal("map3d.texturecopy", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "C"));
         Assert.Equal("map3d.texturepaste", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "V"));
         Assert.Equal("map3d.paste-properties", EditorCommandCatalog.ResolveShortcut(EditorCommandScope.Map3D, "V", accelerator: true, alt: true));
