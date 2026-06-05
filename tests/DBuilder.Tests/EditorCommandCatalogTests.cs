@@ -2852,10 +2852,10 @@ public class EditorCommandCatalogTests
     }
 
     [Theory]
-    [InlineData("map3d.visual-select", "map3d.select-target", "map3d.visualselect", "Select", "Click", false)]
-    [InlineData("map3d.visual-edit", "map3d.edit-properties", "map3d.visualedit", "Edit", "Enter", false)]
-    [InlineData("map3d.clear-selection", "map3d.clear-target", "map3d.clearselection", "Clear Selection", "Esc", true)]
-    public void VisualBaseCommandAliasesMatchUdbActionSurface(string id, string legacyId, string udbId, string title, string gesture, bool allowScroll)
+    [InlineData("map3d.visual-select", "map3d.select-target", "map3d.visualselect", "Select", "Click", false, "Selects the highlighted item. Hold Shift to select adjacent surfaces with the same texture. Hold Ctrl to select adjacent surfaces with the same height. Hold Alt to stop selecting adjacent surfaces when already selected surface is encountered.")]
+    [InlineData("map3d.visual-edit", "map3d.edit-properties", "map3d.visualedit", "Edit", "Enter", false, "Edits the properties of the selected items or drags the selected items.")]
+    [InlineData("map3d.clear-selection", "map3d.clear-target", "map3d.clearselection", "Clear Selection", "Esc", true, "")]
+    public void VisualBaseCommandAliasesMatchUdbActionSurface(string id, string legacyId, string udbId, string title, string gesture, bool allowScroll, string? description)
     {
         var command = EditorCommandCatalog.Find(id);
         var legacyAlias = EditorCommandCatalog.Find(legacyId);
@@ -2863,6 +2863,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal(title, command.Title);
+        Assert.Equal(description, command.Description);
         Assert.Equal(gesture, command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -2872,8 +2873,10 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(legacyAlias);
         Assert.Equal(EditorCommandScope.Map3D, legacyAlias.Scope);
+        Assert.Equal(description, legacyAlias.Description);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
@@ -2929,6 +2932,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Paint Selection", command.Title);
+        Assert.Equal("Selects or deselects items by dragging the mouse. Hold shift while dragging to toggle additive selection. Hold Ctrl while dragging to enable subtractive selection", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -2940,6 +2944,7 @@ public class EditorCommandCatalogTests
         Assert.False(command.Repeat);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
