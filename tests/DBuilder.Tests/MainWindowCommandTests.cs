@@ -1062,6 +1062,16 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void OpenMapGuardsUseWarningStatusKind()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("SetStatus(\"Open a WAD or PK3 first.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(\"No maps in this PK3 match the active game configuration.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+        Assert.Contains("SetStatus(\"No maps in this WAD.\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ResourceCatalogGuardsUseWarningStatusKind()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));

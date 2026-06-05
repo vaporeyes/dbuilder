@@ -835,11 +835,11 @@ public partial class MainWindow : Window
     // Lets the user pick any map in the currently open WAD (doom2 has 32, hexen 31, ...).
     private async void OnOpenMap(object? sender, RoutedEventArgs e)
     {
-        if (_wadPath is null && _pk3Path is null) { SetStatus("Open a WAD or PK3 first."); return; }
+        if (_wadPath is null && _pk3Path is null) { SetStatus("Open a WAD or PK3 first.", StatusHistoryKind.Warning); return; }
         if (_pk3Path is not null && _pk3Maps is not null)
         {
             var pk3Maps = CurrentPk3Maps(_pk3Path);
-            if (pk3Maps.Count == 0) { SetStatus("No maps in this PK3 match the active game configuration."); return; }
+            if (pk3Maps.Count == 0) { SetStatus("No maps in this PK3 match the active game configuration.", StatusHistoryKind.Warning); return; }
 
             var displayMaps = new List<MapEntry>();
             foreach (var pk3Map in pk3Maps) displayMaps.Add(DisplayEntry(pk3Map));
@@ -858,7 +858,7 @@ public partial class MainWindow : Window
 
         List<MapEntry> maps;
         using (var wad = new WAD(_wadPath!, openreadonly: true)) maps = CurrentWadMaps(wad);
-        if (maps.Count == 0) { SetStatus("No maps in this WAD."); return; }
+        if (maps.Count == 0) { SetStatus("No maps in this WAD.", StatusHistoryKind.Warning); return; }
 
         var dlg = new MapPickerDialog(maps, _mapMarker, OpenMapOptionsForWadEntry);
         if (await dlg.ShowDialog<bool>(this) && dlg.Selected is { } entry && await ConfirmDiscardDirtyMap())
