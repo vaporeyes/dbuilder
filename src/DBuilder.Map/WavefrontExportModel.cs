@@ -157,6 +157,83 @@ public sealed record WavefrontExportUiState(
     }
 }
 
+public sealed record WavefrontExportFormState(
+    WavefrontExportOptions DefaultOptions,
+    string Title,
+    string Description,
+    string PathLabel,
+    string ScaleLabel,
+    string ExportForGzdoomText,
+    string ExportTexturesText,
+    string GeneralSettingsText,
+    string CenterModelText,
+    string NormalizeLowestVertexText,
+    string IgnoreControlSectorsText,
+    string ActorNameLabel,
+    string BasePathLabel,
+    string ActorPathLabel,
+    string ModelPathLabel,
+    string ActorFormatText,
+    string ZScriptText,
+    string DecorateText,
+    string ActorSettingsText,
+    string SpriteLabel,
+    string NoGravityText,
+    string SpawnOnCeilingText,
+    string SolidText,
+    string GenerateCodeText,
+    string GenerateModeldefText,
+    string SkipTexturesText,
+    string AddTextureText,
+    string AddFlatText,
+    string RemoveSelectedText,
+    string ResetPathsText,
+    string ExportButtonText,
+    string CancelButtonText)
+{
+    public const string DescriptionText = "Exports selected sectors, or the whole map, as Wavefront OBJ geometry.";
+
+    public static WavefrontExportFormState FromOptions(WavefrontExportOptions options, int sectorCount)
+        => new(
+            options,
+            TitleForSelection(sectorCount),
+            DescriptionText,
+            "Path:",
+            "Scale:",
+            "Export for GZDoom",
+            "Export textures",
+            "General settings",
+            "Center model",
+            "Normalize lowest vertex z to 0",
+            "Ignore 3D floor control sectors",
+            "Actor name:",
+            "Base path:",
+            "Actor path:",
+            "Model path:",
+            "Actor format",
+            "ZScript",
+            "DECORATE",
+            "Actor settings",
+            "Sprite:",
+            "No gravity",
+            "Spawn on ceiling",
+            "Solid",
+            "Generate ZScript/DECORATE",
+            "Generate MODELDEF",
+            "Skip textures",
+            "Add texture",
+            "Add flat",
+            "Remove selected",
+            "Reset paths",
+            "Export",
+            "Cancel");
+
+    public static string TitleForSelection(int sectorCount)
+        => "Export "
+            + (sectorCount == -1 ? "whole map" : sectorCount + (sectorCount > 1 ? "sectors" : "sector"))
+            + " to Wavefront .obj";
+}
+
 public sealed record WavefrontExportPreflight(
     IReadOnlyList<Sector> Sectors,
     int DialogSectorCount,

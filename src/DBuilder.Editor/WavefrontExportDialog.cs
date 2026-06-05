@@ -32,28 +32,34 @@ public sealed class WavefrontExportDialog : PropertyDialog
     public WavefrontExportOptions ResultOptions { get; private set; }
 
     public WavefrontExportDialog(WavefrontExportOptions options)
-        : base("Export Wavefront OBJ", "Exports selected sectors, or the whole map, as Wavefront OBJ geometry.")
+        : this(options, sectorCount: -1)
     {
+    }
+
+    public WavefrontExportDialog(WavefrontExportOptions options, int sectorCount)
+        : base(WavefrontExportFormState.TitleForSelection(sectorCount), WavefrontExportFormState.DescriptionText)
+    {
+        WavefrontExportFormState state = WavefrontExportFormState.FromOptions(options, sectorCount);
         ResultOptions = options;
-        _filePath = AddField("OBJ path", options.FilePath);
-        _scale = AddField("Scale", options.Scale.ToString(CultureInfo.InvariantCulture));
-        _exportForGzdoom = AddCheckBox("Export for GZDoom", options.ExportForGZDoom);
-        _exportTextures = AddCheckBox("Export textures", options.ExportTextures);
-        _actorName = AddField("Actor name", options.ActorName);
-        _basePath = AddField("Base path", options.BasePath);
-        _actorPath = AddField("Actor path", options.ActorPath);
-        _modelPath = AddField("Model path", options.ModelPath);
-        _sprite = AddField("Sprite", options.Sprite);
-        _skipTextures = AddField("Skip textures", string.Join(", ", options.SkipTextures));
-        _ignoreControlSectors = AddCheckBox("Ignore 3D floor control sectors", options.IgnoreControlSectors);
-        _normalizeLowestVertex = AddCheckBox("Normalize lowest vertex", options.NormalizeLowestVertex);
-        _centerModel = AddCheckBox("Center model", options.CenterModel);
-        _zScript = AddCheckBox("Generate ZScript", options.ZScript);
-        _generateCode = AddCheckBox("Generate actor code", options.GenerateCode);
-        _generateModeldef = AddCheckBox("Generate MODELDEF", options.GenerateModeldef);
-        _noGravity = AddCheckBox("No gravity", options.NoGravity);
-        _spawnOnCeiling = AddCheckBox("Spawn on ceiling", options.SpawnOnCeiling);
-        _solid = AddCheckBox("Solid", options.Solid);
+        _filePath = AddField(state.PathLabel, options.FilePath);
+        _scale = AddField(state.ScaleLabel, options.Scale.ToString(CultureInfo.InvariantCulture));
+        _exportForGzdoom = AddCheckBox(state.ExportForGzdoomText, options.ExportForGZDoom);
+        _exportTextures = AddCheckBox(state.ExportTexturesText, options.ExportTextures);
+        _actorName = AddField(state.ActorNameLabel, options.ActorName);
+        _basePath = AddField(state.BasePathLabel, options.BasePath);
+        _actorPath = AddField(state.ActorPathLabel, options.ActorPath);
+        _modelPath = AddField(state.ModelPathLabel, options.ModelPath);
+        _sprite = AddField(state.SpriteLabel, options.Sprite);
+        _skipTextures = AddField(state.SkipTexturesText, string.Join(", ", options.SkipTextures));
+        _ignoreControlSectors = AddCheckBox(state.IgnoreControlSectorsText, options.IgnoreControlSectors);
+        _normalizeLowestVertex = AddCheckBox(state.NormalizeLowestVertexText, options.NormalizeLowestVertex);
+        _centerModel = AddCheckBox(state.CenterModelText, options.CenterModel);
+        _zScript = AddCheckBox(state.ZScriptText, options.ZScript);
+        _generateCode = AddCheckBox(state.GenerateCodeText, options.GenerateCode);
+        _generateModeldef = AddCheckBox(state.GenerateModeldefText, options.GenerateModeldef);
+        _noGravity = AddCheckBox(state.NoGravityText, options.NoGravity);
+        _spawnOnCeiling = AddCheckBox(state.SpawnOnCeilingText, options.SpawnOnCeiling);
+        _solid = AddCheckBox(state.SolidText, options.Solid);
     }
 
     protected override void OnConfirm()

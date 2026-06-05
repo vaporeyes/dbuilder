@@ -198,6 +198,89 @@ public class WavefrontExportModelTests
         Assert.False(state.ScaleEnabled);
     }
 
+    [Theory]
+    [InlineData(-1, "Export whole map to Wavefront .obj")]
+    [InlineData(1, "Export 1sector to Wavefront .obj")]
+    [InlineData(3, "Export 3sectors to Wavefront .obj")]
+    public void FormTitleMatchesUdbSelectionText(int sectorCount, string expected)
+        => Assert.Equal(expected, WavefrontExportFormState.TitleForSelection(sectorCount));
+
+    [Fact]
+    public void FormStateExposesUdbWavefrontLabelsAndOptions()
+    {
+        var options = new WavefrontExportOptions
+        {
+            FilePath = "/tmp/map.obj",
+            ExportForGZDoom = true,
+            ExportTextures = true,
+            ActorName = "Map01",
+            BasePath = "/base",
+            ActorPath = "/actors",
+            ModelPath = "/models",
+            Sprite = "PLAY",
+            SkipTextures = ["SKY1"],
+            IgnoreControlSectors = true,
+            NormalizeLowestVertex = true,
+            CenterModel = true,
+            ZScript = true,
+            GenerateCode = true,
+            GenerateModeldef = true,
+            NoGravity = true,
+            SpawnOnCeiling = true,
+            Solid = true,
+        };
+
+        WavefrontExportFormState state = WavefrontExportFormState.FromOptions(options, 2);
+
+        Assert.Equal(options, state.DefaultOptions);
+        Assert.Equal("Export 2sectors to Wavefront .obj", state.Title);
+        Assert.Equal("Exports selected sectors, or the whole map, as Wavefront OBJ geometry.", state.Description);
+        Assert.Equal("Path:", state.PathLabel);
+        Assert.Equal("Scale:", state.ScaleLabel);
+        Assert.Equal("Export for GZDoom", state.ExportForGzdoomText);
+        Assert.Equal("Export textures", state.ExportTexturesText);
+        Assert.Equal("General settings", state.GeneralSettingsText);
+        Assert.Equal("Center model", state.CenterModelText);
+        Assert.Equal("Normalize lowest vertex z to 0", state.NormalizeLowestVertexText);
+        Assert.Equal("Ignore 3D floor control sectors", state.IgnoreControlSectorsText);
+        Assert.Equal("Actor name:", state.ActorNameLabel);
+        Assert.Equal("Base path:", state.BasePathLabel);
+        Assert.Equal("Actor path:", state.ActorPathLabel);
+        Assert.Equal("Model path:", state.ModelPathLabel);
+        Assert.Equal("Actor format", state.ActorFormatText);
+        Assert.Equal("ZScript", state.ZScriptText);
+        Assert.Equal("DECORATE", state.DecorateText);
+        Assert.Equal("Actor settings", state.ActorSettingsText);
+        Assert.Equal("Sprite:", state.SpriteLabel);
+        Assert.Equal("No gravity", state.NoGravityText);
+        Assert.Equal("Spawn on ceiling", state.SpawnOnCeilingText);
+        Assert.Equal("Solid", state.SolidText);
+        Assert.Equal("Generate ZScript/DECORATE", state.GenerateCodeText);
+        Assert.Equal("Generate MODELDEF", state.GenerateModeldefText);
+        Assert.Equal("Skip textures", state.SkipTexturesText);
+        Assert.Equal("Add texture", state.AddTextureText);
+        Assert.Equal("Add flat", state.AddFlatText);
+        Assert.Equal("Remove selected", state.RemoveSelectedText);
+        Assert.Equal("Reset paths", state.ResetPathsText);
+        Assert.Equal("Export", state.ExportButtonText);
+        Assert.Equal("Cancel", state.CancelButtonText);
+    }
+
+    [Fact]
+    public void EditorWavefrontDialogUsesSharedUdbMetadata()
+    {
+        string dialog = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/WavefrontExportDialog.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("WavefrontExportFormState.TitleForSelection(sectorCount)", dialog, StringComparison.Ordinal);
+        Assert.Contains("WavefrontExportFormState.FromOptions(options, sectorCount)", dialog, StringComparison.Ordinal);
+        Assert.Contains("state.PathLabel", dialog, StringComparison.Ordinal);
+        Assert.Contains("state.ExportForGzdoomText", dialog, StringComparison.Ordinal);
+        Assert.Contains("state.NormalizeLowestVertexText", dialog, StringComparison.Ordinal);
+        Assert.Contains("state.GenerateCodeText", dialog, StringComparison.Ordinal);
+        Assert.Contains("preflight.DialogSectorCount", mainWindow, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void PrepareExportSelectionUsesWholeMapWhenNoSectorsAreSelected()
     {

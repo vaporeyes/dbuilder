@@ -6148,7 +6148,7 @@ public partial class MainWindow : Window
         });
         if (file?.TryGetLocalPath() is not { } path) return;
 
-        var dlg = new WavefrontExportDialog(DefaultWavefrontExportOptions(path));
+        var dlg = new WavefrontExportDialog(DefaultWavefrontExportOptions(path), preflight.DialogSectorCount);
         if (!await dlg.ShowDialog<bool>(this)) return;
 
         WavefrontExportOptions options = dlg.ResultOptions;
