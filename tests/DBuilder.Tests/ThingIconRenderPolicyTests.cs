@@ -112,8 +112,11 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
-    public void FarOverviewMarkersUseSparseFootprint()
+    public void FarOverviewStartsWithOverviewMarkers()
     {
+        Assert.Equal(
+            ThingIconRenderPolicy.OverviewMarkerScaleThreshold,
+            ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold);
         Assert.True(ThingIconRenderPolicy.UseFarOverviewMarkers(
             ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
             thingArrows: false));
@@ -172,7 +175,7 @@ public sealed class ThingIconRenderPolicyTests
     public void FarOverviewCullsWithLargerScreenCells()
     {
         Assert.Equal(144.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
-            ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold - 0.01,
+            ThingIconRenderPolicy.OverviewMarkerScaleThreshold - 0.01,
             thingArrows: false));
         Assert.Equal(320.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
             ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
