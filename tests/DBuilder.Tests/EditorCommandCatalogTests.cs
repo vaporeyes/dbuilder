@@ -2589,11 +2589,21 @@ public class EditorCommandCatalogTests
     [Fact]
     public void VisualModeAliasMatchesUdbActionSurface()
     {
+        var tabCommand = EditorCommandCatalog.Find("map2d.toggle-3d");
         var command = EditorCommandCatalog.Find("map2d.gzdbvisualmode");
+        const string description = "Switches to the visual editing mode. Hold Shift key to invert 'Synhcronize selection between Visual and Classic modes' setting. Hold Control key to disable position synchronization when 'Synchronize camera position between 2D and 3D modes' Preferences option is enabled.";
 
+        Assert.NotNull(tabCommand);
+        Assert.Equal("Enter 3D mode", tabCommand.Title);
+        Assert.Equal(description, tabCommand.Description);
+        Assert.Equal("Tab", tabCommand.DefaultGesture);
+        Assert.Equal(EditorCommandScope.Map2D, tabCommand.Scope);
+        Assert.True(tabCommand.AllowKeys);
+        Assert.True(tabCommand.AllowMouse);
+        Assert.False(tabCommand.AllowScroll);
         Assert.NotNull(command);
         Assert.Equal("Visual Mode", command.Title);
-        Assert.Equal("Switches to the visual editing mode. Hold Shift key to invert 'Synhcronize selection between Visual and Classic modes' setting. Hold Control key to disable position synchronization when 'Synchronize camera position between 2D and 3D modes' Preferences option is enabled.", command.Description);
+        Assert.Equal(description, command.Description);
         Assert.Equal("Q", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map2D, command.Scope);
         Assert.True(command.AllowKeys);
