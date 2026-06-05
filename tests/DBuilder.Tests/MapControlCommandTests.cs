@@ -738,6 +738,21 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void SplitLinedefsNoTargetPathMatchesUdbSilentNoOp()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("private string SplitLinedefs(Vec2D cursorWorld)", StringComparison.Ordinal);
+        int noLineIndex = body.IndexOf("if (line == null)", methodIndex, StringComparison.Ordinal);
+        int returnIndex = body.IndexOf("return \"\";", noLineIndex, StringComparison.Ordinal);
+        int editIndex = body.IndexOf("EditBegun?.Invoke(\"Split linedef\")", noLineIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(noLineIndex > methodIndex);
+        Assert.True(returnIndex > noLineIndex);
+        Assert.True(returnIndex < editIndex);
+    }
+
+    [Fact]
     public void GridRenderingCommandControlsVisibleGridOnly()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
