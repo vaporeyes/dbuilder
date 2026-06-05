@@ -18,6 +18,8 @@ public sealed class MainWindowCommandTests
     [InlineData("window.exit", "OnExit")]
     [InlineData("window.reference-manual", "OnReferenceManual")]
     [InlineData("window.edit-mode-help", "OnEditModeHelp")]
+    [InlineData("window.open-command-palette", "OnOpenCommandPalette")]
+    [InlineData("window.opencommandpalette", "OnOpenCommandPalette")]
     [InlineData("window.shortcuts", "OnShortcuts")]
     [InlineData("window.about", "OnAbout")]
     [InlineData("window.select-all", "OnSelectAll")]
@@ -999,6 +1001,10 @@ public sealed class MainWindowCommandTests
         Assert.Contains("SetShortcutToolTip(GradientFloorHeightsMenuItem, \"Gradient Floor Heights\", \"window.gradient-floor-heights\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ApplyJitterMenuItem, \"Randomize\", \"window.applyjitter\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ApplyDirectionalShadingMenuItem, \"Apply Directional Shading\", \"window.applydirectionalshading\");", code, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"CommandPaletteMenuItem\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("SetShortcutToolTip(CommandPaletteMenuItem, \"Open Command Palette\", \"window.open-command-palette\");", code, StringComparison.Ordinal);
+        Assert.Contains("case \"window.open-command-palette\": OnOpenCommandPalette(this, new RoutedEventArgs()); return true;", code, StringComparison.Ordinal);
+        Assert.Contains("case \"window.opencommandpalette\": OnOpenCommandPalette(this, new RoutedEventArgs()); return true;", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ToggleAutomapSecretLineMenuItem, \"Toggle Selected Line Secret\", \"window.toggle-automap-secret-line\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ExportObjectMenuItem, \"Export Object OBJ\", \"window.export-object\");", code, StringComparison.Ordinal);
         Assert.Contains("SetShortcutToolTip(ExportImageMenuItem, \"Export Image PNG\", \"window.export-image\");", code, StringComparison.Ordinal);

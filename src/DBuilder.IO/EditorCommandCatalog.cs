@@ -194,6 +194,8 @@ public static class EditorCommandCatalog
         new EditorCommandDescriptor("window.test-map", "Test Map", "Menu", EditorCommandScope.Window, AllowMouse: false, Description: "Starts the game and loads this map for playing."),
         new EditorCommandDescriptor("window.things-filters-setup", "Configure Things Filters", "Menu", EditorCommandScope.Window, AllowMouse: false, Description: "Shows the Things Filters setup dialog, which allows you to add, remove and change the things filters."),
         new EditorCommandDescriptor("window.reload-resources", "Reload Resources", "Menu", EditorCommandScope.Window, AllowMouse: false, Description: "Reloads all data resources such as game configuration, textures and flats. Useful when resource files have been changed outside of Doom Builder."),
+        new EditorCommandDescriptor("window.open-command-palette", "Open Command Palette", "Menu", EditorCommandScope.Window, AllowScroll: true, Description: "Opens the command palette."),
+        new EditorCommandDescriptor("window.opencommandpalette", "Open Command Palette", "Menu", EditorCommandScope.Window, AllowScroll: true, Description: "Opens the command palette."),
         new EditorCommandDescriptor("window.grid-setup", "Grid and Backdrop Setup", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.usdf-conversations", "USDF Conversations", "Menu", EditorCommandScope.Window, AllowScroll: true),
         new EditorCommandDescriptor("window.usdf-dialog-editor", "Dialog Editor", "Menu", EditorCommandScope.Window, AllowScroll: true),

@@ -418,6 +418,7 @@ public partial class MainWindow : Window
         SetShortcutToolTip(CleanUpGeometryMenuItem, "Clean Up Geometry", "window.clean-up-geometry");
         SetShortcutToolTip(ReloadResourcesMenuItem, "Reload Resources", "window.reload-resources");
         SetShortcutToolTip(TestMapMenuItem, "Test Map", "window.test-map");
+        SetShortcutToolTip(CommandPaletteMenuItem, "Open Command Palette", "window.open-command-palette");
         SetShortcutToolTip(UdbScriptDockerMenuItem, "Scripts", "window.udbscripts");
         SetShortcutToolTip(SoundPropagationMenuItem, "Sound Propagation", "window.sound-propagation-mode");
         SetShortcutToolTip(SoundEnvironmentsMenuItem, "Sound Environments", "window.sound-environment-mode");
@@ -1593,6 +1594,8 @@ public partial class MainWindow : Window
             case "window.gradient-interpolation-ease-in-out-sine": OnGradientInterpolationEaseInOutSine(this, new RoutedEventArgs()); return true;
             case "window.gradient-interpolation-ease-in-sine": OnGradientInterpolationEaseInSine(this, new RoutedEventArgs()); return true;
             case "window.gradient-interpolation-ease-out-sine": OnGradientInterpolationEaseOutSine(this, new RoutedEventArgs()); return true;
+            case "window.open-command-palette": OnOpenCommandPalette(this, new RoutedEventArgs()); return true;
+            case "window.opencommandpalette": OnOpenCommandPalette(this, new RoutedEventArgs()); return true;
             case "window.toggle-automap-secret-line": OnToggleAutomapSecretLine(this, new RoutedEventArgs()); return true;
             case "window.toggle-automap-hidden-line": OnToggleAutomapHiddenLine(this, new RoutedEventArgs()); return true;
             case "window.toggle-automap-textured-hidden-sector": OnToggleAutomapTexturedHiddenSector(this, new RoutedEventArgs()); return true;
@@ -3968,6 +3971,12 @@ public partial class MainWindow : Window
     private void OnReferenceManual(object? sender, RoutedEventArgs e)
     {
         SetStatus("Reference Manual: introduction.html");
+        MapView.Focus();
+    }
+
+    private void OnOpenCommandPalette(object? sender, RoutedEventArgs e)
+    {
+        SetStatus("Command Palette is not available yet.");
         MapView.Focus();
     }
 

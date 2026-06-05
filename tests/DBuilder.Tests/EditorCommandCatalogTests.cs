@@ -338,6 +338,22 @@ public class EditorCommandCatalogTests
         Assert.False(command.AllowScroll);
     }
 
+    [Theory]
+    [InlineData("window.open-command-palette")]
+    [InlineData("window.opencommandpalette")]
+    public void CommandPaletteActionMatchesUdbActionSurface(string commandId)
+    {
+        var command = EditorCommandCatalog.Find(commandId);
+
+        Assert.NotNull(command);
+        Assert.Equal("Open Command Palette", command.Title);
+        Assert.Equal("Opens the command palette.", command.Description);
+        Assert.Equal(EditorCommandScope.Window, command.Scope);
+        Assert.True(command.AllowKeys);
+        Assert.True(command.AllowMouse);
+        Assert.True(command.AllowScroll);
+    }
+
     [Fact]
     public void ShowErrorsCommandMatchesUdbActionSurface()
     {
