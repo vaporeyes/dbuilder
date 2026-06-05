@@ -6258,7 +6258,7 @@ public partial class MainWindow : Window
         ImageExportSectorSelection selection = ImageExportPlanner.SelectSectorsForExport(_map);
         if (!selection.CanExport)
         {
-            SetStatus(selection.Warning ?? "Image export failed.");
+            SetStatus(selection.Warning ?? "Image export failed.", StatusHistoryKind.Warning);
             return;
         }
 
@@ -6280,7 +6280,7 @@ public partial class MainWindow : Window
         IReadOnlyList<string> errors = ValidateImageExportOptions(options);
         if (errors.Count > 0)
         {
-            SetStatus("Image export blocked: " + string.Join(" ", errors));
+            SetStatus("Image export blocked: " + string.Join(" ", errors), StatusHistoryKind.Warning);
             return;
         }
 
@@ -6297,7 +6297,7 @@ public partial class MainWindow : Window
         catch (OutOfMemoryException)
         {
             ImageExportResultMessage message = ImageExportResultMessage.FromResult(ImageExportResult.OutOfMemory);
-            SetStatus(message.Message);
+            SetStatus(message.Message, StatusHistoryKind.Warning);
         }
         catch (Exception ex)
         {
@@ -6312,7 +6312,7 @@ public partial class MainWindow : Window
         WavefrontExportPreflight preflight = WavefrontExportPlanner.PrepareExportSelection(_map);
         if (!preflight.CanExport)
         {
-            SetStatus(preflight.Warning ?? "Object export failed.");
+            SetStatus(preflight.Warning ?? "Object export failed.", StatusHistoryKind.Warning);
             return;
         }
 
@@ -6340,13 +6340,13 @@ public partial class MainWindow : Window
         IReadOnlyList<string> errors = ObjectExportSettings.Validate(options);
         if (errors.Count > 0)
         {
-            SetStatus("Object export blocked: " + string.Join(" ", errors));
+            SetStatus("Object export blocked: " + string.Join(" ", errors), StatusHistoryKind.Warning);
             return;
         }
 
         if (options.ExportTextures && _resources is null)
         {
-            SetStatus("Object export blocked: load resources before exporting textures.");
+            SetStatus("Object export blocked: load resources before exporting textures.", StatusHistoryKind.Warning);
             return;
         }
 
@@ -6363,7 +6363,7 @@ public partial class MainWindow : Window
             productVersion);
         if (wavefront.Obj.Length == 0)
         {
-            SetStatus("Object export failed: no geometry was generated.");
+            SetStatus("Object export failed: no geometry was generated.", StatusHistoryKind.Warning);
             return;
         }
 
@@ -6390,7 +6390,7 @@ public partial class MainWindow : Window
         WavefrontExportPreflight preflight = WavefrontExportPlanner.PrepareExportSelection(_map);
         if (!preflight.CanExport)
         {
-            SetStatus(preflight.Warning ?? "OBJ export failed.");
+            SetStatus(preflight.Warning ?? "OBJ export failed.", StatusHistoryKind.Warning);
             return;
         }
 
@@ -6412,13 +6412,13 @@ public partial class MainWindow : Window
         IReadOnlyList<string> errors = WavefrontExportValidation.Validate(options);
         if (errors.Count > 0)
         {
-            SetStatus("Wavefront export blocked: " + string.Join(" ", errors));
+            SetStatus("Wavefront export blocked: " + string.Join(" ", errors), StatusHistoryKind.Warning);
             return;
         }
 
         if (options.ExportTextures && _resources is null)
         {
-            SetStatus("Wavefront export blocked: load resources before exporting textures.");
+            SetStatus("Wavefront export blocked: load resources before exporting textures.", StatusHistoryKind.Warning);
             return;
         }
 
@@ -6432,7 +6432,7 @@ public partial class MainWindow : Window
             typeof(MainWindow).Assembly.GetName().Version?.ToString() ?? "");
         if (obj.Length == 0)
         {
-            SetStatus("Wavefront export failed: no geometry was generated.");
+            SetStatus("Wavefront export failed: no geometry was generated.", StatusHistoryKind.Warning);
             return;
         }
 
