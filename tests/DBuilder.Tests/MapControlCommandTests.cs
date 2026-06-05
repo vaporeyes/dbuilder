@@ -814,6 +814,21 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void ApplyLightFogNonUdmfMatchesUdbSilentNoOp()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int methodIndex = body.IndexOf("public string ApplyLightFogFlag()", StringComparison.Ordinal);
+        int formatIndex = body.IndexOf("if (_mapFormat != MapFormat.Udmf)", methodIndex, StringComparison.Ordinal);
+        int returnIndex = body.IndexOf("return \"\";", formatIndex, StringComparison.Ordinal);
+        int selectionIndex = body.IndexOf("IReadOnlyList<Linedef> linedefs = SelectedLinedefsOrHighlighted();", formatIndex, StringComparison.Ordinal);
+
+        Assert.True(methodIndex >= 0);
+        Assert.True(formatIndex > methodIndex);
+        Assert.True(returnIndex > formatIndex);
+        Assert.True(returnIndex < selectionIndex);
+    }
+
+    [Fact]
     public void GridRenderingCommandControlsVisibleGridOnly()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));

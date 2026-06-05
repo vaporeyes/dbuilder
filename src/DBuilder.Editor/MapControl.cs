@@ -8304,9 +8304,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_map == null) return "No map loaded.";
         if (_mapFormat != MapFormat.Udmf)
         {
-            const string message = "Apply 'lightfog' flag is only available for UDMF maps.";
-            Picked?.Invoke(message);
-            return message;
+            return "";
         }
 
         IReadOnlyList<Linedef> linedefs = SelectedLinedefsOrHighlighted();
