@@ -2792,6 +2792,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Toggle Gravity", command.Title);
+        Assert.Equal("Toggles the use of gravity while moving around in visual mode. Turn gravity off to fly around, turn gravity on to walk on the sector floors.", command.Description);
         Assert.Equal("G", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -2803,6 +2804,7 @@ public class EditorCommandCatalogTests
         Assert.Equal(EditorCommandScope.Map3D, legacyAlias.Scope);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
@@ -3195,6 +3197,7 @@ public class EditorCommandCatalogTests
 
         Assert.NotNull(command);
         Assert.Equal("Toggle Alpha-based Texture Highlighting", command.Title);
+        Assert.Equal("Toggles Alpha-based Texture Highlighting. When enabled, 3d floor textures and middle textures on double-sided lines will be highlighted only when the crosshair points at a non-transparent pixel.", command.Description);
         Assert.Equal("Menu", command.DefaultGesture);
         Assert.Equal(EditorCommandScope.Map3D, command.Scope);
         Assert.True(command.AllowKeys);
@@ -3203,6 +3206,7 @@ public class EditorCommandCatalogTests
         Assert.False(command.Repeat);
         Assert.NotNull(udbAlias);
         Assert.Equal(command.Title, udbAlias.Title);
+        Assert.Equal(command.Description, udbAlias.Description);
         Assert.Equal(command.DefaultGesture, udbAlias.DefaultGesture);
     }
 
