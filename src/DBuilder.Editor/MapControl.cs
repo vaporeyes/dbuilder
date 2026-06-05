@@ -6317,10 +6317,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 PlaceThingTargetsAtCursor3D();
                 return true;
             case "map3d.rotate-clockwise":
+            case "map3d.rotateclockwise":
             case "map3d.rotate-thing-clockwise":
                 RotateVisualTargets3D(_gameConfig?.DoomThingRotationAngles == true ? 45 : 5, 5);
                 return true;
             case "map3d.rotate-counterclockwise":
+            case "map3d.rotatecounterclockwise":
             case "map3d.rotate-thing-counterclockwise":
                 RotateVisualTargets3D(_gameConfig?.DoomThingRotationAngles == true ? -45 : -5, -5);
                 return true;

@@ -1134,6 +1134,8 @@ public sealed class MapControlCommandTests
         Assert.True(clockwiseCase >= 0);
         Assert.True(counterclockwiseCase >= 0);
         Assert.True(handlerIndex >= 0);
+        Assert.Contains("case \"map3d.rotateclockwise\":", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map3d.rotatecounterclockwise\":", body, StringComparison.Ordinal);
         Assert.Contains("RotateVisualTargets3D(_gameConfig?.DoomThingRotationAngles == true ? 45 : 5, 5);", body, StringComparison.Ordinal);
         Assert.Contains("RotateVisualTargets3D(_gameConfig?.DoomThingRotationAngles == true ? -45 : -5, -5);", body, StringComparison.Ordinal);
         Assert.Contains("case \"map3d.pitchclockwise\":", body, StringComparison.Ordinal);
