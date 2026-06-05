@@ -1990,7 +1990,7 @@ public partial class MainWindow : Window
         bool hasTarget = MapView.In3DMode ? MapView.HasVisualPropertyTarget : MapView.HasCurrentPropertyTarget;
         if (!hasTarget)
         {
-            SetStatus("This action requires highlight or selection!");
+            SetStatus("This action requires highlight or selection!", StatusHistoryKind.Warning);
             MapView.Focus();
             return;
         }
@@ -2131,7 +2131,7 @@ public partial class MainWindow : Window
                 AfterEdit("Vertex updated");
             }
         }
-        else SetStatus("Select exactly one vertex, linedef, sidedef, sector or thing to edit properties.");
+        else SetStatus("Select exactly one vertex, linedef, sidedef, sector or thing to edit properties.", StatusHistoryKind.Warning);
     }
 
     private void OnEditProperties(object? sender, RoutedEventArgs e) => OnEditSelected();
@@ -2201,7 +2201,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        SetStatus("Select exactly one linedef, sidedef, sector or thing to edit flags.");
+        SetStatus("Select exactly one linedef, sidedef, sector or thing to edit flags.", StatusHistoryKind.Warning);
     }
 
     // Opens the generic UDMF custom-fields dialog for one selected map element, including vertices.
@@ -2214,7 +2214,7 @@ public partial class MainWindow : Window
                 out string elementType,
                 out IReadOnlyList<string>? additionalFieldNames))
         {
-            SetStatus("Select exactly one vertex, linedef, sidedef, sector or thing to edit custom fields.");
+            SetStatus("Select exactly one vertex, linedef, sidedef, sector or thing to edit custom fields.", StatusHistoryKind.Warning);
             return;
         }
 
