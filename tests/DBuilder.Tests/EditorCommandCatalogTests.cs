@@ -2123,6 +2123,21 @@ public class EditorCommandCatalogTests
         Assert.Equal(description, command.Description);
     }
 
+    [Theory]
+    [InlineData("map3d.reset-slope", "Resets UDMF slope applied to a floor/ceiling.")]
+    [InlineData("map3d.resetslope", "Resets UDMF slope applied to a floor/ceiling.")]
+    [InlineData("map3d.slope-between-handles", "Slopes the selected floors and ceilings between the selected slope handles.")]
+    [InlineData("map3d.slopebetweenhandles", "Slopes the selected floors and ceilings between the selected slope handles.")]
+    [InlineData("map3d.arch-between-handles", "Arches the selected floors and ceilings between the selected slope handles.")]
+    [InlineData("map3d.archbetweenhandles", "Arches the selected floors and ceilings between the selected slope handles.")]
+    public void VisualSlopeEditCommandsMatchUdbDescriptions(string id, string description)
+    {
+        var command = EditorCommandCatalog.Find(id);
+
+        Assert.NotNull(command);
+        Assert.Equal(description, command.Description);
+    }
+
     [Fact]
     public void VisualThingMovementCommandsMatchUdbActionSurface()
     {
@@ -3356,6 +3371,9 @@ public class EditorCommandCatalogTests
     [InlineData("map3d.toggle-event-lines", "map3d.gztoggleeventlines")]
     [InlineData("map3d.toggle-visual-vertices", "map3d.togglevisualvertices")]
     [InlineData("map3d.toggle-visual-vertices", "map3d.gztogglevisualvertices")]
+    [InlineData("map3d.reset-slope", "map3d.resetslope")]
+    [InlineData("map3d.slope-between-handles", "map3d.slopebetweenhandles")]
+    [InlineData("map3d.arch-between-handles", "map3d.archbetweenhandles")]
     public void VisualRenderingToggleAliasesShareCanonicalMetadata(string canonicalId, string aliasId)
     {
         var canonical = EditorCommandCatalog.Find(canonicalId);
