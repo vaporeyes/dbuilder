@@ -40,6 +40,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Reload the current WAD or PK3 map from disk with dirty-change confirmation.
   - [x] Close the current map and release active archive resources with dirty-change confirmation.
   - [x] Create new maps using the active game configuration's map format interface.
+  - [x] Add raw UDB file and map action aliases to command dispatch.
 - [ ] Port autosave and recovery behavior.
   - [x] Write recoverable autosave WAD snapshots for dirty editor maps.
   - [x] List and recover autosave snapshots from the File menu.
@@ -49,6 +50,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Build testable external command launch plans from parsed command settings.
   - [x] Drain external command stdout and stderr during pre/post command execution.
   - [x] Add UDB-style singular and plural labels to external command run status messages.
+  - [x] Add raw UDB test-map and resource reload action aliases to command dispatch.
 - [x] Port update-check behavior or explicitly replace it with a documented cross-platform equivalent.
 - [ ] Port error logging and error display behavior.
   - [x] Write caught editor workflow failures and unhandled exceptions to app-data error logs.
@@ -232,6 +234,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Show effective shortcut binding in the Open WAD toolbar tooltip.
   - [x] Show effective shortcut bindings in menu item tooltips.
   - [x] Add raw UDB window action aliases for menu command metadata.
+  - [x] Add raw UDB file, launcher, resource, and prefab action aliases for menu command metadata.
   - [x] Show effective shortcut bindings in File menu item tooltips.
   - [x] Show effective shortcut bindings in Edit and Prefabs menu item tooltips.
   - [x] Show effective shortcut bindings in View menu item tooltips.
