@@ -355,6 +355,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add plugin shutdown attempt planning with dispose failure diagnostics.
   - [x] Add reflection-based plugin type discovery from runtime assemblies.
   - [x] Add reflection-based plugin instantiation with activation diagnostics.
+  - [x] Add reflection-based plugin callback execution with abort and error diagnostics.
 - [ ] Define plugin lifecycle hooks equivalent to UDB plugins.
   - [x] Add plugin lifecycle hook ordering for load, initialize, contribution registration, map-open, engage, disengage, and dispose planning.
 - [ ] Define plugin APIs for map access, UI contribution, actions, edit modes, and dockers.

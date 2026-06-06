@@ -781,6 +781,85 @@ public static class DBuilderPluginHostModel
             diagnostics);
     }
 
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionCallback(
+        DBuilderPluginRuntimeInstancePlan instancePlan,
+        string callbackName)
+    {
+        string name = callbackName.Trim();
+        DBuilderPluginCallbackDescriptor? callback = UdbCallbackDescriptors.FirstOrDefault(
+            descriptor => string.Equals(descriptor.Name, name, StringComparison.Ordinal));
+        if (callback == null)
+        {
+            return new DBuilderPluginCallbackExecutionResult(
+                Completed: false,
+                Aborted: false,
+                Array.Empty<DBuilderPluginCallbackOutcome>(),
+                new[]
+                {
+                    new DBuilderPluginDiagnostic(
+                        DBuilderPluginDiagnosticSeverity.Error,
+                        "(plugin host)",
+                        $"Unknown plugin callback {name}.")
+                });
+        }
+
+        var diagnostics = new List<DBuilderPluginDiagnostic>(instancePlan.Diagnostics);
+        var outcomes = new List<DBuilderPluginCallbackOutcome>();
+        foreach (DBuilderPluginRuntimeInstance runtimeInstance in instancePlan.Instances.OrderBy(instance => instance.Order))
+        {
+            MethodInfo? method = runtimeInstance.Instance.GetType().GetMethod(
+                callback.Name,
+                BindingFlags.Instance | BindingFlags.Public);
+            if (method == null)
+            {
+                outcomes.Add(new DBuilderPluginCallbackOutcome(runtimeInstance.PluginName));
+                continue;
+            }
+
+            if (method.GetParameters().Length != 0)
+            {
+                string error = $"Plugin {runtimeInstance.PluginName} callback {callback.Name} must not declare parameters.";
+                diagnostics.Add(new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Error,
+                    runtimeInstance.PluginName,
+                    error));
+                outcomes.Add(new DBuilderPluginCallbackOutcome(runtimeInstance.PluginName, Completed: false, Error: error));
+                continue;
+            }
+
+            try
+            {
+                object? result = method.Invoke(runtimeInstance.Instance, Array.Empty<object>());
+                bool aborted = callback.CanAbort && result is bool abort && abort;
+                outcomes.Add(new DBuilderPluginCallbackOutcome(runtimeInstance.PluginName, Aborted: aborted));
+            }
+            catch (TargetInvocationException ex) when (ex.InnerException != null)
+            {
+                string error = ex.InnerException.Message.Trim();
+                diagnostics.Add(new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Error,
+                    runtimeInstance.PluginName,
+                    error));
+                outcomes.Add(new DBuilderPluginCallbackOutcome(runtimeInstance.PluginName, Completed: false, Error: error));
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message.Trim();
+                diagnostics.Add(new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Error,
+                    runtimeInstance.PluginName,
+                    error));
+                outcomes.Add(new DBuilderPluginCallbackOutcome(runtimeInstance.PluginName, Completed: false, Error: error));
+            }
+        }
+
+        return new DBuilderPluginCallbackExecutionResult(
+            outcomes.All(outcome => outcome.Completed),
+            outcomes.Any(outcome => outcome.Aborted),
+            outcomes,
+            diagnostics);
+    }
+
     public static IReadOnlyList<DBuilderPluginDescriptor> NormalizeDescriptors(
         IEnumerable<DBuilderPluginDescriptor> descriptors)
     {

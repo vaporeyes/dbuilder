@@ -1,5 +1,5 @@
 // ABOUTME: Tests plugin descriptor normalization and lifecycle hook planning.
-// ABOUTME: Covers the UI-independent plugin host foundation before runtime loading exists.
+// ABOUTME: Covers UI-independent plugin host planning and reflection runtime execution helpers.
 
 using DBuilder.IO;
 
@@ -446,13 +446,13 @@ public sealed class DBuilderPluginHostModelTests
         Assert.Equal(DBuilderPluginDiagnosticSeverity.Warning, diagnostic.Severity);
         Assert.Equal("ReflectionTest", diagnostic.PluginName);
         Assert.Equal(
-            $"Plugin ReflectionTest assembly exposes multiple {typeof(IDBuilderPlugin).FullName} types; using {typeof(ReflectionBrokenPluginHostTestPlugin).FullName}.",
+            $"Plugin ReflectionTest assembly exposes multiple {typeof(IDBuilderPlugin).FullName} types; using {typeof(ReflectionAbortCallbackPlugin).FullName}.",
             diagnostic.Message);
         DBuilderPluginTypeDiscovery discovery = Assert.Single(plan.Discoveries);
         Assert.Equal("ReflectionTest", discovery.PluginName);
         Assert.Equal(assemblyPath, discovery.AssemblyPath);
         Assert.Equal(0, discovery.Order);
-        Assert.Equal(typeof(ReflectionBrokenPluginHostTestPlugin).FullName, discovery.PluginTypeName);
+        Assert.Equal(typeof(ReflectionAbortCallbackPlugin).FullName, discovery.PluginTypeName);
     }
 
     [Fact]
@@ -1305,6 +1305,183 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void ExecuteReflectionCallbackInvokesRuntimePluginCallbacksInOrder()
+    {
+        ReflectionCallbackPlugin.Calls.Clear();
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            new[]
+            {
+                new DBuilderPluginRuntimeInstance(
+                    "Second",
+                    "/plugins/second.dll",
+                    typeof(ReflectionCallbackPlugin).FullName!,
+                    1,
+                    new ReflectionCallbackPlugin("Second")),
+                new DBuilderPluginRuntimeInstance(
+                    "First",
+                    "/plugins/first.dll",
+                    typeof(ReflectionCallbackPlugin).FullName!,
+                    0,
+                    new ReflectionCallbackPlugin("First"))
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginCallbackExecutionResult result = DBuilderPluginHostModel.ExecuteReflectionCallback(
+            plan,
+            "OnInitialize");
+
+        Assert.True(result.Completed);
+        Assert.False(result.Aborted);
+        Assert.Equal(new[] { "First:OnInitialize", "Second:OnInitialize" }, ReflectionCallbackPlugin.Calls);
+        Assert.Collection(
+            result.Outcomes,
+            outcome => Assert.Equal("First", outcome.PluginName),
+            outcome => Assert.Equal("Second", outcome.PluginName));
+        Assert.Empty(result.Diagnostics);
+    }
+
+    [Fact]
+    public void ExecuteReflectionCallbackTreatsMissingMethodsAsSuccessfulNoOps()
+    {
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            new[]
+            {
+                new DBuilderPluginRuntimeInstance(
+                    "NoCallback",
+                    "/plugins/no-callback.dll",
+                    typeof(ReflectionPluginHostTestPlugin).FullName!,
+                    0,
+                    new ReflectionPluginHostTestPlugin())
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginCallbackExecutionResult result = DBuilderPluginHostModel.ExecuteReflectionCallback(
+            plan,
+            "OnReloadResources");
+
+        Assert.True(result.Completed);
+        Assert.False(result.Aborted);
+        DBuilderPluginCallbackOutcome outcome = Assert.Single(result.Outcomes);
+        Assert.Equal("NoCallback", outcome.PluginName);
+        Assert.True(outcome.Completed);
+        Assert.Empty(result.Diagnostics);
+    }
+
+    [Fact]
+    public void ExecuteReflectionCallbackPreservesAbortableCallbackAbort()
+    {
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            new[]
+            {
+                new DBuilderPluginRuntimeInstance(
+                    "Aborter",
+                    "/plugins/aborter.dll",
+                    typeof(ReflectionAbortCallbackPlugin).FullName!,
+                    0,
+                    new ReflectionAbortCallbackPlugin())
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginCallbackExecutionResult result = DBuilderPluginHostModel.ExecuteReflectionCallback(
+            plan,
+            "OnPasteBegin");
+
+        Assert.True(result.Completed);
+        Assert.True(result.Aborted);
+        Assert.True(result.Outcomes.Single().Aborted);
+        Assert.Empty(result.Diagnostics);
+    }
+
+    [Fact]
+    public void ExecuteReflectionCallbackReportsCallbackParameterErrors()
+    {
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            new[]
+            {
+                new DBuilderPluginRuntimeInstance(
+                    "BadSignature",
+                    "/plugins/bad-signature.dll",
+                    typeof(ReflectionBadSignatureCallbackPlugin).FullName!,
+                    0,
+                    new ReflectionBadSignatureCallbackPlugin())
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginCallbackExecutionResult result = DBuilderPluginHostModel.ExecuteReflectionCallback(
+            plan,
+            "OnInitialize");
+
+        Assert.False(result.Completed);
+        DBuilderPluginCallbackOutcome outcome = Assert.Single(result.Outcomes);
+        Assert.False(outcome.Completed);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(result.Diagnostics);
+        Assert.Equal(DBuilderPluginDiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.Equal("BadSignature", diagnostic.PluginName);
+        Assert.Equal("Plugin BadSignature callback OnInitialize must not declare parameters.", diagnostic.Message);
+    }
+
+    [Fact]
+    public void ExecuteReflectionCallbackReportsThrownCallbackErrorsWithoutDroppingOtherPlugins()
+    {
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            new IDBuilderPlugin[]
+            {
+                new ReflectionThrowingCallbackPlugin(),
+                new ReflectionPluginHostTestPlugin()
+            }
+            .Select((plugin, index) => new DBuilderPluginRuntimeInstance(
+                index == 0 ? "Throwing" : "Plain",
+                $"/plugins/{index}.dll",
+                plugin.GetType().FullName!,
+                index,
+                plugin))
+            .ToArray(),
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginCallbackExecutionResult result = DBuilderPluginHostModel.ExecuteReflectionCallback(
+            plan,
+            "OnInitialize");
+
+        Assert.False(result.Completed);
+        Assert.False(result.Aborted);
+        Assert.Collection(
+            result.Outcomes,
+            outcome =>
+            {
+                Assert.Equal("Throwing", outcome.PluginName);
+                Assert.False(outcome.Completed);
+                Assert.Equal("callback failed", outcome.Error);
+            },
+            outcome =>
+            {
+                Assert.Equal("Plain", outcome.PluginName);
+                Assert.True(outcome.Completed);
+            });
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(result.Diagnostics);
+        Assert.Equal("Throwing", diagnostic.PluginName);
+        Assert.Equal("callback failed", diagnostic.Message);
+    }
+
+    [Fact]
+    public void ExecuteReflectionCallbackReportsUnknownCallbacks()
+    {
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            Array.Empty<DBuilderPluginRuntimeInstance>(),
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginCallbackExecutionResult result = DBuilderPluginHostModel.ExecuteReflectionCallback(
+            plan,
+            "OnMissingCallback");
+
+        Assert.False(result.Completed);
+        Assert.Empty(result.Outcomes);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(result.Diagnostics);
+        Assert.Equal(DBuilderPluginDiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.Equal("(plugin host)", diagnostic.PluginName);
+        Assert.Equal("Unknown plugin callback OnMissingCallback.", diagnostic.Message);
+    }
+
+    [Fact]
     public void PlanLifecycleRegistersContributionHooksInStableOrder()
     {
         var descriptor = new DBuilderPluginDescriptor(
@@ -1792,4 +1969,41 @@ public sealed class ReflectionBrokenPluginHostTestPlugin : IDBuilderPlugin
 
 public sealed class ReflectionNonPluginHostTestType
 {
+}
+
+public sealed class ReflectionCallbackPlugin : IDBuilderPlugin
+{
+    public static List<string> Calls { get; } = new();
+
+    private readonly string _name;
+
+    public ReflectionCallbackPlugin(string name)
+    {
+        _name = name;
+    }
+
+    public void OnInitialize()
+    {
+        Calls.Add(_name + ":OnInitialize");
+    }
+}
+
+public sealed class ReflectionAbortCallbackPlugin : IDBuilderPlugin
+{
+    public bool OnPasteBegin() => true;
+}
+
+public sealed class ReflectionBadSignatureCallbackPlugin : IDBuilderPlugin
+{
+    public void OnInitialize(object context)
+    {
+    }
+}
+
+public sealed class ReflectionThrowingCallbackPlugin : IDBuilderPlugin
+{
+    public void OnInitialize()
+    {
+        throw new InvalidOperationException("callback failed");
+    }
 }
