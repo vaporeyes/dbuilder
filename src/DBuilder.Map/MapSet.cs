@@ -147,6 +147,13 @@ public class MapSet : IDisposable
     public Vertex CreateVertex(Vector2D position)
         => AddVertex(position);
 
+    public Vertex CreateVertex(int index, Vector2D position)
+    {
+        Vertex vertex = AddVertex(position);
+        MoveCreatedElementToIndex(Vertices, vertex, index);
+        return vertex;
+    }
+
     public Linedef AddLinedef(Vertex start, Vertex end)
     {
         var l = new Linedef(start, end) { Index = Linedefs.Count };
@@ -156,6 +163,13 @@ public class MapSet : IDisposable
 
     public Linedef CreateLinedef(Vertex start, Vertex end)
         => AddLinedef(start, end);
+
+    public Linedef CreateLinedef(int index, Vertex start, Vertex end)
+    {
+        Linedef linedef = AddLinedef(start, end);
+        MoveCreatedElementToIndex(Linedefs, linedef, index);
+        return linedef;
+    }
 
     public Sidedef AddSidedef(Linedef line, bool isFront, Sector? sector)
     {
@@ -168,6 +182,13 @@ public class MapSet : IDisposable
     public Sidedef CreateSidedef(Linedef line, bool front, Sector? sector)
         => AddSidedef(line, front, sector);
 
+    public Sidedef CreateSidedef(int index, Linedef line, bool front, Sector? sector)
+    {
+        Sidedef sidedef = AddSidedef(line, front, sector);
+        MoveCreatedElementToIndex(Sidedefs, sidedef, index);
+        return sidedef;
+    }
+
     public Sector AddSector()
     {
         var s = new Sector { Index = Sectors.Count };
@@ -178,6 +199,13 @@ public class MapSet : IDisposable
     public Sector CreateSector()
         => AddSector();
 
+    public Sector CreateSector(int index)
+    {
+        Sector sector = AddSector();
+        MoveCreatedElementToIndex(Sectors, sector, index);
+        return sector;
+    }
+
     public Thing AddThing(Vector2D position, int type)
     {
         var t = new Thing(position, type) { Index = Things.Count };
@@ -187,6 +215,27 @@ public class MapSet : IDisposable
 
     public Thing CreateThing()
         => AddThing(new Vector2D(), type: 0);
+
+    public Thing CreateThing(int index)
+    {
+        Thing thing = CreateThing();
+        MoveCreatedElementToIndex(Things, thing, index);
+        return thing;
+    }
+
+    private static void MoveCreatedElementToIndex<T>(List<T> elements, T element, int index)
+        where T : class, IMapElement
+    {
+        int lastIndex = elements.Count - 1;
+        if (index < 0 || index > lastIndex) throw new ArgumentOutOfRangeException(nameof(index));
+        if (index == lastIndex) return;
+
+        T displaced = elements[index];
+        elements[index] = element;
+        elements[lastIndex] = displaced;
+        element.Index = index;
+        displaced.Index = lastIndex;
+    }
 
     public Thing PlaceUniqueThing(int type, Vector2D position)
     {

@@ -79,6 +79,70 @@ public class MapSetAndUdmfLoaderTests
     }
 
     [Fact]
+    public void IndexedCreateElementAliasesUseUdbSwapPlacement()
+    {
+        var map = new MapSet();
+        Vertex first = map.CreateVertex(new Vector2D(0, 0));
+        Vertex second = map.CreateVertex(new Vector2D(64, 0));
+
+        Vertex inserted = map.CreateVertex(0, new Vector2D(128, 0));
+
+        Assert.Same(inserted, map.Vertices[0]);
+        Assert.Same(second, map.Vertices[1]);
+        Assert.Same(first, map.Vertices[2]);
+        Assert.Equal(0, inserted.Index);
+        Assert.Equal(1, second.Index);
+        Assert.Equal(2, first.Index);
+
+        Linedef firstLine = map.CreateLinedef(first, second);
+        Linedef insertedLine = map.CreateLinedef(0, inserted, second);
+
+        Assert.Same(insertedLine, map.Linedefs[0]);
+        Assert.Same(firstLine, map.Linedefs[1]);
+        Assert.Equal(0, insertedLine.Index);
+        Assert.Equal(1, firstLine.Index);
+
+        Sector firstSector = map.CreateSector();
+        Sector insertedSector = map.CreateSector(0);
+
+        Assert.Same(insertedSector, map.Sectors[0]);
+        Assert.Same(firstSector, map.Sectors[1]);
+        Assert.Equal(0, insertedSector.Index);
+        Assert.Equal(1, firstSector.Index);
+
+        Sidedef firstSide = map.CreateSidedef(firstLine, front: true, firstSector);
+        Sidedef insertedSide = map.CreateSidedef(0, insertedLine, front: true, insertedSector);
+
+        Assert.Same(insertedSide, map.Sidedefs[0]);
+        Assert.Same(firstSide, map.Sidedefs[1]);
+        Assert.Equal(0, insertedSide.Index);
+        Assert.Equal(1, firstSide.Index);
+        Assert.Same(insertedSide, insertedLine.Front);
+
+        Thing firstThing = map.CreateThing();
+        Thing insertedThing = map.CreateThing(0);
+
+        Assert.Same(insertedThing, map.Things[0]);
+        Assert.Same(firstThing, map.Things[1]);
+        Assert.Equal(0, insertedThing.Index);
+        Assert.Equal(1, firstThing.Index);
+    }
+
+    [Fact]
+    public void IndexedCreateElementAliasesAppendAtCurrentCount()
+    {
+        var map = new MapSet();
+
+        Vertex vertex = map.CreateVertex(0, new Vector2D(0, 0));
+        Sector sector = map.CreateSector(0);
+        Thing thing = map.CreateThing(0);
+
+        Assert.Same(vertex, map.Vertices[0]);
+        Assert.Same(sector, map.Sectors[0]);
+        Assert.Same(thing, map.Things[0]);
+    }
+
+    [Fact]
     public void VertexPositionsRoundTrip()
     {
         var map = UdmfMapLoader.Load(SimpleUdmfRoom, out _)!;
