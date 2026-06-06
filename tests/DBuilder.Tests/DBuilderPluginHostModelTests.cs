@@ -1599,6 +1599,158 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void ExecuteReflectionShutdownDisposesRuntimePluginsInReverseOrder()
+    {
+        ReflectionDisposablePlugin.Calls.Clear();
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            new[]
+            {
+                new DBuilderPluginRuntimeInstance(
+                    "First",
+                    "/plugins/first.dll",
+                    typeof(ReflectionDisposablePlugin).FullName!,
+                    0,
+                    new ReflectionDisposablePlugin("First")),
+                new DBuilderPluginRuntimeInstance(
+                    "Second",
+                    "/plugins/second.dll",
+                    typeof(ReflectionDisposablePlugin).FullName!,
+                    1,
+                    new ReflectionDisposablePlugin("Second"))
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginShutdownPlan shutdown = DBuilderPluginHostModel.ExecuteReflectionShutdown(plan);
+
+        Assert.Equal(new[] { "Second:Dispose", "First:Dispose" }, ReflectionDisposablePlugin.Calls);
+        Assert.Empty(shutdown.Diagnostics);
+        Assert.Collection(
+            shutdown.Attempts,
+            attempt =>
+            {
+                Assert.Equal("Second", attempt.PluginName);
+                Assert.Equal(1, attempt.Order);
+                Assert.True(attempt.Disposed);
+                Assert.Null(attempt.Error);
+            },
+            attempt =>
+            {
+                Assert.Equal("First", attempt.PluginName);
+                Assert.Equal(0, attempt.Order);
+                Assert.True(attempt.Disposed);
+            });
+    }
+
+    [Fact]
+    public void ExecuteReflectionShutdownTreatsMissingDisposeAsSuccessfulNoOp()
+    {
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            new[]
+            {
+                new DBuilderPluginRuntimeInstance(
+                    "Plain",
+                    "/plugins/plain.dll",
+                    typeof(ReflectionPluginHostTestPlugin).FullName!,
+                    0,
+                    new ReflectionPluginHostTestPlugin())
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginShutdownPlan shutdown = DBuilderPluginHostModel.ExecuteReflectionShutdown(plan);
+
+        Assert.Empty(shutdown.Diagnostics);
+        DBuilderPluginShutdownAttempt attempt = Assert.Single(shutdown.Attempts);
+        Assert.Equal("Plain", attempt.PluginName);
+        Assert.True(attempt.Disposed);
+        Assert.Null(attempt.Error);
+    }
+
+    [Fact]
+    public void ExecuteReflectionShutdownReportsDisposeSignatureErrors()
+    {
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            new[]
+            {
+                new DBuilderPluginRuntimeInstance(
+                    "BadDispose",
+                    "/plugins/bad-dispose.dll",
+                    typeof(ReflectionBadDisposePlugin).FullName!,
+                    0,
+                    new ReflectionBadDisposePlugin())
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginShutdownPlan shutdown = DBuilderPluginHostModel.ExecuteReflectionShutdown(plan);
+
+        DBuilderPluginShutdownAttempt attempt = Assert.Single(shutdown.Attempts);
+        Assert.False(attempt.Disposed);
+        Assert.Equal("Plugin BadDispose Dispose callback must not declare parameters.", attempt.Error);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(shutdown.Diagnostics);
+        Assert.Equal(DBuilderPluginDiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.Equal("BadDispose", diagnostic.PluginName);
+        Assert.Equal("Plugin BadDispose Dispose callback must not declare parameters.", diagnostic.Message);
+    }
+
+    [Fact]
+    public void ExecuteReflectionShutdownReportsDisposeErrorsWithoutDroppingOtherPlugins()
+    {
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            new IDBuilderPlugin[]
+            {
+                new ReflectionThrowingDisposePlugin(),
+                new ReflectionPluginHostTestPlugin()
+            }
+            .Select((plugin, index) => new DBuilderPluginRuntimeInstance(
+                index == 0 ? "Throwing" : "Plain",
+                $"/plugins/{index}.dll",
+                plugin.GetType().FullName!,
+                index,
+                plugin))
+            .ToArray(),
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginShutdownPlan shutdown = DBuilderPluginHostModel.ExecuteReflectionShutdown(plan);
+
+        Assert.Collection(
+            shutdown.Attempts,
+            attempt =>
+            {
+                Assert.Equal("Plain", attempt.PluginName);
+                Assert.True(attempt.Disposed);
+            },
+            attempt =>
+            {
+                Assert.Equal("Throwing", attempt.PluginName);
+                Assert.False(attempt.Disposed);
+                Assert.Equal("dispose failed", attempt.Error);
+            });
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(shutdown.Diagnostics);
+        Assert.Equal("Throwing", diagnostic.PluginName);
+        Assert.Equal("dispose failed", diagnostic.Message);
+    }
+
+    [Fact]
+    public void ExecuteReflectionShutdownPreservesInstanceDiagnostics()
+    {
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            Array.Empty<DBuilderPluginRuntimeInstance>(),
+            new[]
+            {
+                new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Error,
+                    "Broken",
+                    "activation failed")
+            });
+
+        DBuilderPluginShutdownPlan shutdown = DBuilderPluginHostModel.ExecuteReflectionShutdown(plan);
+
+        Assert.Empty(shutdown.Attempts);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(shutdown.Diagnostics);
+        Assert.Equal("Broken", diagnostic.PluginName);
+        Assert.Equal("activation failed", diagnostic.Message);
+    }
+
+    [Fact]
     public void PlanLifecycleRegistersContributionHooksInStableOrder()
     {
         var descriptor = new DBuilderPluginDescriptor(
@@ -2122,5 +2274,37 @@ public sealed class ReflectionThrowingCallbackPlugin : IDBuilderPlugin
     public void OnInitialize()
     {
         throw new InvalidOperationException("callback failed");
+    }
+}
+
+public sealed class ReflectionDisposablePlugin : IDBuilderPlugin
+{
+    public static List<string> Calls { get; } = new();
+
+    private readonly string _name;
+
+    public ReflectionDisposablePlugin(string name)
+    {
+        _name = name;
+    }
+
+    public void Dispose()
+    {
+        Calls.Add(_name + ":Dispose");
+    }
+}
+
+public sealed class ReflectionBadDisposePlugin : IDBuilderPlugin
+{
+    public void Dispose(object context)
+    {
+    }
+}
+
+public sealed class ReflectionThrowingDisposePlugin : IDBuilderPlugin
+{
+    public void Dispose()
+    {
+        throw new InvalidOperationException("dispose failed");
     }
 }

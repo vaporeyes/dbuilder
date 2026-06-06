@@ -899,6 +899,90 @@ public static class DBuilderPluginHostModel
             diagnostics);
     }
 
+    public static DBuilderPluginShutdownPlan ExecuteReflectionShutdown(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+    {
+        var attempts = new List<DBuilderPluginShutdownAttempt>();
+        var diagnostics = new List<DBuilderPluginDiagnostic>(instancePlan.Diagnostics);
+
+        foreach (DBuilderPluginRuntimeInstance runtimeInstance in instancePlan.Instances.OrderByDescending(instance => instance.Order))
+        {
+            MethodInfo? method = runtimeInstance.Instance.GetType().GetMethod(
+                "Dispose",
+                BindingFlags.Instance | BindingFlags.Public);
+            if (method == null)
+            {
+                attempts.Add(new DBuilderPluginShutdownAttempt(
+                    runtimeInstance.PluginName,
+                    runtimeInstance.AssemblyPath,
+                    runtimeInstance.PluginTypeName,
+                    runtimeInstance.Order,
+                    Disposed: true));
+                continue;
+            }
+
+            if (method.GetParameters().Length != 0)
+            {
+                string error = $"Plugin {runtimeInstance.PluginName} Dispose callback must not declare parameters.";
+                diagnostics.Add(new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Error,
+                    runtimeInstance.PluginName,
+                    error));
+                attempts.Add(new DBuilderPluginShutdownAttempt(
+                    runtimeInstance.PluginName,
+                    runtimeInstance.AssemblyPath,
+                    runtimeInstance.PluginTypeName,
+                    runtimeInstance.Order,
+                    Disposed: false,
+                    error));
+                continue;
+            }
+
+            try
+            {
+                method.Invoke(runtimeInstance.Instance, Array.Empty<object>());
+                attempts.Add(new DBuilderPluginShutdownAttempt(
+                    runtimeInstance.PluginName,
+                    runtimeInstance.AssemblyPath,
+                    runtimeInstance.PluginTypeName,
+                    runtimeInstance.Order,
+                    Disposed: true));
+            }
+            catch (TargetInvocationException ex) when (ex.InnerException != null)
+            {
+                string error = ex.InnerException.Message.Trim();
+                diagnostics.Add(new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Error,
+                    runtimeInstance.PluginName,
+                    error));
+                attempts.Add(new DBuilderPluginShutdownAttempt(
+                    runtimeInstance.PluginName,
+                    runtimeInstance.AssemblyPath,
+                    runtimeInstance.PluginTypeName,
+                    runtimeInstance.Order,
+                    Disposed: false,
+                    error));
+            }
+            catch (Exception ex)
+            {
+                string error = ex.Message.Trim();
+                diagnostics.Add(new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Error,
+                    runtimeInstance.PluginName,
+                    error));
+                attempts.Add(new DBuilderPluginShutdownAttempt(
+                    runtimeInstance.PluginName,
+                    runtimeInstance.AssemblyPath,
+                    runtimeInstance.PluginTypeName,
+                    runtimeInstance.Order,
+                    Disposed: false,
+                    error));
+            }
+        }
+
+        return new DBuilderPluginShutdownPlan(attempts, diagnostics);
+    }
+
     public static IReadOnlyList<DBuilderPluginDescriptor> NormalizeDescriptors(
         IEnumerable<DBuilderPluginDescriptor> descriptors)
     {
