@@ -17,6 +17,12 @@ public sealed record SurfaceBufferReloadPlan(int BufferIndex, int BufferSize, IR
 
 public sealed record SurfaceBufferUnloadPlan(IReadOnlyList<int> DisposedBufferIndexes);
 
+public sealed record SurfaceBufferUnlockPlan(
+    int LockedBufferCountBefore,
+    bool ResourcesUnloaded,
+    bool ClearLockedBuffers,
+    int LockedBufferCountAfter);
+
 public enum SurfaceManagerLifecycleOperation
 {
     Construct,
@@ -238,6 +244,18 @@ public static class SurfaceManagerPlan
 
     public static int MaxEntriesPerBuffer(int verticesPerEntry)
         => MaxVerticesPerBuffer / VerticesPerBufferEntry(verticesPerEntry);
+
+    public static SurfaceBufferUnlockPlan BuildUnlockBuffersPlan(int lockedBufferCount, bool resourcesUnloaded)
+    {
+        if (lockedBufferCount < 0) throw new ArgumentOutOfRangeException(nameof(lockedBufferCount));
+
+        bool clearLockedBuffers = !resourcesUnloaded;
+        return new SurfaceBufferUnlockPlan(
+            lockedBufferCount,
+            resourcesUnloaded,
+            clearLockedBuffers,
+            clearLockedBuffers ? 0 : lockedBufferCount);
+    }
 
     public static SurfaceManagerLifecyclePlan BuildLifecyclePlan(SurfaceManagerLifecycleOperation operation)
         => operation switch

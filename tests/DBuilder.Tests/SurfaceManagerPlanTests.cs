@@ -115,6 +115,37 @@ public sealed class SurfaceManagerPlanTests
     }
 
     [Fact]
+    public void UnlockBuffersClearsLockedListOnlyWhenResourcesAreLoaded()
+    {
+        SurfaceBufferUnlockPlan loaded = SurfaceManagerPlan.BuildUnlockBuffersPlan(
+            lockedBufferCount: 3,
+            resourcesUnloaded: false);
+        SurfaceBufferUnlockPlan unloaded = SurfaceManagerPlan.BuildUnlockBuffersPlan(
+            lockedBufferCount: 3,
+            resourcesUnloaded: true);
+
+        Assert.Equal(new SurfaceBufferUnlockPlan(
+            LockedBufferCountBefore: 3,
+            ResourcesUnloaded: false,
+            ClearLockedBuffers: true,
+            LockedBufferCountAfter: 0), loaded);
+        Assert.Equal(new SurfaceBufferUnlockPlan(
+            LockedBufferCountBefore: 3,
+            ResourcesUnloaded: true,
+            ClearLockedBuffers: false,
+            LockedBufferCountAfter: 3), unloaded);
+    }
+
+    [Fact]
+    public void UnlockBuffersRejectsInvalidLockedBufferCount()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            SurfaceManagerPlan.BuildUnlockBuffersPlan(
+                lockedBufferCount: -1,
+                resourcesUnloaded: false));
+    }
+
+    [Fact]
     public void BufferSetCreatesHolesForAllocatedBufferSlots()
     {
         var set = new SurfaceBufferSetState(verticesPerEntry: 3);

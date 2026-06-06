@@ -56,6 +56,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Surface buffer resource reload upload planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface buffer reset invalidation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface buffer unload and reload resource-state planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Surface locked-buffer unlock lifecycle planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface manager resource registration and lifecycle planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text font byte-indexed glyph table planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text font configuration metric normalization", replacement.CoveredResponsibilities);
