@@ -39,6 +39,8 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
     public int CeilHeight { get; set; } = 128;
     public string FloorTexture { get; set; } = "-";
     public string CeilTexture { get; set; } = "-";
+    public long LongFloorTexture { get; set; } = MapSet.EmptyLongName;
+    public long LongCeilTexture { get; set; } = MapSet.EmptyLongName;
     public int Brightness { get => brightness; set { brightness = value; updateNeeded = true; } }
     public int Special { get; set; }
     public int Effect { get => Special; set => Special = value; }
@@ -162,6 +164,8 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
         sector.CeilHeight = CeilHeight;
         sector.FloorTexture = FloorTexture;
         sector.CeilTexture = CeilTexture;
+        sector.LongFloorTexture = LongFloorTexture;
+        sector.LongCeilTexture = LongCeilTexture;
         sector.Brightness = Brightness;
         sector.Special = Special;
         sector.FloorSlope = FloorSlope;

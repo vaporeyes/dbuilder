@@ -219,6 +219,25 @@ public class MapElementDataTests
     }
 
     [Fact]
+    public void SectorLongTextureNamesMatchUdbSurfaceAndCopy()
+    {
+        var source = new Sector
+        {
+            LongFloorTexture = 44,
+            LongCeilTexture = 55,
+        };
+        var target = new Sector();
+
+        Assert.Equal(MapSet.EmptyLongName, target.LongFloorTexture);
+        Assert.Equal(MapSet.EmptyLongName, target.LongCeilTexture);
+
+        source.CopyPropertiesTo(target);
+
+        Assert.Equal(44, target.LongFloorTexture);
+        Assert.Equal(55, target.LongCeilTexture);
+    }
+
+    [Fact]
     public void SectorUpdateNeededSetterMatchesUdbStickyBehavior()
     {
         var sector = new Sector();
