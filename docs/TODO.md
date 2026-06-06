@@ -1264,7 +1264,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Block sound propagation across closed-height two-sided lines.
   - [x] Honor UDMF `blocksound` flags in editor sound reachability tracing.
 - [ ] Port 3D floor editing behavior fully.
-- [ ] Port geometry cleanup tools.
+- [x] Port geometry cleanup tools.
   - [x] Add menu command for reference, unused sector, and unused vertex cleanup.
   - [x] Apply UDB-style unused sidedef texture cleanup from the Clean Up Geometry command.
   - [x] Add UDB-style singular and plural labels to geometry cleanup status text.
