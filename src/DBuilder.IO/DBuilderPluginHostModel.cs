@@ -1002,6 +1002,10 @@ public static class DBuilderPluginHostModel
         string callbackName)
         => ExecuteReflectionCallback(instancePlan, callbackName, Array.Empty<object>());
 
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionInitialize(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnInitialize");
+
     public static DBuilderPluginCallbackExecutionResult ExecuteReflectionReloadResources(
         DBuilderPluginRuntimeInstancePlan instancePlan)
         => ExecuteReflectionCallback(instancePlan, "OnReloadResources");

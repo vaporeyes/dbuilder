@@ -134,6 +134,32 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void UdbCallbackCatalogHasTypedHelpersForNoArgumentRuntimeCallbacks()
+    {
+        HashSet<string> helperNames = typeof(DBuilderPluginHostModel)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .Where(method => method.Name.StartsWith("ExecuteReflection", StringComparison.Ordinal))
+            .Where(method => method.ReturnType == typeof(DBuilderPluginCallbackExecutionResult))
+            .Where(method =>
+            {
+                ParameterInfo[] parameters = method.GetParameters();
+                return parameters.Length == 1
+                    && parameters[0].ParameterType == typeof(DBuilderPluginRuntimeInstancePlan);
+            })
+            .Select(method => method.Name)
+            .ToHashSet(StringComparer.Ordinal);
+
+        string[] missingHelpers = DBuilderPluginHostModel.UdbCallbackDescriptors
+            .Where(callback => callback.Name != "Dispose")
+            .Where(callback => !RequiresCallerArgument(callback))
+            .Select(callback => "ExecuteReflection" + callback.Name[2..])
+            .Where(helperName => !helperNames.Contains(helperName))
+            .ToArray();
+
+        Assert.Empty(missingHelpers);
+    }
+
+    [Fact]
     public void UdbCallbackCatalogGroupsCallbacksByArea()
     {
         var categories = DBuilderPluginHostModel.UdbCallbackDescriptors
@@ -1790,9 +1816,7 @@ public sealed class DBuilderPluginHostModelTests
             },
             Array.Empty<DBuilderPluginDiagnostic>());
 
-        DBuilderPluginCallbackExecutionResult result = DBuilderPluginHostModel.ExecuteReflectionCallback(
-            plan,
-            "OnInitialize");
+        DBuilderPluginCallbackExecutionResult result = DBuilderPluginHostModel.ExecuteReflectionInitialize(plan);
 
         Assert.True(result.Completed);
         Assert.False(result.Aborted);
@@ -3249,6 +3273,9 @@ public sealed class DBuilderPluginHostModelTests
                 RuntimeInstance(plugin, pluginName, 0)
             },
             Array.Empty<DBuilderPluginDiagnostic>());
+
+    private static bool RequiresCallerArgument(DBuilderPluginCallbackDescriptor callback)
+        => callback.Parameters?.Any(parameter => parameter != DBuilderPluginCallbackParameterKind.CurrentResult) == true;
 
     private static DBuilderPluginRuntimeInstance RuntimeInstance(
         IDBuilderPlugin plugin,
