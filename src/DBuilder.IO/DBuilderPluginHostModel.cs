@@ -114,8 +114,73 @@ public sealed record DBuilderPluginHostPlan(
     DBuilderPluginApiContributionPlan ApiContributions,
     DBuilderPluginResourceHandlerPlan ResourceHandlers);
 
+public sealed record DBuilderPluginCallbackDescriptor(
+    string Name,
+    string Category,
+    bool CanAbort = false);
+
 public static class DBuilderPluginHostModel
 {
+    public static IReadOnlyList<DBuilderPluginCallbackDescriptor> UdbCallbackDescriptors { get; } = new[]
+    {
+        new DBuilderPluginCallbackDescriptor("OnInitialize", "Load"),
+        new DBuilderPluginCallbackDescriptor("Dispose", "Load"),
+        new DBuilderPluginCallbackDescriptor("OnMapOpenBegin", "Map"),
+        new DBuilderPluginCallbackDescriptor("OnMapOpenEnd", "Map"),
+        new DBuilderPluginCallbackDescriptor("OnMapNewBegin", "Map"),
+        new DBuilderPluginCallbackDescriptor("OnMapNewEnd", "Map"),
+        new DBuilderPluginCallbackDescriptor("OnMapCloseBegin", "Map"),
+        new DBuilderPluginCallbackDescriptor("OnMapCloseEnd", "Map"),
+        new DBuilderPluginCallbackDescriptor("OnMapSaveBegin", "Map"),
+        new DBuilderPluginCallbackDescriptor("OnMapSaveEnd", "Map"),
+        new DBuilderPluginCallbackDescriptor("OnMapSetChangeBegin", "Map"),
+        new DBuilderPluginCallbackDescriptor("OnMapSetChangeEnd", "Map"),
+        new DBuilderPluginCallbackDescriptor("OnMapReconfigure", "Configuration"),
+        new DBuilderPluginCallbackDescriptor("OnProgramReconfigure", "Configuration"),
+        new DBuilderPluginCallbackDescriptor("OnReloadResources", "Resources"),
+        new DBuilderPluginCallbackDescriptor("OnMapNodesRebuilt", "Resources"),
+        new DBuilderPluginCallbackDescriptor("OnModeChange", "EditMode", CanAbort: true),
+        new DBuilderPluginCallbackDescriptor("OnEditEngage", "EditMode"),
+        new DBuilderPluginCallbackDescriptor("OnEditDisengage", "EditMode"),
+        new DBuilderPluginCallbackDescriptor("OnEditCancel", "EditMode"),
+        new DBuilderPluginCallbackDescriptor("OnEditAccept", "EditMode"),
+        new DBuilderPluginCallbackDescriptor("OnCopyBegin", "EditOperation", CanAbort: true),
+        new DBuilderPluginCallbackDescriptor("OnCopyEnd", "EditOperation"),
+        new DBuilderPluginCallbackDescriptor("OnPasteBegin", "EditOperation", CanAbort: true),
+        new DBuilderPluginCallbackDescriptor("OnPasteEnd", "EditOperation"),
+        new DBuilderPluginCallbackDescriptor("OnUndoBegin", "EditOperation", CanAbort: true),
+        new DBuilderPluginCallbackDescriptor("OnUndoEnd", "EditOperation"),
+        new DBuilderPluginCallbackDescriptor("OnRedoBegin", "EditOperation", CanAbort: true),
+        new DBuilderPluginCallbackDescriptor("OnRedoEnd", "EditOperation"),
+        new DBuilderPluginCallbackDescriptor("OnUndoCreated", "EditOperation"),
+        new DBuilderPluginCallbackDescriptor("OnUndoWithdrawn", "EditOperation"),
+        new DBuilderPluginCallbackDescriptor("OnShowPreferences", "Preferences"),
+        new DBuilderPluginCallbackDescriptor("OnClosePreferences", "Preferences"),
+        new DBuilderPluginCallbackDescriptor("OnActionBegin", "Action"),
+        new DBuilderPluginCallbackDescriptor("OnActionEnd", "Action"),
+        new DBuilderPluginCallbackDescriptor("OnEditMouseClick", "Input"),
+        new DBuilderPluginCallbackDescriptor("OnEditMouseDoubleClick", "Input"),
+        new DBuilderPluginCallbackDescriptor("OnEditMouseDown", "Input"),
+        new DBuilderPluginCallbackDescriptor("OnEditMouseEnter", "Input"),
+        new DBuilderPluginCallbackDescriptor("OnEditMouseLeave", "Input"),
+        new DBuilderPluginCallbackDescriptor("OnEditMouseMove", "Input"),
+        new DBuilderPluginCallbackDescriptor("OnEditMouseUp", "Input"),
+        new DBuilderPluginCallbackDescriptor("OnEditKeyDown", "Input"),
+        new DBuilderPluginCallbackDescriptor("OnEditKeyUp", "Input"),
+        new DBuilderPluginCallbackDescriptor("OnEditMouseInput", "Input"),
+        new DBuilderPluginCallbackDescriptor("OnEditRedrawDisplayBegin", "Rendering"),
+        new DBuilderPluginCallbackDescriptor("OnEditRedrawDisplayEnd", "Rendering"),
+        new DBuilderPluginCallbackDescriptor("OnPresentDisplayBegin", "Rendering"),
+        new DBuilderPluginCallbackDescriptor("OnSectorCeilingSurfaceUpdate", "Rendering"),
+        new DBuilderPluginCallbackDescriptor("OnSectorFloorSurfaceUpdate", "Rendering"),
+        new DBuilderPluginCallbackDescriptor("OnHighlightSector", "Highlight"),
+        new DBuilderPluginCallbackDescriptor("OnHighlightLinedef", "Highlight"),
+        new DBuilderPluginCallbackDescriptor("OnHighlightThing", "Highlight"),
+        new DBuilderPluginCallbackDescriptor("OnHighlightVertex", "Highlight"),
+        new DBuilderPluginCallbackDescriptor("OnHighlightRefreshed", "Highlight"),
+        new DBuilderPluginCallbackDescriptor("OnHighlightLost", "Highlight")
+    };
+
     public static DBuilderPluginDescriptorPlan PlanDescriptors(
         IEnumerable<DBuilderPluginDescriptor> descriptors)
     {

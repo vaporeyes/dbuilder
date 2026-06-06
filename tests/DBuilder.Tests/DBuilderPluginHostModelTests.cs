@@ -8,6 +8,113 @@ namespace DBuilder.Tests;
 public sealed class DBuilderPluginHostModelTests
 {
     [Fact]
+    public void UdbCallbackCatalogCoversCorePlugAndManagerSurface()
+    {
+        string[] names = DBuilderPluginHostModel.UdbCallbackDescriptors
+            .Select(callback => callback.Name)
+            .ToArray();
+
+        Assert.Equal(new[]
+        {
+            "OnInitialize",
+            "Dispose",
+            "OnMapOpenBegin",
+            "OnMapOpenEnd",
+            "OnMapNewBegin",
+            "OnMapNewEnd",
+            "OnMapCloseBegin",
+            "OnMapCloseEnd",
+            "OnMapSaveBegin",
+            "OnMapSaveEnd",
+            "OnMapSetChangeBegin",
+            "OnMapSetChangeEnd",
+            "OnMapReconfigure",
+            "OnProgramReconfigure",
+            "OnReloadResources",
+            "OnMapNodesRebuilt",
+            "OnModeChange",
+            "OnEditEngage",
+            "OnEditDisengage",
+            "OnEditCancel",
+            "OnEditAccept",
+            "OnCopyBegin",
+            "OnCopyEnd",
+            "OnPasteBegin",
+            "OnPasteEnd",
+            "OnUndoBegin",
+            "OnUndoEnd",
+            "OnRedoBegin",
+            "OnRedoEnd",
+            "OnUndoCreated",
+            "OnUndoWithdrawn",
+            "OnShowPreferences",
+            "OnClosePreferences",
+            "OnActionBegin",
+            "OnActionEnd",
+            "OnEditMouseClick",
+            "OnEditMouseDoubleClick",
+            "OnEditMouseDown",
+            "OnEditMouseEnter",
+            "OnEditMouseLeave",
+            "OnEditMouseMove",
+            "OnEditMouseUp",
+            "OnEditKeyDown",
+            "OnEditKeyUp",
+            "OnEditMouseInput",
+            "OnEditRedrawDisplayBegin",
+            "OnEditRedrawDisplayEnd",
+            "OnPresentDisplayBegin",
+            "OnSectorCeilingSurfaceUpdate",
+            "OnSectorFloorSurfaceUpdate",
+            "OnHighlightSector",
+            "OnHighlightLinedef",
+            "OnHighlightThing",
+            "OnHighlightVertex",
+            "OnHighlightRefreshed",
+            "OnHighlightLost"
+        }, names);
+        Assert.Equal(names.Length, names.Distinct(StringComparer.Ordinal).Count());
+    }
+
+    [Fact]
+    public void UdbCallbackCatalogMarksAbortableCallbacks()
+    {
+        string[] abortable = DBuilderPluginHostModel.UdbCallbackDescriptors
+            .Where(callback => callback.CanAbort)
+            .Select(callback => callback.Name)
+            .ToArray();
+
+        Assert.Equal(new[]
+        {
+            "OnModeChange",
+            "OnCopyBegin",
+            "OnPasteBegin",
+            "OnUndoBegin",
+            "OnRedoBegin"
+        }, abortable);
+    }
+
+    [Fact]
+    public void UdbCallbackCatalogGroupsCallbacksByArea()
+    {
+        var categories = DBuilderPluginHostModel.UdbCallbackDescriptors
+            .GroupBy(callback => callback.Category)
+            .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal);
+
+        Assert.Equal(2, categories["Load"]);
+        Assert.Equal(10, categories["Map"]);
+        Assert.Equal(2, categories["Configuration"]);
+        Assert.Equal(2, categories["Resources"]);
+        Assert.Equal(5, categories["EditMode"]);
+        Assert.Equal(10, categories["EditOperation"]);
+        Assert.Equal(2, categories["Preferences"]);
+        Assert.Equal(2, categories["Action"]);
+        Assert.Equal(10, categories["Input"]);
+        Assert.Equal(5, categories["Rendering"]);
+        Assert.Equal(6, categories["Highlight"]);
+    }
+
+    [Fact]
     public void NormalizeDescriptorsKeepsFirstPluginByNameAndSortsByTitle()
     {
         var descriptors = DBuilderPluginHostModel.NormalizeDescriptors(new[]
