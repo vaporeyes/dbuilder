@@ -105,6 +105,7 @@ public static class EventLineAssociationModel
     {
         var associations = new List<EventLineAssociation>();
         associations.AddRange(ThingForwardAssociations(map, thing, config));
+        associations.AddRange(ThingDirectLinkAssociations(map, thing, config));
 
         HashSet<int> tags = thing.Tag > 0 ? new HashSet<int> { thing.Tag } : new HashSet<int>();
         associations.AddRange(ReverseActionArgAssociations(
@@ -123,6 +124,31 @@ public static class EventLineAssociationModel
             thing.Fields,
             config,
             sourceSector: null));
+        return associations;
+    }
+
+    private static IReadOnlyList<EventLineAssociation> ThingDirectLinkAssociations(
+        MapSet map,
+        Thing source,
+        GameConfiguration? config)
+    {
+        if (source.Tag <= 0) return Array.Empty<EventLineAssociation>();
+        int directLinkType = config?.GetThing(source.Type)?.ThingLink ?? 0;
+        if (directLinkType <= 0) return Array.Empty<EventLineAssociation>();
+
+        var associations = new List<EventLineAssociation>();
+        foreach (Thing target in map.Things)
+        {
+            if (ReferenceEquals(source, target)) continue;
+            if (target.Type != directLinkType || target.Tag != source.Tag) continue;
+            associations.Add(new EventLineAssociation(
+                EventLineElementKind.Thing,
+                source.Index,
+                EventLineElementKind.Thing,
+                target.Index,
+                source.Tag));
+        }
+
         return associations;
     }
 

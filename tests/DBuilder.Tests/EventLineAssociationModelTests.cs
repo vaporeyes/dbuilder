@@ -301,6 +301,53 @@ public sealed class EventLineAssociationModelTests
     }
 
     [Fact]
+    public void ThingDirectLinksMatchTargetTypeAndTagLikeUdb()
+    {
+        var map = new MapSet();
+        Thing source = map.AddThing(new Vector2D(0, 0), 9001);
+        source.Tag = 7;
+        Thing target = map.AddThing(new Vector2D(32, 0), 9002);
+        target.Tag = 7;
+        Thing wrongType = map.AddThing(new Vector2D(64, 0), 3002);
+        wrongType.Tag = 7;
+        Thing wrongTag = map.AddThing(new Vector2D(96, 0), 9002);
+        wrongTag.Tag = 8;
+        GameConfiguration config = ThingTypeArgConfig(thingLink: 9002);
+
+        IReadOnlyList<EventLineAssociation> associations =
+            EventLineAssociationModel.ForElement(map, source, config);
+
+        EventLineAssociation association = Assert.Single(associations);
+        Assert.Equal(EventLineElementKind.Thing, association.SourceKind);
+        Assert.Equal(source.Index, association.SourceIndex);
+        Assert.Equal(EventLineElementKind.Thing, association.TargetKind);
+        Assert.Equal(target.Index, association.TargetIndex);
+        Assert.Equal(7, association.Tag);
+        Assert.DoesNotContain(associations, a => a.TargetIndex == wrongType.Index);
+        Assert.DoesNotContain(associations, a => a.TargetIndex == wrongTag.Index);
+    }
+
+    [Fact]
+    public void ThingDirectLinksIgnoreZeroAndChildLinks()
+    {
+        var map = new MapSet();
+        Thing zeroTag = map.AddThing(new Vector2D(0, 0), 9001);
+        Thing target = map.AddThing(new Vector2D(32, 0), 9002);
+        Thing childLink = map.AddThing(new Vector2D(64, 0), 9001);
+        childLink.Tag = 7;
+        target.Tag = 7;
+
+        Assert.Empty(EventLineAssociationModel.ForElement(
+            map,
+            zeroTag,
+            ThingTypeArgConfig(thingLink: 9002)));
+        Assert.Empty(EventLineAssociationModel.ForElement(
+            map,
+            childLink,
+            ThingTypeArgConfig(thingLink: -9002)));
+    }
+
+    [Fact]
     public void ThingTypeArgsAreSkippedForChildLinksAndSelfLinksLikeUdb()
     {
         var map = new MapSet();
