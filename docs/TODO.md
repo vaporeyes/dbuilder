@@ -1465,6 +1465,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port render passes and layers.
   - [x] Add UDB-style 2D presentation layer stack planning.
   - [x] Add UDB-style 2D presentation draw-command planning.
+  - [x] Add UDB-style 2D presentation render-target lifecycle planning.
 - [x] Port render modes and view modes.
   - [x] Add UDB-style classic 2D view mode action ids and renderer switching for wireframe, brightness, floor textures, and ceiling textures.
   - [x] Add raw UDB classic view mode and highlight action aliases.

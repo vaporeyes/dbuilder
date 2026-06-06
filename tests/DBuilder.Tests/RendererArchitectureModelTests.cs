@@ -18,6 +18,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Render-device disposed-state reporting", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation layer stack planning", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation draw-command planning", replacement.CoveredResponsibilities);
+        Assert.Contains("2D presentation render-target lifecycle planning", replacement.CoveredResponsibilities);
         Assert.Contains("Index-buffer binding and primitive draw dispatch", replacement.CoveredResponsibilities);
         Assert.Contains("Length-based vertex-buffer allocation", replacement.CoveredResponsibilities);
         Assert.Contains("Flat and world vertex-buffer subdata updates", replacement.CoveredResponsibilities);

@@ -139,4 +139,63 @@ public sealed class PresentationPlanTests
         Assert.Null(commands[1].OverlayIndex);
         Assert.Equal(1, commands[2].OverlayIndex);
     }
+
+    [Fact]
+    public void RenderTargetPlanCreatesDefaultOverlayTextureWithoutPresentation()
+    {
+        PresentationRenderTargetPlan plan = PresentationRenderTargetPlan.Create(320, 200, presentation: null);
+
+        Assert.Equal(1, plan.OverlayTextureCount);
+        Assert.Equal(new[] { "things", "overlay0" }, plan.ClearTargets);
+        Assert.True(plan.ResetGridScale);
+        Assert.True(plan.ResetGridSize);
+    }
+
+    [Fact]
+    public void RenderTargetPlanCountsOverlayLayersFromPresentation()
+    {
+        var presentation = new PresentationPlan(new[]
+        {
+            new PresentationLayer(PresentationRendererLayer.Overlay, PresentationBlendingMode.Alpha),
+            new PresentationLayer(PresentationRendererLayer.Grid, PresentationBlendingMode.Mask),
+            new PresentationLayer(PresentationRendererLayer.Overlay, PresentationBlendingMode.Additive),
+        });
+
+        PresentationRenderTargetPlan plan = PresentationRenderTargetPlan.Create(320, 200, presentation);
+
+        Assert.Equal(2, plan.OverlayTextureCount);
+        Assert.Equal(new[] { "things", "overlay0", "overlay1" }, plan.ClearTargets);
+    }
+
+    [Fact]
+    public void RenderTargetPlanMatchesUdbThingVertexBufferCapacity()
+    {
+        PresentationRenderTargetPlan plan = PresentationRenderTargetPlan.Create(320, 200, PresentationPlan.Standard(0.4f, 0.25f));
+
+        Assert.Equal(100, PresentationRenderTargetPlan.ThingBufferSize);
+        Assert.Equal(1200, plan.ThingVertexCapacity);
+    }
+
+    [Fact]
+    public void RenderTargetPlanCreatesScreenVerticesLikeUdb()
+    {
+        PresentationRenderTargetPlan plan = PresentationRenderTargetPlan.Create(320, 200, PresentationPlan.Standard(0.4f, 0.25f));
+
+        Assert.Equal(4, plan.ScreenVertices.Length);
+        AssertScreenVertex(plan.ScreenVertices[0], 0, 0, 0, 0);
+        AssertScreenVertex(plan.ScreenVertices[1], 320, 0, 1, 0);
+        AssertScreenVertex(plan.ScreenVertices[2], 0, 200, 0, 1);
+        AssertScreenVertex(plan.ScreenVertices[3], 320, 200, 1, 1);
+    }
+
+    private static void AssertScreenVertex(FlatVertex vertex, float x, float y, float u, float v)
+    {
+        Assert.Equal(x, vertex.x);
+        Assert.Equal(y, vertex.y);
+        Assert.Equal(0.0f, vertex.z);
+        Assert.Equal(1.0f, vertex.w);
+        Assert.Equal(-1, vertex.c);
+        Assert.Equal(u, vertex.u);
+        Assert.Equal(v, vertex.v);
+    }
 }

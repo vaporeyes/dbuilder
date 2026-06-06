@@ -120,3 +120,61 @@ public sealed record PresentationDrawCommand(
             OverlayIndex: layer.Layer == PresentationRendererLayer.Overlay ? overlayIndex : null);
     }
 }
+
+public sealed record PresentationRenderTargetPlan(
+    int Width,
+    int Height,
+    int OverlayTextureCount,
+    int ThingVertexCapacity,
+    IReadOnlyList<string> ClearTargets,
+    FlatVertex[] ScreenVertices,
+    bool ResetGridScale,
+    bool ResetGridSize)
+{
+    public const int ThingBufferSize = 100;
+    public const int ThingVerticesPerBufferItem = 12;
+
+    public static PresentationRenderTargetPlan Create(int width, int height, PresentationPlan? presentation)
+    {
+        int overlayCount = presentation?.Layers.Count(layer => layer.Layer == PresentationRendererLayer.Overlay) ?? 1;
+
+        return new PresentationRenderTargetPlan(
+            width,
+            height,
+            overlayCount,
+            ThingBufferSize * ThingVerticesPerBufferItem,
+            ClearTargetsFor(overlayCount),
+            CreateScreenVertices(width, height),
+            ResetGridScale: true,
+            ResetGridSize: true);
+    }
+
+    private static IReadOnlyList<string> ClearTargetsFor(int overlayCount)
+    {
+        var targets = new List<string>(overlayCount + 1) { "things" };
+        for (int i = 0; i < overlayCount; i++)
+            targets.Add("overlay" + i);
+        return targets;
+    }
+
+    private static FlatVertex[] CreateScreenVertices(int width, int height)
+        => new[]
+        {
+            ScreenVertex(0.0f, 0.0f, 0.0f, 0.0f),
+            ScreenVertex(width, 0.0f, 1.0f, 0.0f),
+            ScreenVertex(0.0f, height, 0.0f, 1.0f),
+            ScreenVertex(width, height, 1.0f, 1.0f),
+        };
+
+    private static FlatVertex ScreenVertex(float x, float y, float u, float v)
+        => new()
+        {
+            x = x,
+            y = y,
+            z = 0.0f,
+            w = 1.0f,
+            c = -1,
+            u = u,
+            v = v,
+        };
+}
