@@ -34,6 +34,73 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void PlanDescriptorsReportsInvalidDuplicateAndDisabledPlugins()
+    {
+        DBuilderPluginDescriptorPlan plan = DBuilderPluginHostModel.PlanDescriptors(new[]
+        {
+            new DBuilderPluginDescriptor("", "/plugins/missing-name.dll"),
+            new DBuilderPluginDescriptor("NoPath", ""),
+            new DBuilderPluginDescriptor("  TagRange  ", " /plugins/tagrange.dll "),
+            new DBuilderPluginDescriptor("tagrange", "/plugins/duplicate.dll"),
+            new DBuilderPluginDescriptor("Disabled", "/plugins/disabled.dll", Enabled: false)
+        });
+
+        DBuilderPluginDescriptor descriptor = Assert.Single(plan.Descriptors);
+        Assert.Equal("TagRange", descriptor.Name);
+        Assert.Equal("/plugins/tagrange.dll", descriptor.AssemblyPath);
+        Assert.Collection(
+            plan.Diagnostics,
+            diagnostic =>
+            {
+                Assert.Equal(DBuilderPluginDiagnosticSeverity.Error, diagnostic.Severity);
+                Assert.Equal("(unnamed plugin)", diagnostic.PluginName);
+                Assert.Equal("Plugin name is missing.", diagnostic.Message);
+            },
+            diagnostic =>
+            {
+                Assert.Equal(DBuilderPluginDiagnosticSeverity.Error, diagnostic.Severity);
+                Assert.Equal("NoPath", diagnostic.PluginName);
+                Assert.Equal("Plugin assembly path is missing.", diagnostic.Message);
+            },
+            diagnostic =>
+            {
+                Assert.Equal(DBuilderPluginDiagnosticSeverity.Warning, diagnostic.Severity);
+                Assert.Equal("tagrange", diagnostic.PluginName);
+                Assert.Equal("Duplicate plugin tagrange was ignored.", diagnostic.Message);
+            },
+            diagnostic =>
+            {
+                Assert.Equal(DBuilderPluginDiagnosticSeverity.Warning, diagnostic.Severity);
+                Assert.Equal("Disabled", diagnostic.PluginName);
+                Assert.Equal("Plugin Disabled is disabled.", diagnostic.Message);
+            });
+    }
+
+    [Fact]
+    public void PlanDescriptorsNormalizesContributionRows()
+    {
+        DBuilderPluginDescriptorPlan plan = DBuilderPluginHostModel.PlanDescriptors(new[]
+        {
+            new DBuilderPluginDescriptor(
+                "CommentsPanel",
+                "/plugins/comments.dll",
+                Contributions: new[]
+                {
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, " comments.open ", " Open Comments "),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, "comments.open", "Duplicate"),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "", "Missing Id"),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "comments.empty", "")
+                })
+        });
+
+        Assert.Empty(plan.Diagnostics);
+        DBuilderPluginContribution contribution = Assert.Single(plan.Descriptors.Single().Contributions!);
+        Assert.Equal(DBuilderPluginContributionKind.Menu, contribution.Kind);
+        Assert.Equal("comments.open", contribution.Id);
+        Assert.Equal("Open Comments", contribution.Title);
+    }
+
+    [Fact]
     public void PlanLifecycleRegistersContributionHooksInStableOrder()
     {
         var descriptor = new DBuilderPluginDescriptor(

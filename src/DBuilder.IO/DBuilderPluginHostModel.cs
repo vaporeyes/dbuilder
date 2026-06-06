@@ -28,6 +28,12 @@ public enum DBuilderPluginLifecycleHook
     Dispose
 }
 
+public enum DBuilderPluginDiagnosticSeverity
+{
+    Warning,
+    Error
+}
+
 public sealed record DBuilderPluginContribution(
     DBuilderPluginContributionKind Kind,
     string Id,
@@ -50,6 +56,15 @@ public sealed record DBuilderPluginLifecyclePlan(
     DBuilderPluginDescriptor Descriptor,
     IReadOnlyList<DBuilderPluginLifecycleHook> Hooks,
     IReadOnlyList<string> Warnings);
+
+public sealed record DBuilderPluginDiagnostic(
+    DBuilderPluginDiagnosticSeverity Severity,
+    string PluginName,
+    string Message);
+
+public sealed record DBuilderPluginDescriptorPlan(
+    IReadOnlyList<DBuilderPluginDescriptor> Descriptors,
+    IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
 
 public sealed record DBuilderPluginSettingDescriptor(
     string Key,
@@ -94,6 +109,69 @@ public sealed record DBuilderPluginApiContributionPlan(
 
 public static class DBuilderPluginHostModel
 {
+    public static DBuilderPluginDescriptorPlan PlanDescriptors(
+        IEnumerable<DBuilderPluginDescriptor> descriptors)
+    {
+        var result = new List<DBuilderPluginDescriptor>();
+        var diagnostics = new List<DBuilderPluginDiagnostic>();
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (DBuilderPluginDescriptor descriptor in descriptors)
+        {
+            string name = descriptor.Name.Trim();
+            string assemblyPath = descriptor.AssemblyPath.Trim();
+            string label = name.Length == 0 ? "(unnamed plugin)" : name;
+            if (name.Length == 0)
+            {
+                diagnostics.Add(new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Error,
+                    label,
+                    "Plugin name is missing."));
+                continue;
+            }
+
+            if (assemblyPath.Length == 0)
+            {
+                diagnostics.Add(new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Error,
+                    label,
+                    "Plugin assembly path is missing."));
+                continue;
+            }
+
+            if (!names.Add(name))
+            {
+                diagnostics.Add(new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Warning,
+                    label,
+                    $"Duplicate plugin {name} was ignored."));
+                continue;
+            }
+
+            if (!descriptor.Enabled)
+            {
+                diagnostics.Add(new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Warning,
+                    label,
+                    $"Plugin {name} is disabled."));
+                continue;
+            }
+
+            result.Add(descriptor with
+            {
+                Name = name,
+                AssemblyPath = assemblyPath,
+                Contributions = NormalizeContributions(descriptor.Contributions)
+            });
+        }
+
+        return new DBuilderPluginDescriptorPlan(
+            result
+                .OrderBy(plugin => plugin.Name, StringComparer.OrdinalIgnoreCase)
+                .ToArray(),
+            diagnostics);
+    }
+
     public static IReadOnlyList<DBuilderPluginDescriptor> NormalizeDescriptors(
         IEnumerable<DBuilderPluginDescriptor> descriptors)
     {
