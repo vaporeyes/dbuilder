@@ -168,6 +168,30 @@ model Zombie
     }
 
     [Fact]
+    public void ModelTextureImageLookupDecodesModelFolderPngSkinsLikeUdb()
+    {
+        byte[] texture = TestArtifacts.Png(3, 4, TestArtifacts.SolidRgba(3, 4, 75, 85, 95, 255));
+        string pk3 = TestArtifacts.BuildPk3(("models/monsters/skin.png", texture));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+
+            ImageData? image = resources.GetModelTextureImage("models/monsters/skin.tga");
+
+            Assert.NotNull(image);
+            Assert.Equal(3, image!.Width);
+            Assert.Equal(4, image.Height);
+            Assert.Equal(new byte[] { 75, 85, 95, 255 }, image.Rgba[0..4]);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
+    [Fact]
     public void ModelTextureImageLookupFallsBackToBasenameTextureLikeUdb()
     {
         byte[] texture = TestArtifacts.Png(4, 5, TestArtifacts.SolidRgba(4, 5, 90, 100, 110, 255));

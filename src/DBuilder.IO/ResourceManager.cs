@@ -629,6 +629,9 @@ public sealed class ResourceManager : IDisposable
     {
         if (string.IsNullOrEmpty(path)) return null;
 
+        if (GetModelTextureResourceBytes(path) is { } resourceBytes && PngDecoder.IsPng(resourceBytes))
+            return PngDecoder.Decode(resourceBytes);
+
         string normalized = path.Replace('\\', '/');
         string stem = Path.ChangeExtension(normalized, null) ?? normalized;
 
