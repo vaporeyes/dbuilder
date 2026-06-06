@@ -120,6 +120,24 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void SavePurposeValuesMatchUdb()
+    {
+        Assert.Equal(new[]
+        {
+            SavePurpose.Normal,
+            SavePurpose.AsNewFile,
+            SavePurpose.IntoFile,
+            SavePurpose.Testing,
+            SavePurpose.Autosave
+        }, Enum.GetValues<SavePurpose>());
+        Assert.Equal(0, (int)SavePurpose.Normal);
+        Assert.Equal(1, (int)SavePurpose.AsNewFile);
+        Assert.Equal(2, (int)SavePurpose.IntoFile);
+        Assert.Equal(3, (int)SavePurpose.Testing);
+        Assert.Equal(4, (int)SavePurpose.Autosave);
+    }
+
+    [Fact]
     public void UdbHostApiCatalogCoversGeneralAndMapManagerSurface()
     {
         Assert.Equal(new[]
@@ -1930,6 +1948,50 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void ExecuteReflectionMapSaveCallbacksPassUdbSavePurpose()
+    {
+        ReflectionMapSaveCallbackPlugin.Calls.Clear();
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            new[]
+            {
+                new DBuilderPluginRuntimeInstance(
+                    "First",
+                    "/plugins/first.dll",
+                    typeof(ReflectionMapSaveCallbackPlugin).FullName!,
+                    0,
+                    new ReflectionMapSaveCallbackPlugin("First")),
+                new DBuilderPluginRuntimeInstance(
+                    "Second",
+                    "/plugins/second.dll",
+                    typeof(ReflectionMapSaveCallbackPlugin).FullName!,
+                    1,
+                    new ReflectionMapSaveCallbackPlugin("Second"))
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginCallbackExecutionResult begin = DBuilderPluginHostModel.ExecuteReflectionMapSaveBegin(
+            plan,
+            SavePurpose.Testing);
+        DBuilderPluginCallbackExecutionResult end = DBuilderPluginHostModel.ExecuteReflectionMapSaveEnd(
+            plan,
+            SavePurpose.Testing);
+
+        Assert.True(begin.Completed);
+        Assert.True(end.Completed);
+        Assert.False(begin.Aborted);
+        Assert.False(end.Aborted);
+        Assert.Equal(new[]
+        {
+            "First:Begin:Testing",
+            "Second:Begin:Testing",
+            "First:End:Testing",
+            "Second:End:Testing"
+        }, ReflectionMapSaveCallbackPlugin.Calls);
+        Assert.Empty(begin.Diagnostics);
+        Assert.Empty(end.Diagnostics);
+    }
+
+    [Fact]
     public void ExecuteReflectionCallbackReportsCallbackParameterErrors()
     {
         var plan = new DBuilderPluginRuntimeInstancePlan(
@@ -2828,6 +2890,28 @@ public sealed class ReflectionPasteCallbackPlugin : IDBuilderPlugin
             ? "original"
             : "copy";
         Calls.Add(_name + ":End:" + options.ChangeTags + ":" + options.RemoveActions + ":" + copied);
+    }
+}
+
+public sealed class ReflectionMapSaveCallbackPlugin : IDBuilderPlugin
+{
+    public static List<string> Calls { get; } = new();
+
+    private readonly string _name;
+
+    public ReflectionMapSaveCallbackPlugin(string name)
+    {
+        _name = name;
+    }
+
+    public void OnMapSaveBegin(SavePurpose purpose)
+    {
+        Calls.Add(_name + ":Begin:" + purpose);
+    }
+
+    public void OnMapSaveEnd(SavePurpose purpose)
+    {
+        Calls.Add(_name + ":End:" + purpose);
     }
 }
 

@@ -1004,6 +1004,16 @@ public static class DBuilderPluginHostModel
         PasteOptions options)
         => ExecuteReflectionCallback(instancePlan, "OnPasteEnd", new object[] { options });
 
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionMapSaveBegin(
+        DBuilderPluginRuntimeInstancePlan instancePlan,
+        SavePurpose purpose)
+        => ExecuteReflectionCallback(instancePlan, "OnMapSaveBegin", new object[] { purpose });
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionMapSaveEnd(
+        DBuilderPluginRuntimeInstancePlan instancePlan,
+        SavePurpose purpose)
+        => ExecuteReflectionCallback(instancePlan, "OnMapSaveEnd", new object[] { purpose });
+
     public static DBuilderPluginCallbackExecutionResult ExecuteReflectionCallback(
         DBuilderPluginRuntimeInstancePlan instancePlan,
         string callbackName,
