@@ -2154,6 +2154,7 @@ public sealed class UdbScriptSidedefWrapper : IEquatable<UdbScriptSidedefWrapper
         {
             ThrowIfDisposed("upperTexture");
             sidedef.SetTextureHigh(value);
+            sidedef.LongHighTexture = Lump.MakeLongName(sidedef.HighTexture, UseLongTextureNames());
         }
     }
 
@@ -2168,6 +2169,7 @@ public sealed class UdbScriptSidedefWrapper : IEquatable<UdbScriptSidedefWrapper
         {
             ThrowIfDisposed("middleTexture");
             sidedef.SetTextureMid(value);
+            sidedef.LongMiddleTexture = Lump.MakeLongName(sidedef.MidTexture, UseLongTextureNames());
         }
     }
 
@@ -2182,6 +2184,7 @@ public sealed class UdbScriptSidedefWrapper : IEquatable<UdbScriptSidedefWrapper
         {
             ThrowIfDisposed("lowerTexture");
             sidedef.SetTextureLow(value);
+            sidedef.LongLowTexture = Lump.MakeLongName(sidedef.LowTexture, UseLongTextureNames());
         }
     }
 
@@ -2280,6 +2283,9 @@ public sealed class UdbScriptSidedefWrapper : IEquatable<UdbScriptSidedefWrapper
         if (sidedef.IsDisposed)
             throw new InvalidOperationException("Sidedef is disposed, the " + member + " member can not be accessed.");
     }
+
+    private bool UseLongTextureNames()
+        => config?.UseLongTextureNames ?? mapFormat == MapFormat.Udmf;
 
     private bool IsHighlightedPart(string member, SidedefPart part)
     {
@@ -2380,6 +2386,7 @@ public sealed class UdbScriptSectorWrapper : IEquatable<UdbScriptSectorWrapper>
         {
             ThrowIfDisposed("floorTexture");
             sector.SetFloorTexture(value);
+            sector.LongFloorTexture = Lump.MakeLongName(sector.FloorTexture, UseLongTextureNames());
         }
     }
 
@@ -2394,6 +2401,7 @@ public sealed class UdbScriptSectorWrapper : IEquatable<UdbScriptSectorWrapper>
         {
             ThrowIfDisposed("ceilingTexture");
             sector.SetCeilTexture(value);
+            sector.LongCeilTexture = Lump.MakeLongName(sector.CeilTexture, UseLongTextureNames());
         }
     }
 
@@ -2717,6 +2725,9 @@ public sealed class UdbScriptSectorWrapper : IEquatable<UdbScriptSectorWrapper>
         if (sector.IsDisposed)
             throw new InvalidOperationException("Sector is disposed, the " + member + " member can not be accessed.");
     }
+
+    private bool UseLongTextureNames()
+        => config?.UseLongTextureNames ?? mapFormat == MapFormat.Udmf;
 
     private bool IsHighlightedSurface(string member, bool floor)
     {
