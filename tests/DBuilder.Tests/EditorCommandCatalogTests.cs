@@ -1850,6 +1850,20 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
+    public void EveryUdbScriptSlotCommandAppearsInEditorCatalog()
+    {
+        foreach (UdbScriptActionDescriptor slot in UdbScriptActions.Slots)
+        {
+            var command = EditorCommandCatalog.Find($"window.{slot.Id}");
+
+            Assert.NotNull(command);
+            Assert.Equal(slot.Title, command.Title);
+            Assert.Equal(slot.Description, command.Description);
+            Assert.Equal(UdbScriptActions.CategoryTitle, command.CategoryTitle);
+        }
+    }
+
+    [Fact]
     public void OpenScriptEditorCommandMatchesUdbActionSurface()
     {
         var command = EditorCommandCatalog.Find("window.openscripteditor");
