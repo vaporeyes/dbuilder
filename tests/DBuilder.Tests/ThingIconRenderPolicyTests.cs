@@ -226,6 +226,21 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
+    public void FixedSizeSpriteIconsCollapseWhenTheyWouldCrowdOverview()
+    {
+        Assert.False(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
+            mapRadius: 20,
+            viewScale: 0.05,
+            fixedThingsScale: false,
+            fixedSize: true));
+        Assert.True(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
+            mapRadius: 32,
+            viewScale: 0.05,
+            fixedThingsScale: false,
+            fixedSize: true));
+    }
+
+    [Fact]
     public void OverviewCullingStartsWithCompactMarkers()
     {
         Assert.True(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(

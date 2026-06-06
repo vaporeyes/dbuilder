@@ -9,7 +9,7 @@ public static class ThingIconRenderPolicy
     public const double FixedThingScreenRadius = 48.0;
     public const double ThingSpriteShrink = 2.0;
     public const double MinimumThingScreenRadius = 1.5;
-    public const double MinimumSpriteScreenRadius = 18.0;
+    public const double MinimumSpriteScreenRadius = 24.0;
     public const double OverlapCullScaleThreshold = CompactMarkerScaleThreshold;
     public const double OverviewMarkerScaleThreshold = CompactMarkerScaleThreshold;
     public const double FarOverviewMarkerScaleThreshold = 3.0;
