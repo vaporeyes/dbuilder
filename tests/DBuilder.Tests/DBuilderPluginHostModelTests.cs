@@ -118,6 +118,116 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void PlanUiContributionsSeparatesMenusAndToolbarsInStableOrder()
+    {
+        var plan = DBuilderPluginHostModel.PlanUiContributions(new[]
+        {
+            new DBuilderPluginDescriptor(
+                "BuilderModes",
+                "/plugins/buildermodes.dll",
+                Contributions: new[]
+                {
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Toolbar, "builder.draw.toolbar", "Draw"),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, "builder.draw.menu", "Draw"),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "builder.draw.action", "Draw action")
+                }),
+            new DBuilderPluginDescriptor(
+                "CommentsPanel",
+                "/plugins/comments.dll",
+                Contributions: new[]
+                {
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Toolbar, "comments.open.toolbar", "Open Comments"),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, "comments.open.menu", "Open Comments")
+                })
+        });
+
+        Assert.Empty(plan.Warnings);
+        Assert.Collection(
+            plan.Menus,
+            contribution =>
+            {
+                Assert.Equal("BuilderModes", contribution.PluginName);
+                Assert.Equal(DBuilderPluginContributionKind.Menu, contribution.Kind);
+                Assert.Equal("builder.draw.menu", contribution.Id);
+                Assert.Equal("Draw", contribution.Title);
+            },
+            contribution =>
+            {
+                Assert.Equal("CommentsPanel", contribution.PluginName);
+                Assert.Equal(DBuilderPluginContributionKind.Menu, contribution.Kind);
+                Assert.Equal("comments.open.menu", contribution.Id);
+                Assert.Equal("Open Comments", contribution.Title);
+            });
+        Assert.Collection(
+            plan.Toolbars,
+            contribution =>
+            {
+                Assert.Equal("BuilderModes", contribution.PluginName);
+                Assert.Equal(DBuilderPluginContributionKind.Toolbar, contribution.Kind);
+                Assert.Equal("builder.draw.toolbar", contribution.Id);
+                Assert.Equal("Draw", contribution.Title);
+            },
+            contribution =>
+            {
+                Assert.Equal("CommentsPanel", contribution.PluginName);
+                Assert.Equal(DBuilderPluginContributionKind.Toolbar, contribution.Kind);
+                Assert.Equal("comments.open.toolbar", contribution.Id);
+                Assert.Equal("Open Comments", contribution.Title);
+            });
+    }
+
+    [Fact]
+    public void PlanUiContributionsUsesNormalizedPluginAndContributionRows()
+    {
+        var plan = DBuilderPluginHostModel.PlanUiContributions(new[]
+        {
+            new DBuilderPluginDescriptor(
+                "  CommentsPanel  ",
+                " /plugins/comments.dll ",
+                Contributions: new[]
+                {
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, " comments.open ", " Open Comments "),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, "comments.open", "Duplicate"),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Toolbar, "", "Missing Id"),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Toolbar, "comments.toolbar", "")
+                })
+        });
+
+        DBuilderPluginUiContribution contribution = Assert.Single(plan.Menus);
+        Assert.Empty(plan.Toolbars);
+        Assert.Equal("CommentsPanel", contribution.PluginName);
+        Assert.Equal("comments.open", contribution.Id);
+        Assert.Equal("Open Comments", contribution.Title);
+    }
+
+    [Fact]
+    public void PlanUiContributionsSkipsInvalidOrDisabledPlugins()
+    {
+        var plan = DBuilderPluginHostModel.PlanUiContributions(new[]
+        {
+            new DBuilderPluginDescriptor(
+                "",
+                "/plugins/missing.dll",
+                Contributions: new[]
+                {
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, "missing.menu", "Missing")
+                }),
+            new DBuilderPluginDescriptor(
+                "TagRange",
+                "/plugins/tagrange.dll",
+                Enabled: false,
+                Contributions: new[]
+                {
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Toolbar, "tagrange.toolbar", "Tag Range")
+                })
+        });
+
+        Assert.Empty(plan.Menus);
+        Assert.Empty(plan.Toolbars);
+        Assert.Equal(new[] { "Plugin TagRange is disabled." }, plan.Warnings);
+    }
+
+    [Fact]
     public void NormalizeSettingsStoreTrimsPluginsAndSettingsWithoutDroppingUnknownValues()
     {
         var settings = DBuilderPluginHostModel.NormalizeSettingsStore(new Dictionary<string, Dictionary<string, object?>>

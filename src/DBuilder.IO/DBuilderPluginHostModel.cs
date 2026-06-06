@@ -60,6 +60,17 @@ public sealed record DBuilderPluginSettingsSnapshot(
     IReadOnlyDictionary<string, object?> Values,
     IReadOnlyList<string> Warnings);
 
+public sealed record DBuilderPluginUiContribution(
+    string PluginName,
+    DBuilderPluginContributionKind Kind,
+    string Id,
+    string Title);
+
+public sealed record DBuilderPluginUiContributionPlan(
+    IReadOnlyList<DBuilderPluginUiContribution> Menus,
+    IReadOnlyList<DBuilderPluginUiContribution> Toolbars,
+    IReadOnlyList<string> Warnings);
+
 public static class DBuilderPluginHostModel
 {
     public static IReadOnlyList<DBuilderPluginDescriptor> NormalizeDescriptors(
@@ -129,6 +140,41 @@ public static class DBuilderPluginHostModel
         return new DBuilderPluginLifecyclePlan(
             descriptor with { Contributions = contributions },
             hooks,
+            warnings);
+    }
+
+    public static DBuilderPluginUiContributionPlan PlanUiContributions(
+        IEnumerable<DBuilderPluginDescriptor> descriptors)
+    {
+        var menus = new List<DBuilderPluginUiContribution>();
+        var toolbars = new List<DBuilderPluginUiContribution>();
+        var warnings = new List<string>();
+
+        foreach (DBuilderPluginDescriptor descriptor in NormalizeDescriptors(descriptors))
+        {
+            DBuilderPluginLifecyclePlan lifecycle = PlanLifecycle(descriptor, new DBuilderPluginLifecycleRequest());
+            if (lifecycle.Warnings.Count > 0)
+            {
+                warnings.AddRange(lifecycle.Warnings);
+                continue;
+            }
+
+            foreach (DBuilderPluginContribution contribution in lifecycle.Descriptor.Contributions ?? Array.Empty<DBuilderPluginContribution>())
+            {
+                var uiContribution = new DBuilderPluginUiContribution(
+                    lifecycle.Descriptor.Name,
+                    contribution.Kind,
+                    contribution.Id,
+                    contribution.Title);
+
+                if (contribution.Kind == DBuilderPluginContributionKind.Menu) menus.Add(uiContribution);
+                if (contribution.Kind == DBuilderPluginContributionKind.Toolbar) toolbars.Add(uiContribution);
+            }
+        }
+
+        return new DBuilderPluginUiContributionPlan(
+            SortUiContributions(menus),
+            SortUiContributions(toolbars),
             warnings);
     }
 
@@ -265,4 +311,12 @@ public static class DBuilderPluginHostModel
                 entry => entry.Value,
                 StringComparer.Ordinal);
     }
+
+    private static IReadOnlyList<DBuilderPluginUiContribution> SortUiContributions(
+        IEnumerable<DBuilderPluginUiContribution> contributions)
+        => contributions
+            .OrderBy(contribution => contribution.PluginName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(contribution => contribution.Title, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(contribution => contribution.Id, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
 }

@@ -350,6 +350,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Define plugin APIs for map access, UI contribution, actions, edit modes, and dockers.
   - [x] Model plugin contribution kinds for actions, menus, toolbars, edit modes, dockers, and resource handlers.
 - [ ] Port plugin toolbar and menu contribution behavior.
+  - [x] Add plugin menu and toolbar contribution planning with stable ordering and warning isolation.
 - [ ] Port plugin settings persistence.
   - [x] Add plugin settings store normalization, default merge planning, and writeback helpers.
 - [ ] Port plugin resource handling.
