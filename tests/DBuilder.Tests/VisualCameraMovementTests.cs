@@ -197,6 +197,58 @@ public class VisualCameraMovementTests
     }
 
     [Fact]
+    public void ApplyingCameraPoseToStartThingStoresSectorRelativeHeightLikeUdb()
+    {
+        var sector = new Sector { FloorHeight = 32, CeilHeight = 160 };
+        var start = new Thing(new Vector2D(0, 0), 32000, 0);
+
+        bool applied = VisualCameraMovement.TryApplyPoseToStartThing(
+            new[] { start },
+            startThingType: 32000,
+            new VisualCameraPose(new Vector3D(32.9, 64.8, 100.6), Angle2D.DoomToReal(90) + Angle2D.PI, 0.0),
+            sector);
+
+        Assert.True(applied);
+        Assert.Equal(new Vector2D(32, 64), start.Position);
+        Assert.Equal(27, start.Height);
+        Assert.Equal(90, start.Angle);
+    }
+
+    [Fact]
+    public void ApplyingCameraPoseToStartThingUsesAbsoluteHeightWithoutSectorLikeUdb()
+    {
+        var start = new Thing(new Vector2D(0, 0), 32000, 0);
+
+        bool applied = VisualCameraMovement.TryApplyPoseToStartThing(
+            new[] { start },
+            startThingType: 32000,
+            new VisualCameraPose(new Vector3D(32.9, 64.8, 100.6), Angle2D.DoomToReal(180) + Angle2D.PI, 0.0),
+            cameraSector: null);
+
+        Assert.True(applied);
+        Assert.Equal(new Vector2D(32, 64), start.Position);
+        Assert.Equal(59, start.Height);
+        Assert.Equal(180, start.Angle);
+    }
+
+    [Fact]
+    public void ApplyingCameraPoseToStartThingFailsWhenConfiguredThingIsMissing()
+    {
+        var other = new Thing(new Vector2D(0, 0), 1, 0);
+
+        bool applied = VisualCameraMovement.TryApplyPoseToStartThing(
+            new[] { other },
+            startThingType: 32000,
+            new VisualCameraPose(new Vector3D(32, 64, 100), 0.0, 0.0),
+            cameraSector: null);
+
+        Assert.False(applied);
+        Assert.Equal(new Vector2D(0, 0), other.Position);
+        Assert.Equal(0, other.Height);
+        Assert.Equal(0, other.Angle);
+    }
+
+    [Fact]
     public void OrbitKeepsCameraAtRadiusAndLookingAtTarget()
     {
         var current = new Vector3D(64, 0, 0);

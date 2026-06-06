@@ -70,6 +70,25 @@ public static class VisualCameraMovement
         return true;
     }
 
+    public static bool TryApplyPoseToStartThing(
+        IReadOnlyList<Thing> things,
+        int startThingType,
+        VisualCameraPose pose,
+        Sector? cameraSector)
+    {
+        if (startThingType == 0) return false;
+
+        Thing? start = things.FirstOrDefault(thing => thing.Type == startThingType);
+        if (start == null) return false;
+
+        int z = (int)pose.Position.z;
+        if (cameraSector != null) z -= cameraSector.FloorHeight;
+
+        start.Move((int)pose.Position.x, (int)pose.Position.y, z - StartThingCameraOffset);
+        start.Rotate(pose.Yaw - Angle2D.PI);
+        return true;
+    }
+
     public static bool TryMoveCameraToCursor(Vector3D currentPosition, Vector3D hitPosition, double distance, out Vector3D nextPosition)
     {
         nextPosition = currentPosition;

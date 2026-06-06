@@ -1337,6 +1337,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
         else
         {
+            ApplyVisualCameraPoseToStartThing();
             _sel3D.Clear();
             _heldKeys.Clear();
             _heldMapCommands.Clear();
@@ -1348,6 +1349,37 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         ActionStateChanged?.Invoke();
         RequestNextFrameRendering();
         return _mode3D;
+    }
+
+    private void ApplyVisualCameraPoseToStartThing()
+    {
+        var map = _map;
+        int startThingType = _gameConfig?.Start3DModeThingType ?? 0;
+        if (map == null || startThingType <= 0) return;
+
+        Thing? start = map.Things.FirstOrDefault(thing => thing.Type == startThingType);
+        if (start == null) return;
+
+        var position = new DBuilder.Geometry.Vector3D(_cam3DPos.X, _cam3DPos.Y, _cam3DPos.Z);
+        var beforePosition = start.Position;
+        double beforeHeight = start.Height;
+        int beforeAngle = start.Angle;
+
+        var cameraSector = map.GetSectorAt(new Vec2D(_cam3DPos.X, _cam3DPos.Y));
+        if (!VisualCameraMovement.TryApplyPoseToStartThing(
+            map.Things,
+            startThingType,
+            new VisualCameraPose(position, _yaw, _pitch),
+            cameraSector)) return;
+
+        if (start.Position == beforePosition
+            && start.Height == beforeHeight
+            && start.Angle == beforeAngle) return;
+
+        start.DetermineSector(map);
+        map.BuildIndexes();
+        MarkGeometryDirty();
+        Changed?.Invoke();
     }
 
     public bool ToggleAutomapMode()
