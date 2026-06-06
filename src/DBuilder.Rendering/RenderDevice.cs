@@ -394,6 +394,31 @@ public sealed class RenderDevice : IDisposable
     public void SetTexture(Texture? texture, int unit = 0)
         => SetTexture(unit, texture);
 
+    public void ClearTexture(uint colorArgb, Texture texture)
+    {
+        if (texture.Width <= 0 || texture.Height <= 0)
+            throw new InvalidOperationException("Texture dimensions are not initialized.");
+
+        byte a = (byte)((colorArgb >> 24) & 0xff);
+        byte r = (byte)((colorArgb >> 16) & 0xff);
+        byte g = (byte)((colorArgb >> 8) & 0xff);
+        byte b = (byte)(colorArgb & 0xff);
+        byte[] pixels = new byte[checked(texture.Width * texture.Height * 4)];
+
+        for (int i = 0; i < pixels.Length; i += 4)
+        {
+            pixels[i] = r;
+            pixels[i + 1] = g;
+            pixels[i + 2] = b;
+            pixels[i + 3] = a;
+        }
+
+        texture.SetPixelsRgba8(texture.Width, texture.Height, pixels, generateMipmaps: false);
+    }
+
+    public void SetPixels(Texture texture, int width, int height, byte[] rgba, bool generateMipmaps = true)
+        => texture.SetPixelsRgba8(width, height, rgba, generateMipmaps);
+
     public static TextureOperationPlan BuildSetTexturePlan(Texture? texture, int unit = 0)
         => new(TextureOperationKind.Bind, unit, texture != null);
 

@@ -45,6 +45,7 @@ public static class RendererArchitectureModel
             "Texture disposed-state reporting",
             "Texture format metadata and 2D/cube allocation planning",
             "Render-device texture operation planning",
+            "Render-device 2D texture clear and pixel upload application",
             "Owned indexed-triangle mesh wrapper",
             "Surface-entry chunk metadata and bounds model",
             "Surface manager vertex chunk and buffer allocation planning",

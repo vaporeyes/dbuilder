@@ -8,11 +8,17 @@ namespace DBuilder.Tests;
 public sealed class RenderDeviceTextureOperationTests
 {
     [Fact]
-    public void RenderDeviceExposesUdbSetTextureOverloadOrdering()
+    public void RenderDeviceExposesUdbTextureOperationSurface()
     {
         Assert.NotNull(typeof(RenderDevice).GetMethod(
             nameof(RenderDevice.SetTexture),
             new[] { typeof(Texture), typeof(int) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(
+            nameof(RenderDevice.ClearTexture),
+            new[] { typeof(uint), typeof(Texture) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(
+            nameof(RenderDevice.SetPixels),
+            new[] { typeof(Texture), typeof(int), typeof(int), typeof(byte[]), typeof(bool) }));
     }
 
     [Fact]
