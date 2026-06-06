@@ -158,7 +158,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 ## Actions, Commands, And Input
 
 - [ ] Port UDB action manager.
-- [ ] Port begin/end action attributes or an equivalent command registration system.
+- [x] Port begin/end action attributes or an equivalent command registration system.
   - [x] Add a stable editor command descriptor catalog with default gestures and scopes.
   - [x] Add reflection-based begin/end action attributes for stable command ids.
   - [x] Dispatch registered begin/end action bindings by stable command id.
@@ -251,7 +251,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Suppress repeated keydown dispatch for non-repeatable commands.
   - [x] Track repeated keydown state by UDB-style modifier-stripped key identity.
   - [x] Show repeatable command state in the Help shortcut reference.
-- [ ] Port command availability rules for selection, mode, and map state.
+- [x] Port command availability rules for selection, mode, and map state.
   - [x] Gate selection commands by exact selection, transformable selection, and sidedef availability.
   - [x] Expose an explicit Properties command for single linedef, sector, and thing selections.
   - [x] Expose the explicit Properties command for single vertex and sidedef selections.
