@@ -1,4 +1,4 @@
-// ABOUTME: Modal dialog for configuring PNG image export from the editor.
+// ABOUTME: Modal dialog for configuring image export from the editor.
 // ABOUTME: Collects the image export options consumed by the data-level rasterizer.
 
 using Avalonia.Controls;
@@ -15,6 +15,8 @@ public sealed class ImageExportDialog : PropertyDialog
     private readonly CheckBox _brightmap;
     private readonly CheckBox _transparency;
     private readonly CheckBox _tiles;
+    private readonly ComboBox _imageFormat;
+    private readonly ComboBox _pixelFormat;
     private readonly ComboBox _scale;
 
     public ImageExportOptions ResultOptions { get; private set; }
@@ -30,6 +32,8 @@ public sealed class ImageExportDialog : PropertyDialog
         _brightmap = AddCheckBox(ImageExportSettings.BrightmapText, options.Brightmap);
         _transparency = AddCheckBox(ImageExportSettings.TransparencyText, options.Transparency);
         _tiles = AddCheckBox(ImageExportSettings.TilesText, options.Tiles);
+        _imageFormat = AddCombo(ImageExportSettings.ImageFormatLabel, ImageFormatItems(), Math.Max(0, options.ImageFormatIndex));
+        _pixelFormat = AddCombo(ImageExportSettings.PixelFormatLabel, PixelFormatItems(), Math.Max(0, options.PixelFormatIndex));
         _scale = AddCombo(ImageExportSettings.ScaleLabel, ScaleItems(), Math.Max(0, options.ScaleIndex));
     }
 
@@ -44,8 +48,21 @@ public sealed class ImageExportDialog : PropertyDialog
             Transparency: _transparency.IsChecked == true,
             Tiles: _tiles.IsChecked == true,
             ScaleIndex: ComboNumber(_scale, ResultOptions.ScaleIndex),
-            ImageFormatIndex: 0,
-            PixelFormatIndex: 0);
+            ImageFormatIndex: ComboNumber(_imageFormat, ResultOptions.ImageFormatIndex),
+            PixelFormatIndex: ComboNumber(_pixelFormat, ResultOptions.PixelFormatIndex));
+    }
+
+    private static IEnumerable<CatalogItem> ImageFormatItems()
+    {
+        yield return new CatalogItem(0, ImageExportSettings.PngText);
+        yield return new CatalogItem(1, ImageExportSettings.JpgText);
+    }
+
+    private static IEnumerable<CatalogItem> PixelFormatItems()
+    {
+        yield return new CatalogItem(0, ImageExportSettings.Format32BitText);
+        yield return new CatalogItem(1, ImageExportSettings.Format24BitText);
+        yield return new CatalogItem(2, ImageExportSettings.Format16BitText);
     }
 
     private static IEnumerable<CatalogItem> ScaleItems()

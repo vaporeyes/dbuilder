@@ -83,6 +83,13 @@ public sealed class ImageExportModelTests
 
         Assert.Contains("ImageExportSettings.FormTitle", body, StringComparison.Ordinal);
         Assert.Contains("ImageExportSettings.PathLabel", body, StringComparison.Ordinal);
+        Assert.Contains("ImageExportSettings.ImageFormatLabel", body, StringComparison.Ordinal);
+        Assert.Contains("ImageExportSettings.PngText", body, StringComparison.Ordinal);
+        Assert.Contains("ImageExportSettings.JpgText", body, StringComparison.Ordinal);
+        Assert.Contains("ImageExportSettings.PixelFormatLabel", body, StringComparison.Ordinal);
+        Assert.Contains("ImageExportSettings.Format32BitText", body, StringComparison.Ordinal);
+        Assert.Contains("ImageExportSettings.Format24BitText", body, StringComparison.Ordinal);
+        Assert.Contains("ImageExportSettings.Format16BitText", body, StringComparison.Ordinal);
         Assert.Contains("ImageExportSettings.FloorText", body, StringComparison.Ordinal);
         Assert.Contains("ImageExportSettings.FullbrightText", body, StringComparison.Ordinal);
         Assert.Contains("ImageExportSettings.ApplySectorColorsText", body, StringComparison.Ordinal);
@@ -91,6 +98,8 @@ public sealed class ImageExportModelTests
         Assert.Contains("ImageExportSettings.TilesText", body, StringComparison.Ordinal);
         Assert.Contains("ImageExportSettings.ScaleLabel", body, StringComparison.Ordinal);
         Assert.Contains("ImageExportSettings.ScaleTexts", body, StringComparison.Ordinal);
+        Assert.Contains("ImageFormatIndex: ComboNumber(_imageFormat", body, StringComparison.Ordinal);
+        Assert.Contains("PixelFormatIndex: ComboNumber(_pixelFormat", body, StringComparison.Ordinal);
     }
 
     [Theory]
