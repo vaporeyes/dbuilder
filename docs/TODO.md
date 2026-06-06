@@ -1175,7 +1175,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port grid setup behavior.
   - [x] Clamp grid background scale to UDB's 1-10000 percent range.
   - [x] Clamp persisted grid background scale when reading map options.
-- [ ] Port things filter behavior fully.
+- [x] Port things filter behavior fully.
   - [x] Add UI-independent things filter evaluator.
   - [x] Integrate configured things filters into the existing thing filter window.
   - [x] Show selected thing type counts in the Filter Selected Things dialog like UDB.
@@ -1188,7 +1188,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Show nested thing category titles in the thing filter window like UDB.
   - [x] Sort configured thing filters by name in the filter window like UDB.
   - [x] Add UDB-style thingsfilterssetup action alias.
-- [ ] Port custom things filters.
+- [x] Port custom things filters.
   - [x] Add UI-independent custom things filter drafts and UDB settings write-back.
   - [x] Add custom things filter list add, delete, sort, and active-name preservation behavior.
   - [x] Preserve active custom things filter selection by stable key after renames.
