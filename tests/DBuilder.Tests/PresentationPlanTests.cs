@@ -555,6 +555,22 @@ public sealed class PresentationPlanTests
     }
 
     [Fact]
+    public void DisplaySettingsMatchUdbProjectionTransformBehavior()
+    {
+        PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);
+        PresentationRenderTargetPlan targets = PresentationRenderTargetPlan.Create(320, 200, presentation);
+
+        IReadOnlyList<PresentationDisplaySettings> settings = targets.BuildDisplaySettings(presentation, qualityDisplay: false);
+
+        Assert.Equal(PresentationProjectionTransformKind.WorldViewFlipY, settings[0].ProjectionTransform);
+        Assert.Equal(PresentationProjectionTransformKind.WorldViewFlipY, settings[1].ProjectionTransform);
+        Assert.Equal(PresentationProjectionTransformKind.WorldViewFlipY, settings[2].ProjectionTransform);
+        Assert.Equal(PresentationProjectionTransformKind.WorldViewFlipY, settings[3].ProjectionTransform);
+        Assert.Equal(PresentationProjectionTransformKind.WorldView, settings[4].ProjectionTransform);
+        Assert.Equal(PresentationProjectionTransformKind.WorldViewFlipY, settings[5].ProjectionTransform);
+    }
+
+    [Fact]
     public void DisplaySettingsTrackQualityShaderAndSamplerFilter()
     {
         PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);

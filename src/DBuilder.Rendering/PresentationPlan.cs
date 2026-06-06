@@ -225,6 +225,12 @@ public sealed record PresentationRenderTargetCreateSequencePlan(
     PresentationRenderTargetPlan TargetPlan,
     IReadOnlyList<PresentationRenderTargetCreateStep> Steps);
 
+public enum PresentationProjectionTransformKind
+{
+    WorldView,
+    WorldViewFlipY,
+}
+
 public sealed record PresentationDisplaySettings(
     PresentationRendererLayer Layer,
     string SourceTargetName,
@@ -234,6 +240,7 @@ public sealed record PresentationDisplaySettings(
     float FsaaFactor,
     float Alpha,
     bool FlipY,
+    PresentationProjectionTransformKind ProjectionTransform,
     TextureFilter SamplerFilter,
     int? OverlayIndex);
 
@@ -563,6 +570,7 @@ public sealed record PresentationRenderTargetPlan(
             FsaaFactor,
             layer.Alpha,
             FlipY(layer.Layer),
+            ProjectionTransformFor(layer.Layer),
             bilinear ? TextureFilter.Linear : TextureFilter.Nearest,
             overlayIndex);
     }
@@ -581,6 +589,11 @@ public sealed record PresentationRenderTargetPlan(
 
     private static bool FlipY(PresentationRendererLayer layer)
         => layer != PresentationRendererLayer.Geometry;
+
+    private static PresentationProjectionTransformKind ProjectionTransformFor(PresentationRendererLayer layer)
+        => FlipY(layer)
+            ? PresentationProjectionTransformKind.WorldViewFlipY
+            : PresentationProjectionTransformKind.WorldView;
 
     public IReadOnlyList<PresentationDisplaySettingStep> BuildDisplaySettingSteps(
         PresentationDisplaySettings settings)
