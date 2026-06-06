@@ -121,6 +121,51 @@ public sealed class RenderDevice : IDisposable
         _gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)checked((long)length * stride), null, BufferUsageARB.StaticDraw);
     }
 
+    public unsafe void SetBufferSubdata(VertexBuffer buffer, long destOffset, FlatVertex[] data)
+    {
+        if (destOffset < 0) throw new ArgumentOutOfRangeException(nameof(destOffset));
+
+        _gl.BindBuffer(BufferTargetARB.ArrayBuffer, buffer.Handle);
+        fixed (FlatVertex* p = data)
+        {
+            _gl.BufferSubData(
+                BufferTargetARB.ArrayBuffer,
+                checked((nint)(destOffset * FlatVertex.Stride)),
+                (nuint)checked((long)data.Length * FlatVertex.Stride),
+                p);
+        }
+    }
+
+    public unsafe void SetBufferSubdata(VertexBuffer buffer, long destOffset, WorldVertex[] data)
+    {
+        if (destOffset < 0) throw new ArgumentOutOfRangeException(nameof(destOffset));
+
+        _gl.BindBuffer(BufferTargetARB.ArrayBuffer, buffer.Handle);
+        fixed (WorldVertex* p = data)
+        {
+            _gl.BufferSubData(
+                BufferTargetARB.ArrayBuffer,
+                checked((nint)(destOffset * WorldVertex.Stride)),
+                (nuint)checked((long)data.Length * WorldVertex.Stride),
+                p);
+        }
+    }
+
+    public unsafe void SetBufferSubdata(VertexBuffer buffer, FlatVertex[] data, long size)
+    {
+        if (size < 0 || size > data.Length) throw new ArgumentOutOfRangeException(nameof(size));
+
+        _gl.BindBuffer(BufferTargetARB.ArrayBuffer, buffer.Handle);
+        fixed (FlatVertex* p = data)
+        {
+            _gl.BufferSubData(
+                BufferTargetARB.ArrayBuffer,
+                0,
+                (nuint)checked(size * FlatVertex.Stride),
+                p);
+        }
+    }
+
     public unsafe void SetVertexBuffer(VertexBuffer? buffer)
     {
         _boundVb = buffer;

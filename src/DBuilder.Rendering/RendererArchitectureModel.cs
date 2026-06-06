@@ -24,6 +24,7 @@ public static class RendererArchitectureModel
             "Cull, depth, fill, blend, sampler, and texture state",
             "Flat and world vertex-buffer attribute binding",
             "Length-based vertex-buffer allocation",
+            "Flat and world vertex-buffer subdata updates",
             "Index-buffer binding and primitive draw dispatch",
             "Runtime shader compile, link, disposal, and uniform lookup caching",
         },

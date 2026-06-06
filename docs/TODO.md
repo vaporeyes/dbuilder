@@ -1472,6 +1472,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style fog, sky, event-line, and visual-vertices toggle actions and persisted state.
 - [ ] Port vertex formats and buffers.
   - [x] Add UDB-style length and format vertex-buffer allocation overload.
+  - [x] Add UDB-style vertex-buffer subdata upload overloads.
 - [ ] Port index buffer behavior.
 - [ ] Port texture handling and lifecycle.
 - [ ] Port surface manager behavior.
