@@ -2475,11 +2475,13 @@ public class EditorCommandCatalogTests
         {
             new EditorShortcutBinding("map2d.fit", EditorCommandScope.Map2D, "Space"),
             new EditorShortcutBinding("map3d.select-texture", EditorCommandScope.Map3D, "OemBackslash"),
+            new EditorShortcutBinding("map3d.visualedit", EditorCommandScope.Map3D, "Enter"),
         });
 
         Assert.Equal("map2d.fit", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Map2D, "Spacebar"));
         Assert.Equal("map2d.fit", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Map2D, "SpaceKey"));
         Assert.Equal("map3d.select-texture", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Map3D, "OemPipe"));
+        Assert.Equal("map3d.visualedit", EditorCommandCatalog.ResolveShortcut(bindings, EditorCommandScope.Map3D, "Keys.Return"));
     }
 
     [Fact]
@@ -4056,7 +4058,7 @@ public class EditorCommandCatalogTests
     public void ParseOverrideTextReadsWinFormsOemKeyNames()
     {
         var overrides = EditorCommandCatalog.ParseOverrideText(
-            "map2d.fit=Oem3; map3d.brightness-down=Oemplus; map3d.brightness-up=Oemcomma; window.tags=Oem7; window.status-history=Oem5; map2d.grid-down=Oem4; map2d.grid-up=Oem6; map3d.select-texture=Oem2; map3d.texture-copy=OemPipe; map2d.zoom-out=OemMinus");
+            "map2d.fit=Oem3; map3d.brightness-down=Oemplus; map3d.brightness-up=Oemcomma; window.tags=Oem7; window.status-history=Oem5; map2d.grid-down=Oem4; map2d.grid-up=Oem6; map3d.select-texture=Oem2; map3d.texture-copy=OemPipe; map2d.zoom-out=OemMinus; map3d.visualedit=Keys.Return");
 
         Assert.Contains(overrides, b => b.CommandId == "map2d.fit" && b.Key == "OemTilde");
         Assert.Contains(overrides, b => b.CommandId == "map3d.brightness-down" && b.Key == "OemPlus");
@@ -4068,6 +4070,7 @@ public class EditorCommandCatalogTests
         Assert.Contains(overrides, b => b.CommandId == "map3d.select-texture" && b.Key == "OemQuestion");
         Assert.Contains(overrides, b => b.CommandId == "map3d.texture-copy" && b.Key == "OemBackslash");
         Assert.Contains(overrides, b => b.CommandId == "map2d.zoom-out" && b.Key == "OemMinus");
+        Assert.Contains(overrides, b => b.CommandId == "map3d.visualedit" && b.Key == "Enter");
     }
 
     [Fact]

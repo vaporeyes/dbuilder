@@ -1327,6 +1327,10 @@ public static class EditorCommandCatalog
 
     private static string ParseDisplayKey(string key)
     {
+        const string keysPrefix = "Keys.";
+        if (key.StartsWith(keysPrefix, StringComparison.OrdinalIgnoreCase))
+            key = key[keysPrefix.Length..];
+
         if (key.Equals("Esc", StringComparison.OrdinalIgnoreCase)) return "Escape";
         if (key.Equals("Return", StringComparison.OrdinalIgnoreCase)) return "Enter";
         if (key.Equals("Ins", StringComparison.OrdinalIgnoreCase)) return "Insert";

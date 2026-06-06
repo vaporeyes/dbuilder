@@ -214,6 +214,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Normalize configurable shortcut aliases for WinForms modifier key names.
   - [x] Normalize configurable shortcut aliases for Spacebar and WinForms OemPipe keys.
   - [x] Normalize configurable shortcut aliases for PgUp and PgDn keys.
+  - [x] Normalize configurable shortcut aliases with WinForms `Keys.` prefixes.
   - [x] Normalize configurable shortcut aliases for the Ins key.
   - [x] Normalize configurable shortcut aliases for the Bksp key.
   - [x] Normalize configurable shortcut aliases for word-form numpad operator keys.
