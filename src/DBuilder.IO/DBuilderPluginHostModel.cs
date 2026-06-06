@@ -992,6 +992,12 @@ public static class DBuilderPluginHostModel
     public static DBuilderPluginCallbackExecutionResult ExecuteReflectionCallback(
         DBuilderPluginRuntimeInstancePlan instancePlan,
         string callbackName)
+        => ExecuteReflectionCallback(instancePlan, callbackName, Array.Empty<object>());
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionCallback(
+        DBuilderPluginRuntimeInstancePlan instancePlan,
+        string callbackName,
+        IReadOnlyList<object> callbackArguments)
     {
         string name = callbackName.Trim();
         DBuilderPluginCallbackDescriptor? callback = UdbCallbackDescriptors.FirstOrDefault(
@@ -1026,18 +1032,14 @@ public static class DBuilderPluginHostModel
             }
 
             ParameterInfo[] parameters = method.GetParameters();
-            object[] arguments;
-            if (parameters.Length == 0)
+            if (!TryBuildReflectionCallbackArguments(
+                    parameters,
+                    callbackArguments,
+                    callback.CanAbort,
+                    abortableResult,
+                    out object[] arguments))
             {
-                arguments = Array.Empty<object>();
-            }
-            else if (callback.CanAbort && parameters.Length == 1 && parameters[0].ParameterType == typeof(bool))
-            {
-                arguments = new object[] { abortableResult };
-            }
-            else
-            {
-                string error = $"Plugin {runtimeInstance.PluginName} callback {callback.Name} must not declare parameters.";
+                string error = $"Plugin {runtimeInstance.PluginName} callback {callback.Name} has unsupported parameters.";
                 diagnostics.Add(new DBuilderPluginDiagnostic(
                     DBuilderPluginDiagnosticSeverity.Error,
                     runtimeInstance.PluginName,
@@ -1084,6 +1086,41 @@ public static class DBuilderPluginHostModel
             outcomes,
             diagnostics);
     }
+
+    private static bool TryBuildReflectionCallbackArguments(
+        IReadOnlyList<ParameterInfo> parameters,
+        IReadOnlyList<object> callbackArguments,
+        bool canAbort,
+        bool abortableResult,
+        out object[] arguments)
+    {
+        arguments = Array.Empty<object>();
+        var values = new List<object>();
+        int nextArgument = 0;
+
+        foreach (ParameterInfo parameter in parameters)
+        {
+            if (canAbort && parameter.ParameterType == typeof(bool))
+            {
+                values.Add(abortableResult);
+                continue;
+            }
+
+            if (nextArgument >= callbackArguments.Count) return false;
+
+            object argument = callbackArguments[nextArgument];
+            if (!parameter.ParameterType.IsInstanceOfType(argument)) return false;
+            values.Add(CopyReflectionCallbackArgument(argument));
+            nextArgument++;
+        }
+
+        if (nextArgument != callbackArguments.Count) return false;
+        arguments = values.ToArray();
+        return true;
+    }
+
+    private static object CopyReflectionCallbackArgument(object argument)
+        => argument is PasteOptions pasteOptions ? pasteOptions.Copy() : argument;
 
     public static DBuilderPluginShutdownPlan ExecuteReflectionShutdown(
         DBuilderPluginRuntimeInstancePlan instancePlan)

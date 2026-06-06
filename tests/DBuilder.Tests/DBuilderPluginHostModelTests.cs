@@ -1843,6 +1843,53 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void ExecuteReflectionCallbackPassesCopiedPasteOptionsToEachPlugin()
+    {
+        ReflectionPasteCallbackPlugin.Calls.Clear();
+        var options = new PasteOptions
+        {
+            ChangeTags = PasteTagMode.Renumber,
+            RemoveActions = true
+        };
+        ReflectionPasteCallbackPlugin.OriginalOptions = options;
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            new[]
+            {
+                new DBuilderPluginRuntimeInstance(
+                    "First",
+                    "/plugins/first.dll",
+                    typeof(ReflectionPasteCallbackPlugin).FullName!,
+                    0,
+                    new ReflectionPasteCallbackPlugin("First", continueResult: false)),
+                new DBuilderPluginRuntimeInstance(
+                    "Second",
+                    "/plugins/second.dll",
+                    typeof(ReflectionPasteCallbackPlugin).FullName!,
+                    1,
+                    new ReflectionPasteCallbackPlugin("Second", continueResult: true))
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginCallbackExecutionResult result = DBuilderPluginHostModel.ExecuteReflectionCallback(
+            plan,
+            "OnPasteBegin",
+            new object[] { options });
+
+        Assert.True(result.Completed);
+        Assert.True(result.Aborted);
+        Assert.Collection(
+            result.Outcomes,
+            outcome => Assert.True(outcome.Aborted),
+            outcome => Assert.False(outcome.Aborted));
+        Assert.Equal(new[]
+        {
+            "First:Renumber:True:True:copy",
+            "Second:Renumber:True:False:copy"
+        }, ReflectionPasteCallbackPlugin.Calls);
+        Assert.Empty(result.Diagnostics);
+    }
+
+    [Fact]
     public void ExecuteReflectionCallbackReportsCallbackParameterErrors()
     {
         var plan = new DBuilderPluginRuntimeInstancePlan(
@@ -1867,7 +1914,7 @@ public sealed class DBuilderPluginHostModelTests
         DBuilderPluginDiagnostic diagnostic = Assert.Single(result.Diagnostics);
         Assert.Equal(DBuilderPluginDiagnosticSeverity.Error, diagnostic.Severity);
         Assert.Equal("BadSignature", diagnostic.PluginName);
-        Assert.Equal("Plugin BadSignature callback OnInitialize must not declare parameters.", diagnostic.Message);
+        Assert.Equal("Plugin BadSignature callback OnInitialize has unsupported parameters.", diagnostic.Message);
     }
 
     [Fact]
@@ -2707,6 +2754,31 @@ public sealed class ReflectionAbortCallbackPlugin : IDBuilderPlugin
     public bool OnUndoBegin(bool result)
     {
         Calls.Add(_name + ":" + result);
+        return _continueResult;
+    }
+}
+
+public sealed class ReflectionPasteCallbackPlugin : IDBuilderPlugin
+{
+    public static List<string> Calls { get; } = new();
+
+    public static PasteOptions? OriginalOptions { get; set; }
+
+    private readonly string _name;
+    private readonly bool _continueResult;
+
+    public ReflectionPasteCallbackPlugin(string name, bool continueResult)
+    {
+        _name = name;
+        _continueResult = continueResult;
+    }
+
+    public bool OnPasteBegin(PasteOptions options, bool result)
+    {
+        string copied = ReferenceEquals(options, OriginalOptions)
+            ? "original"
+            : "copy";
+        Calls.Add(_name + ":" + options.ChangeTags + ":" + options.RemoveActions + ":" + result + ":" + copied);
         return _continueResult;
     }
 }
