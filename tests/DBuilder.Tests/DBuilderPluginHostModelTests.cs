@@ -446,6 +446,8 @@ public sealed class DBuilderPluginHostModelTests
         DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.AssemblyLoadPlan.Diagnostics);
         Assert.Equal("TagRange", diagnostic.PluginName);
         Assert.Equal("Plugin TagRange assembly was not found at /plugins/tagrange.dll.", diagnostic.Message);
+        DBuilderPluginTypeDiscovery typeDiscovery = Assert.Single(plan.TypeDiscoveryPlan.Discoveries);
+        Assert.Equal("BuilderModes", typeDiscovery.PluginName);
         DBuilderPluginDescriptor readyDescriptor = Assert.Single(plan.ReadyHostPlan.DescriptorPlan.Descriptors);
         Assert.Equal("BuilderModes", readyDescriptor.Name);
         DBuilderPluginApiContribution action = Assert.Single(plan.ReadyHostPlan.ApiContributions.Actions);
@@ -478,6 +480,37 @@ public sealed class DBuilderPluginHostModelTests
         Assert.Equal("Plugin LooseScript assembly path must point to a .dll file.", diagnostic.Message);
         DBuilderPluginDescriptor readyDescriptor = Assert.Single(plan.ReadyHostPlan.DescriptorPlan.Descriptors);
         Assert.Equal("BuilderModes", readyDescriptor.Name);
+    }
+
+    [Fact]
+    public void BuildRuntimePlanKeepsAssembliesWithoutPluginTypesOutOfReadyHost()
+    {
+        DBuilderPluginRuntimePlan plan = DBuilderPluginHostModel.BuildRuntimePlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor("TagRange", "/plugins/tagrange.dll"),
+                new DBuilderPluginDescriptor(
+                    "BuilderModes",
+                    "/plugins/buildermodes.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "builder.draw.action", "Draw action")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest(Engage: true),
+            _ => true,
+            attempt => attempt.PluginName == "BuilderModes" ? "BuilderModes.BuilderModesPlugin" : null);
+
+        Assert.Equal(2, plan.AssemblyLoadPlan.Attempts.Count);
+        DBuilderPluginTypeDiscovery typeDiscovery = Assert.Single(plan.TypeDiscoveryPlan.Discoveries);
+        Assert.Equal("BuilderModes", typeDiscovery.PluginName);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.TypeDiscoveryPlan.Diagnostics);
+        Assert.Equal("TagRange", diagnostic.PluginName);
+        Assert.Equal("Plugin TagRange assembly does not expose a plugin type.", diagnostic.Message);
+        DBuilderPluginDescriptor readyDescriptor = Assert.Single(plan.ReadyHostPlan.DescriptorPlan.Descriptors);
+        Assert.Equal("BuilderModes", readyDescriptor.Name);
+        DBuilderPluginApiContribution action = Assert.Single(plan.ReadyHostPlan.ApiContributions.Actions);
+        Assert.Equal("builder.draw.action", action.Id);
     }
 
     [Fact]

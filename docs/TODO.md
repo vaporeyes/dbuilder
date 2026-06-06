@@ -350,6 +350,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add plugin assembly load-attempt planning with missing-file diagnostics.
   - [x] Add plugin runtime-ready host planning that excludes missing or invalid assemblies.
   - [x] Add plugin type discovery planning with missing-plugin-type diagnostics.
+  - [x] Apply plugin type discovery to runtime-ready host planning.
 - [ ] Define plugin lifecycle hooks equivalent to UDB plugins.
   - [x] Add plugin lifecycle hook ordering for load, initialize, contribution registration, map-open, engage, disengage, and dispose planning.
 - [ ] Define plugin APIs for map access, UI contribution, actions, edit modes, and dockers.

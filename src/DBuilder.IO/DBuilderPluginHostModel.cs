@@ -99,6 +99,7 @@ public sealed record DBuilderPluginTypeDiscoveryPlan(
 public sealed record DBuilderPluginRuntimePlan(
     DBuilderPluginHostPlan HostPlan,
     DBuilderPluginAssemblyLoadPlan AssemblyLoadPlan,
+    DBuilderPluginTypeDiscoveryPlan TypeDiscoveryPlan,
     DBuilderPluginHostPlan ReadyHostPlan);
 
 public sealed record DBuilderPluginSettingDescriptor(
@@ -417,23 +418,37 @@ public static class DBuilderPluginHostModel
         IEnumerable<DBuilderPluginDescriptor> descriptors,
         DBuilderPluginLifecycleRequest request,
         Func<string, bool> assemblyExists)
+        => BuildRuntimePlan(
+            descriptors,
+            request,
+            assemblyExists,
+            attempt => attempt.PluginName);
+
+    public static DBuilderPluginRuntimePlan BuildRuntimePlan(
+        IEnumerable<DBuilderPluginDescriptor> descriptors,
+        DBuilderPluginLifecycleRequest request,
+        Func<string, bool> assemblyExists,
+        Func<DBuilderPluginAssemblyLoadAttempt, string?> discoverPluginTypeName)
     {
         DBuilderPluginDescriptor[] descriptorRows = descriptors.ToArray();
         DBuilderPluginHostPlan hostPlan = BuildHostPlan(descriptorRows, request);
         DBuilderPluginAssemblyLoadPlan assemblyLoadPlan = PlanAssemblyLoadAttempts(
             hostPlan.LoadPlan,
             assemblyExists);
-        var foundPlugins = assemblyLoadPlan.Attempts
-            .Where(attempt => attempt.AssemblyFound)
-            .Select(attempt => attempt.PluginName)
+        DBuilderPluginTypeDiscoveryPlan typeDiscoveryPlan = PlanTypeDiscovery(
+            assemblyLoadPlan,
+            discoverPluginTypeName);
+        var discoveredPlugins = typeDiscoveryPlan.Discoveries
+            .Select(discovery => discovery.PluginName)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         DBuilderPluginHostPlan readyHostPlan = BuildHostPlan(
-            descriptorRows.Where(descriptor => foundPlugins.Contains(descriptor.Name.Trim())),
+            descriptorRows.Where(descriptor => discoveredPlugins.Contains(descriptor.Name.Trim())),
             request);
 
         return new DBuilderPluginRuntimePlan(
             hostPlan,
             assemblyLoadPlan,
+            typeDiscoveryPlan,
             readyHostPlan);
     }
 
