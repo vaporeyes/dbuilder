@@ -11,6 +11,7 @@ public static class VisualCameraMovement
     public const int DoomPlayerHeight = 41;
     public const int LowSectorMinimumCameraHeight = 16;
     public const int CeilingCameraClearance = 4;
+    public const int CenterOnCoordinatesEyeHeight = 54;
     public const double OrbitAngleFromMouse = 0.005;
     public const double MinOrbitPitch = -1.5;
     public const double MaxOrbitPitch = 1.5;
@@ -39,6 +40,11 @@ public static class VisualCameraMovement
 
         return new Vector3D(initialPosition.x, initialPosition.y, z);
     }
+
+    public static Vector3D PlanCenterOnCoordinatesPosition(Vector2D coordinates, Sector? sector)
+        => sector == null
+            ? new Vector3D(coordinates.x, coordinates.y, 0.0)
+            : new Vector3D(coordinates.x, coordinates.y, sector.FloorHeight + CenterOnCoordinatesEyeHeight);
 
     public static bool TryMoveCameraToCursor(Vector3D currentPosition, Vector3D hitPosition, double distance, out Vector3D nextPosition)
     {

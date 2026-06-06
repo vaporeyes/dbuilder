@@ -1707,6 +1707,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         _camX = x;
         _camY = y;
+        if (_mode3D && _map != null)
+        {
+            var coordinates = new Vec2D(x, y);
+            DBuilder.Geometry.Vector3D position = VisualCameraMovement.PlanCenterOnCoordinatesPosition(coordinates, _map.GetSectorAt(coordinates));
+            _cam3DPos = new Vector3((float)position.x, (float)position.y, (float)position.z);
+        }
+
         RequestNextFrameRendering();
     }
 

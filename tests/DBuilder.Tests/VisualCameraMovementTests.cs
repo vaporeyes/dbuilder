@@ -112,6 +112,28 @@ public class VisualCameraMovementTests
     }
 
     [Fact]
+    public void CenterOnCoordinatesPlacesVisualCameraAtSectorFloorPlusUdbEyeHeight()
+    {
+        var sector = new Sector { FloorHeight = 24, CeilHeight = 128 };
+
+        Vector3D position = VisualCameraMovement.PlanCenterOnCoordinatesPosition(
+            new Vector2D(32, 64),
+            sector);
+
+        Assert.Equal(new Vector3D(32, 64, 78), position);
+    }
+
+    [Fact]
+    public void CenterOnCoordinatesUsesFlatPositionWhenSectorIsMissingLikeUdb()
+    {
+        Vector3D position = VisualCameraMovement.PlanCenterOnCoordinatesPosition(
+            new Vector2D(32, 64),
+            sector: null);
+
+        Assert.Equal(new Vector3D(32, 64, 0), position);
+    }
+
+    [Fact]
     public void OrbitKeepsCameraAtRadiusAndLookingAtTarget()
     {
         var current = new Vector3D(64, 0, 0);
