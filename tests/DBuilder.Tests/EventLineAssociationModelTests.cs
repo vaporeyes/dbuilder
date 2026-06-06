@@ -10,6 +10,148 @@ namespace DBuilder.Tests;
 public sealed class EventLineAssociationModelTests
 {
     [Fact]
+    public void LinedefActionArgsLinkToTaggedSectorsLinedefsAndThings()
+    {
+        var map = new MapSet();
+        Linedef source = AddLine(map, 0);
+        source.Action = 80;
+        source.Args[0] = 7;
+        source.Args[1] = 9;
+        source.Args[2] = 11;
+        Sector sector = map.AddSector();
+        sector.Tag = 7;
+        Thing thing = map.AddThing(new Vector2D(32, 32), 3001);
+        thing.Tag = 9;
+        Linedef targetLine = AddLine(map, 11);
+        GameConfiguration config = Config(actionArgTargets: true);
+
+        IReadOnlyList<EventLineAssociation> associations =
+            EventLineAssociationModel.ForElement(map, source, config);
+
+        Assert.Contains(associations, a =>
+            a.TargetKind == EventLineElementKind.Sector &&
+            a.TargetIndex == sector.Index &&
+            a.Tag == 7);
+        Assert.Contains(associations, a =>
+            a.TargetKind == EventLineElementKind.Thing &&
+            a.TargetIndex == thing.Index &&
+            a.Tag == 9);
+        Assert.Contains(associations, a =>
+            a.TargetKind == EventLineElementKind.Linedef &&
+            a.TargetIndex == targetLine.Index &&
+            a.Tag == 11);
+    }
+
+    [Fact]
+    public void ThingActionArgsLinkToTaggedTargetsLikeUdb()
+    {
+        var map = new MapSet();
+        Thing source = map.AddThing(new Vector2D(0, 0), 3001);
+        source.Action = 80;
+        source.Args[0] = 7;
+        source.Args[1] = 9;
+        source.Args[2] = 11;
+        Sector sector = map.AddSector();
+        sector.Tag = 7;
+        Thing targetThing = map.AddThing(new Vector2D(32, 32), 3002);
+        targetThing.Tag = 9;
+        Linedef targetLine = AddLine(map, 11);
+        GameConfiguration config = Config(actionArgTargets: true);
+
+        IReadOnlyList<EventLineAssociation> associations =
+            EventLineAssociationModel.ForElement(map, source, config);
+
+        Assert.Contains(associations, a =>
+            a.SourceKind == EventLineElementKind.Thing &&
+            a.SourceIndex == source.Index &&
+            a.TargetKind == EventLineElementKind.Sector &&
+            a.TargetIndex == sector.Index);
+        Assert.Contains(associations, a =>
+            a.TargetKind == EventLineElementKind.Thing &&
+            a.TargetIndex == targetThing.Index);
+        Assert.Contains(associations, a =>
+            a.TargetKind == EventLineElementKind.Linedef &&
+            a.TargetIndex == targetLine.Index);
+    }
+
+    [Fact]
+    public void ActionArgAssociationsIgnoreZeroUnknownAndDuplicateArgs()
+    {
+        var map = new MapSet();
+        Linedef source = AddLine(map, 0);
+        source.Action = 80;
+        source.Args[0] = 7;
+        source.Args[1] = 0;
+        source.Args[2] = 7;
+        source.Args[3] = 99;
+        Sector sector = map.AddSector();
+        sector.Tag = 7;
+        Thing thing = map.AddThing(new Vector2D(32, 32), 3001);
+        thing.Tag = 99;
+        GameConfiguration config = Config(actionArgTargets: true, duplicateSectorArg: true);
+
+        IReadOnlyList<EventLineAssociation> associations =
+            EventLineAssociationModel.ForElement(map, source, config);
+
+        EventLineAssociation association = Assert.Single(associations);
+        Assert.Equal(EventLineElementKind.Sector, association.TargetKind);
+        Assert.Equal(sector.Index, association.TargetIndex);
+        Assert.DoesNotContain(associations, a =>
+            a.TargetKind == EventLineElementKind.Thing &&
+            a.TargetIndex == thing.Index);
+    }
+
+    [Fact]
+    public void ActionArgAssociationsMatchSectorAndLinedefMoreIds()
+    {
+        var map = new MapSet();
+        Linedef source = AddLine(map, 0);
+        source.Action = 80;
+        source.Args[0] = 17;
+        source.Args[2] = 19;
+        Sector sector = map.AddSector();
+        sector.Tags.AddRange(new[] { 0, 17 });
+        Linedef line = AddLine(map, 0);
+        line.Tags.Add(19);
+        GameConfiguration config = Config(actionArgTargets: true);
+
+        IReadOnlyList<EventLineAssociation> associations =
+            EventLineAssociationModel.ForElement(map, source, config);
+
+        Assert.Contains(associations, a =>
+            a.TargetKind == EventLineElementKind.Sector &&
+            a.TargetIndex == sector.Index &&
+            a.Tag == 17);
+        Assert.Contains(associations, a =>
+            a.TargetKind == EventLineElementKind.Linedef &&
+            a.TargetIndex == line.Index &&
+            a.Tag == 19);
+    }
+
+    [Fact]
+    public void LineTagIndicatesSectorsSkipsActionArgAssociationsLikeUdb()
+    {
+        var map = new MapSet();
+        Linedef source = AddLine(map, 7);
+        source.Action = 80;
+        source.Args[0] = 13;
+        Sector sectorFromLineTag = map.AddSector();
+        sectorFromLineTag.Tag = 7;
+        Sector sectorFromArg = map.AddSector();
+        sectorFromArg.Tag = 13;
+        GameConfiguration config = Config(
+            lineTagIndicatesSectors: true,
+            actionArgTargets: true);
+
+        IReadOnlyList<EventLineAssociation> associations =
+            EventLineAssociationModel.ForElement(map, source, config);
+
+        EventLineAssociation association = Assert.Single(associations);
+        Assert.Equal(sectorFromLineTag.Index, association.TargetIndex);
+        Assert.DoesNotContain(associations, a => a.TargetIndex == sectorFromArg.Index);
+    }
+
+    [Fact]
     public void LineToLineTagLinksLinedefTagsToTaggedLinedefs()
     {
         var map = new MapSet();
@@ -167,11 +309,18 @@ public sealed class EventLineAssociationModelTests
     private static GameConfiguration Config(
         bool lineTagIndicatesSectors = false,
         bool lineToLineTag = false,
-        bool lineToLineSameAction = false)
+        bool lineToLineSameAction = false,
+        bool actionArgTargets = false,
+        bool duplicateSectorArg = false)
     {
         string lineToLineTagValue = lineToLineTag ? "true" : "false";
         string lineToLineSameActionValue = lineToLineSameAction ? "true" : "false";
         string lineTagIndicatesSectorsValue = lineTagIndicatesSectors ? "true" : "false";
+        string arg0Type = actionArgTargets ? ((int)UniversalType.SectorTag).ToString() : "0";
+        string arg1Type = actionArgTargets ? ((int)UniversalType.ThingTag).ToString() : "0";
+        string arg2Type = actionArgTargets
+            ? ((int)(duplicateSectorArg ? UniversalType.SectorTag : UniversalType.LinedefTag)).ToString()
+            : "0";
 
         return GameConfiguration.FromText($$"""
             linetagindicatesectors = {{lineTagIndicatesSectorsValue}};
@@ -184,6 +333,9 @@ public sealed class EventLineAssociationModelTests
                         title = "Event";
                         linetolinetag = {{lineToLineTagValue}};
                         linetolinesameaction = {{lineToLineSameActionValue}};
+                        arg0 { type = {{arg0Type}}; }
+                        arg1 { type = {{arg1Type}}; }
+                        arg2 { type = {{arg2Type}}; }
                     }
                     81 { title = "Other Event"; }
                 }
