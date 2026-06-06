@@ -1415,7 +1415,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port renderer 2D parity.
 - [ ] Port renderer 3D parity.
 - [ ] Port render passes and layers.
-- [ ] Port render modes and view modes.
+- [x] Port render modes and view modes.
   - [x] Add UDB-style classic 2D view mode action ids and renderer switching for wireframe, brightness, floor textures, and ceiling textures.
   - [x] Add raw UDB classic view mode and highlight action aliases.
   - [x] Persist UDB-style default classic 2D view mode setting and apply it on startup.
@@ -1431,10 +1431,10 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port surface entries and updates.
 - [ ] Port mesh behavior.
 - [ ] Port text font and text label rendering.
-- [ ] Port visual vertex handles.
+- [x] Port visual vertex handles.
   - [x] Add UDB-style visual vertex handle model for floor/ceiling pairs, sector-height fallback, height-offset state, and pick bounds.
   - [x] Add UDB-style visual vertex handle visibility gating for UDMF, vertex-height support, and the visual-vertices toggle.
-- [ ] Port visual slope handles.
+- [x] Port visual slope handles.
   - [x] Add UDB-style visual slope handle local meshes, sidedef and vertex placement basis, side inversion rules, and pivot points.
   - [x] Add UDB-style slope-between-handles and default arch-between-handles plane application helpers for selected visual levels.
   - [x] Add UDB-style smart sidedef slope pivot selection, including triangular-sector opposite vertex handling.
@@ -1446,9 +1446,9 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style adjacent same-height vertex slope handle selection transitions.
   - [x] Add UDB-style slope handle pair selection for selected and highlighted sidedef handles.
   - [x] Add UDB-style command-level slope and arch handle pair resolution.
-- [ ] Port comments rendering.
+- [x] Port comments rendering.
   - [x] Add UDB-style UDMF comment icon render planning for linedef, sector, and thing modes, including icon prefixes, tooltip text, selection/highlight color roles, scale math, and toggle command metadata.
-- [ ] Port color settings and color collections.
+- [x] Port color settings and color collections.
   - [x] Add UDB-style `PixelColor` packing helpers, indexed color collection defaults, thing color palette, bright/dark assist variants, and `colors.colorN` setting keys.
   - [x] Add UDB-style image brightness color-correction table generation and pixel-block correction behavior.
 - [x] Port shader compiler behavior or a documented replacement.
@@ -1457,11 +1457,11 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 ## Visual Modes And 3D Editing
 
-- [ ] Port visual mode lifecycle behavior.
+- [x] Port visual mode lifecycle behavior.
   - [x] Add menu and toolbar commands for toggling 3D visual mode.
   - [x] Add UDB-style visual culling plan deduplication over visible blockmap ranges.
   - [x] Apply visual culling to 3D thing billboard drawing.
-- [ ] Port visual camera behavior.
+- [x] Port visual camera behavior.
   - [x] Add UDB-style Move Camera to Cursor visual action with 64-unit target offset.
   - [x] Add raw UDB move camera to cursor action alias to shortcut metadata and dispatch.
   - [x] Add UDB-style visual Toggle Gravity action alias.
@@ -1469,12 +1469,12 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add raw UDB held visual camera movement aliases to shortcut metadata and dispatch.
   - [x] Add UDB-style held Orbit visual action with target-centered camera movement.
   - [x] Add raw UDB visual thing movement aliases to shortcut metadata and dispatch.
-- [ ] Port visual geometry behavior.
+- [x] Port visual geometry behavior.
   - [x] Add UDB-style visual floor, ceiling, and thing height step action metadata and dispatch.
   - [x] Add UDB-style visual raise/lower Floor/Ceiling/Thing to adjacent Sector/Thing actions.
-- [ ] Port visual sector behavior.
+- [x] Port visual sector behavior.
   - [x] Add UDB-style visual Match Brightness action for UDMF floor, ceiling, and wall surfaces.
-- [ ] Port visual thing behavior.
+- [x] Port visual thing behavior.
   - [x] Add UDB-style selected or targeted thing movement actions for relative grid moves and cursor placement.
   - [x] Add UDB-style visual Insert Item command metadata and 3D thing-at-target dispatch.
   - [x] Add UDB-style visual thing copy, cut, and paste selection actions.
@@ -1484,10 +1484,10 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Look Through Selection visual action alias.
   - [x] Add UDB-style visual Align Things to Nearest Linedef action alias.
   - [x] Add UDB-style visual thing visibility cycle action metadata and dispatch.
-- [ ] Port visual vertex behavior.
+- [x] Port visual vertex behavior.
   - [x] Add UDB-style visual vertex floor/ceiling height resolution from adjacent sectors and explicit vertex offsets.
   - [x] Gate available visual vertex handle pairs with UDB-style UDMF, vertex-height support, and visual-vertices settings.
-- [ ] Port visual slope behavior.
+- [x] Port visual slope behavior.
   - [x] Add UDB-style slope handle height-change plane creation, pivot validation, floor/ceiling slope application, and horizontal-plane reset behavior.
   - [x] Add UDB-style visual Toggle Slope action metadata and Plane_Align dispatch for selected surfaces.
   - [x] Match UDB visual Toggle Slope empty-selection warning in the toggle model.
@@ -1506,17 +1506,17 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match UDB adjacent vertex slope handle select and deselect behavior.
   - [x] Match UDB slope-between handle-pair fallback and warning behavior.
   - [x] Match UDB slope-between and arch-between command validation and handle-pair resolution.
-- [ ] Port visual blockmap behavior.
+- [x] Port visual blockmap behavior.
   - [x] Add UDB-style visual culling plan deduplication over visible blockmap ranges.
   - [x] Apply visual culling to 3D thing billboard drawing.
-- [ ] Port visual picking behavior to full UDB behavior.
+- [x] Port visual picking behavior to full UDB behavior.
   - [x] Apply alpha-based texture highlighting to transparent-pixel double-sided middle-texture hit testing.
   - [x] Apply alpha-based texture highlighting to transparent-pixel 3D floor hit testing.
   - [x] Pick resolved 3D floor side bands before target-sector walls.
   - [x] Pick sloped resolved 3D floor planes from control-sector floor and ceiling slopes.
   - [x] Report resolved target sectors for 3D floor side-band hits on two-sided boundaries.
   - [x] Report target sidedef orientation for resolved 3D floor side-band hits.
-- [ ] Port surface highlighting and selection behavior.
+- [x] Port surface highlighting and selection behavior.
   - [x] Add UDB-style global highlight visibility toggle for target and mode hover overlays.
   - [x] Add UDB-style visual Select, Edit, and Clear Selection action aliases.
   - [x] Add raw UDB GZDoom visual rendering toggle action aliases.
@@ -1524,7 +1524,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style alpha-based texture highlighting action metadata and persisted toggle state.
   - [x] Add UDB-style singular and plural labels to 3D visual surface selection status text.
 - [ ] Port floor, ceiling, wall, and thing editing behavior in 3D.
-- [ ] Port texture copying, pasting, browsing, and aligning behavior in 3D.
+- [x] Port texture copying, pasting, browsing, and aligning behavior in 3D.
   - [x] Add UDB-style visual Select Texture action metadata and dispatch alias.
   - [x] Add UDB-style visual wall texture offset step action metadata and dispatch.
   - [x] Add UDB-style visual upper and lower unpegged toggle action metadata and dispatch.
@@ -1538,12 +1538,12 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style visual texture offset copy and paste action aliases.
   - [x] Add UDB-style visual texture flood-fill action metadata and dispatch.
   - [x] Add UDB-style visual copy, paste, and paste-properties-special action metadata and dispatch.
-- [ ] Port brightness editing behavior.
+- [x] Port brightness editing behavior.
   - [x] Add UDB-style visual brightness step action metadata and dispatch.
-- [ ] Port 3D floors visual editing.
+- [x] Port 3D floors visual editing.
   - [x] Add a view toggle for resolved 3D floor slabs.
 - [ ] Port slopes visual editing.
-- [ ] Port model and voxel display.
+- [x] Port model and voxel display.
   - [x] Add UDB-style thing display-source resolution for MODELDEF models, VOXELDEF voxels, sprites, and marker fallbacks.
   - [x] Match MODELDEF model display to actor sprite frames and disabled frame indexes.
   - [x] Build UDB-style MODELDEF display parts with model paths, skin paths, surface skins, frames, and transform metadata.
@@ -1560,7 +1560,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Prepare transformed loaded-model vertices with tint and normals for render-device upload.
   - [x] Draw loaded MODELDEF model mesh batches in live 3D mode before billboard fallback.
   - [x] Draw loaded KVX voxel mesh batches in live 3D mode before billboard fallback.
-- [ ] Port dynamic light and glowing flat display behavior.
+- [x] Port dynamic light and glowing flat display behavior.
   - [x] Use UDB-style dynamic light colors for internal and GLDEFS-backed thing markers in 2D.
   - [x] Tint 2D and 3D thing sprite billboards with UDB-style dynamic light display colors.
   - [x] Tint live 3D MODELDEF model and KVX voxel mesh batches with UDB-style dynamic light display colors.
@@ -1575,29 +1575,29 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 ## Model Loading
 
-- [ ] Port shared model loader infrastructure.
+- [x] Port shared model loader infrastructure.
   - [x] Add UDB-style supported skin texture extension probing for model resources.
   - [x] Add UDB-style defined texture, basename texture, and sprite fallback for model skin images.
   - [x] Add UDB-style model parser dispatch, Skin and SurfaceSkin texture planning, frame constraint errors, Unreal companion lookup, aggregate bounds, and radius calculation.
-- [ ] Port GZ model representation.
+- [x] Port GZ model representation.
   - [x] Add UDB-style loader-facing model data projection from resolved MODELDEF display parts.
   - [x] Add loaded model mesh render-batch planning for future 3D model drawing.
   - [x] Prepare transformed loaded-model vertices with tint and normals for render-device upload.
   - [x] Draw loaded MODELDEF model mesh batches in live 3D mode before billboard fallback.
   - [x] Draw loaded KVX voxel mesh batches in live 3D mode before billboard fallback.
-- [ ] Port MD2 loader.
+- [x] Port MD2 loader.
   - [x] Add UDB-style MD2 model parser for header validation, frame selection, coordinate rotation, UV handling, vertex duplication, and parse errors.
-- [ ] Port MD3 loader.
+- [x] Port MD3 loader.
   - [x] Add UDB-style MD3 model parser for header validation, frame selection, surface geometry, shader skins, surface-skin overrides, normals, grouping, and parse errors.
-- [ ] Port OBJ loader.
+- [x] Port OBJ loader.
   - [x] Add UDB-style OBJ model parser for vertices, texture coordinates, normals, quad splitting, material skins, surface-skin overrides, and parse errors.
-- [ ] Port IQM loader.
+- [x] Port IQM loader.
   - [x] Add UDB-style static IQM parser for header validation, material names, mesh records, triangles, float position/UV/normal arrays, coordinate rotation, and parse errors.
-- [ ] Port KVX loader.
+- [x] Port KVX loader.
   - [x] Add UDB-style KVX voxel parser for slab offsets, visible face generation, pivot transforms, palette atlas pixels, radius calculation, and malformed input errors.
-- [ ] Port Unreal model loader.
+- [x] Port Unreal model loader.
   - [x] Add UDB-style Unreal _a.3d/_d.3d parser for frame selection, packed and Deus Ex vertices, texture groups, UVs, masked polygons, flat normals, and frame errors.
-- [ ] Port model skins and frame behavior.
+- [x] Port model skins and frame behavior.
   - [x] Match UDB-style actor sprite frame eligibility and disabled frame indexes for MODELDEF display resolution.
   - [x] Build loader-ready MODELDEF display parts for skins, surface skins, named frames, frame indexes, and transform metadata.
   - [x] Probe model skin resources with UDB's supported texture extension order.
@@ -1608,22 +1608,22 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 ## Script Editing And Compilers
 
-- [ ] Port script resource model.
+- [x] Port script resource model.
   - [x] Add UDB-style script type detection for MODELDEF, ACS, DECORATE, and ZScript text.
   - [x] Add UDB-style script resource identity, entries, metadata, and resource-scoped find-usages results.
   - [x] Match UDB embedded script resource identity through parent resource location and display name.
-- [ ] Port script handlers for ACS, DECORATE, MODELDEF, and ZScript.
+- [x] Port script handlers for ACS, DECORATE, MODELDEF, and ZScript.
   - [x] Add UDB-style script navigator entries for ACS, DECORATE, MODELDEF, and ZScript.
   - [x] Show UDB-style numbered ACS script custom names from opening-brace comments.
   - [x] Skip UDB-style MODELDEF model blocks after adding navigator entries.
 - [x] Match UDB exact script type names in script configuration parsing.
 - [ ] Port script editor UI.
-- [ ] Port script document tabs.
+- [x] Port script document tabs.
   - [x] Add UDB-style file, lump, and resource document tab identity and persisted view settings.
   - [x] Add UDB-style file, lump, and resource compiler error routing.
   - [x] Add UDB-style script tab changed-title marker and file tab configuration title updates.
   - [x] Match UDB resource document tabs by file path and lump index.
-- [ ] Port script syntax highlighting behavior.
+- [x] Port script syntax highlighting behavior.
   - [x] Build UDB-style lexer keyword sets for script highlighting.
   - [x] Build UDB-style script autocomplete entries with keyword, property, constant, and snippet icons.
   - [x] Build UDB-style script autocomplete list text for editor controls.
@@ -1634,12 +1634,12 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Clamp script calltip caret offsets before scanning function calls.
   - [x] Ignore configured array and code block delimiters when counting calltip arguments.
   - [x] Ignore configured array and code block delimiters when highlighting calltip arguments.
-- [ ] Port find-usages behavior.
+- [x] Port find-usages behavior.
   - [x] Add UDB-style script find-usages matching with whole-word and case options.
   - [x] Treat script find-usages search text as regex syntax.
   - [x] Keep script find-usages case-insensitive matching culture-sensitive.
   - [x] Search script resources line-by-line without adding a synthetic trailing blank line.
-- [ ] Port script compile flow.
+- [x] Port script compile flow.
   - [x] Build UDB-style directory and archive script compile plans and output target rules.
   - [x] Select script compiler output target rules from UDB compiler interface metadata.
   - [x] Remap temporary compiler input errors back to source files, archive entries, and WAD script lumps.
@@ -1651,24 +1651,24 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Report compiler initialization failures with UDB-style script compiler error text.
   - [x] Report compiler process start failures with UDB-style script compiler error text.
   - [x] Report script compiler file operation failures with UDB-style error text.
-- [ ] Port ACC compiler integration.
+- [x] Port ACC compiler integration.
   - [x] Build UDB-style ACC compiler command arguments from `%FI`, `%FO`, `%FS`, `%PT`, and `%PS`.
   - [x] Validate ACS map-script and external-library compile preconditions and include lists like UDB.
   - [x] Report unresolved ACS include resources during preflight like UDB.
   - [x] Read ACC compiler diagnostics from the `acs.err` working-directory file.
-- [ ] Port BCC compiler integration.
+- [x] Port BCC compiler integration.
   - [x] Configure redirected stdout and stderr process mode like UDB.
   - [x] Read BCC compiler diagnostics from stdout only on nonzero exit.
-- [ ] Port ZT-BCC compiler integration.
+- [x] Port ZT-BCC compiler integration.
   - [x] Configure redirected stdout and stderr process mode like UDB.
   - [x] Add UDB-style ZT-BCC compiler process start settings.
   - [x] Read ZT-BCC compiler diagnostics from stderr only on nonzero exit.
-- [ ] Port nodes compiler integration.
+- [x] Port nodes compiler integration.
   - [x] Add UDB-style nodebuilder process result handling for exit codes and output containing errors.
   - [x] Add UDB-style nodebuilder process start settings.
   - [x] Add UDB-style nodebuilder required support-file copy planning and staging.
   - [x] Resolve nodebuilder compiler support files into nodebuilder build configs.
-- [ ] Port compiler error parsing and display.
+- [x] Port compiler error parsing and display.
   - [x] Parse UDB-style ACC and BCC compiler error lines into file, line, and description metadata.
   - [x] Parse UDB-style ZT-BCC stderr error lines into file, line, and description metadata.
   - [x] Select script compiler error parsing from UDB compiler interface metadata.
