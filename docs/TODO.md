@@ -358,6 +358,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add reflection-based plugin instantiation with activation diagnostics.
   - [x] Add reflection-based plugin revision compatibility filtering.
   - [x] Add reflection runtime plugin lookup by assembly.
+  - [x] Add reflection runtime plugin assembly listing.
   - [x] Add reflection-based plugin callback execution with abort and error diagnostics.
   - [x] Add aggregate reflection runtime host planning with ready-host filtering.
   - [x] Add reflection-based plugin shutdown execution with dispose diagnostics.

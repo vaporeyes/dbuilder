@@ -2,6 +2,7 @@
 // ABOUTME: Covers UI-independent plugin host planning and reflection runtime execution helpers.
 
 using DBuilder.IO;
+using System.Reflection;
 
 namespace DBuilder.Tests;
 
@@ -928,6 +929,33 @@ public sealed class DBuilderPluginHostModelTests
             typeof(string).Assembly);
 
         Assert.Null(match);
+    }
+
+    [Fact]
+    public void ListReflectionPluginAssembliesReturnsLoadedAssembliesInRuntimeOrder()
+    {
+        DBuilderPluginRuntimeInstance[] instances =
+        {
+            RuntimeInstance(new ReflectionPluginHostTestPlugin(), "First", 0),
+            RuntimeInstance(new ReflectionCallbackPlugin("Second"), "Second", 1)
+        };
+
+        IReadOnlyList<Assembly> assemblies = DBuilderPluginHostModel.ListReflectionPluginAssemblies(instances);
+
+        Assert.Equal(new[]
+        {
+            typeof(ReflectionPluginHostTestPlugin).Assembly,
+            typeof(ReflectionCallbackPlugin).Assembly
+        }, assemblies);
+    }
+
+    [Fact]
+    public void ListReflectionPluginAssembliesAllowsEmptyRuntimePlans()
+    {
+        IReadOnlyList<Assembly> assemblies = DBuilderPluginHostModel.ListReflectionPluginAssemblies(
+            Array.Empty<DBuilderPluginRuntimeInstance>());
+
+        Assert.Empty(assemblies);
     }
 
     [Fact]
@@ -2511,14 +2539,20 @@ public sealed class DBuilderPluginHostModelTests
         => new(
             new[]
             {
-                new DBuilderPluginRuntimeInstance(
-                    pluginName,
-                    "/plugins/" + pluginName + ".dll",
-                    plugin.GetType().FullName!,
-                    0,
-                    plugin)
+                RuntimeInstance(plugin, pluginName, 0)
             },
             Array.Empty<DBuilderPluginDiagnostic>());
+
+    private static DBuilderPluginRuntimeInstance RuntimeInstance(
+        IDBuilderPlugin plugin,
+        string pluginName,
+        int order)
+        => new(
+            pluginName,
+            "/plugins/" + pluginName + ".dll",
+            plugin.GetType().FullName!,
+            order,
+            plugin);
 }
 
 public sealed class ReflectionPluginHostTestPlugin : IDBuilderPlugin

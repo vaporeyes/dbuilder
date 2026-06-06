@@ -759,6 +759,12 @@ public static class DBuilderPluginHostModel
         Assembly assembly)
         => instances.FirstOrDefault(instance => Equals(instance.Instance.GetType().Assembly, assembly));
 
+    public static IReadOnlyList<Assembly> ListReflectionPluginAssemblies(
+        IEnumerable<DBuilderPluginRuntimeInstance> instances)
+        => instances
+            .Select(instance => instance.Instance.GetType().Assembly)
+            .ToArray();
+
     public static DBuilderPluginShutdownPlan PlanShutdownAttempts(
         DBuilderPluginActivationPlan activationPlan,
         Func<DBuilderPluginActivationAttempt, string?> disposePlugin)
