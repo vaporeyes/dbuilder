@@ -97,6 +97,34 @@ public sealed class MapControlCommandTests
         Assert.DoesNotContain("built bridge with", body, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void ApplyBridgeTexturesUpdatesLongTextureNames()
+    {
+        var map = new MapSet();
+        Sector bridge = map.AddSector();
+        bridge.FloorHeight = 0;
+        bridge.CeilHeight = 160;
+        Sector neighbor = map.AddSector();
+        neighbor.FloorHeight = 32;
+        neighbor.CeilHeight = 128;
+        Linedef line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        Sidedef front = map.AddSidedef(line, true, bridge);
+        Sidedef back = map.AddSidedef(line, false, neighbor);
+        map.BuildIndexes();
+        var properties = new BridgeSectorProperties(0, 160, 192, "BRIDGEHIGH", "BRIDGELOW");
+
+        MapControl.ApplyBridgeTextures(bridge, properties, useLongTextureNames: true);
+
+        Assert.Equal("BRIDGEHIGH", front.HighTexture);
+        Assert.Equal(Lump.MakeLongName("BRIDGEHIGH", useLongNames: true), front.LongHighTexture);
+        Assert.Equal("BRIDGELOW", front.LowTexture);
+        Assert.Equal(Lump.MakeLongName("BRIDGELOW", useLongNames: true), front.LongLowTexture);
+        Assert.Equal("-", back.HighTexture);
+        Assert.Equal("-", back.LowTexture);
+        Assert.Equal(MapSet.EmptyLongName, back.LongHighTexture);
+        Assert.Equal(MapSet.EmptyLongName, back.LongLowTexture);
+    }
+
     [Theory]
     [InlineData("FLOOR0_1", VisualHitKind.Floor, true, "Paste floor \"FLOOR0_1\"")]
     [InlineData("CEIL1_1", VisualHitKind.Ceiling, true, "Paste ceiling \"CEIL1_1\"")]

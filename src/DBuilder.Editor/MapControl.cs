@@ -7745,7 +7745,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _map.BuildIndexes();
 
         foreach ((Sector sector, BridgeSectorProperties properties) in newSectors)
-            ApplyBridgeTextures(sector, properties);
+            ApplyBridgeTextures(sector, properties, _gameConfig?.UseLongTextureNames ?? false);
 
         _map.ClearAllSelected();
         foreach ((Sector sector, _) in newSectors) sector.Selected = true;
@@ -7757,21 +7757,33 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return status;
     }
 
-    private static void ApplyBridgeTextures(Sector sector, BridgeSectorProperties properties)
+    public static void ApplyBridgeTextures(Sector sector, BridgeSectorProperties properties, bool useLongTextureNames)
     {
         foreach (Sidedef side in sector.Sidedefs)
         {
             if (side.LowRequired() && IsBlankTexture(side.LowTexture))
+            {
                 side.SetTextureLow(properties.LowTexture);
+                side.LongLowTexture = Lump.MakeLongName(side.LowTexture, useLongTextureNames);
+            }
             if (side.HighRequired() && IsBlankTexture(side.HighTexture))
+            {
                 side.SetTextureHigh(properties.HighTexture);
+                side.LongHighTexture = Lump.MakeLongName(side.HighTexture, useLongTextureNames);
+            }
 
             Sidedef? other = side.Other;
             if (other == null) continue;
             if (other.LowRequired() && IsBlankTexture(other.LowTexture))
+            {
                 other.SetTextureLow(properties.LowTexture);
+                other.LongLowTexture = Lump.MakeLongName(other.LowTexture, useLongTextureNames);
+            }
             if (other.HighRequired() && IsBlankTexture(other.HighTexture))
+            {
                 other.SetTextureHigh(properties.HighTexture);
+                other.LongHighTexture = Lump.MakeLongName(other.HighTexture, useLongTextureNames);
+            }
         }
     }
 
