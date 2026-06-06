@@ -134,6 +134,18 @@ public sealed record PresentationRenderTargetResource(
     int Height,
     TextureFormat? Format = null);
 
+public sealed record PresentationDisplaySettings(
+    PresentationRendererLayer Layer,
+    string SourceTargetName,
+    string ShaderName,
+    float TexelX,
+    float TexelY,
+    float FsaaFactor,
+    float Alpha,
+    bool FlipY,
+    TextureFilter SamplerFilter,
+    int? OverlayIndex);
+
 public sealed record PresentationRenderTargetPlan(
     int Width,
     int Height,
@@ -148,6 +160,7 @@ public sealed record PresentationRenderTargetPlan(
 {
     public const int ThingBufferSize = 100;
     public const int ThingVerticesPerBufferItem = 12;
+    public const float FsaaFactor = 0.6f;
 
     public static PresentationRenderTargetPlan Create(int width, int height, PresentationPlan? presentation)
     {
@@ -210,4 +223,64 @@ public sealed record PresentationRenderTargetPlan(
             u = u,
             v = v,
         };
+
+    public IReadOnlyList<PresentationDisplaySettings> BuildDisplaySettings(
+        PresentationPlan presentation,
+        bool qualityDisplay,
+        bool bilinear = false)
+    {
+        var settings = new List<PresentationDisplaySettings>(presentation.Layers.Count);
+        int overlayIndex = 0;
+
+        foreach (PresentationLayer layer in presentation.Layers)
+        {
+            int? currentOverlay = layer.Layer == PresentationRendererLayer.Overlay ? overlayIndex : null;
+            settings.Add(DisplaySettingsFor(layer, qualityDisplay, bilinear, currentOverlay));
+            if (layer.Layer == PresentationRendererLayer.Overlay)
+                overlayIndex++;
+        }
+
+        return settings;
+    }
+
+    private PresentationDisplaySettings DisplaySettingsFor(
+        PresentationLayer layer,
+        bool qualityDisplay,
+        bool bilinear,
+        int? overlayIndex)
+    {
+        string sourceName = SourceTargetName(layer.Layer, overlayIndex);
+        PresentationRenderTargetResource? resource = Resources.FirstOrDefault(resource => resource.Name == sourceName);
+        int sourceWidth = resource?.Width ?? Width;
+        int sourceHeight = resource?.Height ?? Height;
+
+        return new PresentationDisplaySettings(
+            layer.Layer,
+            sourceName,
+            layer.Antialiasing && qualityDisplay
+                ? PresentationPlan.Display2DFsaaShaderName
+                : PresentationPlan.Display2DNormalShaderName,
+            1.0f / sourceWidth,
+            1.0f / sourceHeight,
+            FsaaFactor,
+            layer.Alpha,
+            FlipY(layer.Layer),
+            bilinear ? TextureFilter.Linear : TextureFilter.Nearest,
+            overlayIndex);
+    }
+
+    private static string SourceTargetName(PresentationRendererLayer layer, int? overlayIndex)
+        => layer switch
+        {
+            PresentationRendererLayer.Background => "background",
+            PresentationRendererLayer.Grid => "gridplotter",
+            PresentationRendererLayer.Geometry => "plotter",
+            PresentationRendererLayer.Things => "things",
+            PresentationRendererLayer.Overlay => "overlay" + (overlayIndex ?? 0),
+            PresentationRendererLayer.Surface => "surface",
+            _ => throw new ArgumentOutOfRangeException(nameof(layer), layer, null),
+        };
+
+    private static bool FlipY(PresentationRendererLayer layer)
+        => layer != PresentationRendererLayer.Geometry;
 }

@@ -26,6 +26,7 @@ public static class RendererArchitectureModel
             "2D presentation draw-command planning",
             "2D presentation render-target lifecycle planning",
             "2D presentation plotter and texture target allocation planning",
+            "2D presentation display shader settings planning",
             "Cull, depth, fill, blend, sampler, and texture state",
             "Flat and world vertex-buffer attribute binding",
             "Length-based vertex-buffer allocation",

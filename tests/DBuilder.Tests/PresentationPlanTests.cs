@@ -205,6 +205,81 @@ public sealed class PresentationPlanTests
         AssertScreenVertex(plan.ScreenVertices[3], 320, 200, 1, 1);
     }
 
+    [Fact]
+    public void DisplaySettingsUseUdbSourceTargetsAndTexelSizes()
+    {
+        PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);
+        PresentationRenderTargetPlan targets = PresentationRenderTargetPlan.Create(320, 200, presentation);
+
+        IReadOnlyList<PresentationDisplaySettings> settings = targets.BuildDisplaySettings(presentation, qualityDisplay: false);
+
+        Assert.Equal(new[] { "background", "surface", "things", "gridplotter", "plotter", "overlay0" }, settings.Select(setting => setting.SourceTargetName));
+        Assert.All(settings, setting =>
+        {
+            Assert.Equal(1.0f / 320, setting.TexelX);
+            Assert.Equal(1.0f / 200, setting.TexelY);
+            Assert.Equal(PresentationRenderTargetPlan.FsaaFactor, setting.FsaaFactor);
+        });
+    }
+
+    [Fact]
+    public void DisplaySettingsMatchUdbFlipYAndAlphaBehavior()
+    {
+        PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);
+        PresentationRenderTargetPlan targets = PresentationRenderTargetPlan.Create(320, 200, presentation);
+
+        IReadOnlyList<PresentationDisplaySettings> settings = targets.BuildDisplaySettings(presentation, qualityDisplay: false);
+
+        Assert.True(settings[0].FlipY);
+        Assert.True(settings[1].FlipY);
+        Assert.True(settings[2].FlipY);
+        Assert.True(settings[3].FlipY);
+        Assert.False(settings[4].FlipY);
+        Assert.True(settings[5].FlipY);
+        Assert.Equal(0.4f, settings[0].Alpha);
+        Assert.Equal(0.25f, settings[2].Alpha);
+        Assert.Equal(1.0f, settings[5].Alpha);
+    }
+
+    [Fact]
+    public void DisplaySettingsTrackQualityShaderAndSamplerFilter()
+    {
+        PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);
+        PresentationRenderTargetPlan targets = PresentationRenderTargetPlan.Create(320, 200, presentation);
+
+        IReadOnlyList<PresentationDisplaySettings> normal = targets.BuildDisplaySettings(presentation, qualityDisplay: false);
+        IReadOnlyList<PresentationDisplaySettings> quality = targets.BuildDisplaySettings(presentation, qualityDisplay: true, bilinear: true);
+
+        Assert.All(normal, setting =>
+        {
+            Assert.Equal(PresentationPlan.Display2DNormalShaderName, setting.ShaderName);
+            Assert.Equal(TextureFilter.Nearest, setting.SamplerFilter);
+        });
+        Assert.Equal(PresentationPlan.Display2DFsaaShaderName, quality[4].ShaderName);
+        Assert.Equal(PresentationPlan.Display2DFsaaShaderName, quality[5].ShaderName);
+        Assert.All(quality, setting => Assert.Equal(TextureFilter.Linear, setting.SamplerFilter));
+    }
+
+    [Fact]
+    public void DisplaySettingsAssignOverlayIndexesInLayerOrder()
+    {
+        var presentation = new PresentationPlan(new[]
+        {
+            new PresentationLayer(PresentationRendererLayer.Overlay, PresentationBlendingMode.Alpha),
+            new PresentationLayer(PresentationRendererLayer.Geometry, PresentationBlendingMode.Alpha),
+            new PresentationLayer(PresentationRendererLayer.Overlay, PresentationBlendingMode.Additive),
+        });
+        PresentationRenderTargetPlan targets = PresentationRenderTargetPlan.Create(320, 200, presentation);
+
+        IReadOnlyList<PresentationDisplaySettings> settings = targets.BuildDisplaySettings(presentation, qualityDisplay: false);
+
+        Assert.Equal(0, settings[0].OverlayIndex);
+        Assert.Equal("overlay0", settings[0].SourceTargetName);
+        Assert.Null(settings[1].OverlayIndex);
+        Assert.Equal(1, settings[2].OverlayIndex);
+        Assert.Equal("overlay1", settings[2].SourceTargetName);
+    }
+
     private static void AssertScreenVertex(FlatVertex vertex, float x, float y, float u, float v)
     {
         Assert.Equal(x, vertex.x);
