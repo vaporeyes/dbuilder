@@ -12,6 +12,15 @@ public enum SurfaceRenderPass
 
 public sealed record SurfaceRenderBatch(long Texture, IReadOnlyList<SurfaceEntry> Entries);
 
+public sealed record SurfaceRenderCommand(
+    long Texture,
+    int BufferIndex,
+    int VertexOffset,
+    int PrimitiveCount,
+    double Desaturation);
+
+public sealed record SurfaceBufferBinding(int CommandIndex, int BufferIndex);
+
 public static class SurfaceRenderPlan
 {
     public const long BrightnessTexture = 0;
@@ -54,4 +63,45 @@ public static class SurfaceRenderPlan
 
     public static bool IsVisible(SurfaceEntry entry, SurfaceBounds viewport, bool skipHidden)
         => (!skipHidden || !entry.Hidden) && entry.Bounds.Intersects(viewport);
+
+    public static IReadOnlyList<SurfaceRenderCommand> BuildCommands(
+        IEnumerable<SurfaceRenderBatch> batches,
+        SurfaceRenderPass pass)
+    {
+        int surfaceVertexOffsetMultiplier = pass == SurfaceRenderPass.Ceiling ? 1 : 0;
+        var commands = new List<SurfaceRenderCommand>();
+        foreach (SurfaceRenderBatch batch in batches)
+        {
+            foreach (SurfaceEntry entry in batch.Entries)
+            {
+                commands.Add(new SurfaceRenderCommand(
+                    batch.Texture,
+                    entry.BufferIndex,
+                    entry.VertexOffset + entry.NumVertices * surfaceVertexOffsetMultiplier,
+                    entry.NumVertices / 3,
+                    entry.Desaturation));
+            }
+        }
+
+        return commands;
+    }
+
+    public static IReadOnlyList<SurfaceBufferBinding> BufferBindings(IEnumerable<SurfaceRenderCommand> commands)
+    {
+        var bindings = new List<SurfaceBufferBinding>();
+        int? lastBuffer = null;
+        int index = 0;
+        foreach (SurfaceRenderCommand command in commands)
+        {
+            if (command.BufferIndex != lastBuffer)
+            {
+                bindings.Add(new SurfaceBufferBinding(index, command.BufferIndex));
+                lastBuffer = command.BufferIndex;
+            }
+
+            index++;
+        }
+
+        return bindings;
+    }
 }

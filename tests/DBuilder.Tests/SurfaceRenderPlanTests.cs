@@ -100,12 +100,80 @@ public sealed class SurfaceRenderPlanTests
         Assert.Equal(new[] { set.Entries[0] }, batch.Entries);
     }
 
+    [Fact]
+    public void BuildCommandsUsesFloorOffsetsForFloorAndBrightnessPasses()
+    {
+        SurfaceBufferSetState set = SetWith(
+            Entry(6, floorTexture: 11, ceilingTexture: 21, left: 0));
+        set.Entries[0].VertexOffset = 24;
+        set.Entries[0].Desaturation = 0.5;
+        SurfaceRenderBatch batch = Assert.Single(SurfaceRenderPlan.Build(
+            new[] { set },
+            SurfaceRenderPass.Floor,
+            new SurfaceBounds(-1, -1, 20, 10),
+            skipHidden: true));
+
+        SurfaceRenderCommand floor = Assert.Single(SurfaceRenderPlan.BuildCommands(
+            new[] { batch },
+            SurfaceRenderPass.Floor));
+        SurfaceRenderCommand brightness = Assert.Single(SurfaceRenderPlan.BuildCommands(
+            new[] { batch with { Texture = SurfaceRenderPlan.BrightnessTexture } },
+            SurfaceRenderPass.Brightness));
+
+        Assert.Equal(new SurfaceRenderCommand(11, 0, 24, 2, 0.5), floor);
+        Assert.Equal(new SurfaceRenderCommand(SurfaceRenderPlan.BrightnessTexture, 0, 24, 2, 0.5), brightness);
+    }
+
+    [Fact]
+    public void BuildCommandsOffsetsCeilingsByEntryVertexCount()
+    {
+        SurfaceBufferSetState set = SetWith(
+            Entry(6, floorTexture: 11, ceilingTexture: 21, left: 0));
+        set.Entries[0].VertexOffset = 24;
+        SurfaceRenderBatch batch = Assert.Single(SurfaceRenderPlan.Build(
+            new[] { set },
+            SurfaceRenderPass.Ceiling,
+            new SurfaceBounds(-1, -1, 20, 10),
+            skipHidden: true));
+
+        SurfaceRenderCommand command = Assert.Single(SurfaceRenderPlan.BuildCommands(
+            new[] { batch },
+            SurfaceRenderPass.Ceiling));
+
+        Assert.Equal(new SurfaceRenderCommand(21, 0, 30, 2, 0), command);
+    }
+
+    [Fact]
+    public void BufferBindingsCollapseConsecutiveCommandsForSameBuffer()
+    {
+        var commands = new[]
+        {
+            new SurfaceRenderCommand(11, BufferIndex: 0, VertexOffset: 0, PrimitiveCount: 1, Desaturation: 0),
+            new SurfaceRenderCommand(11, BufferIndex: 0, VertexOffset: 6, PrimitiveCount: 1, Desaturation: 0),
+            new SurfaceRenderCommand(11, BufferIndex: 1, VertexOffset: 0, PrimitiveCount: 1, Desaturation: 0),
+            new SurfaceRenderCommand(11, BufferIndex: 1, VertexOffset: 6, PrimitiveCount: 1, Desaturation: 0),
+            new SurfaceRenderCommand(11, BufferIndex: 0, VertexOffset: 12, PrimitiveCount: 1, Desaturation: 0),
+        };
+
+        IReadOnlyList<SurfaceBufferBinding> bindings = SurfaceRenderPlan.BufferBindings(commands);
+
+        Assert.Equal(
+            new[]
+            {
+                new SurfaceBufferBinding(CommandIndex: 0, BufferIndex: 0),
+                new SurfaceBufferBinding(CommandIndex: 2, BufferIndex: 1),
+                new SurfaceBufferBinding(CommandIndex: 4, BufferIndex: 0),
+            },
+            bindings);
+    }
+
     private static SurfaceBufferSetState SetWith(params SurfaceEntry[] entries)
     {
         var set = new SurfaceBufferSetState(verticesPerEntry: 3);
         foreach (SurfaceEntry entry in entries)
         {
             SurfaceEntry allocated = set.AllocateEntry();
+            allocated.NumVertices = entry.NumVertices;
             allocated.FloorTexture = entry.FloorTexture;
             allocated.CeilingTexture = entry.CeilingTexture;
             allocated.FloorVertices = entry.FloorVertices;
