@@ -367,6 +367,126 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void PlanCallbackExecutionResultDefaultsMissingOutcomesToSuccess()
+    {
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll")
+            },
+            new DBuilderPluginLifecycleRequest());
+        DBuilderPluginCallbackInvocationPlan invocationPlan = DBuilderPluginHostModel.PlanCallbackInvocations(
+            hostPlan,
+            "OnMapOpenEnd");
+
+        DBuilderPluginCallbackExecutionResult result = DBuilderPluginHostModel.PlanCallbackExecutionResult(
+            invocationPlan,
+            Array.Empty<DBuilderPluginCallbackOutcome>());
+
+        Assert.True(result.Completed);
+        Assert.False(result.Aborted);
+        DBuilderPluginCallbackOutcome outcome = Assert.Single(result.Outcomes);
+        Assert.Equal("BuilderModes", outcome.PluginName);
+        Assert.True(outcome.Completed);
+        Assert.False(outcome.Aborted);
+        Assert.Empty(result.Diagnostics);
+    }
+
+    [Fact]
+    public void PlanCallbackExecutionResultPreservesAbortForAbortableCallbacks()
+    {
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll")
+            },
+            new DBuilderPluginLifecycleRequest());
+        DBuilderPluginCallbackInvocationPlan invocationPlan = DBuilderPluginHostModel.PlanCallbackInvocations(
+            hostPlan,
+            "OnPasteBegin");
+
+        DBuilderPluginCallbackExecutionResult result = DBuilderPluginHostModel.PlanCallbackExecutionResult(
+            invocationPlan,
+            new[] { new DBuilderPluginCallbackOutcome("BuilderModes", Aborted: true) });
+
+        Assert.True(result.Completed);
+        Assert.True(result.Aborted);
+        Assert.True(result.Outcomes.Single().Aborted);
+        Assert.Empty(result.Diagnostics);
+    }
+
+    [Fact]
+    public void PlanCallbackExecutionResultWarnsWhenNonAbortableCallbackAborts()
+    {
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll")
+            },
+            new DBuilderPluginLifecycleRequest());
+        DBuilderPluginCallbackInvocationPlan invocationPlan = DBuilderPluginHostModel.PlanCallbackInvocations(
+            hostPlan,
+            "OnMapOpenEnd");
+
+        DBuilderPluginCallbackExecutionResult result = DBuilderPluginHostModel.PlanCallbackExecutionResult(
+            invocationPlan,
+            new[] { new DBuilderPluginCallbackOutcome("BuilderModes", Aborted: true) });
+
+        Assert.True(result.Completed);
+        Assert.False(result.Aborted);
+        Assert.False(result.Outcomes.Single().Aborted);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(result.Diagnostics);
+        Assert.Equal(DBuilderPluginDiagnosticSeverity.Warning, diagnostic.Severity);
+        Assert.Equal("BuilderModes", diagnostic.PluginName);
+        Assert.Equal(
+            "Plugin BuilderModes returned an abort for non-abortable callback OnMapOpenEnd.",
+            diagnostic.Message);
+    }
+
+    [Fact]
+    public void PlanCallbackExecutionResultReportsPluginErrorsWithoutDroppingOtherOutcomes()
+    {
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll"),
+                new DBuilderPluginDescriptor("TagRange", "/plugins/tagrange.dll")
+            },
+            new DBuilderPluginLifecycleRequest());
+        DBuilderPluginCallbackInvocationPlan invocationPlan = DBuilderPluginHostModel.PlanCallbackInvocations(
+            hostPlan,
+            "OnReloadResources");
+
+        DBuilderPluginCallbackExecutionResult result = DBuilderPluginHostModel.PlanCallbackExecutionResult(
+            invocationPlan,
+            new[]
+            {
+                new DBuilderPluginCallbackOutcome("BuilderModes", Error: " reload failed "),
+                new DBuilderPluginCallbackOutcome("TagRange")
+            });
+
+        Assert.False(result.Completed);
+        Assert.False(result.Aborted);
+        Assert.Collection(
+            result.Outcomes,
+            outcome =>
+            {
+                Assert.Equal("BuilderModes", outcome.PluginName);
+                Assert.False(outcome.Completed);
+                Assert.Equal("reload failed", outcome.Error);
+            },
+            outcome =>
+            {
+                Assert.Equal("TagRange", outcome.PluginName);
+                Assert.True(outcome.Completed);
+            });
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(result.Diagnostics);
+        Assert.Equal(DBuilderPluginDiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.Equal("BuilderModes", diagnostic.PluginName);
+        Assert.Equal("reload failed", diagnostic.Message);
+    }
+
+    [Fact]
     public void PlanLifecycleRegistersContributionHooksInStableOrder()
     {
         var descriptor = new DBuilderPluginDescriptor(

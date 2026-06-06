@@ -360,6 +360,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port plugin error isolation and reporting.
   - [x] Add plugin validation warnings that keep invalid or disabled descriptors out of lifecycle plans.
   - [x] Add plugin descriptor diagnostics for missing names, missing paths, duplicates, and disabled plugins.
+  - [x] Add plugin callback execution result aggregation for per-plugin errors and abort decisions.
 - [ ] Add compatibility tests for plugin lifecycle behavior.
   - [x] Add tests for plugin descriptor normalization, lifecycle hook ordering, and invalid descriptor isolation.
   - [x] Add UDB plugin callback catalog compatibility tests for lifecycle, edit, input, render, and highlight callbacks.

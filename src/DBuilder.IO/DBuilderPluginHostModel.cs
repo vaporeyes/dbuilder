@@ -130,6 +130,18 @@ public sealed record DBuilderPluginCallbackInvocationPlan(
     IReadOnlyList<DBuilderPluginCallbackInvocation> Invocations,
     IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
 
+public sealed record DBuilderPluginCallbackOutcome(
+    string PluginName,
+    bool Completed = true,
+    bool Aborted = false,
+    string? Error = null);
+
+public sealed record DBuilderPluginCallbackExecutionResult(
+    bool Completed,
+    bool Aborted,
+    IReadOnlyList<DBuilderPluginCallbackOutcome> Outcomes,
+    IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
+
 public static class DBuilderPluginHostModel
 {
     public static IReadOnlyList<DBuilderPluginCallbackDescriptor> UdbCallbackDescriptors { get; } = new[]
@@ -305,6 +317,51 @@ public static class DBuilderPluginHostModel
             callback,
             invocations,
             hostPlan.DescriptorPlan.Diagnostics);
+    }
+
+    public static DBuilderPluginCallbackExecutionResult PlanCallbackExecutionResult(
+        DBuilderPluginCallbackInvocationPlan plan,
+        IEnumerable<DBuilderPluginCallbackOutcome> outcomes)
+    {
+        var outcomeByPlugin = outcomes
+            .GroupBy(outcome => outcome.PluginName, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
+        var normalizedOutcomes = new List<DBuilderPluginCallbackOutcome>();
+        var diagnostics = new List<DBuilderPluginDiagnostic>(plan.Diagnostics);
+
+        foreach (DBuilderPluginCallbackInvocation invocation in plan.Invocations)
+        {
+            if (!outcomeByPlugin.TryGetValue(invocation.PluginName, out DBuilderPluginCallbackOutcome? outcome))
+            {
+                outcome = new DBuilderPluginCallbackOutcome(invocation.PluginName);
+            }
+
+            if (!invocation.CanAbort && outcome.Aborted)
+            {
+                diagnostics.Add(new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Warning,
+                    invocation.PluginName,
+                    $"Plugin {invocation.PluginName} returned an abort for non-abortable callback {invocation.CallbackName}."));
+                outcome = outcome with { Aborted = false };
+            }
+
+            if (!string.IsNullOrWhiteSpace(outcome.Error))
+            {
+                diagnostics.Add(new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Error,
+                    invocation.PluginName,
+                    outcome.Error.Trim()));
+                outcome = outcome with { Completed = false, Error = outcome.Error.Trim() };
+            }
+
+            normalizedOutcomes.Add(outcome with { PluginName = invocation.PluginName });
+        }
+
+        return new DBuilderPluginCallbackExecutionResult(
+            normalizedOutcomes.All(outcome => outcome.Completed),
+            normalizedOutcomes.Any(outcome => outcome.Aborted),
+            normalizedOutcomes,
+            diagnostics);
     }
 
     public static IReadOnlyList<DBuilderPluginDescriptor> NormalizeDescriptors(
