@@ -3,6 +3,7 @@
 
 using System;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using DBuilder.Map;
@@ -16,6 +17,7 @@ public sealed class FindReplaceWindow : Window
     private readonly TextBox _replace;
     private readonly CheckBox _withinSelection;
     private readonly TextBlock _result;
+    private readonly bool _mixTexturesFlats;
 
     public FindCategory Category => _category.SelectedItem is FindCategoryDescriptor descriptor ? descriptor.Category : FindCategory.ThingType;
     public string FindText => _find.Text ?? "";
@@ -28,6 +30,7 @@ public sealed class FindReplaceWindow : Window
 
     public FindReplaceWindow(bool mixTexturesFlats = false, IReadOnlyList<FindCategoryDescriptor>? categories = null)
     {
+        _mixTexturesFlats = mixTexturesFlats;
         Title = "Find & Replace";
         Width = 380;
         SizeToContent = SizeToContent.Height;
@@ -70,9 +73,31 @@ public sealed class FindReplaceWindow : Window
         Content = rows;
     }
 
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter && HasAccelerator(e.KeyModifiers) && CanReplaceSelected(_mixTexturesFlats))
+        {
+            ReplaceRequested?.Invoke();
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key == Key.Enter)
+        {
+            FindRequested?.Invoke();
+            e.Handled = true;
+            return;
+        }
+
+        base.OnKeyDown(e);
+    }
+
     private bool CanReplaceSelected(bool mixTexturesFlats)
         => _category.SelectedItem is FindCategoryDescriptor descriptor
             && MapSearch.CanReplace(descriptor.Category, mixTexturesFlats);
+
+    private static bool HasAccelerator(KeyModifiers modifiers)
+        => modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta);
 
     /// <summary>Pre-fills the Find box (used by "next free tag").</summary>
     public void SetFindText(string text) => _find.Text = text;

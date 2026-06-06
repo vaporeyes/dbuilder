@@ -668,6 +668,21 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void FindReplaceWindowSupportsKeyboardFindAndReplace()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/FindReplaceWindow.cs"));
+
+        Assert.Contains("using Avalonia.Input;", body, StringComparison.Ordinal);
+        Assert.Contains("private readonly bool _mixTexturesFlats;", body, StringComparison.Ordinal);
+        Assert.Contains("protected override void OnKeyDown(KeyEventArgs e)", body, StringComparison.Ordinal);
+        Assert.Contains("e.Key == Key.Enter && HasAccelerator(e.KeyModifiers) && CanReplaceSelected(_mixTexturesFlats)", body, StringComparison.Ordinal);
+        Assert.Contains("ReplaceRequested?.Invoke();", body, StringComparison.Ordinal);
+        Assert.Contains("FindRequested?.Invoke();", body, StringComparison.Ordinal);
+        Assert.Contains("private static bool HasAccelerator(KeyModifiers modifiers)", body, StringComparison.Ordinal);
+        Assert.Contains("modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta)", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void DirectionalShadingActionUsesVisualFloorAndWallSelectionsIn3DMode()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
