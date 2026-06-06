@@ -124,6 +124,13 @@ public static class ScriptNavigator
     {
         var args = new List<(string Type, string Name)>();
         int next = index + 1;
+        if (next + 1 < tokens.Count && tokens[next + 1].Text == "(")
+        {
+            args.Add((tokens[next].Text.ToUpperInvariant(), ""));
+            index = next;
+            next++;
+        }
+
         if (next >= tokens.Count || tokens[next].Text != "(")
         {
             if (next < tokens.Count) args.Add((tokens[next].Text.ToUpperInvariant(), ""));

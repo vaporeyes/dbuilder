@@ -35,6 +35,24 @@ public class ScriptNavigatorTests
     }
 
     [Fact]
+    public void ExtractsNumberedAcsScriptsWithTypeAndArguments()
+    {
+        const string text = """
+            script 1 (void)
+            {
+            }
+
+            script 2 OPEN (int tid)
+            {
+            }
+            """;
+
+        var items = ScriptNavigator.GetItems(ScriptType.Acs, text);
+
+        Assert.Equal(new[] { "Script 1(void)", "Script 2(OPEN, int tid)" }, items.Select(i => i.Name).ToArray());
+    }
+
+    [Fact]
     public void ExtractsDecorateActorHeaders()
     {
         const string text = """
