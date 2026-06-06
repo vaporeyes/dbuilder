@@ -3506,6 +3506,90 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void ExecuteReflectionUiCommandInvokesBoundActionMethod()
+    {
+        ReflectionActionCommandPlugin.Calls.Clear();
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor(
+                    "ActionPlugin",
+                    "/plugins/actionplugin.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "action.run", "Run Action", "RunAction"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, "action.run.menu", "Run Action", ActionId: "action.run"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Toolbar, "action.run.toolbar", "Run Action", ActionId: "action.run")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest());
+        DBuilderPluginRuntimeInstancePlan instancePlan = RuntimeInstancePlan(
+            new ReflectionActionCommandPlugin("ActionPlugin"),
+            "ActionPlugin");
+
+        DBuilderPluginUiExecutionResult menu = DBuilderPluginHostModel.ExecuteReflectionUiCommand(
+            instancePlan,
+            hostPlan,
+            "action.run.menu");
+        DBuilderPluginUiExecutionResult toolbar = DBuilderPluginHostModel.ExecuteReflectionUiCommand(
+            instancePlan,
+            hostPlan,
+            "action.run.toolbar");
+
+        Assert.True(menu.Completed);
+        Assert.Empty(menu.Diagnostics);
+        Assert.NotNull(menu.UiContribution);
+        Assert.Equal("action.run.menu", menu.UiContribution.Id);
+        Assert.NotNull(menu.Action);
+        Assert.Equal("action.run", menu.Action.Id);
+        Assert.True(toolbar.Completed);
+        Assert.Empty(toolbar.Diagnostics);
+        Assert.NotNull(toolbar.UiContribution);
+        Assert.Equal(DBuilderPluginContributionKind.Toolbar, toolbar.UiContribution.Kind);
+        Assert.Equal(new[] { "ActionPlugin:RunAction", "ActionPlugin:RunAction" }, ReflectionActionCommandPlugin.Calls);
+    }
+
+    [Fact]
+    public void ExecuteReflectionUiCommandReportsUiBindingAndActionFailures()
+    {
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor(
+                    "ActionPlugin",
+                    "/plugins/actionplugin.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "action.no-method", "No Method"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, "action.no-method.menu", "No Method", ActionId: "action.no-method"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Toolbar, "unbound.toolbar", "Unbound")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest());
+        DBuilderPluginRuntimeInstancePlan instancePlan = RuntimeInstancePlan(
+            new ReflectionActionCommandPlugin("ActionPlugin"),
+            "ActionPlugin");
+
+        DBuilderPluginUiExecutionResult unbound = DBuilderPluginHostModel.ExecuteReflectionUiCommand(
+            instancePlan,
+            hostPlan,
+            "unbound.toolbar");
+        DBuilderPluginUiExecutionResult actionFailure = DBuilderPluginHostModel.ExecuteReflectionUiCommand(
+            instancePlan,
+            hostPlan,
+            "action.no-method.menu");
+
+        Assert.False(unbound.Completed);
+        Assert.NotNull(unbound.UiContribution);
+        Assert.Null(unbound.Action);
+        Assert.Equal("Plugin UI contribution unbound.toolbar does not specify an action id.", Assert.Single(unbound.Diagnostics).Message);
+        Assert.False(actionFailure.Completed);
+        Assert.NotNull(actionFailure.UiContribution);
+        Assert.NotNull(actionFailure.Action);
+        Assert.Equal("Plugin action action.no-method does not specify a method name.", Assert.Single(actionFailure.Diagnostics).Message);
+    }
+
+    [Fact]
     public void NormalizeSettingsStoreTrimsPluginsAndSettingsWithoutDroppingUnknownValues()
     {
         var settings = DBuilderPluginHostModel.NormalizeSettingsStore(new Dictionary<string, Dictionary<string, object?>>

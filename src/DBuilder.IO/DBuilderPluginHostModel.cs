@@ -240,6 +240,12 @@ public sealed record DBuilderPluginActionExecutionResult(
     DBuilderPluginApiContribution? Action,
     IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
 
+public sealed record DBuilderPluginUiExecutionResult(
+    bool Completed,
+    DBuilderPluginUiContribution? UiContribution,
+    DBuilderPluginApiContribution? Action,
+    IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
+
 public sealed record DBuilderPluginHostPlan(
     DBuilderPluginDescriptorPlan DescriptorPlan,
     DBuilderPluginLoadPlan LoadPlan,
@@ -1792,71 +1798,28 @@ public static class DBuilderPluginHostModel
         diagnostics.AddRange(command.Diagnostics);
         if (command.Action == null) return new DBuilderPluginActionExecutionResult(false, null, diagnostics);
 
-        string methodName = command.Action.MethodName?.Trim() ?? "";
-        if (methodName.Length == 0)
-        {
-            diagnostics.Add(new DBuilderPluginDiagnostic(
-                DBuilderPluginDiagnosticSeverity.Error,
-                command.Action.PluginName,
-                $"Plugin action {command.Action.Id} does not specify a method name."));
-            return new DBuilderPluginActionExecutionResult(false, command.Action, diagnostics);
-        }
+        return ExecuteReflectionActionContribution(instancePlan, command.Action, diagnostics);
+    }
 
-        DBuilderPluginRuntimeInstance? runtimeInstance = instancePlan.Instances.FirstOrDefault(
-            instance => string.Equals(instance.PluginName, command.Action.PluginName, StringComparison.OrdinalIgnoreCase));
-        if (runtimeInstance == null)
-        {
-            diagnostics.Add(new DBuilderPluginDiagnostic(
-                DBuilderPluginDiagnosticSeverity.Error,
-                command.Action.PluginName,
-                $"Plugin {command.Action.PluginName} is not active."));
-            return new DBuilderPluginActionExecutionResult(false, command.Action, diagnostics);
-        }
+    public static DBuilderPluginUiExecutionResult ExecuteReflectionUiCommand(
+        DBuilderPluginRuntimeInstancePlan instancePlan,
+        DBuilderPluginHostPlan hostPlan,
+        string uiContributionId)
+    {
+        DBuilderPluginUiCommandPlan command = PlanUiCommand(hostPlan, uiContributionId);
+        var diagnostics = new List<DBuilderPluginDiagnostic>(instancePlan.Diagnostics);
+        diagnostics.AddRange(command.Diagnostics);
+        if (command.Action == null) return new DBuilderPluginUiExecutionResult(false, command.UiContribution, null, diagnostics);
 
-        MethodInfo? method = runtimeInstance.Instance.GetType().GetMethod(
-            methodName,
-            BindingFlags.Instance | BindingFlags.Public);
-        if (method == null)
-        {
-            diagnostics.Add(new DBuilderPluginDiagnostic(
-                DBuilderPluginDiagnosticSeverity.Error,
-                runtimeInstance.PluginName,
-                $"Plugin action {command.Action.Id} method {methodName} was not found."));
-            return new DBuilderPluginActionExecutionResult(false, command.Action, diagnostics);
-        }
-
-        if (method.GetParameters().Length != 0 || method.ReturnType != typeof(void))
-        {
-            diagnostics.Add(new DBuilderPluginDiagnostic(
-                DBuilderPluginDiagnosticSeverity.Error,
-                runtimeInstance.PluginName,
-                $"Plugin action {command.Action.Id} method {methodName} must be public void with no parameters."));
-            return new DBuilderPluginActionExecutionResult(false, command.Action, diagnostics);
-        }
-
-        try
-        {
-            method.Invoke(runtimeInstance.Instance, Array.Empty<object>());
-            return new DBuilderPluginActionExecutionResult(true, command.Action, diagnostics);
-        }
-        catch (TargetInvocationException ex) when (ex.InnerException != null)
-        {
-            string error = ex.InnerException.Message.Trim();
-            diagnostics.Add(new DBuilderPluginDiagnostic(
-                DBuilderPluginDiagnosticSeverity.Error,
-                runtimeInstance.PluginName,
-                error));
-            return new DBuilderPluginActionExecutionResult(false, command.Action, diagnostics);
-        }
-        catch (Exception ex)
-        {
-            string error = ex.Message.Trim();
-            diagnostics.Add(new DBuilderPluginDiagnostic(
-                DBuilderPluginDiagnosticSeverity.Error,
-                runtimeInstance.PluginName,
-                error));
-            return new DBuilderPluginActionExecutionResult(false, command.Action, diagnostics);
-        }
+        DBuilderPluginActionExecutionResult action = ExecuteReflectionActionContribution(
+            instancePlan,
+            command.Action,
+            diagnostics);
+        return new DBuilderPluginUiExecutionResult(
+            action.Completed,
+            command.UiContribution,
+            action.Action,
+            action.Diagnostics);
     }
 
     public static Dictionary<string, Dictionary<string, object?>> NormalizeSettingsStore(
@@ -1949,6 +1912,78 @@ public static class DBuilderPluginHostModel
         if (values.Count == 0) return;
 
         settings[pluginName] = values;
+    }
+
+    private static DBuilderPluginActionExecutionResult ExecuteReflectionActionContribution(
+        DBuilderPluginRuntimeInstancePlan instancePlan,
+        DBuilderPluginApiContribution action,
+        List<DBuilderPluginDiagnostic> diagnostics)
+    {
+        string methodName = action.MethodName?.Trim() ?? "";
+        if (methodName.Length == 0)
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                action.PluginName,
+                $"Plugin action {action.Id} does not specify a method name."));
+            return new DBuilderPluginActionExecutionResult(false, action, diagnostics);
+        }
+
+        DBuilderPluginRuntimeInstance? runtimeInstance = instancePlan.Instances.FirstOrDefault(
+            instance => string.Equals(instance.PluginName, action.PluginName, StringComparison.OrdinalIgnoreCase));
+        if (runtimeInstance == null)
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                action.PluginName,
+                $"Plugin {action.PluginName} is not active."));
+            return new DBuilderPluginActionExecutionResult(false, action, diagnostics);
+        }
+
+        MethodInfo? method = runtimeInstance.Instance.GetType().GetMethod(
+            methodName,
+            BindingFlags.Instance | BindingFlags.Public);
+        if (method == null)
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                runtimeInstance.PluginName,
+                $"Plugin action {action.Id} method {methodName} was not found."));
+            return new DBuilderPluginActionExecutionResult(false, action, diagnostics);
+        }
+
+        if (method.GetParameters().Length != 0 || method.ReturnType != typeof(void))
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                runtimeInstance.PluginName,
+                $"Plugin action {action.Id} method {methodName} must be public void with no parameters."));
+            return new DBuilderPluginActionExecutionResult(false, action, diagnostics);
+        }
+
+        try
+        {
+            method.Invoke(runtimeInstance.Instance, Array.Empty<object>());
+            return new DBuilderPluginActionExecutionResult(true, action, diagnostics);
+        }
+        catch (TargetInvocationException ex) when (ex.InnerException != null)
+        {
+            string error = ex.InnerException.Message.Trim();
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                runtimeInstance.PluginName,
+                error));
+            return new DBuilderPluginActionExecutionResult(false, action, diagnostics);
+        }
+        catch (Exception ex)
+        {
+            string error = ex.Message.Trim();
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                runtimeInstance.PluginName,
+                error));
+            return new DBuilderPluginActionExecutionResult(false, action, diagnostics);
+        }
     }
 
     private static int? ReadPluginIntProperty(Type pluginType, object instance, string propertyName)
