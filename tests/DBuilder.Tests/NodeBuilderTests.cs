@@ -51,13 +51,19 @@ maplumpnames
         Assert.Equal("-o \"out.wad\" \"in.wad\"",
             NodeBuilder.BuildArguments("-o \"%FO\" \"%FI\"", "in.wad", "out.wad"));
         Assert.Equal("\"in.wad\"", NodeBuilder.BuildArguments("\"%FI\"", "in.wad", "out.wad"));
+        Assert.Equal("-o \"out.wad\" \"in.wad\"",
+            NodeBuilder.BuildArguments("-o \"%fo\" \"%fi\"", "in.wad", "out.wad"));
+        Assert.Equal("%FOLDER %FILENAME",
+            NodeBuilder.BuildArguments("%FOLDER %FILENAME", "in.wad", "out.wad"));
     }
 
     [Fact]
     public void HasSeparateOutputDetectsFOPlaceholder()
     {
         Assert.True(NodeBuilder.HasSeparateOutput("-o \"%FO\" \"%FI\""));
+        Assert.True(NodeBuilder.HasSeparateOutput("-o \"%fo\" \"%FI\""));
         Assert.False(NodeBuilder.HasSeparateOutput("\"%FI\""));
+        Assert.False(NodeBuilder.HasSeparateOutput("%FOLDER \"%FI\""));
     }
 
     [Fact]

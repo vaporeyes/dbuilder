@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace DBuilder.IO;
 
@@ -33,10 +34,15 @@ public static class NodeBuilder
 
     /// <summary>Substitutes the %FI/%FO placeholders in a parameter template (testable in isolation).</summary>
     public static string BuildArguments(string parameters, string inputFile, string outputFile)
-        => parameters.Replace("%FI", inputFile).Replace("%FO", outputFile);
+        => Regex.Replace(
+            parameters,
+            "%(FI|FO)(?![A-Za-z0-9_])",
+            match => match.Groups[1].Value.Equals("FI", StringComparison.OrdinalIgnoreCase) ? inputFile : outputFile,
+            RegexOptions.IgnoreCase);
 
     /// <summary>True when the template produces a separate output file rather than editing the input in place.</summary>
-    public static bool HasSeparateOutput(string parameters) => parameters.Contains("%FO");
+    public static bool HasSeparateOutput(string parameters)
+        => Regex.IsMatch(parameters, "%FO(?![A-Za-z0-9_])", RegexOptions.IgnoreCase);
 
     public static ProcessStartInfo CreateStartInfo(NodebuilderConfig config, string inputFile, string outputFile, string workingDirectory)
         => new()
