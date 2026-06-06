@@ -192,6 +192,8 @@ public class MapSetCloneTests
         Assert.Equal(2, clone.Sectors.Count);
         var virtualSector = clone.Sectors[1];
         Assert.True(virtualSector.Fields.ContainsKey(MapSet.VirtualSectorField));
+        Assert.Equal(MapSet.VIRTUAL_SECTOR_FIELD, MapSet.VirtualSectorField);
+        Assert.Equal(MapSet.VirtualSectorValue, virtualSector.Fields[MapSet.VirtualSectorField]);
         Assert.Equal("LOW", clone.Linedefs[0].Back!.LowTexture);
         Assert.Same(virtualSector, clone.Linedefs[0].Back!.Sector);
         Assert.Equal(map.Sectors[1].Brightness, virtualSector.Brightness);
@@ -202,7 +204,7 @@ public class MapSetCloneTests
     {
         var map = BuildSample();
         var virtualSector = map.AddSector();
-        virtualSector.Fields[MapSet.VirtualSectorField] = 0;
+        virtualSector.Fields[MapSet.VirtualSectorField] = MapSet.VirtualSectorValue;
         map.Sidedefs[0].Sector = virtualSector;
 
         int removed = map.RemoveVirtualSectors();

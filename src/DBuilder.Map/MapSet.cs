@@ -79,6 +79,8 @@ public enum MapTagKind
 public class MapSet : IDisposable
 {
     public const string VirtualSectorField = "!virtual_sector";
+    public const string VIRTUAL_SECTOR_FIELD = VirtualSectorField;
+    public const int VirtualSectorValue = 0;
 
     public List<Vertex> Vertices { get; } = new();
     public List<Linedef> Linedefs { get; } = new();
@@ -539,7 +541,7 @@ public class MapSet : IDisposable
             {
                 virtualSector = clone.AddSector();
                 side.Sector.CopyPropertiesTo(virtualSector);
-                virtualSector.Fields[VirtualSectorField] = 0;
+                virtualSector.Fields[VirtualSectorField] = VirtualSectorValue;
             }
 
             return virtualSector;
