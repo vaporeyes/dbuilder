@@ -21,6 +21,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Flat and world vertex-buffer subdata updates", replacement.CoveredResponsibilities);
         Assert.Contains("Vertex and index buffer disposed-state reporting", replacement.CoveredResponsibilities);
         Assert.Contains("Texture disposed-state reporting", replacement.CoveredResponsibilities);
+        Assert.Contains("Surface-entry chunk metadata and bounds model", replacement.CoveredResponsibilities);
     }
 
     [Fact]

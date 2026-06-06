@@ -30,6 +30,7 @@ public static class RendererArchitectureModel
             "Index-buffer binding and primitive draw dispatch",
             "Texture disposed-state reporting",
             "Owned indexed-triangle mesh wrapper",
+            "Surface-entry chunk metadata and bounds model",
             "Runtime shader compile, link, disposal, and uniform lookup caching",
             "Shader disposed-state reporting",
         },
