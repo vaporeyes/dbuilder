@@ -138,6 +138,44 @@ public class MapSetStitchTests
     }
 
     [Fact]
+    public void SplitLinesByVerticesModeOverloadUsesUdbBooleanContract()
+    {
+        var map = new MapSet();
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(100, 0)));
+        var mid = map.AddVertex(new Vector2D(50, 0));
+        var changed = new HashSet<Linedef>();
+
+        bool succeeded = map.SplitLinesByVertices(
+            map.Linedefs,
+            new[] { mid },
+            0.5,
+            changed,
+            MergeGeometryMode.Classic);
+
+        Assert.True(succeeded);
+        Assert.Equal(2, map.Linedefs.Count);
+        Assert.Contains(line, changed);
+        Assert.Contains(changed, changedLine => !ReferenceEquals(changedLine, line));
+    }
+
+    [Fact]
+    public void SplitLinesByVerticesModeOverloadSucceedsForEmptyInputs()
+    {
+        var map = new MapSet();
+        var changed = new HashSet<Linedef>();
+
+        bool succeeded = map.SplitLinesByVertices(
+            Array.Empty<Linedef>(),
+            Array.Empty<Vertex>(),
+            0.5,
+            changed,
+            MergeGeometryMode.Replace);
+
+        Assert.True(succeeded);
+        Assert.Empty(changed);
+    }
+
+    [Fact]
     public void SplitLinesByLinesSplitsIntersectingFixedAndChangedLines()
     {
         var map = new MapSet();

@@ -1059,6 +1059,20 @@ public class MapSet : IDisposable
     }
 
     /// <summary>
+    /// UDB-compatible split-by-vertices overload.
+    /// </summary>
+    public bool SplitLinesByVertices(
+        ICollection<Linedef> lines,
+        ICollection<Vertex> vertices,
+        double distance,
+        ICollection<Linedef> changedLines,
+        MergeGeometryMode mergeMode)
+    {
+        SplitLinesByVertices(lines, vertices, distance, changedLines);
+        return true;
+    }
+
+    /// <summary>
     /// Splits intersecting linedefs from <paramref name="lines"/> and <paramref name="changedLines"/>.
     /// New halves are added to <paramref name="changedLines"/>. Returns the number of intersections split.
     /// </summary>
