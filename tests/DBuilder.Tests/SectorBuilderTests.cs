@@ -116,11 +116,24 @@ public class SectorBuilderTests
     public void CopyFromAppliesProperties()
     {
         var map = new MapSet();
-        var src = new Sector { FloorHeight = 8, CeilHeight = 120, FloorTexture = "FLOOR4_8", CeilTexture = "CEIL3_5", Brightness = 144, Special = 9 };
+        var src = new Sector
+        {
+            FloorHeight = 8,
+            CeilHeight = 120,
+            FloorTexture = "FLOOR4_8",
+            CeilTexture = "CEIL3_5",
+            LongFloorTexture = 101,
+            LongCeilTexture = 102,
+            Brightness = 144,
+            Special = 9,
+        };
         var sector = SectorBuilder.CreateSector(map, Square(map, 50, ccw: true), src)!;
         Assert.Equal(8, sector.FloorHeight);
         Assert.Equal(120, sector.CeilHeight);
         Assert.Equal("FLOOR4_8", sector.FloorTexture);
+        Assert.Equal(101, sector.LongFloorTexture);
+        Assert.Equal("CEIL3_5", sector.CeilTexture);
+        Assert.Equal(102, sector.LongCeilTexture);
         Assert.Equal(144, sector.Brightness);
         Assert.Equal(9, sector.Special);
     }

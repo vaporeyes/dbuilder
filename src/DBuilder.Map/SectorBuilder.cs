@@ -105,6 +105,8 @@ public static class SectorBuilder
         dst.CeilHeight = src.CeilHeight;
         dst.FloorTexture = src.FloorTexture;
         dst.CeilTexture = src.CeilTexture;
+        dst.LongFloorTexture = src.LongFloorTexture;
+        dst.LongCeilTexture = src.LongCeilTexture;
         dst.Brightness = src.Brightness;
         dst.Special = src.Special;
         dst.FloorSlope = src.FloorSlope;
