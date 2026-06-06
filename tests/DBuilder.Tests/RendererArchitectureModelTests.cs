@@ -32,6 +32,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Surface buffer unload and reload resource-state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label size, alignment, transform, culling, and quad planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label plain and background image drawing planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Text label render dispatch planning", replacement.CoveredResponsibilities);
     }
 
     [Fact]
@@ -51,7 +52,7 @@ public class RendererArchitectureModelTests
         RendererArchitectureReplacement replacement = RendererArchitectureModel.Current;
 
         Assert.Contains("Full UDB render-pass graph", replacement.RemainingGaps);
-        Assert.Contains("Live text font texture generation and render dispatch", replacement.RemainingGaps);
+        Assert.Contains("Live text font texture generation and GL execution", replacement.RemainingGaps);
         Assert.Contains("Complete visual-mode rendering parity", replacement.RemainingGaps);
     }
 

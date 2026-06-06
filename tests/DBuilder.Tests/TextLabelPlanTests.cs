@@ -171,4 +171,56 @@ public sealed class TextLabelPlanTests
         Assert.Equal(backColor, image.BorderColor);
         Assert.Equal(TextLabelPlan.TextOriginX, image.CornerRadius);
     }
+
+    [Fact]
+    public void BuildRenderPlanSkipsOffscreenLabelsAndDrawsVisibleLabelsAsTriangleStrips()
+    {
+        TextLabelLayout visible = TextLabelPlan.Build(
+            "Visible",
+            new TextLabelSize(24, 10),
+            new TextLabelPoint(8, 8),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+        TextLabelLayout skipped = TextLabelPlan.Build(
+            "Skipped",
+            new TextLabelSize(24, 10),
+            new TextLabelPoint(400, 8),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+        TextLabelLayout secondVisible = TextLabelPlan.Build(
+            "Again",
+            new TextLabelSize(16, 10),
+            new TextLabelPoint(40, 24),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+
+        TextLabelRenderPlan plan = TextLabelPlan.BuildRenderPlan([visible, skipped, secondVisible]);
+
+        Assert.True(plan.ShouldRender);
+        Assert.Equal(1, plan.SkippedLabels);
+        Assert.Equal(2, plan.Commands.Count);
+        Assert.Equal(new TextLabelRenderCommand(0, visible.TextureSize, visible.ScreenRectangle, PrimitiveCount: 2), plan.Commands[0]);
+        Assert.Equal(new TextLabelRenderCommand(2, secondVisible.TextureSize, secondVisible.ScreenRectangle, PrimitiveCount: 2), plan.Commands[1]);
+    }
+
+    [Fact]
+    public void BuildRenderPlanDoesNotRenderWhenEveryLabelIsSkipped()
+    {
+        TextLabelLayout skipped = TextLabelPlan.Build(
+            "Skipped",
+            new TextLabelSize(24, 10),
+            new TextLabelPoint(400, 8),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+
+        TextLabelRenderPlan plan = TextLabelPlan.BuildRenderPlan([skipped]);
+
+        Assert.False(plan.ShouldRender);
+        Assert.Equal(1, plan.SkippedLabels);
+        Assert.Empty(plan.Commands);
+    }
 }

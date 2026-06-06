@@ -57,6 +57,19 @@ public sealed record TextLabelImagePlan(
     PixelColor? BorderColor,
     double CornerRadius);
 
+public sealed record TextLabelRenderCommand(
+    int LabelIndex,
+    TextLabelSize TextureSize,
+    TextLabelRectangle ScreenRectangle,
+    int PrimitiveCount);
+
+public sealed record TextLabelRenderPlan(
+    IReadOnlyList<TextLabelRenderCommand> Commands,
+    int SkippedLabels)
+{
+    public bool ShouldRender => Commands.Count > 0;
+}
+
 public static class TextLabelPlan
 {
     public const double TextOriginX = 4.0;
@@ -189,6 +202,30 @@ public static class TextLabelPlan
             TextColor: color,
             BorderColor: null,
             CornerRadius: 0.0);
+    }
+
+    public static TextLabelRenderPlan BuildRenderPlan(IReadOnlyList<TextLabelLayout> labels)
+    {
+        var commands = new List<TextLabelRenderCommand>();
+        int skipped = 0;
+
+        for (int i = 0; i < labels.Count; i++)
+        {
+            TextLabelLayout label = labels[i];
+            if (label.SkipRendering)
+            {
+                skipped++;
+                continue;
+            }
+
+            commands.Add(new TextLabelRenderCommand(
+                i,
+                label.TextureSize,
+                label.ScreenRectangle,
+                PrimitiveCount: 2));
+        }
+
+        return new TextLabelRenderPlan(commands, skipped);
     }
 
     public static int NextPowerOfTwo(int value)
