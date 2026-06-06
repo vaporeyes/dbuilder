@@ -1832,7 +1832,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style singular and plural labels to Tag Range status messages.
   - [x] Normalize zero Tag Range increments before range creation.
   - [x] Add UDB-style Tag Range toolbar update lifecycle plan.
-- [ ] Port `UDBScript`.
+- [x] Port `UDBScript`.
   - [x] Add UDBScript action metadata and editor command catalog entries for Execute Script and 30 script slots.
   - [x] Add UDBScript execute-current and execute-slot dispatch planning.
   - [x] Add UDBScript preferences metadata and external editor persistence model.
@@ -2460,17 +2460,17 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript top-level host MessageForm UI metadata model.
 - [x] Add UDBScript top-level host message dialog and runner prompt hook.
 - [x] Add UDBScript top-level host API property surface metadata.
-- [ ] Port script discovery and execution.
+- [x] Port script discovery and execution.
   - [x] Discover UDBScript folders and scripts in stable docker order.
-- [ ] Port script options.
-- [ ] Port script docker UI integration.
+- [x] Port script options.
+- [x] Port script docker UI integration.
   - [x] Show effective UDBScript slot hotkeys in the script docker.
-- [ ] Port script runner UI integration.
-- [ ] Port full script runtime constraint integration.
+- [x] Port script runner UI integration.
+- [x] Port full script runtime constraint integration.
   - [x] Remember accepted over-version UDBScript runs for the session like UDB.
-- [ ] Port script exception handling.
-- [ ] Port full QueryOptions runner UI integration.
-- [ ] Port full UDBScript API wrappers for maps, vertices, linedefs, sidedefs, sectors, things, vectors, planes, blockmaps, images, data, and game config.
+- [x] Port script exception handling.
+- [x] Port full QueryOptions runner UI integration.
+- [x] Port full UDBScript API wrappers for maps, vertices, linedefs, sidedefs, sectors, things, vectors, planes, blockmaps, images, data, and game config.
 - [ ] Add API compatibility tests for common UDBScript scripts.
 
 ## Specialized Plugin Detail
