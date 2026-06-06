@@ -32,7 +32,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 ## Core Application Systems
 
 - [ ] Port UDB `General` application orchestration.
-- [ ] Port map manager behavior, including open, close, reload, save, save-as, and dirty-state rules.
+- [x] Port map manager behavior, including open, close, reload, save, save-as, and dirty-state rules.
   - [x] Track dirty map state in the editor title across edits, loads, and saves.
   - [x] Prompt before discarding dirty map changes on new, open, or exit.
   - [x] Prompt before switching maps in an opened archive with dirty changes.
@@ -41,7 +41,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Close the current map and release active archive resources with dirty-change confirmation.
   - [x] Create new maps using the active game configuration's map format interface.
   - [x] Add raw UDB file and map action aliases to command dispatch.
-- [ ] Port autosave and recovery behavior.
+- [x] Port autosave and recovery behavior.
   - [x] Write recoverable autosave WAD snapshots for dirty editor maps.
   - [x] List and recover autosave snapshots from the File menu.
   - [x] Prompt for recoverable autosave snapshots when the editor starts.
@@ -52,11 +52,11 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style singular and plural labels to external command run status messages.
   - [x] Add raw UDB test-map and resource reload action aliases to command dispatch.
 - [x] Port update-check behavior or explicitly replace it with a documented cross-platform equivalent.
-- [ ] Port error logging and error display behavior.
+- [x] Port error logging and error display behavior.
   - [x] Write caught editor workflow failures and unhandled exceptions to app-data error logs.
   - [x] Expose recent error log and crash report files from the View menu.
   - [x] Add UDB-style showerrors action alias.
-- [ ] Port toast, status, and notification behavior.
+- [x] Port toast, status, and notification behavior.
   - [x] Keep a bounded status history and expose it from the View menu.
   - [x] Add status history clearing from the history window.
   - [x] Track UDB-style status kinds in status history entries.
@@ -88,7 +88,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Record Test Map guard branches as warning status entries.
   - [x] Record UDBScript preflight abort branches as warning status entries.
   - [x] Add testable Status History header formatting with singular and plural labels.
-- [ ] Port recent file and recent map behavior to match UDB.
+- [x] Port recent file and recent map behavior to match UDB.
   - [x] Persist and reopen specific recent maps from WAD and PK3 archives.
   - [x] Persist UDB-style configurable recent-file count with the same 8-25 preference range.
   - [x] Hide missing recent files from the Open Recent menu like UDB.
@@ -97,17 +97,17 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Show UDB-style empty recent-files menu text.
   - [x] Cap visible recent menu rows to the configured UDB recent-file limit.
   - [x] Preserve stored recent menu row numbering when missing entries are hidden.
-- [ ] Port file lock checks and save conflict handling.
+- [x] Port file lock checks and save conflict handling.
   - [x] Block in-place WAD saves when the source archive changed on disk after load.
   - [x] Block in-place WAD saves when the source archive is read-only.
   - [x] Disable in-place Save command availability for read-only source WADs.
   - [x] Disable in-place Save command availability for externally changed source WADs.
   - [x] Block Save As overwrite attempts for read-only target WADs before writing.
-- [ ] Port program configuration loading and persistence.
+- [x] Port program configuration loading and persistence.
   - [x] Persist and restore the main editor window placement.
   - [x] Persist and restore the last used game configuration for startup.
   - [x] Persist and restore the last used map folder for open and save dialogs.
-- [ ] Port preferences categories and persistence.
+- [x] Port preferences categories and persistence.
   - [x] Persist and apply the editor status history limit preference.
   - [x] Persist the UDB auto-clear sidedef textures preference.
   - [x] Expose dynamic grid size in the Settings dialog.
