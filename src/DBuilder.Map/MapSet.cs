@@ -2493,6 +2493,34 @@ public class MapSet : IDisposable
         return front ? (line.Front ?? line.Back) : (line.Back ?? line.Front);
     }
 
+    /// <summary>Nearest sidedef from a collection, matching UDB's direct sidedef distance and tie behavior.</summary>
+    public static Sidedef? NearestSidedef(ICollection<Sidedef> selection, Vector2D pos)
+    {
+        Sidedef? closest = null;
+        double distance = double.MaxValue;
+
+        foreach (var side in selection)
+        {
+            double d = side.Line.SafeDistanceToSq(pos, bounded: true);
+            if (d == distance)
+            {
+                double lineSide = side.Line.SideOfLine(pos);
+                if ((lineSide <= 0.0 && side.IsFront) || (lineSide > 0.0 && !side.IsFront))
+                {
+                    closest = side;
+                    distance = d;
+                }
+            }
+            else if (d < distance)
+            {
+                closest = side;
+                distance = d;
+            }
+        }
+
+        return closest;
+    }
+
     /// <summary>
     /// Returns the sector containing <paramref name="pos"/>, determined via the nearest linedef's facing side.
     /// Assumes well-formed, closed sectors. Returns null when there are no linedefs or the facing side has no sector.

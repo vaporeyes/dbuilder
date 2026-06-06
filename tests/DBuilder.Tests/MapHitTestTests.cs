@@ -299,6 +299,33 @@ public class MapHitTestTests
     }
 
     [Fact]
+    public void StaticNearestSidedefSearchesSelection()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var nearLine = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(10, 0)));
+        var farLine = map.AddLinedef(map.AddVertex(new Vector2D(100, 0)), map.AddVertex(new Vector2D(110, 0)));
+        var near = map.AddSidedef(nearLine, isFront: true, sector);
+        var far = map.AddSidedef(farLine, isFront: true, sector);
+
+        Assert.Same(near, MapSet.NearestSidedef(new[] { far, near }, new Vector2D(5, 3)));
+        Assert.Null(MapSet.NearestSidedef(Array.Empty<Sidedef>(), new Vector2D(5, 3)));
+    }
+
+    [Fact]
+    public void StaticNearestSidedefTiePicksSidedefFacingPoint()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(0, 10)));
+        var front = map.AddSidedef(line, isFront: true, sector);
+        var back = map.AddSidedef(line, isFront: false, sector);
+
+        Assert.Same(front, MapSet.NearestSidedef(new[] { back, front }, new Vector2D(5, 5)));
+        Assert.Same(back, MapSet.NearestSidedef(new[] { front, back }, new Vector2D(-5, 5)));
+    }
+
+    [Fact]
     public void NearestThingFindsClosestWithinRange()
     {
         var map = new MapSet();
