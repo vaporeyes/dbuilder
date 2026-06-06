@@ -36,7 +36,7 @@ public sealed class ThingIconRenderPolicyTests
     [Fact]
     public void UsesCompactMarkersBeforeSpritesCrowdAtOverviewScale()
     {
-        Assert.Equal(1.0, ThingIconRenderPolicy.CompactMarkerScaleThreshold);
+        Assert.Equal(0.5, ThingIconRenderPolicy.CompactMarkerScaleThreshold);
         Assert.False(ThingIconRenderPolicy.UseCompactMarkers(
             viewScale: ThingIconRenderPolicy.CompactMarkerScaleThreshold - 0.01,
             fixedThingsScale: false,
@@ -50,6 +50,10 @@ public sealed class ThingIconRenderPolicyTests
     [Fact]
     public void CompactThresholdMovesTowardCloseZoomForEarlierOverviewCollapse()
     {
+        Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
+            viewScale: 0.5,
+            fixedThingsScale: false,
+            thingArrows: false));
         Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
             viewScale: 3.0,
             fixedThingsScale: false,
