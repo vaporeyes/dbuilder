@@ -57,7 +57,7 @@ public sealed class ThingIconRenderPolicyTests
         Assert.True(ThingIconRenderPolicy.UseOverviewMarkers(
             viewScale: 0.25,
             thingArrows: false));
-        Assert.False(ThingIconRenderPolicy.UseFarOverviewMarkers(
+        Assert.True(ThingIconRenderPolicy.UseFarOverviewMarkers(
             viewScale: 0.25,
             thingArrows: false));
     }
@@ -137,7 +137,7 @@ public sealed class ThingIconRenderPolicyTests
         Assert.True(
             ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold
             > ThingIconRenderPolicy.OverviewMarkerScaleThreshold);
-        Assert.Equal(0.5, ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold);
+        Assert.Equal(0.25, ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold);
         Assert.False(ThingIconRenderPolicy.UseFarOverviewMarkers(
             ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold - 0.01,
             thingArrows: false));
@@ -192,19 +192,19 @@ public sealed class ThingIconRenderPolicyTests
             ThingIconRenderPolicy.OverviewCullCellPixels - 0.01));
         Assert.Equal(1, ThingIconRenderPolicy.OverviewCullCell(
             ThingIconRenderPolicy.OverviewCullCellPixels));
-        Assert.Equal(192.0, ThingIconRenderPolicy.OverviewCullCellPixels);
+        Assert.Equal(256.0, ThingIconRenderPolicy.OverviewCullCellPixels);
     }
 
     [Fact]
     public void FarOverviewCullsWithLargerScreenCells()
     {
-        Assert.Equal(192.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
+        Assert.Equal(256.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
             ThingIconRenderPolicy.OverviewMarkerScaleThreshold - 0.01,
             thingArrows: false));
-        Assert.Equal(512.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
+        Assert.Equal(640.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
             ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
             thingArrows: false));
-        Assert.Equal(512.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
+        Assert.Equal(640.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
             ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
             thingArrows: true));
         Assert.Equal(0, ThingIconRenderPolicy.OverviewCullCell(

@@ -11,11 +11,11 @@ public static class ThingIconRenderPolicy
     public const double MinimumThingScreenRadius = 1.5;
     public const double OverlapCullScaleThreshold = CompactMarkerScaleThreshold;
     public const double OverviewMarkerScaleThreshold = CompactMarkerScaleThreshold;
-    public const double FarOverviewMarkerScaleThreshold = 0.5;
-    public const double FarOverviewMarkerBaseSize = 0.75;
-    public const double OverviewMarkerBaseSize = 2.0;
-    public const double OverviewCullCellPixels = 192.0;
-    public const double FarOverviewCullCellPixels = 512.0;
+    public const double FarOverviewMarkerScaleThreshold = 0.25;
+    public const double FarOverviewMarkerBaseSize = 0.5;
+    public const double OverviewMarkerBaseSize = 1.25;
+    public const double OverviewCullCellPixels = 256.0;
+    public const double FarOverviewCullCellPixels = 640.0;
     public const double CompactMarkerBaseSize = 4.0;
     public const double RegularMarkerBaseSize = 10.0;
     public const double CompactDirectionTickBaseSize = 7.0;
