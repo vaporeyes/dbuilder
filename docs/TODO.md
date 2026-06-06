@@ -748,7 +748,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 - [x] Complete ANIMDEFS parser behavior.
   - [x] Validate ANIMDEFS camera texture dimensions and duplicate names like UDB.
-- [ ] Complete DECORATE parser behavior.
+- [x] Complete DECORATE parser behavior.
   - [x] Parse separated DECORATE flag sign tokens.
   - [x] Stop DECORATE parsing on flag signs without names like UDB.
   - [x] Stop DECORATE parsing on truncated actor bodies like UDB.
@@ -771,11 +771,11 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Stop DECORATE parsing on state labels without names like UDB.
   - [x] Stop DECORATE parsing on invalid user variable declarations like UDB.
   - [x] Reject DECORATE user variables that shadow parent fields without `skip_super`.
-- [ ] Complete ZScript tokenizer behavior.
+- [x] Complete ZScript tokenizer behavior.
   - [x] Parse spaced ZScript editor line comments.
   - [x] Parse single-quoted ZScript name tokens.
   - [x] Accept lowercase ZScript `#region` and `#endregion` directive prefixes like UDB.
-- [ ] Complete ZScript parser behavior.
+- [x] Complete ZScript parser behavior.
   - [x] Preserve semicolon-terminated ZScript default expressions as single property values.
   - [x] Skip top-level ZScript struct contents when discovering actor classes.
   - [x] Skip parsed ZScript classes with known non-Actor ancestry.
@@ -908,7 +908,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Stop REVERBS parsing on empty names and malformed ids like UDB.
   - [x] Use UDB-style combined integer keys for duplicate REVERBS ids.
 - [x] Port X11 RGB parser.
-- [ ] Port actor structure behavior for DECORATE and ZScript.
+- [x] Port actor structure behavior for DECORATE and ZScript.
   - [x] Treat separated negative DECORATE editor numbers as non-placeable.
   - [x] Parse quoted DECORATE actor header class names.
   - [x] Default unparented DECORATE actors to the root `Actor` parent.
@@ -957,7 +957,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Reject self-inheriting ZScript mixin definitions.
   - [x] Reject ZScript mixin definitions with missing parents.
   - [x] Reject ZScript documents with final, sealed, or self-inheritance violations.
-- [ ] Port state, goto, and inheritance behavior.
+- [x] Port state, goto, and inheritance behavior.
   - [x] Ignore placeholder state sprites for actor editor previews.
   - [x] Avoid using placeholder-only state sprites as actor editor previews.
   - [x] Treat zero-duration state frames as empty for actor editor previews.
@@ -998,7 +998,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Reject ZScript extensions declared before their target class.
   - [x] Stop DECORATE parsing on malformed state-frame `Light` specials like UDB.
   - [x] Stop DECORATE parsing on missing state-frame durations like UDB.
-- [ ] Port category and DoomEdNum merging behavior fully.
+- [x] Port category and DoomEdNum merging behavior fully.
   - [x] Use DECORATE `#region` titles as default actor categories.
   - [x] Split DECORATE `#region` category paths on separators.
   - [x] Apply DECORATE `#region` editor defaults for color and sprite.
