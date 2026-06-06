@@ -826,8 +826,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public enum ThreeDFloorEditMode { None, Floor, Slope, DrawSlopes, StairSectorBuilder }
     private EditMode _editMode = EditMode.Linedefs;
     private ThreeDFloorEditMode _threeDFloorEditMode;
+    private int? _highlightedThreeDFloorCycleIndex;
     public EditMode CurrentEditMode => _editMode;
     public ThreeDFloorEditMode CurrentThreeDFloorEditMode => _threeDFloorEditMode;
+    public int? HighlightedThreeDFloorCycleIndex => _highlightedThreeDFloorCycleIndex;
     public string Current2DModeStatusText => _threeDFloorEditMode switch
     {
         ThreeDFloorEditMode.Floor => ThreeDFloors.ModeDescriptor.DisplayName,
@@ -6237,6 +6239,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.threedflipslope":
                 FlipThreeDFloorSlopeDraw();
                 return true;
+            case "map2d.3dfloor.cycle-highlight-up":
+            case "map2d.cyclehighlighted3dfloorup":
+                CycleHighlightedThreeDFloor(up: true);
+                return true;
+            case "map2d.3dfloor.cycle-highlight-down":
+            case "map2d.cyclehighlighted3dfloordown":
+                CycleHighlightedThreeDFloor(up: false);
+                return true;
             case "map2d.select":
             case "map2d.classicselect":
                 SelectAtCursor(modifiers);
@@ -8513,7 +8523,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         if (_map == null) return "No map loaded.";
 
-        IReadOnlyList<Sector> sectors = SelectedSectorsOrHighlighted();
+        IReadOnlyList<Sector> sectors = SelectedSectorsOrHighlightedThreeDFloorTargets();
         if (sectors.Count == 0)
         {
             const string message = "Select sectors with 3D floors.";
@@ -8521,7 +8531,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return message;
         }
 
-        int count = ThreeDFloors.SelectControlSectors(_map, sectors);
+        int count;
+        if (_highlightedThreeDFloorCycleIndex.HasValue)
+            count = SelectCycledThreeDFloorControlSector(sectors, _highlightedThreeDFloorCycleIndex.Value);
+        else
+            count = ThreeDFloors.SelectControlSectors(_map, sectors);
+
         SetEditMode(EditMode.Sectors);
         MarkGeometryDirty();
         Changed?.Invoke();
@@ -8531,6 +8546,62 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Picked?.Invoke(status);
         return status;
     }
+
+    public string CycleHighlightedThreeDFloor(bool up)
+    {
+        if (_map == null) return "No map loaded.";
+
+        IReadOnlyList<Sector> sectors = SelectedSectorsOrHighlightedThreeDFloorTargets();
+        if (sectors.Count == 0)
+        {
+            const string message = "Select or highlight a sector with 3D floors.";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        List<ThreeDFloor> floors = ThreeDFloors.GetThreeDFloors(_map, sectors);
+        if (floors.Count == 0)
+        {
+            const string message = "No 3D floors found for highlighted sector.";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        int current = _highlightedThreeDFloorCycleIndex ?? 0;
+        _highlightedThreeDFloorCycleIndex = Mod(current + (up ? 1 : -1), floors.Count);
+        string status = ThreeDFloorCycleStatusText(_highlightedThreeDFloorCycleIndex.Value, floors.Count);
+        Picked?.Invoke(status);
+        return status;
+    }
+
+    public static string ThreeDFloorCycleStatusText(int index, int count)
+        => "Highlighted 3D floor " + (index + 1) + " of " + count + ".";
+
+    private int SelectCycledThreeDFloorControlSector(IReadOnlyList<Sector> sectors, int index)
+    {
+        if (_map == null) return 0;
+
+        List<ThreeDFloor> floors = ThreeDFloors.GetThreeDFloors(_map, sectors);
+        if (floors.Count == 0) return 0;
+
+        _map.ClearAllSelected();
+        floors[Mod(index, floors.Count)].Control.Selected = true;
+        return 1;
+    }
+
+    private IReadOnlyList<Sector> SelectedSectorsOrHighlightedThreeDFloorTargets()
+    {
+        if (_map == null) return [];
+
+        List<Sector> sectors = _map.GetSelectedSectors();
+        if (sectors.Count == 0 && _map.GetSectorAt(_cursorWorld) is { } highlighted)
+            sectors.Add(highlighted);
+
+        return sectors;
+    }
+
+    private static int Mod(int value, int divisor)
+        => ((value % divisor) + divisor) % divisor;
 
     public string RelocateThreeDFloorControlSectors()
     {

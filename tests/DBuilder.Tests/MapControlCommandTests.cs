@@ -675,11 +675,25 @@ public sealed class MapControlCommandTests
         Assert.Contains("case \"map2d.3dfloor.flip-slope\":", body, StringComparison.Ordinal);
         Assert.Contains("case \"map2d.threedflipslope\":", body, StringComparison.Ordinal);
         Assert.Contains("FlipThreeDFloorSlopeDraw();", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.3dfloor.cycle-highlight-up\":", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.cyclehighlighted3dfloorup\":", body, StringComparison.Ordinal);
+        Assert.Contains("CycleHighlightedThreeDFloor(up: true);", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.3dfloor.cycle-highlight-down\":", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.cyclehighlighted3dfloordown\":", body, StringComparison.Ordinal);
+        Assert.Contains("CycleHighlightedThreeDFloor(up: false);", body, StringComparison.Ordinal);
         Assert.Contains("private bool _threeDFloorSlopeFlipped;", body, StringComparison.Ordinal);
         Assert.Contains("_threeDFloorSlopeFlipped);", body, StringComparison.Ordinal);
+        Assert.Contains("private int? _highlightedThreeDFloorCycleIndex;", body, StringComparison.Ordinal);
+        Assert.Contains("SelectCycledThreeDFloorControlSector(sectors, _highlightedThreeDFloorCycleIndex.Value)", body, StringComparison.Ordinal);
         Assert.Contains("ThreeDFloorSlopes.FinishDraw(", body, StringComparison.Ordinal);
         Assert.Contains("if (_threeDFloorEditMode == ThreeDFloorEditMode.DrawSlopes) ClearThreeDFloorSlopeDraw();", body, StringComparison.Ordinal);
     }
+
+    [Theory]
+    [InlineData(0, 3, "Highlighted 3D floor 1 of 3.")]
+    [InlineData(2, 3, "Highlighted 3D floor 3 of 3.")]
+    public void ThreeDFloorCycleStatusTextReportsOneBasedIndex(int index, int count, string expected)
+        => Assert.Equal(expected, MapControl.ThreeDFloorCycleStatusText(index, count));
 
     [Theory]
     [InlineData(1, true, "Created 1 3D slope group.")]
