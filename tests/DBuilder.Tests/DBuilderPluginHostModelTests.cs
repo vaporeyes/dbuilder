@@ -119,6 +119,55 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void UdbHostApiCatalogCoversGeneralAndMapManagerSurface()
+    {
+        Assert.Equal(new[]
+        {
+            "General.Interface",
+            "General.Actions",
+            "General.Settings",
+            "General.Colors",
+            "General.Types",
+            "General.Editing",
+            "General.Map",
+            "General.Map.Map",
+            "General.Map.Data",
+            "General.Map.Config",
+            "General.Map.ThingsFilter",
+            "General.Map.UndoRedo",
+            "General.Map.VisualCamera"
+        }, DBuilderPluginHostModel.UdbHostApiDescriptors.Select(service => service.Name).ToArray());
+        Assert.Equal(
+            DBuilderPluginHostModel.UdbHostApiDescriptors.Count,
+            DBuilderPluginHostModel.UdbHostApiDescriptors.Select(service => service.Name).Distinct(StringComparer.Ordinal).Count());
+    }
+
+    [Fact]
+    public void PlanHostApiServicesMarksMapServicesUnavailableWithoutOpenMap()
+    {
+        DBuilderPluginHostApiPlan plan = DBuilderPluginHostModel.PlanHostApiServices(mapOpen: false);
+
+        Assert.True(plan.Services.Where(service => !service.RequiresMap).All(service => service.Available));
+        Assert.True(plan.Services.Where(service => service.RequiresMap).All(service => !service.Available));
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.Diagnostics);
+        Assert.Equal(DBuilderPluginDiagnosticSeverity.Warning, diagnostic.Severity);
+        Assert.Equal("(host)", diagnostic.PluginName);
+        Assert.Equal("Map-scoped plugin API services are unavailable until a map is open.", diagnostic.Message);
+    }
+
+    [Fact]
+    public void PlanHostApiServicesExposesMapServicesWhenMapIsOpen()
+    {
+        DBuilderPluginHostApiPlan plan = DBuilderPluginHostModel.PlanHostApiServices(mapOpen: true);
+
+        Assert.Empty(plan.Diagnostics);
+        Assert.All(plan.Services, service => Assert.True(service.Available));
+        DBuilderPluginHostApiService mapData = Assert.Single(plan.Services, service => service.Name == "General.Map.Data");
+        Assert.Equal("MapManager.Data", mapData.Source);
+        Assert.True(mapData.RequiresMap);
+    }
+
+    [Fact]
     public void NormalizeDescriptorsKeepsFirstPluginByNameAndSortsByTitle()
     {
         var descriptors = DBuilderPluginHostModel.NormalizeDescriptors(new[]
@@ -1156,6 +1205,8 @@ public sealed class DBuilderPluginHostModelTests
         Assert.Single(plan.ApiContributions.EditModes);
         Assert.Single(plan.ApiContributions.Dockers);
         Assert.Single(plan.ResourceHandlers.Handlers);
+        Assert.Empty(plan.HostApi.Diagnostics);
+        Assert.All(plan.HostApi.Services, service => Assert.True(service.Available));
         Assert.Empty(plan.UiContributions.Warnings);
         Assert.Empty(plan.ApiContributions.Warnings);
         Assert.Empty(plan.ResourceHandlers.Warnings);

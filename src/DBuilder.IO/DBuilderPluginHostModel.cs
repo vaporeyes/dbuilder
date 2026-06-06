@@ -1,5 +1,5 @@
 // ABOUTME: Models plugin descriptors, contribution kinds and lifecycle hook planning for DBuilder.
-// ABOUTME: Keeps plugin-host rules and runtime type discovery testable outside the editor UI.
+// ABOUTME: Keeps plugin-host rules and reflection runtime execution testable outside the editor UI.
 
 using System.Reflection;
 
@@ -196,9 +196,25 @@ public sealed record DBuilderPluginHostPlan(
     DBuilderPluginDescriptorPlan DescriptorPlan,
     DBuilderPluginLoadPlan LoadPlan,
     IReadOnlyList<DBuilderPluginLifecyclePlan> LifecyclePlans,
+    DBuilderPluginHostApiPlan HostApi,
     DBuilderPluginUiContributionPlan UiContributions,
     DBuilderPluginApiContributionPlan ApiContributions,
     DBuilderPluginResourceHandlerPlan ResourceHandlers);
+
+public sealed record DBuilderPluginHostApiDescriptor(
+    string Name,
+    string Source,
+    bool RequiresMap = false);
+
+public sealed record DBuilderPluginHostApiService(
+    string Name,
+    string Source,
+    bool RequiresMap,
+    bool Available);
+
+public sealed record DBuilderPluginHostApiPlan(
+    IReadOnlyList<DBuilderPluginHostApiService> Services,
+    IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
 
 public sealed record DBuilderPluginCallbackDescriptor(
     string Name,
@@ -290,6 +306,23 @@ public static class DBuilderPluginHostModel
         new DBuilderPluginCallbackDescriptor("OnHighlightLost", "Highlight")
     };
 
+    public static IReadOnlyList<DBuilderPluginHostApiDescriptor> UdbHostApiDescriptors { get; } = new[]
+    {
+        new DBuilderPluginHostApiDescriptor("General.Interface", "General.Interface"),
+        new DBuilderPluginHostApiDescriptor("General.Actions", "General.Actions"),
+        new DBuilderPluginHostApiDescriptor("General.Settings", "General.Settings"),
+        new DBuilderPluginHostApiDescriptor("General.Colors", "General.Colors"),
+        new DBuilderPluginHostApiDescriptor("General.Types", "General.Types"),
+        new DBuilderPluginHostApiDescriptor("General.Editing", "General.Editing"),
+        new DBuilderPluginHostApiDescriptor("General.Map", "General.Map", RequiresMap: true),
+        new DBuilderPluginHostApiDescriptor("General.Map.Map", "MapManager.Map", RequiresMap: true),
+        new DBuilderPluginHostApiDescriptor("General.Map.Data", "MapManager.Data", RequiresMap: true),
+        new DBuilderPluginHostApiDescriptor("General.Map.Config", "MapManager.Config", RequiresMap: true),
+        new DBuilderPluginHostApiDescriptor("General.Map.ThingsFilter", "MapManager.ThingsFilter", RequiresMap: true),
+        new DBuilderPluginHostApiDescriptor("General.Map.UndoRedo", "MapManager.UndoRedo", RequiresMap: true),
+        new DBuilderPluginHostApiDescriptor("General.Map.VisualCamera", "MapManager.VisualCamera", RequiresMap: true)
+    };
+
     public static DBuilderPluginDescriptorPlan PlanDescriptors(
         IEnumerable<DBuilderPluginDescriptor> descriptors)
     {
@@ -373,9 +406,32 @@ public static class DBuilderPluginHostModel
             loadableDescriptors
                 .Select(descriptor => PlanLifecycle(descriptor, request))
                 .ToArray(),
+            PlanHostApiServices(request.MapOpen),
             PlanUiContributions(loadableDescriptors),
             PlanApiContributions(loadableDescriptors),
             PlanResourceHandlers(loadableDescriptors));
+    }
+
+    public static DBuilderPluginHostApiPlan PlanHostApiServices(bool mapOpen)
+    {
+        var diagnostics = new List<DBuilderPluginDiagnostic>();
+        DBuilderPluginHostApiService[] services = UdbHostApiDescriptors
+            .Select(descriptor => new DBuilderPluginHostApiService(
+                descriptor.Name,
+                descriptor.Source,
+                descriptor.RequiresMap,
+                !descriptor.RequiresMap || mapOpen))
+            .ToArray();
+
+        if (!mapOpen && services.Any(service => service.RequiresMap))
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Warning,
+                "(host)",
+                "Map-scoped plugin API services are unavailable until a map is open."));
+        }
+
+        return new DBuilderPluginHostApiPlan(services, diagnostics);
     }
 
     public static DBuilderPluginLoadPlan PlanLoadCandidates(DBuilderPluginDescriptorPlan descriptorPlan)
