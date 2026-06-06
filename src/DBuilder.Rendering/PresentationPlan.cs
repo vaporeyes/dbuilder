@@ -201,6 +201,28 @@ public sealed record PresentationRenderTargetDestroyPlan(
     float LastGridScaleAfter,
     double LastGridSizeAfter);
 
+public enum PresentationRenderTargetCreateStepKind
+{
+    DestroyExistingTargets,
+    ReadRenderTargetSize,
+    AllocateResource,
+    ClearTarget,
+    CreateVertexBuffer,
+    UploadThingsVertexBuffer,
+    UploadScreenVertexBuffer,
+    ResetGridCache,
+    UpdateTransformations,
+    RedrawExistingMap,
+}
+
+public sealed record PresentationRenderTargetCreateStep(
+    PresentationRenderTargetCreateStepKind Kind,
+    string? TargetName = null);
+
+public sealed record PresentationRenderTargetCreateSequencePlan(
+    PresentationRenderTargetPlan TargetPlan,
+    IReadOnlyList<PresentationRenderTargetCreateStep> Steps);
+
 public sealed record PresentationDisplaySettings(
     PresentationRendererLayer Layer,
     string SourceTargetName,
@@ -317,6 +339,39 @@ public sealed record PresentationRenderTargetPlan(
                 ResetGridCache: true),
             _ => throw new ArgumentOutOfRangeException(nameof(operation), operation, null),
         };
+
+    public static PresentationRenderTargetCreateSequencePlan BuildCreateSequencePlan(
+        int width,
+        int height,
+        PresentationPlan? presentation,
+        bool hasMapConfiguration = false)
+    {
+        PresentationRenderTargetPlan targetPlan = Create(width, height, presentation, hasMapConfiguration);
+        var steps = new List<PresentationRenderTargetCreateStep>(
+            targetPlan.Resources.Count + targetPlan.ClearTargets.Count + (hasMapConfiguration ? 10 : 9))
+        {
+            new(PresentationRenderTargetCreateStepKind.DestroyExistingTargets),
+            new(PresentationRenderTargetCreateStepKind.ReadRenderTargetSize),
+        };
+
+        foreach (PresentationRenderTargetResource resource in targetPlan.Resources)
+            steps.Add(new PresentationRenderTargetCreateStep(PresentationRenderTargetCreateStepKind.AllocateResource, resource.Name));
+
+        foreach (string target in targetPlan.ClearTargets)
+            steps.Add(new PresentationRenderTargetCreateStep(PresentationRenderTargetCreateStepKind.ClearTarget, target));
+
+        steps.Add(new PresentationRenderTargetCreateStep(PresentationRenderTargetCreateStepKind.CreateVertexBuffer, "screenverts"));
+        steps.Add(new PresentationRenderTargetCreateStep(PresentationRenderTargetCreateStepKind.CreateVertexBuffer, "thingsvertices"));
+        steps.Add(new PresentationRenderTargetCreateStep(PresentationRenderTargetCreateStepKind.UploadThingsVertexBuffer, "thingsvertices"));
+        steps.Add(new PresentationRenderTargetCreateStep(PresentationRenderTargetCreateStepKind.UploadScreenVertexBuffer, "screenverts"));
+        steps.Add(new PresentationRenderTargetCreateStep(PresentationRenderTargetCreateStepKind.ResetGridCache));
+        steps.Add(new PresentationRenderTargetCreateStep(PresentationRenderTargetCreateStepKind.UpdateTransformations));
+
+        if (hasMapConfiguration)
+            steps.Add(new PresentationRenderTargetCreateStep(PresentationRenderTargetCreateStepKind.RedrawExistingMap));
+
+        return new PresentationRenderTargetCreateSequencePlan(targetPlan, steps);
+    }
 
     public static PresentationRenderTargetDestroyPlan BuildDestroyPlan(int overlayTextureCount)
     {

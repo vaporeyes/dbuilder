@@ -400,6 +400,100 @@ public sealed class PresentationPlanTests
     }
 
     [Fact]
+    public void CreateSequencePlanAllocatesResourcesAndClearsTargetsInUdbOrder()
+    {
+        var presentation = new PresentationPlan(new[]
+        {
+            new PresentationLayer(PresentationRendererLayer.Overlay, PresentationBlendingMode.Alpha),
+            new PresentationLayer(PresentationRendererLayer.Overlay, PresentationBlendingMode.Additive),
+        });
+
+        PresentationRenderTargetCreateSequencePlan sequence = PresentationRenderTargetPlan.BuildCreateSequencePlan(
+            320,
+            200,
+            presentation);
+
+        Assert.Equal(new[]
+        {
+            PresentationRenderTargetCreateStepKind.DestroyExistingTargets,
+            PresentationRenderTargetCreateStepKind.ReadRenderTargetSize,
+            PresentationRenderTargetCreateStepKind.AllocateResource,
+            PresentationRenderTargetCreateStepKind.AllocateResource,
+            PresentationRenderTargetCreateStepKind.AllocateResource,
+            PresentationRenderTargetCreateStepKind.AllocateResource,
+            PresentationRenderTargetCreateStepKind.AllocateResource,
+            PresentationRenderTargetCreateStepKind.AllocateResource,
+            PresentationRenderTargetCreateStepKind.ClearTarget,
+            PresentationRenderTargetCreateStepKind.ClearTarget,
+            PresentationRenderTargetCreateStepKind.ClearTarget,
+        }, sequence.Steps.Take(11).Select(step => step.Kind));
+        Assert.Equal(new[]
+        {
+            null,
+            null,
+            "plotter",
+            "gridplotter",
+            "things",
+            "surface",
+            "overlay0",
+            "overlay1",
+            "things",
+            "overlay0",
+            "overlay1",
+        }, sequence.Steps.Take(11).Select(step => step.TargetName));
+    }
+
+    [Fact]
+    public void CreateSequencePlanUploadsVertexBuffersAndUpdatesTransformationsLikeUdb()
+    {
+        PresentationRenderTargetCreateSequencePlan sequence = PresentationRenderTargetPlan.BuildCreateSequencePlan(
+            320,
+            200,
+            PresentationPlan.Standard(0.4f, 0.25f));
+
+        Assert.Equal(new[]
+        {
+            PresentationRenderTargetCreateStepKind.CreateVertexBuffer,
+            PresentationRenderTargetCreateStepKind.CreateVertexBuffer,
+            PresentationRenderTargetCreateStepKind.UploadThingsVertexBuffer,
+            PresentationRenderTargetCreateStepKind.UploadScreenVertexBuffer,
+            PresentationRenderTargetCreateStepKind.ResetGridCache,
+            PresentationRenderTargetCreateStepKind.UpdateTransformations,
+        }, sequence.Steps.TakeLast(6).Select(step => step.Kind));
+        Assert.Equal(new[]
+        {
+            "screenverts",
+            "thingsvertices",
+            "thingsvertices",
+            "screenverts",
+            null,
+            null,
+        }, sequence.Steps.TakeLast(6).Select(step => step.TargetName));
+        Assert.True(sequence.TargetPlan.ResetGridScale);
+        Assert.True(sequence.TargetPlan.ResetGridSize);
+        Assert.True(sequence.TargetPlan.ResetGridOrigin);
+    }
+
+    [Fact]
+    public void CreateSequencePlanRedrawsExistingMapOnlyWithMapConfiguration()
+    {
+        PresentationRenderTargetCreateSequencePlan noMap = PresentationRenderTargetPlan.BuildCreateSequencePlan(
+            320,
+            200,
+            PresentationPlan.Standard(0.4f, 0.25f));
+        PresentationRenderTargetCreateSequencePlan withMap = PresentationRenderTargetPlan.BuildCreateSequencePlan(
+            320,
+            200,
+            PresentationPlan.Standard(0.4f, 0.25f),
+            hasMapConfiguration: true);
+
+        Assert.DoesNotContain(noMap.Steps, step => step.Kind == PresentationRenderTargetCreateStepKind.RedrawExistingMap);
+        Assert.Equal(PresentationRenderTargetCreateStepKind.RedrawExistingMap, withMap.Steps[^1].Kind);
+        Assert.False(noMap.TargetPlan.RedrawExistingMap);
+        Assert.True(withMap.TargetPlan.RedrawExistingMap);
+    }
+
+    [Fact]
     public void RenderTargetPlanMatchesUdbThingVertexBufferCapacity()
     {
         PresentationRenderTargetPlan plan = PresentationRenderTargetPlan.Create(320, 200, PresentationPlan.Standard(0.4f, 0.25f));
