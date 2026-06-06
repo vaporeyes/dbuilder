@@ -2699,10 +2699,10 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Document map IO behavior.
 - [ ] Document resource loading behavior.
 - [ ] Document plugin API.
-- [ ] Document testing strategy.
-- [ ] Document contribution workflow.
-- [ ] Document manual QA scenarios.
-- [ ] Document release process.
+- [x] Document testing strategy.
+- [x] Document contribution workflow.
+- [x] Document manual QA scenarios.
+- [x] Document release process.
 
 ## Release Criteria For Full Port
 

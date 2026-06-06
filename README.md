@@ -17,6 +17,7 @@ The authoritative trackers are:
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): project map and verification policy.
 - [docs/RENDERING.md](docs/RENDERING.md): current renderer and shader compiler replacement baseline.
 - [docs/PLATFORMS_AND_TOOLS.md](docs/PLATFORMS_AND_TOOLS.md): supported OS targets and external tool discovery rules.
+- [docs/DEVELOPMENT_PROCESS.md](docs/DEVELOPMENT_PROCESS.md): testing, contribution, manual QA, and release process.
 - [docs/UPDATE_POLICY.md](docs/UPDATE_POLICY.md): update behavior for development builds.
 
 When visible editor behavior changes, replace the screenshots in `assets` and update this README alongside `docs/TODO.md` so the repo baseline stays current.
