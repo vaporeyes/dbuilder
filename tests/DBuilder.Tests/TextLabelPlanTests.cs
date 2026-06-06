@@ -223,4 +223,49 @@ public sealed class TextLabelPlanTests
         Assert.Equal(1, plan.SkippedLabels);
         Assert.Empty(plan.Commands);
     }
+
+    [Fact]
+    public void BuildRenderStatePlanMatchesUdbTextRenderState()
+    {
+        TextLabelLayout visible = TextLabelPlan.Build(
+            "Visible",
+            new TextLabelSize(24, 10),
+            new TextLabelPoint(8, 8),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+        TextLabelRenderPlan renderPlan = TextLabelPlan.BuildRenderPlan([visible]);
+
+        TextLabelRenderStatePlan state = TextLabelPlan.BuildRenderStatePlan(renderPlan);
+
+        Assert.Equal(Cull.None, state.CullMode);
+        Assert.False(state.DepthEnabled);
+        Assert.True(state.AlphaBlendEnabled);
+        Assert.False(state.AlphaTestEnabled);
+        Assert.Equal(TextLabelPlan.Display2DNormalShaderName, state.ShaderName);
+        Assert.False(state.WorldTransformation);
+        Assert.Equal(1.0f, state.Alpha);
+        Assert.Equal(1.0f, state.Brightness);
+        Assert.Equal(0.0f, state.TextureOffset);
+        Assert.Equal(1.0f, state.TextureScale);
+        Assert.False(state.TextureTransformEnabled);
+    }
+
+    [Fact]
+    public void BuildRenderStatePlanKeepsBlendDisabledWhenRenderPlanIsEmpty()
+    {
+        TextLabelLayout skipped = TextLabelPlan.Build(
+            "Skipped",
+            new TextLabelSize(24, 10),
+            new TextLabelPoint(400, 8),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+        TextLabelRenderPlan renderPlan = TextLabelPlan.BuildRenderPlan([skipped]);
+
+        TextLabelRenderStatePlan state = TextLabelPlan.BuildRenderStatePlan(renderPlan);
+
+        Assert.False(renderPlan.ShouldRender);
+        Assert.False(state.AlphaBlendEnabled);
+    }
 }

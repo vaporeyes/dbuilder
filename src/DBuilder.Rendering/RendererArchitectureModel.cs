@@ -42,6 +42,7 @@ public static class RendererArchitectureModel
             "Text label size, alignment, transform, culling, and quad planning",
             "Text label plain and background image drawing planning",
             "Text label render dispatch planning",
+            "Text label render-state planning",
             "Runtime shader compile, link, disposal, and uniform lookup caching",
             "Shader disposed-state reporting",
         },

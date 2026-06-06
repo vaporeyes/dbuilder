@@ -33,6 +33,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Text label size, alignment, transform, culling, and quad planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label plain and background image drawing planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label render dispatch planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Text label render-state planning", replacement.CoveredResponsibilities);
     }
 
     [Fact]

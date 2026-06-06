@@ -70,11 +70,25 @@ public sealed record TextLabelRenderPlan(
     public bool ShouldRender => Commands.Count > 0;
 }
 
+public sealed record TextLabelRenderStatePlan(
+    Cull CullMode,
+    bool DepthEnabled,
+    bool AlphaBlendEnabled,
+    bool AlphaTestEnabled,
+    string ShaderName,
+    bool WorldTransformation,
+    float Alpha,
+    float Brightness,
+    float TextureOffset,
+    float TextureScale,
+    bool TextureTransformEnabled);
+
 public static class TextLabelPlan
 {
     public const double TextOriginX = 4.0;
     public const double TextOriginY = 3.0;
     public const double BackgroundBorderWidth = 1.0;
+    public const string Display2DNormalShaderName = "display2d_normal";
 
     public static TextLabelLayout Build(
         string? text,
@@ -227,6 +241,20 @@ public static class TextLabelPlan
 
         return new TextLabelRenderPlan(commands, skipped);
     }
+
+    public static TextLabelRenderStatePlan BuildRenderStatePlan(TextLabelRenderPlan renderPlan)
+        => new(
+            CullMode: Cull.None,
+            DepthEnabled: false,
+            AlphaBlendEnabled: renderPlan.ShouldRender,
+            AlphaTestEnabled: false,
+            ShaderName: Display2DNormalShaderName,
+            WorldTransformation: false,
+            Alpha: 1.0f,
+            Brightness: 1.0f,
+            TextureOffset: 0.0f,
+            TextureScale: 1.0f,
+            TextureTransformEnabled: false);
 
     public static int NextPowerOfTwo(int value)
     {
