@@ -138,6 +138,41 @@ public class SourcePortTests
     }
 
     [Fact]
+    public void UdbLinuxPathSettingConvertsLaunchResourcePaths()
+    {
+        string? winePrefix = Environment.GetEnvironmentVariable("WINEPREFIX");
+        try
+        {
+            Environment.SetEnvironmentVariable("WINEPREFIX", null);
+            var args = SourcePort.BuildArgs(
+                "-iwad %WP -iwadfile %WF -file \"%AP\" \"%F\"",
+                @"C:\Games\doom2.wad",
+                @"Z:\tmp\dbuilder_test_MAP01.wad",
+                "MAP01",
+                new[] { @"C:\Mods\texture pack.pk3", @"Z:\home\user\music.wad" },
+                linuxPaths: true);
+
+            Assert.Equal(
+                new[]
+                {
+                    "-iwad",
+                    "/drive_c/Games/doom2.wad",
+                    "-iwadfile",
+                    "doom2.wad",
+                    "-file",
+                    "/drive_c/Mods/texture pack.pk3",
+                    "/home/user/music.wad",
+                    "/tmp/dbuilder_test_MAP01.wad",
+                },
+                args);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("WINEPREFIX", winePrefix);
+        }
+    }
+
+    [Fact]
     public void CreateStartInfoUsesDBuilderLaunchDefaults()
     {
         var startInfo = SourcePort.CreateStartInfo("/ports/gzdoom", new[] { "-iwad", "doom2.wad", "-file", "edit.wad" });

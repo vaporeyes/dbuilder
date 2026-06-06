@@ -27,11 +27,14 @@ public static class SourcePort
         IEnumerable<string>? additionalFiles = null,
         bool testMonsters = true,
         int skill = 3,
-        string? additionalParameters = null)
+        string? additionalParameters = null,
+        bool linuxPaths = false)
     {
         var (l, l1, l2) = WarpTokens(map);
-        string additional = BuildAdditionalFiles(additionalFiles);
-        string iwadFile = Path.GetFileName(iwad);
+        string launchIwad = ConvertPath(iwad, linuxPaths);
+        string launchFile = ConvertPath(file, linuxPaths);
+        string additional = BuildAdditionalFiles(additionalFiles, linuxPaths);
+        string iwadFile = ConvertPath(FileName(iwad), linuxPaths);
         string noMonsters = testMonsters ? "" : "-nomonsters";
         template = NormalizeUdbTokens(template)
             .Replace("\"%AP\"", additional)
@@ -42,11 +45,11 @@ public static class SourcePort
         for (int i = tokens.Count - 1; i >= 0; i--)
         {
             string token = tokens[i]
-                .Replace("%IWAD", iwad)
-                .Replace("%WP", iwad)
+                .Replace("%IWAD", launchIwad)
+                .Replace("%WP", launchIwad)
                 .Replace("%WF", iwadFile)
-                .Replace("%FO", file)
-                .Replace("%F", file)
+                .Replace("%FO", launchFile)
+                .Replace("%F", launchFile)
                 .Replace("%MAP", map)
                 .Replace("%L1", l1)
                 .Replace("%L2", l2)
@@ -93,7 +96,7 @@ public static class SourcePort
         }
     }
 
-    private static string BuildAdditionalFiles(IEnumerable<string>? additionalFiles)
+    private static string BuildAdditionalFiles(IEnumerable<string>? additionalFiles, bool linuxPaths)
     {
         if (additionalFiles is null) return "";
 
@@ -101,9 +104,31 @@ public static class SourcePort
         foreach (string file in additionalFiles)
         {
             if (string.IsNullOrWhiteSpace(file)) continue;
-            result.Add(Quote(file));
+            result.Add(Quote(ConvertPath(file, linuxPaths)));
         }
         return string.Join(" ", result);
+    }
+
+    private static string ConvertPath(string value, bool linuxPaths)
+        => linuxPaths ? ToLinuxPath(value) : value;
+
+    private static string ToLinuxPath(string value)
+    {
+        string path = value.Replace('\\', '/');
+        string prefix = Environment.GetEnvironmentVariable("WINEPREFIX") ?? "";
+        if (path.StartsWith("C:", StringComparison.Ordinal))
+            return prefix + "/drive_c" + path[2..];
+        if (path.StartsWith("Z:", StringComparison.Ordinal))
+            return path[2..];
+        return path;
+    }
+
+    private static string FileName(string path)
+    {
+        int slash = path.LastIndexOf('/');
+        int backslash = path.LastIndexOf('\\');
+        int index = Math.Max(slash, backslash);
+        return index >= 0 ? path[(index + 1)..] : path;
     }
 
     private static string Quote(string value)
