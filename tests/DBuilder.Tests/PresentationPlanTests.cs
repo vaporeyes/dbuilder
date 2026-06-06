@@ -207,6 +207,54 @@ public sealed class PresentationPlanTests
     }
 
     [Fact]
+    public void SetPresentationPlanAddsAndClearsOneOverlayTextureWhenUdbNeedsMore()
+    {
+        var presentation = new PresentationPlan(new[]
+        {
+            new PresentationLayer(PresentationRendererLayer.Overlay, PresentationBlendingMode.Alpha),
+            new PresentationLayer(PresentationRendererLayer.Grid, PresentationBlendingMode.Mask),
+            new PresentationLayer(PresentationRendererLayer.Overlay, PresentationBlendingMode.Additive),
+        });
+
+        PresentationSetPlan plan = PresentationRenderTargetPlan.BuildSetPresentationPlan(
+            presentation,
+            existingOverlayTextureCount: 1);
+
+        Assert.Equal(new PresentationSetPlan(
+            ExistingOverlayTextureCount: 1,
+            RequestedOverlayLayerCount: 2,
+            CopyPresentation: true,
+            AddOverlayTexture: true,
+            ClearAddedOverlayTexture: true,
+            OverlayTextureCountAfter: 2), plan);
+    }
+
+    [Fact]
+    public void SetPresentationPlanKeepsOverlayTexturesWhenEnoughAlreadyExist()
+    {
+        PresentationSetPlan plan = PresentationRenderTargetPlan.BuildSetPresentationPlan(
+            PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f),
+            existingOverlayTextureCount: 2);
+
+        Assert.Equal(new PresentationSetPlan(
+            ExistingOverlayTextureCount: 2,
+            RequestedOverlayLayerCount: 1,
+            CopyPresentation: true,
+            AddOverlayTexture: false,
+            ClearAddedOverlayTexture: false,
+            OverlayTextureCountAfter: 2), plan);
+    }
+
+    [Fact]
+    public void SetPresentationPlanRejectsNegativeOverlayTextureCount()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            PresentationRenderTargetPlan.BuildSetPresentationPlan(
+                PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f),
+                existingOverlayTextureCount: -1));
+    }
+
+    [Fact]
     public void RenderTargetPlanMatchesUdbThingVertexBufferCapacity()
     {
         PresentationRenderTargetPlan plan = PresentationRenderTargetPlan.Create(320, 200, PresentationPlan.Standard(0.4f, 0.25f));

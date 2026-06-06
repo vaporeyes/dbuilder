@@ -156,6 +156,14 @@ public sealed record PresentationRenderTargetResource(
     int Height,
     TextureFormat? Format = null);
 
+public sealed record PresentationSetPlan(
+    int ExistingOverlayTextureCount,
+    int RequestedOverlayLayerCount,
+    bool CopyPresentation,
+    bool AddOverlayTexture,
+    bool ClearAddedOverlayTexture,
+    int OverlayTextureCountAfter);
+
 public sealed record PresentationDisplaySettings(
     PresentationRendererLayer Layer,
     string SourceTargetName,
@@ -209,6 +217,24 @@ public sealed record PresentationRenderTargetPlan(
     public const int ThingBufferSize = 100;
     public const int ThingVerticesPerBufferItem = 12;
     public const float FsaaFactor = 0.6f;
+
+    public static PresentationSetPlan BuildSetPresentationPlan(
+        PresentationPlan presentation,
+        int existingOverlayTextureCount)
+    {
+        if (existingOverlayTextureCount < 0) throw new ArgumentOutOfRangeException(nameof(existingOverlayTextureCount));
+
+        int requestedOverlayLayerCount = presentation.Layers.Count(layer => layer.Layer == PresentationRendererLayer.Overlay);
+        bool addOverlayTexture = requestedOverlayLayerCount > existingOverlayTextureCount;
+
+        return new PresentationSetPlan(
+            existingOverlayTextureCount,
+            requestedOverlayLayerCount,
+            CopyPresentation: true,
+            addOverlayTexture,
+            ClearAddedOverlayTexture: addOverlayTexture,
+            addOverlayTexture ? existingOverlayTextureCount + 1 : existingOverlayTextureCount);
+    }
 
     public static PresentationRenderTargetPlan Create(int width, int height, PresentationPlan? presentation)
     {
