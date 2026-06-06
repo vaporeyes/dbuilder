@@ -276,6 +276,9 @@ public class MapSet : IDisposable
     public Thing CreateThing()
         => AddThing(new Vector2D(), type: 0);
 
+    internal Thing CreateTempThing()
+        => CreateThing();
+
     public Thing CreateThing(int index)
     {
         Thing thing = CreateThing();

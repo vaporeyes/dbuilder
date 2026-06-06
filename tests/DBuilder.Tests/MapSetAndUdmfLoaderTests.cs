@@ -4,6 +4,7 @@
 using DBuilder.Geometry;
 using DBuilder.IO;
 using DBuilder.Map;
+using System.Reflection;
 
 namespace DBuilder.Tests;
 
@@ -74,6 +75,20 @@ public class MapSetAndUdmfLoaderTests
         Assert.Same(end, line.End);
         Assert.Same(side, line.Front);
         Assert.Same(sector, side.Sector);
+        Assert.Equal(new Vector2D(), thing.Position);
+        Assert.Equal(0, thing.Type);
+    }
+
+    [Fact]
+    public void CreateTempThingMatchesUdbInternalCreationSurface()
+    {
+        var map = new MapSet();
+        var method = typeof(MapSet).GetMethod("CreateTempThing", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        var thing = Assert.IsType<Thing>(method!.Invoke(map, Array.Empty<object>()));
+
+        Assert.Same(thing, map.Things[0]);
+        Assert.Equal(0, thing.Index);
         Assert.Equal(new Vector2D(), thing.Position);
         Assert.Equal(0, thing.Type);
     }
