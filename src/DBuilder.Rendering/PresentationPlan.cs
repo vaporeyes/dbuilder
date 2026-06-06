@@ -240,6 +240,8 @@ public sealed record PresentationLayerDrawPlan(
     string SourceTargetName,
     bool Draws,
     string? SkipReason,
+    string VertexSourceName,
+    bool RestoreScreenVertexBufferAfterDraw,
     int? OverlayIndex);
 
 public enum PresentationFrameOperationKind
@@ -581,6 +583,8 @@ public sealed record PresentationRenderTargetPlan(
                 setting.SourceTargetName,
                 Draws: !skipBackground,
                 SkipReason: skipBackground ? "Missing background vertices or texture" : null,
+                VertexSourceName: setting.Layer == PresentationRendererLayer.Background ? "backimageverts" : "screenverts",
+                RestoreScreenVertexBufferAfterDraw: setting.Layer == PresentationRendererLayer.Background && !skipBackground,
                 setting.OverlayIndex));
         }
 
