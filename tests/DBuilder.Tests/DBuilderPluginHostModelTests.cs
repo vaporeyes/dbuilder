@@ -3688,6 +3688,96 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void ExecuteReflectionEditModeAndDockerCommandsInvokeConfiguredMethods()
+    {
+        ReflectionApiCommandPlugin.Calls.Clear();
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor(
+                    "ApiPlugin",
+                    "/plugins/apiplugin.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.EditMode, "mode.draw", "Draw Mode", "OpenEditMode"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Docker, "docker.tags", "Tags Docker", "OpenDocker")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest());
+        DBuilderPluginRuntimeInstancePlan instancePlan = RuntimeInstancePlan(
+            new ReflectionApiCommandPlugin("ApiPlugin"),
+            "ApiPlugin");
+
+        DBuilderPluginEditModeExecutionResult editMode = DBuilderPluginHostModel.ExecuteReflectionEditModeCommand(
+            instancePlan,
+            hostPlan,
+            "mode.draw");
+        DBuilderPluginDockerExecutionResult docker = DBuilderPluginHostModel.ExecuteReflectionDockerCommand(
+            instancePlan,
+            hostPlan,
+            "docker.tags");
+
+        Assert.True(editMode.Completed);
+        Assert.Empty(editMode.Diagnostics);
+        Assert.NotNull(editMode.EditMode);
+        Assert.Equal("mode.draw", editMode.EditMode.Id);
+        Assert.True(docker.Completed);
+        Assert.Empty(docker.Diagnostics);
+        Assert.NotNull(docker.Docker);
+        Assert.Equal("docker.tags", docker.Docker.Id);
+        Assert.Equal(new[] { "ApiPlugin:OpenEditMode", "ApiPlugin:OpenDocker" }, ReflectionApiCommandPlugin.Calls);
+    }
+
+    [Fact]
+    public void ExecuteReflectionEditModeAndDockerCommandsReportMethodFailures()
+    {
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor(
+                    "ApiPlugin",
+                    "/plugins/apiplugin.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.EditMode, "mode.no-method", "No Method"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.EditMode, "mode.bad", "Bad Mode", "BadMode"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Docker, "docker.missing", "Missing Docker", "MissingDocker"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Docker, "docker.throw", "Throw Docker", "ThrowDocker")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest());
+        DBuilderPluginRuntimeInstancePlan instancePlan = RuntimeInstancePlan(
+            new ReflectionApiCommandPlugin("ApiPlugin"),
+            "ApiPlugin");
+
+        DBuilderPluginEditModeExecutionResult noMethod = DBuilderPluginHostModel.ExecuteReflectionEditModeCommand(
+            instancePlan,
+            hostPlan,
+            "mode.no-method");
+        DBuilderPluginEditModeExecutionResult bad = DBuilderPluginHostModel.ExecuteReflectionEditModeCommand(
+            instancePlan,
+            hostPlan,
+            "mode.bad");
+        DBuilderPluginDockerExecutionResult missing = DBuilderPluginHostModel.ExecuteReflectionDockerCommand(
+            instancePlan,
+            hostPlan,
+            "docker.missing");
+        DBuilderPluginDockerExecutionResult throwing = DBuilderPluginHostModel.ExecuteReflectionDockerCommand(
+            instancePlan,
+            hostPlan,
+            "docker.throw");
+
+        Assert.False(noMethod.Completed);
+        Assert.Equal("Plugin edit mode mode.no-method does not specify a method name.", Assert.Single(noMethod.Diagnostics).Message);
+        Assert.False(bad.Completed);
+        Assert.Equal("Plugin edit mode mode.bad method BadMode must be public void with no parameters.", Assert.Single(bad.Diagnostics).Message);
+        Assert.False(missing.Completed);
+        Assert.Equal("Plugin docker docker.missing method MissingDocker was not found.", Assert.Single(missing.Diagnostics).Message);
+        Assert.False(throwing.Completed);
+        Assert.Equal("docker failed", Assert.Single(throwing.Diagnostics).Message);
+    }
+
+    [Fact]
     public void ExecuteReflectionUiCommandInvokesBoundActionMethod()
     {
         ReflectionActionCommandPlugin.Calls.Clear();
@@ -4156,6 +4246,35 @@ public sealed class ReflectionActionCommandPlugin : IDBuilderPlugin
     public void ThrowAction()
     {
         throw new InvalidOperationException("action failed");
+    }
+}
+
+public sealed class ReflectionApiCommandPlugin : IDBuilderPlugin
+{
+    public static List<string> Calls { get; } = new();
+
+    private readonly string _name;
+
+    public ReflectionApiCommandPlugin(string name)
+    {
+        _name = name;
+    }
+
+    public void OpenEditMode()
+    {
+        Calls.Add(_name + ":OpenEditMode");
+    }
+
+    public void OpenDocker()
+    {
+        Calls.Add(_name + ":OpenDocker");
+    }
+
+    public bool BadMode() => true;
+
+    public void ThrowDocker()
+    {
+        throw new InvalidOperationException("docker failed");
     }
 }
 

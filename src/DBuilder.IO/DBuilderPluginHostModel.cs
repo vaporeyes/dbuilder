@@ -257,6 +257,16 @@ public sealed record DBuilderPluginActionExecutionResult(
     DBuilderPluginApiContribution? Action,
     IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
 
+public sealed record DBuilderPluginEditModeExecutionResult(
+    bool Completed,
+    DBuilderPluginApiContribution? EditMode,
+    IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
+
+public sealed record DBuilderPluginDockerExecutionResult(
+    bool Completed,
+    DBuilderPluginApiContribution? Docker,
+    IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
+
 public sealed record DBuilderPluginUiExecutionResult(
     bool Completed,
     DBuilderPluginUiContribution? UiContribution,
@@ -1935,6 +1945,42 @@ public static class DBuilderPluginHostModel
         return ExecuteReflectionActionContribution(instancePlan, command.Action, diagnostics);
     }
 
+    public static DBuilderPluginEditModeExecutionResult ExecuteReflectionEditModeCommand(
+        DBuilderPluginRuntimeInstancePlan instancePlan,
+        DBuilderPluginHostPlan hostPlan,
+        string editModeId)
+    {
+        DBuilderPluginEditModeCommandPlan command = PlanEditModeCommand(hostPlan, editModeId);
+        var diagnostics = new List<DBuilderPluginDiagnostic>(instancePlan.Diagnostics);
+        diagnostics.AddRange(command.Diagnostics);
+        if (command.EditMode == null) return new DBuilderPluginEditModeExecutionResult(false, null, diagnostics);
+
+        DBuilderPluginActionExecutionResult result = ExecuteReflectionApiContribution(
+            instancePlan,
+            command.EditMode,
+            diagnostics,
+            "edit mode");
+        return new DBuilderPluginEditModeExecutionResult(result.Completed, result.Action, result.Diagnostics);
+    }
+
+    public static DBuilderPluginDockerExecutionResult ExecuteReflectionDockerCommand(
+        DBuilderPluginRuntimeInstancePlan instancePlan,
+        DBuilderPluginHostPlan hostPlan,
+        string dockerId)
+    {
+        DBuilderPluginDockerCommandPlan command = PlanDockerCommand(hostPlan, dockerId);
+        var diagnostics = new List<DBuilderPluginDiagnostic>(instancePlan.Diagnostics);
+        diagnostics.AddRange(command.Diagnostics);
+        if (command.Docker == null) return new DBuilderPluginDockerExecutionResult(false, null, diagnostics);
+
+        DBuilderPluginActionExecutionResult result = ExecuteReflectionApiContribution(
+            instancePlan,
+            command.Docker,
+            diagnostics,
+            "docker");
+        return new DBuilderPluginDockerExecutionResult(result.Completed, result.Action, result.Diagnostics);
+    }
+
     public static DBuilderPluginUiExecutionResult ExecuteReflectionUiCommand(
         DBuilderPluginRuntimeInstancePlan instancePlan,
         DBuilderPluginHostPlan hostPlan,
@@ -2130,26 +2176,33 @@ public static class DBuilderPluginHostModel
         DBuilderPluginRuntimeInstancePlan instancePlan,
         DBuilderPluginApiContribution action,
         List<DBuilderPluginDiagnostic> diagnostics)
+        => ExecuteReflectionApiContribution(instancePlan, action, diagnostics, "action");
+
+    private static DBuilderPluginActionExecutionResult ExecuteReflectionApiContribution(
+        DBuilderPluginRuntimeInstancePlan instancePlan,
+        DBuilderPluginApiContribution contribution,
+        List<DBuilderPluginDiagnostic> diagnostics,
+        string contributionLabel)
     {
-        string methodName = action.MethodName?.Trim() ?? "";
+        string methodName = contribution.MethodName?.Trim() ?? "";
         if (methodName.Length == 0)
         {
             diagnostics.Add(new DBuilderPluginDiagnostic(
                 DBuilderPluginDiagnosticSeverity.Error,
-                action.PluginName,
-                $"Plugin action {action.Id} does not specify a method name."));
-            return new DBuilderPluginActionExecutionResult(false, action, diagnostics);
+                contribution.PluginName,
+                $"Plugin {contributionLabel} {contribution.Id} does not specify a method name."));
+            return new DBuilderPluginActionExecutionResult(false, contribution, diagnostics);
         }
 
         DBuilderPluginRuntimeInstance? runtimeInstance = instancePlan.Instances.FirstOrDefault(
-            instance => string.Equals(instance.PluginName, action.PluginName, StringComparison.OrdinalIgnoreCase));
+            instance => string.Equals(instance.PluginName, contribution.PluginName, StringComparison.OrdinalIgnoreCase));
         if (runtimeInstance == null)
         {
             diagnostics.Add(new DBuilderPluginDiagnostic(
                 DBuilderPluginDiagnosticSeverity.Error,
-                action.PluginName,
-                $"Plugin {action.PluginName} is not active."));
-            return new DBuilderPluginActionExecutionResult(false, action, diagnostics);
+                contribution.PluginName,
+                $"Plugin {contribution.PluginName} is not active."));
+            return new DBuilderPluginActionExecutionResult(false, contribution, diagnostics);
         }
 
         MethodInfo? method = runtimeInstance.Instance.GetType().GetMethod(
@@ -2160,8 +2213,8 @@ public static class DBuilderPluginHostModel
             diagnostics.Add(new DBuilderPluginDiagnostic(
                 DBuilderPluginDiagnosticSeverity.Error,
                 runtimeInstance.PluginName,
-                $"Plugin action {action.Id} method {methodName} was not found."));
-            return new DBuilderPluginActionExecutionResult(false, action, diagnostics);
+                $"Plugin {contributionLabel} {contribution.Id} method {methodName} was not found."));
+            return new DBuilderPluginActionExecutionResult(false, contribution, diagnostics);
         }
 
         if (method.GetParameters().Length != 0 || method.ReturnType != typeof(void))
@@ -2169,14 +2222,14 @@ public static class DBuilderPluginHostModel
             diagnostics.Add(new DBuilderPluginDiagnostic(
                 DBuilderPluginDiagnosticSeverity.Error,
                 runtimeInstance.PluginName,
-                $"Plugin action {action.Id} method {methodName} must be public void with no parameters."));
-            return new DBuilderPluginActionExecutionResult(false, action, diagnostics);
+                $"Plugin {contributionLabel} {contribution.Id} method {methodName} must be public void with no parameters."));
+            return new DBuilderPluginActionExecutionResult(false, contribution, diagnostics);
         }
 
         try
         {
             method.Invoke(runtimeInstance.Instance, Array.Empty<object>());
-            return new DBuilderPluginActionExecutionResult(true, action, diagnostics);
+            return new DBuilderPluginActionExecutionResult(true, contribution, diagnostics);
         }
         catch (TargetInvocationException ex) when (ex.InnerException != null)
         {
@@ -2185,7 +2238,7 @@ public static class DBuilderPluginHostModel
                 DBuilderPluginDiagnosticSeverity.Error,
                 runtimeInstance.PluginName,
                 error));
-            return new DBuilderPluginActionExecutionResult(false, action, diagnostics);
+            return new DBuilderPluginActionExecutionResult(false, contribution, diagnostics);
         }
         catch (Exception ex)
         {
@@ -2194,7 +2247,7 @@ public static class DBuilderPluginHostModel
                 DBuilderPluginDiagnosticSeverity.Error,
                 runtimeInstance.PluginName,
                 error));
-            return new DBuilderPluginActionExecutionResult(false, action, diagnostics);
+            return new DBuilderPluginActionExecutionResult(false, contribution, diagnostics);
         }
     }
 
