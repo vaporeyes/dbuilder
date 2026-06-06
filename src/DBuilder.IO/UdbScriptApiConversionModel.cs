@@ -2601,6 +2601,20 @@ public sealed class UdbScriptSectorWrapper : IEquatable<UdbScriptSectorWrapper>
         return sector.Intersect(new Vector2D(vector.x, vector.y));
     }
 
+    public double getFloorZ(object point)
+    {
+        ThrowIfDisposed("getFloorZ");
+        Vector3D vector = UdbScriptApiConversionModel.GetVector3DFromObject(point);
+        return sector.GetFloorZ(new Vector2D(vector.x, vector.y));
+    }
+
+    public double getCeilingZ(object point)
+    {
+        ThrowIfDisposed("getCeilingZ");
+        Vector3D vector = UdbScriptApiConversionModel.GetVector3DFromObject(point);
+        return sector.GetCeilZ(new Vector2D(vector.x, vector.y));
+    }
+
     public UdbScriptVector3DWrapper getFloorSlope()
     {
         ThrowIfDisposed("getFloorSlope");

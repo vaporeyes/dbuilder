@@ -1062,17 +1062,26 @@ localsidedeftextureoffsets = true;
     public void SectorWrapperExposesGeometrySlopesAndTagHelpers()
     {
         Sector sector = CreateSquareSector();
+        sector.FloorHeight = 8;
+        sector.CeilHeight = 128;
         sector.Tag = 1;
         var wrapper = new UdbScriptSectorWrapper(sector);
 
-        wrapper.setFloorSlope(new object[] { 0.0, 3.0, 4.0 });
-        wrapper.setCeilingSlope(new UdbScriptVector3DWrapper(0, -6, 8));
+        Assert.Equal(8, wrapper.getFloorZ(new object[] { 32.0, 32.0 }));
+        Assert.Equal(128, wrapper.getCeilingZ(new UdbScriptVector2DWrapper(32, 32)));
+
+        wrapper.setFloorSlope(new object[] { 0.0, 0.6, 0.8 });
+        wrapper.setCeilingSlope(new UdbScriptVector3DWrapper(0, -0.6, 0.8));
+        wrapper.floorSlopeOffset = -8.0;
+        wrapper.ceilingSlopeOffset = -128.0;
         bool added = wrapper.addTag(3);
         bool addedDuplicate = wrapper.addTag(3);
         bool removed = wrapper.removeTag(1);
 
         Assert.True(wrapper.intersect(new object[] { 32.0, 32.0 }));
         Assert.False(wrapper.intersect(new object[] { 96.0, 96.0 }));
+        Assert.Equal(sector.GetFloorZ(new Vector2D(32, 32)), wrapper.getFloorZ(new object[] { 32.0, 32.0 }));
+        Assert.Equal(sector.GetCeilZ(new Vector2D(32, 32)), wrapper.getCeilingZ(new object[] { 32.0, 32.0 }));
         UdbScriptVector3DWrapper floorSlope = wrapper.getFloorSlope();
         UdbScriptVector3DWrapper ceilingSlope = wrapper.getCeilingSlope();
         Assert.Equal(0, floorSlope.x, 12);
