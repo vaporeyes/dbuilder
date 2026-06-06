@@ -1070,6 +1070,12 @@ internal abstract class FolderResourceReader : IResourceReader
 
     public virtual byte[]? GetModelResourceBytes(string path)
     {
+        for (int i = nestedReaders.Count - 1; i >= 0; i--)
+        {
+            var nestedBytes = nestedReaders[i].GetModelResourceBytes(path);
+            if (nestedBytes != null) return nestedBytes;
+        }
+
         string normalized = path.Replace('\\', '/').TrimStart('/');
         if (files.TryGetValue(normalized, out var read)) return read();
 
@@ -1079,12 +1085,6 @@ internal abstract class FolderResourceReader : IResourceReader
             ? Find(lookup, "models", "")
             : Find(lookup, folder);
         if (bytes != null) return bytes;
-
-        for (int i = nestedReaders.Count - 1; i >= 0; i--)
-        {
-            bytes = nestedReaders[i].GetModelResourceBytes(path);
-            if (bytes != null) return bytes;
-        }
 
         return null;
     }

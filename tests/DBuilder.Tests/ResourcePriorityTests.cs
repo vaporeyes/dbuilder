@@ -141,6 +141,29 @@ public class ResourcePriorityTests
     }
 
     [Fact]
+    public void NestedWadModelOverridesFolderModelInsidePk3()
+    {
+        byte[] nestedModel = { 12, 13, 14 };
+        byte[] folderModel = { 1, 2, 3 };
+        byte[] nested = BuildNestedWadBytes(("ZOMBIE", nestedModel));
+        string pk3 = TestArtifacts.BuildPk3(
+            ("models/zombie.md3", folderModel),
+            ("nested.wad", nested));
+
+        try
+        {
+            using var rm = new ResourceManager();
+            rm.AddResource(pk3);
+
+            Assert.Equal(nestedModel, rm.GetModelResourceBytes("models/zombie.md3"));
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
+    [Fact]
     public void SameNameEntriesResolveByRequestedNamespace()
     {
         string pk3 = TestArtifacts.BuildPk3(
