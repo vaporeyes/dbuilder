@@ -5,8 +5,8 @@ namespace DBuilder.IO;
 
 public static class ThingIconRenderPolicy
 {
-    public const double CompactMarkerScaleThreshold = 0.06;
     public const double SpriteIconScaleThreshold = 0.03;
+    public const double CompactMarkerScaleThreshold = SpriteIconScaleThreshold;
     public const double FixedThingScreenRadius = 48.0;
     public const double ThingSpriteShrink = 2.0;
     public const double MinimumThingScreenRadius = 1.5;

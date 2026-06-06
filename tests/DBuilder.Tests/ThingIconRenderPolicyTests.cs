@@ -36,7 +36,7 @@ public sealed class ThingIconRenderPolicyTests
     [Fact]
     public void UsesCompactMarkersBeforeSpritesCrowdAtOverviewScale()
     {
-        Assert.Equal(0.06, ThingIconRenderPolicy.CompactMarkerScaleThreshold);
+        Assert.Equal(ThingIconRenderPolicy.SpriteIconScaleThreshold, ThingIconRenderPolicy.CompactMarkerScaleThreshold);
         Assert.False(ThingIconRenderPolicy.UseCompactMarkers(
             viewScale: ThingIconRenderPolicy.CompactMarkerScaleThreshold - 0.01,
             fixedThingsScale: false,
@@ -48,21 +48,19 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
-    public void CompactThresholdMovesTowardCloseZoomForEarlierOverviewCollapse()
+    public void CompactThresholdStartsWhenSpriteIconsCollapse()
     {
-        Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
-            viewScale: 0.06,
+        Assert.Equal(0.03, ThingIconRenderPolicy.CompactMarkerScaleThreshold);
+        Assert.False(ThingIconRenderPolicy.UseCompactMarkers(
+            viewScale: 0.02,
             fixedThingsScale: false,
             thingArrows: false));
         Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
-            viewScale: 1.0,
+            viewScale: ThingIconRenderPolicy.SpriteIconScaleThreshold,
             fixedThingsScale: false,
             thingArrows: false));
         Assert.True(ThingIconRenderPolicy.UseOverviewMarkers(
-            viewScale: 1.0,
-            thingArrows: false));
-        Assert.True(ThingIconRenderPolicy.UseFarOverviewMarkers(
-            viewScale: 1.0,
+            viewScale: ThingIconRenderPolicy.SpriteIconScaleThreshold,
             thingArrows: false));
     }
 
@@ -192,7 +190,7 @@ public sealed class ThingIconRenderPolicyTests
     {
         Assert.False(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
             mapRadius: 20,
-            viewScale: ThingIconRenderPolicy.CompactMarkerScaleThreshold,
+            viewScale: ThingIconRenderPolicy.SpriteIconScaleThreshold + 0.01,
             fixedThingsScale: false));
         Assert.False(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
             mapRadius: 20,
