@@ -724,6 +724,123 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void BuildReflectionRuntimePlanKeepsActivatedInstancesInReadyHost()
+    {
+        string assemblyPath = typeof(ReflectionPluginHostTestPlugin).Assembly.Location;
+        DBuilderPluginReflectionRuntimePlan plan = DBuilderPluginHostModel.BuildReflectionRuntimePlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor(
+                    "ReflectionTest",
+                    assemblyPath,
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "reflection.action", "Reflection Action")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest(Engage: true),
+            _ => true);
+
+        DBuilderPluginRuntimeInstance instance = Assert.Single(plan.InstancePlan.Instances);
+        Assert.Equal("ReflectionTest", instance.PluginName);
+        DBuilderPluginDescriptor readyDescriptor = Assert.Single(plan.ReadyHostPlan.DescriptorPlan.Descriptors);
+        Assert.Equal("ReflectionTest", readyDescriptor.Name);
+        DBuilderPluginApiContribution action = Assert.Single(plan.ReadyHostPlan.ApiContributions.Actions);
+        Assert.Equal("reflection.action", action.Id);
+        Assert.Contains(
+            plan.TypeDiscoveryPlan.Diagnostics,
+            diagnostic => diagnostic.PluginName == "ReflectionTest"
+                && diagnostic.Severity == DBuilderPluginDiagnosticSeverity.Warning
+                && diagnostic.Message.Contains("exposes multiple", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void BuildReflectionRuntimePlanKeepsMissingAssembliesOutOfReadyHost()
+    {
+        string assemblyPath = typeof(ReflectionPluginHostTestPlugin).Assembly.Location;
+        DBuilderPluginReflectionRuntimePlan plan = DBuilderPluginHostModel.BuildReflectionRuntimePlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor("Missing", "/plugins/missing.dll"),
+                new DBuilderPluginDescriptor("ReflectionTest", assemblyPath)
+            },
+            new DBuilderPluginLifecycleRequest(),
+            path => path == assemblyPath);
+
+        Assert.Collection(
+            plan.AssemblyLoadPlan.Attempts,
+            attempt =>
+            {
+                Assert.Equal("Missing", attempt.PluginName);
+                Assert.False(attempt.AssemblyFound);
+            },
+            attempt =>
+            {
+                Assert.Equal("ReflectionTest", attempt.PluginName);
+                Assert.True(attempt.AssemblyFound);
+            });
+        Assert.Single(plan.InstancePlan.Instances);
+        DBuilderPluginDescriptor readyDescriptor = Assert.Single(plan.ReadyHostPlan.DescriptorPlan.Descriptors);
+        Assert.Equal("ReflectionTest", readyDescriptor.Name);
+        Assert.Contains(
+            plan.AssemblyLoadPlan.Diagnostics,
+            diagnostic => diagnostic.PluginName == "Missing"
+                && diagnostic.Message == "Plugin Missing assembly was not found at /plugins/missing.dll.");
+    }
+
+    [Fact]
+    public void BuildReflectionRuntimePlanKeepsInspectionFailuresOutOfReadyHost()
+    {
+        string assemblyPath = Path.Combine(Path.GetTempPath(), "dbuilder-broken-runtime-plugin-" + Guid.NewGuid() + ".dll");
+        File.WriteAllText(assemblyPath, "not an assembly");
+        try
+        {
+            DBuilderPluginReflectionRuntimePlan plan = DBuilderPluginHostModel.BuildReflectionRuntimePlan(
+                new[]
+                {
+                    new DBuilderPluginDescriptor("Broken", assemblyPath)
+                },
+                new DBuilderPluginLifecycleRequest(),
+                _ => true);
+
+            Assert.Empty(plan.InstancePlan.Instances);
+            Assert.Empty(plan.ReadyHostPlan.DescriptorPlan.Descriptors);
+            Assert.Contains(
+                plan.TypeDiscoveryPlan.Diagnostics,
+                diagnostic => diagnostic.PluginName == "Broken"
+                    && diagnostic.Severity == DBuilderPluginDiagnosticSeverity.Error
+                    && diagnostic.Message.Contains("could not be inspected", StringComparison.Ordinal));
+        }
+        finally
+        {
+            File.Delete(assemblyPath);
+        }
+    }
+
+    [Fact]
+    public void BuildReflectionRuntimePlanFeedsReadyInstancesToCallbackExecution()
+    {
+        string assemblyPath = typeof(ReflectionCallbackPlugin).Assembly.Location;
+        DBuilderPluginReflectionRuntimePlan plan = DBuilderPluginHostModel.BuildReflectionRuntimePlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor("Callback", assemblyPath)
+            },
+            new DBuilderPluginLifecycleRequest(),
+            _ => true);
+
+        DBuilderPluginCallbackExecutionResult result = DBuilderPluginHostModel.ExecuteReflectionCallback(
+            plan.InstancePlan,
+            "OnPasteBegin");
+
+        Assert.True(result.Completed);
+        Assert.True(result.Aborted);
+        DBuilderPluginCallbackOutcome outcome = Assert.Single(result.Outcomes);
+        Assert.Equal("Callback", outcome.PluginName);
+        Assert.True(outcome.Aborted);
+    }
+
+    [Fact]
     public void PlanShutdownAttemptsDisposesActivatedPluginsInReverseActivationOrder()
     {
         DBuilderPluginActivationPlan activationPlan = DBuilderPluginHostModel.PlanActivationAttempts(

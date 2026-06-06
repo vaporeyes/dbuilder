@@ -144,6 +144,13 @@ public sealed record DBuilderPluginRuntimePlan(
     DBuilderPluginActivationPlan ActivationPlan,
     DBuilderPluginHostPlan ReadyHostPlan);
 
+public sealed record DBuilderPluginReflectionRuntimePlan(
+    DBuilderPluginHostPlan HostPlan,
+    DBuilderPluginAssemblyLoadPlan AssemblyLoadPlan,
+    DBuilderPluginTypeDiscoveryPlan TypeDiscoveryPlan,
+    DBuilderPluginRuntimeInstancePlan InstancePlan,
+    DBuilderPluginHostPlan ReadyHostPlan);
+
 public sealed record DBuilderPluginSettingDescriptor(
     string Key,
     object? DefaultValue = null);
@@ -698,6 +705,38 @@ public static class DBuilderPluginHostModel
             assemblyLoadPlan,
             typeDiscoveryPlan,
             activationPlan,
+            readyHostPlan);
+    }
+
+    public static DBuilderPluginReflectionRuntimePlan BuildReflectionRuntimePlan(
+        IEnumerable<DBuilderPluginDescriptor> descriptors,
+        DBuilderPluginLifecycleRequest request)
+        => BuildReflectionRuntimePlan(descriptors, request, File.Exists);
+
+    public static DBuilderPluginReflectionRuntimePlan BuildReflectionRuntimePlan(
+        IEnumerable<DBuilderPluginDescriptor> descriptors,
+        DBuilderPluginLifecycleRequest request,
+        Func<string, bool> assemblyExists)
+    {
+        DBuilderPluginDescriptor[] descriptorRows = descriptors.ToArray();
+        DBuilderPluginHostPlan hostPlan = BuildHostPlan(descriptorRows, request);
+        DBuilderPluginAssemblyLoadPlan assemblyLoadPlan = PlanAssemblyLoadAttempts(
+            hostPlan.LoadPlan,
+            assemblyExists);
+        DBuilderPluginTypeDiscoveryPlan typeDiscoveryPlan = PlanReflectionTypeDiscovery(assemblyLoadPlan);
+        DBuilderPluginRuntimeInstancePlan instancePlan = ActivateReflectionPlugins(typeDiscoveryPlan);
+        var activatedPlugins = instancePlan.Instances
+            .Select(instance => instance.PluginName)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        DBuilderPluginHostPlan readyHostPlan = BuildHostPlan(
+            descriptorRows.Where(descriptor => activatedPlugins.Contains(descriptor.Name.Trim())),
+            request);
+
+        return new DBuilderPluginReflectionRuntimePlan(
+            hostPlan,
+            assemblyLoadPlan,
+            typeDiscoveryPlan,
+            instancePlan,
             readyHostPlan);
     }
 
