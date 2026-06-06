@@ -52,6 +52,7 @@ public class MapSetAndUdmfLoaderTests
     {
         var map = new MapSet();
 
+        Assert.Equal(0.005f, MapSet.STITCH_DISTANCE);
         Assert.Equal(MapSet.EmptyLongName, Lump.MakeLongName("-", useLongNames: false));
 
         Vertex start = map.CreateVertex(new Vector2D(0, 0));
