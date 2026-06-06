@@ -372,7 +372,14 @@ public sealed class MapOptions
         => MapConfiguration.WriteSetting(PluginSettingPath(pluginName, setting), value);
 
     public bool DeletePluginSetting(string pluginName, string setting)
-        => MapConfiguration.DeleteSetting(PluginSettingPath(pluginName, setting));
+    {
+        string path = PluginSettingPath(pluginName, setting);
+        if (!MapConfiguration.SettingExists(path)) return false;
+
+        bool deleted = MapConfiguration.DeleteSetting(path);
+        if (deleted) PruneEmptyPluginSettings(pluginName);
+        return deleted;
+    }
 
     public int GetUniversalFieldType(string elementName, string fieldName, int defaultType, Configuration? gameConfiguration = null)
     {
@@ -541,6 +548,16 @@ public sealed class MapOptions
         return clone;
     }
 
+    private void PruneEmptyPluginSettings(string pluginName)
+    {
+        string pluginKey = PluginSettingRoot(pluginName);
+        if (MapConfiguration.ReadSetting(pluginKey, (IDictionary?)null) is { Count: 0 })
+            MapConfiguration.DeleteSetting(pluginKey);
+    }
+
     private static string PluginSettingPath(string pluginName, string setting)
-        => pluginName.ToLowerInvariant() + "." + setting;
+        => PluginSettingRoot(pluginName) + "." + setting;
+
+    private static string PluginSettingRoot(string pluginName)
+        => pluginName.ToLowerInvariant();
 }

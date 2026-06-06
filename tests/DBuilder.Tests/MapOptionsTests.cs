@@ -1104,6 +1104,29 @@ public class MapOptionsTests
         Assert.True(options.DeletePluginSetting("TagRange", "enabled"));
 
         Assert.False(options.ReadPluginSetting("TagRange", "enabled", false));
+        Assert.False(options.MapConfiguration.SettingExists("tagrange"));
+    }
+
+    [Fact]
+    public void DeleteMissingPluginSettingDoesNotCreatePluginSection()
+    {
+        var options = new MapOptions();
+
+        Assert.False(options.DeletePluginSetting("TagRange", "enabled"));
+
+        Assert.False(options.MapConfiguration.SettingExists("tagrange"));
+    }
+
+    [Fact]
+    public void DeleteMissingPluginSettingKeepsExistingPluginValues()
+    {
+        var options = new MapOptions();
+        options.WritePluginSetting("TagRange", "count", 3);
+
+        Assert.False(options.DeletePluginSetting("TagRange", "enabled"));
+
+        Assert.Equal(3, options.ReadPluginSetting("TagRange", "count", 0));
+        Assert.True(options.MapConfiguration.SettingExists("tagrange"));
     }
 
     [Fact]
