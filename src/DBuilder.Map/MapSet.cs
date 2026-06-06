@@ -1250,6 +1250,15 @@ public class MapSet : IDisposable
     }
 
     /// <summary>
+    /// UDB-compatible wrapper for joining overlapping linedefs.
+    /// </summary>
+    public bool JoinOverlappingLines(ICollection<Linedef> lines)
+    {
+        JoinOverlappingLinedefs(lines);
+        return true;
+    }
+
+    /// <summary>
     /// Adds missing front/back sidedefs to changed lines that are fully inside an existing sector.
     /// New sides copy properties from the line's existing side. Returns the number of sides created.
     /// </summary>

@@ -186,6 +186,25 @@ public class MapSetStitchTests
     }
 
     [Fact]
+    public void JoinOverlappingLinesUsesUdbBooleanContract()
+    {
+        var map = new MapSet();
+        var start = map.AddVertex(new Vector2D(0, 0));
+        var end = map.AddVertex(new Vector2D(64, 0));
+        var keep = map.AddLinedef(start, end);
+        var duplicate = map.AddLinedef(start, end);
+        var lines = new HashSet<Linedef> { keep, duplicate };
+
+        bool succeeded = map.JoinOverlappingLines(lines);
+
+        Assert.True(succeeded);
+        Assert.Single(lines);
+        Assert.Contains(keep, map.Linedefs);
+        Assert.DoesNotContain(duplicate, map.Linedefs);
+        Assert.True(duplicate.IsDisposed);
+    }
+
+    [Fact]
     public void StitchSelectedGeometryJoinsSelectedVerticesToFixedVertices()
     {
         var map = new MapSet();
