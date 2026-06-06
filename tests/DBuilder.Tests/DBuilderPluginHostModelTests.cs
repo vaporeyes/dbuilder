@@ -299,6 +299,100 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void PlanApiContributionsSeparatesActionsEditModesAndDockers()
+    {
+        var plan = DBuilderPluginHostModel.PlanApiContributions(new[]
+        {
+            new DBuilderPluginDescriptor(
+                "BuilderModes",
+                "/plugins/buildermodes.dll",
+                Contributions: new[]
+                {
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "builder.draw.action", "Draw action"),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.EditMode, "builder.draw.mode", "Draw mode"),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Docker, "builder.tags.docker", "Tags docker"),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, "builder.draw.menu", "Draw menu")
+                }),
+            new DBuilderPluginDescriptor(
+                "CommentsPanel",
+                "/plugins/comments.dll",
+                Contributions: new[]
+                {
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "comments.open.action", "Open Comments"),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Docker, "comments.panel.docker", "Comments panel")
+                })
+        });
+
+        Assert.Empty(plan.Warnings);
+        Assert.Collection(
+            plan.Actions,
+            contribution =>
+            {
+                Assert.Equal("BuilderModes", contribution.PluginName);
+                Assert.Equal(DBuilderPluginContributionKind.Action, contribution.Kind);
+                Assert.Equal("builder.draw.action", contribution.Id);
+            },
+            contribution =>
+            {
+                Assert.Equal("CommentsPanel", contribution.PluginName);
+                Assert.Equal(DBuilderPluginContributionKind.Action, contribution.Kind);
+                Assert.Equal("comments.open.action", contribution.Id);
+            });
+        DBuilderPluginApiContribution editMode = Assert.Single(plan.EditModes);
+        Assert.Equal("BuilderModes", editMode.PluginName);
+        Assert.Equal(DBuilderPluginContributionKind.EditMode, editMode.Kind);
+        Assert.Equal("builder.draw.mode", editMode.Id);
+        Assert.Collection(
+            plan.Dockers,
+            contribution =>
+            {
+                Assert.Equal("BuilderModes", contribution.PluginName);
+                Assert.Equal(DBuilderPluginContributionKind.Docker, contribution.Kind);
+                Assert.Equal("builder.tags.docker", contribution.Id);
+            },
+            contribution =>
+            {
+                Assert.Equal("CommentsPanel", contribution.PluginName);
+                Assert.Equal(DBuilderPluginContributionKind.Docker, contribution.Kind);
+                Assert.Equal("comments.panel.docker", contribution.Id);
+            });
+    }
+
+    [Fact]
+    public void PlanApiContributionsUsesNormalizedRowsAndWarnings()
+    {
+        var plan = DBuilderPluginHostModel.PlanApiContributions(new[]
+        {
+            new DBuilderPluginDescriptor(
+                "  BuilderModes  ",
+                " /plugins/buildermodes.dll ",
+                Contributions: new[]
+                {
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, " builder.draw.action ", " Draw action "),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "builder.draw.action", "Duplicate"),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.EditMode, "", "Missing Id"),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Docker, "builder.empty", "")
+                }),
+            new DBuilderPluginDescriptor(
+                "DisabledModes",
+                "/plugins/disabled.dll",
+                Enabled: false,
+                Contributions: new[]
+                {
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "disabled.action", "Disabled")
+                })
+        });
+
+        DBuilderPluginApiContribution action = Assert.Single(plan.Actions);
+        Assert.Empty(plan.EditModes);
+        Assert.Empty(plan.Dockers);
+        Assert.Equal("BuilderModes", action.PluginName);
+        Assert.Equal("builder.draw.action", action.Id);
+        Assert.Equal("Draw action", action.Title);
+        Assert.Equal(new[] { "Plugin DisabledModes is disabled." }, plan.Warnings);
+    }
+
+    [Fact]
     public void NormalizeSettingsStoreTrimsPluginsAndSettingsWithoutDroppingUnknownValues()
     {
         var settings = DBuilderPluginHostModel.NormalizeSettingsStore(new Dictionary<string, Dictionary<string, object?>>

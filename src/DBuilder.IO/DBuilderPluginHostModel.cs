@@ -80,6 +80,18 @@ public sealed record DBuilderPluginResourceHandlerPlan(
     IReadOnlyList<DBuilderPluginResourceHandler> Handlers,
     IReadOnlyList<string> Warnings);
 
+public sealed record DBuilderPluginApiContribution(
+    string PluginName,
+    DBuilderPluginContributionKind Kind,
+    string Id,
+    string Title);
+
+public sealed record DBuilderPluginApiContributionPlan(
+    IReadOnlyList<DBuilderPluginApiContribution> Actions,
+    IReadOnlyList<DBuilderPluginApiContribution> EditModes,
+    IReadOnlyList<DBuilderPluginApiContribution> Dockers,
+    IReadOnlyList<string> Warnings);
+
 public static class DBuilderPluginHostModel
 {
     public static IReadOnlyList<DBuilderPluginDescriptor> NormalizeDescriptors(
@@ -222,6 +234,44 @@ public static class DBuilderPluginHostModel
             warnings);
     }
 
+    public static DBuilderPluginApiContributionPlan PlanApiContributions(
+        IEnumerable<DBuilderPluginDescriptor> descriptors)
+    {
+        var actions = new List<DBuilderPluginApiContribution>();
+        var editModes = new List<DBuilderPluginApiContribution>();
+        var dockers = new List<DBuilderPluginApiContribution>();
+        var warnings = new List<string>();
+
+        foreach (DBuilderPluginDescriptor descriptor in NormalizeDescriptors(descriptors))
+        {
+            DBuilderPluginLifecyclePlan lifecycle = PlanLifecycle(descriptor, new DBuilderPluginLifecycleRequest());
+            if (lifecycle.Warnings.Count > 0)
+            {
+                warnings.AddRange(lifecycle.Warnings);
+                continue;
+            }
+
+            foreach (DBuilderPluginContribution contribution in lifecycle.Descriptor.Contributions ?? Array.Empty<DBuilderPluginContribution>())
+            {
+                var apiContribution = new DBuilderPluginApiContribution(
+                    lifecycle.Descriptor.Name,
+                    contribution.Kind,
+                    contribution.Id,
+                    contribution.Title);
+
+                if (contribution.Kind == DBuilderPluginContributionKind.Action) actions.Add(apiContribution);
+                if (contribution.Kind == DBuilderPluginContributionKind.EditMode) editModes.Add(apiContribution);
+                if (contribution.Kind == DBuilderPluginContributionKind.Docker) dockers.Add(apiContribution);
+            }
+        }
+
+        return new DBuilderPluginApiContributionPlan(
+            SortApiContributions(actions),
+            SortApiContributions(editModes),
+            SortApiContributions(dockers),
+            warnings);
+    }
+
     public static Dictionary<string, Dictionary<string, object?>> NormalizeSettingsStore(
         IDictionary<string, Dictionary<string, object?>>? settings)
     {
@@ -358,6 +408,14 @@ public static class DBuilderPluginHostModel
 
     private static IReadOnlyList<DBuilderPluginUiContribution> SortUiContributions(
         IEnumerable<DBuilderPluginUiContribution> contributions)
+        => contributions
+            .OrderBy(contribution => contribution.PluginName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(contribution => contribution.Title, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(contribution => contribution.Id, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+    private static IReadOnlyList<DBuilderPluginApiContribution> SortApiContributions(
+        IEnumerable<DBuilderPluginApiContribution> contributions)
         => contributions
             .OrderBy(contribution => contribution.PluginName, StringComparer.OrdinalIgnoreCase)
             .ThenBy(contribution => contribution.Title, StringComparer.OrdinalIgnoreCase)

@@ -349,6 +349,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add plugin lifecycle hook ordering for load, initialize, contribution registration, map-open, engage, disengage, and dispose planning.
 - [ ] Define plugin APIs for map access, UI contribution, actions, edit modes, and dockers.
   - [x] Model plugin contribution kinds for actions, menus, toolbars, edit modes, dockers, and resource handlers.
+  - [x] Add plugin action, edit-mode, and docker contribution planning with stable ordering and warning isolation.
 - [ ] Port plugin toolbar and menu contribution behavior.
   - [x] Add plugin menu and toolbar contribution planning with stable ordering and warning isolation.
 - [ ] Port plugin settings persistence.
