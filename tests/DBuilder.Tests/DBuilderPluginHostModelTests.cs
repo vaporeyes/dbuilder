@@ -902,6 +902,35 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void FindReflectionPluginByAssemblyReturnsLoadedRuntimeInstance()
+    {
+        DBuilderPluginRuntimeInstancePlan instancePlan = RuntimeInstancePlan(
+            new ReflectionPluginHostTestPlugin(),
+            "Plain");
+
+        DBuilderPluginRuntimeInstance? match = DBuilderPluginHostModel.FindReflectionPluginByAssembly(
+            instancePlan.Instances,
+            typeof(ReflectionPluginHostTestPlugin).Assembly);
+
+        Assert.NotNull(match);
+        Assert.Equal("Plain", match.PluginName);
+    }
+
+    [Fact]
+    public void FindReflectionPluginByAssemblyRequiresExactAssemblyMatch()
+    {
+        DBuilderPluginRuntimeInstancePlan instancePlan = RuntimeInstancePlan(
+            new ReflectionPluginHostTestPlugin(),
+            "Plain");
+
+        DBuilderPluginRuntimeInstance? match = DBuilderPluginHostModel.FindReflectionPluginByAssembly(
+            instancePlan.Instances,
+            typeof(string).Assembly);
+
+        Assert.Null(match);
+    }
+
+    [Fact]
     public void BuildReflectionRuntimePlanKeepsActivatedInstancesInReadyHost()
     {
         string assemblyPath = typeof(ReflectionPluginHostTestPlugin).Assembly.Location;

@@ -754,6 +754,11 @@ public static class DBuilderPluginHostModel
         return new DBuilderPluginCompatibilityPlan(checks, instances, diagnostics);
     }
 
+    public static DBuilderPluginRuntimeInstance? FindReflectionPluginByAssembly(
+        IEnumerable<DBuilderPluginRuntimeInstance> instances,
+        Assembly assembly)
+        => instances.FirstOrDefault(instance => Equals(instance.Instance.GetType().Assembly, assembly));
+
     public static DBuilderPluginShutdownPlan PlanShutdownAttempts(
         DBuilderPluginActivationPlan activationPlan,
         Func<DBuilderPluginActivationAttempt, string?> disposePlugin)
