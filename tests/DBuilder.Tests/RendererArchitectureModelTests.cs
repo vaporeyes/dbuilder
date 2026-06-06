@@ -23,6 +23,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Texture disposed-state reporting", replacement.CoveredResponsibilities);
         Assert.Contains("Surface-entry chunk metadata and bounds model", replacement.CoveredResponsibilities);
         Assert.Contains("Surface manager vertex chunk and buffer allocation planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Surface buffer hole allocation and free-entry planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface update entry application and chunk reuse planning", replacement.CoveredResponsibilities);
     }
 

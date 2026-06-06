@@ -5,6 +5,90 @@ namespace DBuilder.Rendering;
 
 public sealed record SurfaceChunkPlan(int VerticesPerEntry, int EntryCount);
 
+public sealed class SurfaceBufferSetState
+{
+    public SurfaceBufferSetState(int verticesPerEntry)
+    {
+        VerticesPerEntry = verticesPerEntry;
+    }
+
+    public int VerticesPerEntry { get; }
+    public List<int> BufferSizes { get; } = new();
+    public List<SurfaceEntry> Entries { get; } = new();
+    public List<SurfaceEntry> Holes { get; } = new();
+
+    public void EnsureFreeEntries(int freeEntries)
+    {
+        int addEntries = freeEntries - Holes.Count;
+        int bufferIndex = BufferSizes.Count - 1;
+        int bufferVerticesPerEntry = SurfaceManagerPlan.VerticesPerBufferEntry(VerticesPerEntry);
+        int maxEntriesPerBuffer = SurfaceManagerPlan.MaxEntriesPerBuffer(VerticesPerEntry);
+
+        if (bufferIndex > -1 && BufferSizes[bufferIndex] >= maxEntriesPerBuffer * bufferVerticesPerEntry)
+            bufferIndex = -1;
+
+        while (addEntries > 0)
+        {
+            if (bufferIndex == -1 || bufferIndex > BufferSizes.Count - 1)
+            {
+                int bufferEntries = Math.Min(addEntries, maxEntriesPerBuffer);
+                int allocatedBufferIndex = BufferSizes.Count;
+                BufferSizes.Add(bufferEntries * bufferVerticesPerEntry);
+                for (int i = 0; i < bufferEntries; i++)
+                    Holes.Add(new SurfaceEntry(VerticesPerEntry, allocatedBufferIndex, i * bufferVerticesPerEntry));
+
+                addEntries -= bufferEntries;
+            }
+            else
+            {
+                List<SurfaceEntry> bufferEntries = Entries
+                    .Where(entry => entry.BufferIndex == bufferIndex)
+                    .ToList();
+                int entryCount = Math.Min(bufferEntries.Count + addEntries, maxEntriesPerBuffer);
+                int freeEntriesAdded = entryCount - bufferEntries.Count;
+
+                int vertexOffset = 0;
+                foreach (SurfaceEntry entry in bufferEntries)
+                {
+                    entry.VertexOffset = vertexOffset;
+                    vertexOffset += bufferVerticesPerEntry;
+                }
+
+                BufferSizes[bufferIndex] = entryCount * bufferVerticesPerEntry;
+                Holes.Clear();
+                for (int i = 0; i < freeEntriesAdded; i++)
+                    Holes.Add(new SurfaceEntry(VerticesPerEntry, bufferIndex, i * bufferVerticesPerEntry + vertexOffset));
+
+                addEntries -= freeEntriesAdded;
+            }
+
+            bufferIndex = BufferSizes.Count;
+        }
+    }
+
+    public SurfaceEntry AllocateEntry()
+    {
+        EnsureFreeEntries(1);
+        int index = Holes.Count - 1;
+        SurfaceEntry entry = Holes[index];
+        Holes.RemoveAt(index);
+        Entries.Add(entry);
+        return entry;
+    }
+
+    public void FreeEntry(SurfaceEntry entry)
+    {
+        if (entry.NumVertices > 0 && entry.BufferIndex > -1)
+        {
+            Entries.Remove(entry);
+            Holes.Add(new SurfaceEntry(entry));
+        }
+
+        entry.NumVertices = -1;
+        entry.BufferIndex = -1;
+    }
+}
+
 public static class SurfaceManagerPlan
 {
     public const int MaxVerticesPerBuffer = 30000;

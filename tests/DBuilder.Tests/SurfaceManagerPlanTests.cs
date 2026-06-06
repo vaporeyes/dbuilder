@@ -51,4 +51,72 @@ public sealed class SurfaceManagerPlanTests
         Assert.Equal(2500, SurfaceManagerPlan.MaxEntriesPerBuffer(6));
         Assert.Equal(2, SurfaceManagerPlan.MaxEntriesPerBuffer(6000));
     }
+
+    [Fact]
+    public void BufferSetCreatesHolesForAllocatedBufferSlots()
+    {
+        var set = new SurfaceBufferSetState(verticesPerEntry: 3);
+
+        set.EnsureFreeEntries(4);
+
+        Assert.Equal(new[] { 24 }, set.BufferSizes);
+        Assert.Equal(new[] { 0, 6, 12, 18 }, set.Holes.Select(entry => entry.VertexOffset).ToArray());
+        Assert.All(set.Holes, entry =>
+        {
+            Assert.Equal(3, entry.NumVertices);
+            Assert.Equal(0, entry.BufferIndex);
+        });
+    }
+
+    [Fact]
+    public void BufferSetResizesLastBufferBeforeAddingAnother()
+    {
+        var set = new SurfaceBufferSetState(verticesPerEntry: 3);
+        SurfaceEntry first = set.AllocateEntry();
+        SurfaceEntry second = set.AllocateEntry();
+
+        set.EnsureFreeEntries(1);
+
+        Assert.Equal(new[] { 18 }, set.BufferSizes);
+        Assert.Equal(2, set.Entries.Count);
+        Assert.Equal(0, first.VertexOffset);
+        Assert.Equal(6, second.VertexOffset);
+        SurfaceEntry hole = Assert.Single(set.Holes);
+        Assert.Equal(0, hole.BufferIndex);
+        Assert.Equal(12, hole.VertexOffset);
+    }
+
+    [Fact]
+    public void BufferSetCreatesNextBufferWhenLastBufferIsFull()
+    {
+        var set = new SurfaceBufferSetState(verticesPerEntry: 6000);
+        set.AllocateEntry();
+        set.AllocateEntry();
+
+        set.EnsureFreeEntries(1);
+
+        Assert.Equal(new[] { 24000, 12000 }, set.BufferSizes);
+        SurfaceEntry hole = Assert.Single(set.Holes);
+        Assert.Equal(1, hole.BufferIndex);
+        Assert.Equal(0, hole.VertexOffset);
+    }
+
+    [Fact]
+    public void BufferSetFreeEntryReturnsCopyToHolesAndInvalidatesOriginal()
+    {
+        var set = new SurfaceBufferSetState(verticesPerEntry: 3);
+        SurfaceEntry entry = set.AllocateEntry();
+        entry.FloorVertices = new[] { new FlatVertex { x = 1, y = 2 } };
+
+        set.FreeEntry(entry);
+
+        Assert.Empty(set.Entries);
+        SurfaceEntry hole = Assert.Single(set.Holes);
+        Assert.NotSame(entry, hole);
+        Assert.Equal(3, hole.NumVertices);
+        Assert.Equal(0, hole.BufferIndex);
+        Assert.Empty(hole.FloorVertices);
+        Assert.Equal(-1, entry.NumVertices);
+        Assert.Equal(-1, entry.BufferIndex);
+    }
 }
