@@ -76,6 +76,12 @@ public class Vertex : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
     public void Move(double x, double y)
         => Move(new Vector2D(x, y));
 
+    public void SnapToAccuracy()
+        => SnapToAccuracy(usePrecisePosition: true);
+
+    public void SnapToAccuracy(bool usePrecisePosition)
+        => SnapToAccuracy(vertexDecimals: 3, usePrecisePosition);
+
     public void SnapToAccuracy(int vertexDecimals, bool usePrecisePosition = true)
     {
         int decimals = usePrecisePosition ? Math.Max(0, vertexDecimals) : 0;

@@ -194,6 +194,12 @@ public class Thing : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, 
         Move(x, y, zOffset);
     }
 
+    public void SnapToAccuracy()
+        => SnapToAccuracy(usePrecisePosition: true);
+
+    public void SnapToAccuracy(bool usePrecisePosition)
+        => SnapToAccuracy(vertexDecimals: 3, usePrecisePosition);
+
     public void SnapToAccuracy(int vertexDecimals, bool usePrecisePosition = true)
     {
         int decimals = usePrecisePosition ? Math.Max(0, vertexDecimals) : 0;

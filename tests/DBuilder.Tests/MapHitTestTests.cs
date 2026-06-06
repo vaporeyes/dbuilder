@@ -106,6 +106,14 @@ public class MapHitTestTests
         vertex.Move(new Vector2D(2.3456, -8.7654));
         Assert.Equal(new Vector2D(2.3456, -8.7654), vertex.Position);
 
+        vertex.SnapToAccuracy();
+        Assert.Equal(new Vector2D(2.346, -8.765), vertex.Position);
+
+        vertex.Move(new Vector2D(2.3456, -8.7654));
+        vertex.SnapToAccuracy(usePrecisePosition: false);
+        Assert.Equal(new Vector2D(2, -9), vertex.Position);
+
+        vertex.Move(new Vector2D(2.3456, -8.7654));
         vertex.SnapToAccuracy(vertexDecimals: 2);
         Assert.Equal(new Vector2D(2.35, -8.77), vertex.Position);
 
@@ -440,6 +448,18 @@ public class MapHitTestTests
         thing.Move(new Vector2D(2.3456, -8.7654));
         Assert.Equal(new Vector2D(2.3456, -8.7654), thing.Position);
 
+        thing.SnapToAccuracy();
+        Assert.Equal(new Vector2D(2.346, -8.765), thing.Position);
+        Assert.Equal(16.555, thing.Height, 1e-9);
+
+        thing.Move(new Vector2D(2.3456, -8.7654));
+        thing.Height = 16.555;
+        thing.SnapToAccuracy(usePrecisePosition: false);
+        Assert.Equal(new Vector2D(2, -9), thing.Position);
+        Assert.Equal(17, thing.Height, 1e-9);
+
+        thing.Move(new Vector2D(2.3456, -8.7654));
+        thing.Height = 16.555;
         thing.SnapToAccuracy(vertexDecimals: 2);
         Assert.Equal(new Vector2D(2.35, -8.77), thing.Position);
         Assert.Equal(16.56, thing.Height, 1e-9);
@@ -538,6 +558,22 @@ public class MapHitTestTests
         var thing = map.AddThing(new Vector2D(2.3456, -8.7654), 3001);
         thing.Height = 16.555;
 
+        map.SnapAllToAccuracy();
+
+        Assert.Equal(new Vector2D(1.234, -9.876), vertex.Position);
+        Assert.Equal(new Vector2D(2.346, -8.765), thing.Position);
+        Assert.Equal(16.555, thing.Height, 1e-9);
+
+        vertex.Move(new Vector2D(1.2345, -9.8765));
+        thing.Move(new Vector3D(2.3456, -8.7654, 16.555));
+        map.SnapAllToAccuracy(usePrecisePosition: false);
+
+        Assert.Equal(new Vector2D(1, -10), vertex.Position);
+        Assert.Equal(new Vector2D(2, -9), thing.Position);
+        Assert.Equal(17, thing.Height, 1e-9);
+
+        vertex.Move(new Vector2D(1.2345, -9.8765));
+        thing.Move(new Vector3D(2.3456, -8.7654, 16.555));
         map.SnapAllToAccuracy(vertexDecimals: 1);
 
         Assert.Equal(new Vector2D(1.2, -9.9), vertex.Position);

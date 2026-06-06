@@ -1960,6 +1960,14 @@ public class MapSet : IDisposable
     }
 
     /// <summary>Snaps vertex and thing coordinates to the active map format accuracy.</summary>
+    public void SnapAllToAccuracy()
+        => SnapAllToAccuracy(usePrecisePosition: true);
+
+    /// <summary>Snaps vertex and thing coordinates to UDB's default precise or integer accuracy.</summary>
+    public void SnapAllToAccuracy(bool usePrecisePosition)
+        => SnapAllToAccuracy(vertexDecimals: 3, usePrecisePosition);
+
+    /// <summary>Snaps vertex and thing coordinates to the requested map format accuracy.</summary>
     public void SnapAllToAccuracy(int vertexDecimals, bool usePrecisePosition = true)
     {
         foreach (var vertex in Vertices) vertex.SnapToAccuracy(vertexDecimals, usePrecisePosition);
