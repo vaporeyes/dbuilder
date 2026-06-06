@@ -1128,6 +1128,46 @@ public static class DBuilderPluginHostModel
         DBuilderPluginRuntimeInstancePlan instancePlan)
         => ExecuteReflectionCallback(instancePlan, "OnActionEnd");
 
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionEditMouseClick(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnEditMouseClick");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionEditMouseDoubleClick(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnEditMouseDoubleClick");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionEditMouseDown(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnEditMouseDown");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionEditMouseEnter(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnEditMouseEnter");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionEditMouseLeave(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnEditMouseLeave");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionEditMouseMove(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnEditMouseMove");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionEditMouseUp(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnEditMouseUp");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionEditKeyDown(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnEditKeyDown");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionEditKeyUp(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnEditKeyUp");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionEditMouseInput(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnEditMouseInput");
+
     public static DBuilderPluginCallbackExecutionResult ExecuteReflectionMapSaveBegin(
         DBuilderPluginRuntimeInstancePlan instancePlan,
         SavePurpose purpose)

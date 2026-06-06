@@ -2141,6 +2141,84 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void ExecuteReflectionInputHelpersDispatchCallbacksInOrder()
+    {
+        ReflectionInputCallbackPlugin.Calls.Clear();
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            new[]
+            {
+                new DBuilderPluginRuntimeInstance(
+                    "Second",
+                    "/plugins/second.dll",
+                    typeof(ReflectionInputCallbackPlugin).FullName!,
+                    1,
+                    new ReflectionInputCallbackPlugin("Second")),
+                new DBuilderPluginRuntimeInstance(
+                    "First",
+                    "/plugins/first.dll",
+                    typeof(ReflectionInputCallbackPlugin).FullName!,
+                    0,
+                    new ReflectionInputCallbackPlugin("First"))
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginCallbackExecutionResult mouseClick = DBuilderPluginHostModel.ExecuteReflectionEditMouseClick(plan);
+        DBuilderPluginCallbackExecutionResult mouseDoubleClick = DBuilderPluginHostModel.ExecuteReflectionEditMouseDoubleClick(plan);
+        DBuilderPluginCallbackExecutionResult mouseDown = DBuilderPluginHostModel.ExecuteReflectionEditMouseDown(plan);
+        DBuilderPluginCallbackExecutionResult mouseEnter = DBuilderPluginHostModel.ExecuteReflectionEditMouseEnter(plan);
+        DBuilderPluginCallbackExecutionResult mouseLeave = DBuilderPluginHostModel.ExecuteReflectionEditMouseLeave(plan);
+        DBuilderPluginCallbackExecutionResult mouseMove = DBuilderPluginHostModel.ExecuteReflectionEditMouseMove(plan);
+        DBuilderPluginCallbackExecutionResult mouseUp = DBuilderPluginHostModel.ExecuteReflectionEditMouseUp(plan);
+        DBuilderPluginCallbackExecutionResult keyDown = DBuilderPluginHostModel.ExecuteReflectionEditKeyDown(plan);
+        DBuilderPluginCallbackExecutionResult keyUp = DBuilderPluginHostModel.ExecuteReflectionEditKeyUp(plan);
+        DBuilderPluginCallbackExecutionResult mouseInput = DBuilderPluginHostModel.ExecuteReflectionEditMouseInput(plan);
+
+        Assert.All(
+            new[]
+            {
+                mouseClick,
+                mouseDoubleClick,
+                mouseDown,
+                mouseEnter,
+                mouseLeave,
+                mouseMove,
+                mouseUp,
+                keyDown,
+                keyUp,
+                mouseInput
+            },
+            result =>
+            {
+                Assert.True(result.Completed);
+                Assert.False(result.Aborted);
+                Assert.Empty(result.Diagnostics);
+            });
+        Assert.Equal(new[]
+        {
+            "First:MouseClick",
+            "Second:MouseClick",
+            "First:MouseDoubleClick",
+            "Second:MouseDoubleClick",
+            "First:MouseDown",
+            "Second:MouseDown",
+            "First:MouseEnter",
+            "Second:MouseEnter",
+            "First:MouseLeave",
+            "Second:MouseLeave",
+            "First:MouseMove",
+            "Second:MouseMove",
+            "First:MouseUp",
+            "Second:MouseUp",
+            "First:KeyDown",
+            "Second:KeyDown",
+            "First:KeyUp",
+            "Second:KeyUp",
+            "First:MouseInput",
+            "Second:MouseInput"
+        }, ReflectionInputCallbackPlugin.Calls);
+    }
+
+    [Fact]
     public void ExecuteReflectionCallbackPassesCopiedPasteOptionsToEachPlugin()
     {
         ReflectionPasteCallbackPlugin.Calls.Clear();
@@ -3351,6 +3429,68 @@ public sealed class ReflectionPreferenceActionCallbackPlugin : IDBuilderPlugin
     public void OnActionEnd()
     {
         Calls.Add(_name + ":ActionEnd");
+    }
+}
+
+public sealed class ReflectionInputCallbackPlugin : IDBuilderPlugin
+{
+    public static List<string> Calls { get; } = new();
+
+    private readonly string _name;
+
+    public ReflectionInputCallbackPlugin(string name)
+    {
+        _name = name;
+    }
+
+    public void OnEditMouseClick()
+    {
+        Calls.Add(_name + ":MouseClick");
+    }
+
+    public void OnEditMouseDoubleClick()
+    {
+        Calls.Add(_name + ":MouseDoubleClick");
+    }
+
+    public void OnEditMouseDown()
+    {
+        Calls.Add(_name + ":MouseDown");
+    }
+
+    public void OnEditMouseEnter()
+    {
+        Calls.Add(_name + ":MouseEnter");
+    }
+
+    public void OnEditMouseLeave()
+    {
+        Calls.Add(_name + ":MouseLeave");
+    }
+
+    public void OnEditMouseMove()
+    {
+        Calls.Add(_name + ":MouseMove");
+    }
+
+    public void OnEditMouseUp()
+    {
+        Calls.Add(_name + ":MouseUp");
+    }
+
+    public void OnEditKeyDown()
+    {
+        Calls.Add(_name + ":KeyDown");
+    }
+
+    public void OnEditKeyUp()
+    {
+        Calls.Add(_name + ":KeyUp");
+    }
+
+    public void OnEditMouseInput()
+    {
+        Calls.Add(_name + ":MouseInput");
     }
 }
 
