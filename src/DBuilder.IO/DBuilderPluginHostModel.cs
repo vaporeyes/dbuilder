@@ -27,6 +27,7 @@ public enum DBuilderPluginLifecycleHook
     RegisterDockers,
     RegisterResourceHandlers,
     MapOpened,
+    MapClosed,
     Engage,
     Disengage,
     Dispose
@@ -56,6 +57,7 @@ public sealed record DBuilderPluginDescriptor(
 
 public sealed record DBuilderPluginLifecycleRequest(
     bool MapOpen = false,
+    bool MapClose = false,
     bool Engage = false,
     bool Disengage = false,
     bool Shutdown = false);
@@ -1534,6 +1536,7 @@ public static class DBuilderPluginHostModel
             hooks.Add(DBuilderPluginLifecycleHook.RegisterResourceHandlers);
 
         if (descriptor.RequiresMap && request.MapOpen) hooks.Add(DBuilderPluginLifecycleHook.MapOpened);
+        if (descriptor.RequiresMap && request.MapClose) hooks.Add(DBuilderPluginLifecycleHook.MapClosed);
         if (request.Engage) hooks.Add(DBuilderPluginLifecycleHook.Engage);
         if (request.Disengage) hooks.Add(DBuilderPluginLifecycleHook.Disengage);
         if (request.Shutdown) hooks.Add(DBuilderPluginLifecycleHook.Dispose);
