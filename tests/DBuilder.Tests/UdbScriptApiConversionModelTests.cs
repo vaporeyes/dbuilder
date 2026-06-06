@@ -902,6 +902,9 @@ localsidedeftextureoffsets = true;
         Assert.True(wrapper.middleSelected);
         Assert.True(wrapper.lowerSelected);
         Assert.Equal(new UdbScriptVector2DWrapper(8, 0), wrapper.getCenterPoint());
+        Assert.Equal(
+            new UdbScriptVector2DWrapper(line.GetSidePoint(front: true).x, line.GetSidePoint(front: true).y),
+            wrapper.getSidePoint(front: true));
         Assert.Equal(new UdbScriptVector2DWrapper(4, 0), wrapper.getCoordinatesAt(0.25));
     }
 

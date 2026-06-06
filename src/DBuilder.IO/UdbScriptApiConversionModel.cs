@@ -2249,6 +2249,13 @@ public sealed class UdbScriptSidedefWrapper : IEquatable<UdbScriptSidedefWrapper
         return new UdbScriptVector2DWrapper(point.x, point.y);
     }
 
+    public UdbScriptVector2DWrapper getSidePoint(bool front)
+    {
+        ThrowIfDisposed("getSidePoint");
+        Vector2D point = sidedef.Line.GetSidePoint(front);
+        return new UdbScriptVector2DWrapper(point.x, point.y);
+    }
+
     public UdbScriptVector2DWrapper getCoordinatesAt(double u)
     {
         ThrowIfDisposed("getCoordinatesAt");
