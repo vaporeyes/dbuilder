@@ -652,6 +652,38 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void ThreeDFloorSlopeDrawCommandsUseDrawSlopeState()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("private ThreeDFloorSlopeDrawingMode _threeDFloorSlopeDrawingMode = ThreeDFloorSlopeDrawingMode.FloorAndCeiling;", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.3dfloor.draw-slope-point\":", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.drawslopepoint\":", body, StringComparison.Ordinal);
+        Assert.Contains("PlaceThreeDFloorSlopeDrawPoint(_drawCursor);", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.3dfloor.draw-floor-slope\":", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.drawfloorslope\":", body, StringComparison.Ordinal);
+        Assert.Contains("FinishThreeDFloorSlopeDraw(ThreeDFloorSlopeDrawingMode.Floor);", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.3dfloor.draw-ceiling-slope\":", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.drawceilingslope\":", body, StringComparison.Ordinal);
+        Assert.Contains("FinishThreeDFloorSlopeDraw(ThreeDFloorSlopeDrawingMode.Ceiling);", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.3dfloor.draw-floor-and-ceiling-slope\":", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.drawfloorandceilingslope\":", body, StringComparison.Ordinal);
+        Assert.Contains("FinishThreeDFloorSlopeDraw(ThreeDFloorSlopeDrawingMode.FloorAndCeiling);", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.3dfloor.finish-slope-draw\":", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.finishslopedraw\":", body, StringComparison.Ordinal);
+        Assert.Contains("FinishThreeDFloorSlopeDraw(_threeDFloorSlopeDrawingMode);", body, StringComparison.Ordinal);
+        Assert.Contains("ThreeDFloorSlopes.FinishDraw(", body, StringComparison.Ordinal);
+        Assert.Contains("if (_threeDFloorEditMode == ThreeDFloorEditMode.DrawSlopes) ClearThreeDFloorSlopeDraw();", body, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(1, true, "Created 1 3D slope group.")]
+    [InlineData(2, true, "Created 2 3D slope groups.")]
+    [InlineData(2, false, "Created 2 3D slope groups without a slope data sector.")]
+    public void ThreeDFloorSlopeDrawStatusTextReportsStorage(int groupCount, bool stored, string expected)
+        => Assert.Equal(expected, MapControl.ThreeDFloorSlopeDrawStatusText(groupCount, stored));
+
+    [Fact]
     public void Map2DSelectCommandsUseCursorSelectionWithModifiers()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));

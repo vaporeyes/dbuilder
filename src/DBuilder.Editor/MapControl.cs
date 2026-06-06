@@ -655,6 +655,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _drawCurve;     // Curve mode smooths the placed control points into linedefs
     private bool _drawClosed;    // set when the user closes the polyline by clicking the first point
     private readonly System.Collections.Generic.List<Vec2D> _drawPoints = new();
+    private ThreeDFloorSlopeDrawingMode _threeDFloorSlopeDrawingMode = ThreeDFloorSlopeDrawingMode.FloorAndCeiling;
     private Vec2D _drawCursor;
     private Vec2D _cursorWorld; // last known cursor position in world space (for cursor-targeted actions)
     private AutomapHighlightResult? _automapHighlight;
@@ -856,6 +857,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
         SetImageExampleMode(false);
         bool changedThreeDFloorMode = _threeDFloorEditMode != ThreeDFloorEditMode.None;
+        if (_threeDFloorEditMode == ThreeDFloorEditMode.DrawSlopes) ClearThreeDFloorSlopeDraw();
         _threeDFloorEditMode = ThreeDFloorEditMode.None;
         SetEditSelectionMode(false);
         if (_editMode == m && !changedThreeDFloorMode) return;
@@ -885,6 +887,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         SetImageExampleMode(false);
         SetEditSelectionMode(false);
         if (_threeDFloorEditMode == mode) return;
+        if (_threeDFloorEditMode == ThreeDFloorEditMode.DrawSlopes || mode == ThreeDFloorEditMode.DrawSlopes)
+            ClearThreeDFloorSlopeDraw();
         _threeDFloorEditMode = mode;
         ModeChanged?.Invoke();
         Picked?.Invoke($"mode: {Current2DModeStatusText}");
@@ -6208,6 +6212,26 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.duplicate3dfloorgeometry":
                 DuplicateThreeDFloorGeometry();
                 return true;
+            case "map2d.3dfloor.draw-slope-point":
+            case "map2d.drawslopepoint":
+                PlaceThreeDFloorSlopeDrawPoint(_drawCursor);
+                return true;
+            case "map2d.3dfloor.draw-floor-slope":
+            case "map2d.drawfloorslope":
+                FinishThreeDFloorSlopeDraw(ThreeDFloorSlopeDrawingMode.Floor);
+                return true;
+            case "map2d.3dfloor.draw-ceiling-slope":
+            case "map2d.drawceilingslope":
+                FinishThreeDFloorSlopeDraw(ThreeDFloorSlopeDrawingMode.Ceiling);
+                return true;
+            case "map2d.3dfloor.draw-floor-and-ceiling-slope":
+            case "map2d.drawfloorandceilingslope":
+                FinishThreeDFloorSlopeDraw(ThreeDFloorSlopeDrawingMode.FloorAndCeiling);
+                return true;
+            case "map2d.3dfloor.finish-slope-draw":
+            case "map2d.finishslopedraw":
+                FinishThreeDFloorSlopeDraw(_threeDFloorSlopeDrawingMode);
+                return true;
             case "map2d.select":
             case "map2d.classicselect":
                 SelectAtCursor(modifiers);
@@ -7148,12 +7172,22 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
 
         // Draw mode: left-click places loop points (or closes); a drag still pans. Right-click cancels.
-        if (_drawMode)
+        if (_drawMode || _threeDFloorEditMode == ThreeDFloorEditMode.DrawSlopes)
         {
-            if (pt.Properties.IsRightButtonPressed) { CancelDraw(); return; }
+            if (pt.Properties.IsRightButtonPressed)
+            {
+                if (_threeDFloorEditMode == ThreeDFloorEditMode.DrawSlopes) FinishThreeDFloorSlopeDraw(_threeDFloorSlopeDrawingMode);
+                else CancelDraw();
+                return;
+            }
             if (pt.Properties.IsLeftButtonPressed)
             {
-                if (e.ClickCount >= 2) { FinishDraw(); return; }
+                if (e.ClickCount >= 2)
+                {
+                    if (_threeDFloorEditMode == ThreeDFloorEditMode.DrawSlopes) FinishThreeDFloorSlopeDraw(_threeDFloorSlopeDrawingMode);
+                    else FinishDraw();
+                    return;
+                }
                 _pressed = true; _drag = DragKind.None;
                 _dragStart = pt.Position; _lastPointer = pt.Position;
             }
@@ -7222,7 +7256,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         {
             bool wasDrag = _rightDragging;
             _rightPressed = false; _rightDragging = false;
-            if (!wasDrag && !_drawMode && _map != null)
+            if (!wasDrag && !_drawMode && _threeDFloorEditMode != ThreeDFloorEditMode.DrawSlopes && _map != null)
                 SplitLinedefs(ToWorld(pos));
             return;
         }
@@ -7230,9 +7264,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (!_pressed) return;
         _pressed = false;
 
-        if (_drawMode)
+        if (_drawMode || _threeDFloorEditMode == ThreeDFloorEditMode.DrawSlopes)
         {
-            if (_drag == DragKind.None) PlaceDrawPoint(ToWorld(pos)); // a click adds/closes a loop point
+            if (_drag == DragKind.None)
+            {
+                if (_threeDFloorEditMode == ThreeDFloorEditMode.DrawSlopes) PlaceThreeDFloorSlopeDrawPoint(ToWorld(pos));
+                else PlaceDrawPoint(ToWorld(pos)); // a click adds/closes a loop point
+            }
             _drag = DragKind.None;
             return;
         }
@@ -7643,6 +7681,92 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         string status = $"duplicated {res.Value.LinedefCount} lines, {res.Value.SectorCount} sectors, {res.Value.ThingCount} things with 3D floors";
         Picked?.Invoke(status);
         return status;
+    }
+
+    public int ThreeDFloorSlopeDrawPointCount => _drawPoints.Count;
+
+    private void ClearThreeDFloorSlopeDraw()
+    {
+        _drawMode = false;
+        _drawCurve = false;
+        _shapeKind = ShapeKind.None;
+        _drawPoints.Clear();
+        _drawClosed = false;
+        _drawDirty = true;
+        _drawLineCount = 0;
+        DrawModeChanged?.Invoke();
+        ActionStateChanged?.Invoke();
+    }
+
+    private void PlaceThreeDFloorSlopeDrawPoint(Vec2D world)
+    {
+        if (_threeDFloorEditMode != ThreeDFloorEditMode.DrawSlopes)
+            SetThreeDFloorEditMode(ThreeDFloorEditMode.DrawSlopes);
+
+        _drawPoints.Add(SnapWorld(world));
+        _drawDirty = true;
+        Picked?.Invoke("Added 3D slope draw point.");
+        RequestNextFrameRendering();
+    }
+
+    private string FinishThreeDFloorSlopeDraw(ThreeDFloorSlopeDrawingMode mode)
+    {
+        _threeDFloorSlopeDrawingMode = mode;
+        if (_map == null)
+        {
+            ClearThreeDFloorSlopeDraw();
+            return "No map loaded.";
+        }
+
+        if (_threeDFloorEditMode != ThreeDFloorEditMode.DrawSlopes)
+            SetThreeDFloorEditMode(ThreeDFloorEditMode.DrawSlopes);
+
+        if (_drawPoints.Count <= 1)
+        {
+            ClearThreeDFloorSlopeDraw();
+            const string message = "Draw at least two slope points.";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        IReadOnlyList<Sector> sectors = SelectedSectorsOrHighlighted();
+        if (sectors.Count == 0)
+        {
+            const string message = "Select sectors to slope.";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        Sector? slopeDataSector = ThreeDFloorSlopes.GetSlopeDataSector(_map);
+        var groups = ThreeDFloorSlopes.LoadGroupsFromSector(slopeDataSector).ToList();
+        EditBegun?.Invoke("Draw 3D floor slope");
+        ThreeDFloorSlopeDrawResult result = ThreeDFloorSlopes.FinishDraw(
+            _map,
+            groups,
+            MaterializedDrawPoints(includeCursor: false),
+            sectors,
+            mode,
+            slopeDataSector);
+
+        ClearThreeDFloorSlopeDraw();
+        if (result.CreatedGroups.Count == 0)
+        {
+            const string message = "No 3D slope groups created.";
+            Picked?.Invoke(message);
+            return message;
+        }
+
+        MarkGeometryDirty();
+        Changed?.Invoke();
+        string status = ThreeDFloorSlopeDrawStatusText(result.CreatedGroups.Count, slopeDataSector != null);
+        Picked?.Invoke(status);
+        return status;
+    }
+
+    public static string ThreeDFloorSlopeDrawStatusText(int groupCount, bool stored)
+    {
+        string suffix = stored ? "." : " without a slope data sector.";
+        return "Created " + groupCount + " 3D slope group" + (groupCount == 1 ? "" : "s") + suffix;
     }
 
     /// <summary>Serializes the current selection for saving as a prefab, or null when nothing is selected.</summary>
@@ -8766,7 +8890,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private void RebuildDrawPreview()
     {
         _drawLineCount = 0;
-        if (_device is null || _drawVb is null || !_drawMode || _drawPoints.Count == 0) return;
+        if (_device is null || _drawVb is null || (!_drawMode && _threeDFloorEditMode != ThreeDFloorEditMode.DrawSlopes) || _drawPoints.Count == 0) return;
 
         const int col = unchecked((int)0xff40ff80);   // bright green polyline
         const int preview = unchecked((int)0xff80ff40);
@@ -8930,7 +9054,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return;
         }
 
-        if (_drawMode)
+        if (_drawMode || _threeDFloorEditMode == ThreeDFloorEditMode.DrawSlopes)
         {
             _drawCursor = SnapWorld(ToWorld(pos));
             _drawDirty = true; // GL buffer rebuilt on the render thread
