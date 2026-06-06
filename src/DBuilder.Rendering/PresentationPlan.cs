@@ -146,6 +146,32 @@ public sealed record PresentationDisplaySettings(
     TextureFilter SamplerFilter,
     int? OverlayIndex);
 
+public enum PresentationFrameOperationKind
+{
+    PluginPresentBegin,
+    StartRendering,
+    SetCullNone,
+    DisableDepth,
+    BindScreenVertexBuffer,
+    ResetWorldMatrix,
+    DrawLayer,
+    FinishRendering,
+    PresentSwapChain,
+    ReleaseTexture,
+    ReleaseVertexBuffer,
+}
+
+public sealed record PresentationFrameOperation(
+    PresentationFrameOperationKind Kind,
+    PresentationRendererLayer? Layer = null,
+    string? SourceTargetName = null,
+    int? OverlayIndex = null);
+
+public sealed record PresentationFramePlan(
+    IReadOnlyList<PresentationFrameOperation> Operations,
+    IReadOnlyList<PresentationDrawCommand> DrawCommands,
+    IReadOnlyList<PresentationDisplaySettings> DisplaySettings);
+
 public sealed record PresentationRenderTargetPlan(
     int Width,
     int Height,
@@ -283,4 +309,36 @@ public sealed record PresentationRenderTargetPlan(
 
     private static bool FlipY(PresentationRendererLayer layer)
         => layer != PresentationRendererLayer.Geometry;
+
+    public PresentationFramePlan BuildFramePlan(
+        PresentationPlan presentation,
+        bool qualityDisplay,
+        bool bilinear = false)
+    {
+        IReadOnlyList<PresentationDrawCommand> commands = presentation.BuildDrawCommands(qualityDisplay);
+        IReadOnlyList<PresentationDisplaySettings> settings = BuildDisplaySettings(presentation, qualityDisplay, bilinear);
+        var operations = new List<PresentationFrameOperation>(settings.Count + 9)
+        {
+            new(PresentationFrameOperationKind.PluginPresentBegin),
+            new(PresentationFrameOperationKind.StartRendering),
+            new(PresentationFrameOperationKind.SetCullNone),
+            new(PresentationFrameOperationKind.DisableDepth),
+            new(PresentationFrameOperationKind.BindScreenVertexBuffer),
+            new(PresentationFrameOperationKind.ResetWorldMatrix),
+        };
+
+        foreach (PresentationDisplaySettings setting in settings)
+            operations.Add(new PresentationFrameOperation(
+                PresentationFrameOperationKind.DrawLayer,
+                setting.Layer,
+                setting.SourceTargetName,
+                setting.OverlayIndex));
+
+        operations.Add(new PresentationFrameOperation(PresentationFrameOperationKind.FinishRendering));
+        operations.Add(new PresentationFrameOperation(PresentationFrameOperationKind.PresentSwapChain));
+        operations.Add(new PresentationFrameOperation(PresentationFrameOperationKind.ReleaseTexture));
+        operations.Add(new PresentationFrameOperation(PresentationFrameOperationKind.ReleaseVertexBuffer));
+
+        return new PresentationFramePlan(operations, commands, settings);
+    }
 }

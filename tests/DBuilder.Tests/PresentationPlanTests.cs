@@ -280,6 +280,77 @@ public sealed class PresentationPlanTests
         Assert.Equal("overlay1", settings[2].SourceTargetName);
     }
 
+    [Fact]
+    public void FramePlanMatchesUdbPresentOperationEnvelope()
+    {
+        PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);
+        PresentationRenderTargetPlan targets = PresentationRenderTargetPlan.Create(320, 200, presentation);
+
+        PresentationFramePlan frame = targets.BuildFramePlan(presentation, qualityDisplay: false);
+
+        Assert.Equal(new[]
+        {
+            PresentationFrameOperationKind.PluginPresentBegin,
+            PresentationFrameOperationKind.StartRendering,
+            PresentationFrameOperationKind.SetCullNone,
+            PresentationFrameOperationKind.DisableDepth,
+            PresentationFrameOperationKind.BindScreenVertexBuffer,
+            PresentationFrameOperationKind.ResetWorldMatrix,
+            PresentationFrameOperationKind.DrawLayer,
+            PresentationFrameOperationKind.DrawLayer,
+            PresentationFrameOperationKind.DrawLayer,
+            PresentationFrameOperationKind.DrawLayer,
+            PresentationFrameOperationKind.DrawLayer,
+            PresentationFrameOperationKind.DrawLayer,
+            PresentationFrameOperationKind.FinishRendering,
+            PresentationFrameOperationKind.PresentSwapChain,
+            PresentationFrameOperationKind.ReleaseTexture,
+            PresentationFrameOperationKind.ReleaseVertexBuffer,
+        }, frame.Operations.Select(operation => operation.Kind));
+    }
+
+    [Fact]
+    public void FramePlanDrawLayerOperationsFollowPresentationOrder()
+    {
+        PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);
+        PresentationRenderTargetPlan targets = PresentationRenderTargetPlan.Create(320, 200, presentation);
+
+        PresentationFramePlan frame = targets.BuildFramePlan(presentation, qualityDisplay: true);
+        PresentationFrameOperation[] drawOperations = frame.Operations
+            .Where(operation => operation.Kind == PresentationFrameOperationKind.DrawLayer)
+            .ToArray();
+
+        Assert.Equal(frame.DrawCommands.Select(command => command.Layer), drawOperations.Select(operation => operation.Layer!.Value));
+        Assert.Equal(frame.DisplaySettings.Select(setting => setting.SourceTargetName), drawOperations.Select(operation => operation.SourceTargetName));
+        Assert.Equal(PresentationRendererLayer.Background, drawOperations[0].Layer);
+        Assert.Equal(PresentationRendererLayer.Surface, drawOperations[1].Layer);
+        Assert.Equal(PresentationRendererLayer.Things, drawOperations[2].Layer);
+        Assert.Equal(PresentationRendererLayer.Grid, drawOperations[3].Layer);
+        Assert.Equal(PresentationRendererLayer.Geometry, drawOperations[4].Layer);
+        Assert.Equal(PresentationRendererLayer.Overlay, drawOperations[5].Layer);
+    }
+
+    [Fact]
+    public void FramePlanPreservesOverlayIndexesAcrossDrawCommandsAndSettings()
+    {
+        var presentation = new PresentationPlan(new[]
+        {
+            new PresentationLayer(PresentationRendererLayer.Overlay, PresentationBlendingMode.Alpha),
+            new PresentationLayer(PresentationRendererLayer.Geometry, PresentationBlendingMode.Alpha),
+            new PresentationLayer(PresentationRendererLayer.Overlay, PresentationBlendingMode.Additive),
+        });
+        PresentationRenderTargetPlan targets = PresentationRenderTargetPlan.Create(320, 200, presentation);
+
+        PresentationFramePlan frame = targets.BuildFramePlan(presentation, qualityDisplay: false);
+        PresentationFrameOperation[] drawOperations = frame.Operations
+            .Where(operation => operation.Kind == PresentationFrameOperationKind.DrawLayer)
+            .ToArray();
+
+        Assert.Equal(new int?[] { 0, null, 1 }, frame.DrawCommands.Select(command => command.OverlayIndex));
+        Assert.Equal(new int?[] { 0, null, 1 }, frame.DisplaySettings.Select(setting => setting.OverlayIndex));
+        Assert.Equal(new int?[] { 0, null, 1 }, drawOperations.Select(operation => operation.OverlayIndex));
+    }
+
     private static void AssertScreenVertex(FlatVertex vertex, float x, float y, float u, float v)
     {
         Assert.Equal(x, vertex.x);

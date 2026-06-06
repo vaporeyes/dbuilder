@@ -21,6 +21,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("2D presentation render-target lifecycle planning", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation plotter and texture target allocation planning", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation display shader settings planning", replacement.CoveredResponsibilities);
+        Assert.Contains("2D presentation frame operation sequence planning", replacement.CoveredResponsibilities);
         Assert.Contains("Index-buffer binding and primitive draw dispatch", replacement.CoveredResponsibilities);
         Assert.Contains("Length-based vertex-buffer allocation", replacement.CoveredResponsibilities);
         Assert.Contains("Flat and world vertex-buffer subdata updates", replacement.CoveredResponsibilities);
