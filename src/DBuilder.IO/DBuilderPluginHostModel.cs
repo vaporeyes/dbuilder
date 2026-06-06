@@ -1188,6 +1188,30 @@ public static class DBuilderPluginHostModel
         DBuilderPluginRuntimeInstancePlan instancePlan)
         => ExecuteReflectionCallback(instancePlan, "OnSectorFloorSurfaceUpdate");
 
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionHighlightSector(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnHighlightSector");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionHighlightLinedef(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnHighlightLinedef");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionHighlightThing(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnHighlightThing");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionHighlightVertex(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnHighlightVertex");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionHighlightRefreshed(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnHighlightRefreshed");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionHighlightLost(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnHighlightLost");
+
     public static DBuilderPluginCallbackExecutionResult ExecuteReflectionMapSaveBegin(
         DBuilderPluginRuntimeInstancePlan instancePlan,
         SavePurpose purpose)

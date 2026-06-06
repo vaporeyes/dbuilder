@@ -2270,6 +2270,60 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void ExecuteReflectionHighlightHelpersDispatchCallbacksInOrder()
+    {
+        ReflectionHighlightCallbackPlugin.Calls.Clear();
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            new[]
+            {
+                new DBuilderPluginRuntimeInstance(
+                    "Second",
+                    "/plugins/second.dll",
+                    typeof(ReflectionHighlightCallbackPlugin).FullName!,
+                    1,
+                    new ReflectionHighlightCallbackPlugin("Second")),
+                new DBuilderPluginRuntimeInstance(
+                    "First",
+                    "/plugins/first.dll",
+                    typeof(ReflectionHighlightCallbackPlugin).FullName!,
+                    0,
+                    new ReflectionHighlightCallbackPlugin("First"))
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginCallbackExecutionResult sector = DBuilderPluginHostModel.ExecuteReflectionHighlightSector(plan);
+        DBuilderPluginCallbackExecutionResult linedef = DBuilderPluginHostModel.ExecuteReflectionHighlightLinedef(plan);
+        DBuilderPluginCallbackExecutionResult thing = DBuilderPluginHostModel.ExecuteReflectionHighlightThing(plan);
+        DBuilderPluginCallbackExecutionResult vertex = DBuilderPluginHostModel.ExecuteReflectionHighlightVertex(plan);
+        DBuilderPluginCallbackExecutionResult refreshed = DBuilderPluginHostModel.ExecuteReflectionHighlightRefreshed(plan);
+        DBuilderPluginCallbackExecutionResult lost = DBuilderPluginHostModel.ExecuteReflectionHighlightLost(plan);
+
+        Assert.All(
+            new[] { sector, linedef, thing, vertex, refreshed, lost },
+            result =>
+            {
+                Assert.True(result.Completed);
+                Assert.False(result.Aborted);
+                Assert.Empty(result.Diagnostics);
+            });
+        Assert.Equal(new[]
+        {
+            "First:Sector",
+            "Second:Sector",
+            "First:Linedef",
+            "Second:Linedef",
+            "First:Thing",
+            "Second:Thing",
+            "First:Vertex",
+            "Second:Vertex",
+            "First:Refreshed",
+            "Second:Refreshed",
+            "First:Lost",
+            "Second:Lost"
+        }, ReflectionHighlightCallbackPlugin.Calls);
+    }
+
+    [Fact]
     public void ExecuteReflectionCallbackPassesCopiedPasteOptionsToEachPlugin()
     {
         ReflectionPasteCallbackPlugin.Calls.Clear();
@@ -3579,6 +3633,48 @@ public sealed class ReflectionRenderingCallbackPlugin : IDBuilderPlugin
     public void OnSectorFloorSurfaceUpdate()
     {
         Calls.Add(_name + ":FloorUpdate");
+    }
+}
+
+public sealed class ReflectionHighlightCallbackPlugin : IDBuilderPlugin
+{
+    public static List<string> Calls { get; } = new();
+
+    private readonly string _name;
+
+    public ReflectionHighlightCallbackPlugin(string name)
+    {
+        _name = name;
+    }
+
+    public void OnHighlightSector()
+    {
+        Calls.Add(_name + ":Sector");
+    }
+
+    public void OnHighlightLinedef()
+    {
+        Calls.Add(_name + ":Linedef");
+    }
+
+    public void OnHighlightThing()
+    {
+        Calls.Add(_name + ":Thing");
+    }
+
+    public void OnHighlightVertex()
+    {
+        Calls.Add(_name + ":Vertex");
+    }
+
+    public void OnHighlightRefreshed()
+    {
+        Calls.Add(_name + ":Refreshed");
+    }
+
+    public void OnHighlightLost()
+    {
+        Calls.Add(_name + ":Lost");
     }
 }
 
