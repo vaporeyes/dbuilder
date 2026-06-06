@@ -260,4 +260,57 @@ model Root { Model 0 "root.md3" }
             File.Delete(wad);
         }
     }
+
+    [Fact]
+    public void WadModelResourcesResolveByModeldefBasename()
+    {
+        byte[] oldModel = { 1, 2, 3 };
+        byte[] model = { 4, 5, 6 };
+        byte[] skin = { 7, 8, 9 };
+        string wad = TestArtifacts.BuildPwadFile(
+            ("MODELDEF", Encoding.ASCII.GetBytes("""
+model Zombie
+{
+    Path "models/monsters"
+    Model 0 "zombie.md3"
+    Skin 0 "zombie.png"
+}
+""")),
+            ("ZOMBIE", oldModel),
+            ("ZOMBIE", model),
+            ("ZOMBSKIN", skin));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(wad);
+
+            var def = Assert.Single(resources.GetModelDefs());
+            Assert.Equal(model, resources.GetModelResourceBytes(def, def.Models[0].File));
+            Assert.Equal(skin, resources.GetModelResourceBytes("models/monsters/zombskin.png"));
+        }
+        finally
+        {
+            File.Delete(wad);
+        }
+    }
+
+    [Fact]
+    public void WadModelTextureLookupProbesBasenameExtensionsLikeUdb()
+    {
+        byte[] skin = { 11, 12, 13 };
+        string wad = TestArtifacts.BuildPwadFile(("SOLDIER", skin));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(wad);
+
+            Assert.Equal(skin, resources.GetModelTextureResourceBytes("models/soldier.tga"));
+        }
+        finally
+        {
+            File.Delete(wad);
+        }
+    }
 }

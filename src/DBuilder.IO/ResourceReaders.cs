@@ -585,7 +585,13 @@ internal sealed class WadResourceReader : IResourceReader
         return null;
     }
 
-    public byte[]? GetModelResourceBytes(string path) => null;
+    public byte[]? GetModelResourceBytes(string path)
+    {
+        string lookup = VoxelLookupName(path);
+        return string.IsNullOrEmpty(lookup)
+            ? null
+            : wad.FindLastLump(lookup)?.Stream.ReadAllBytes();
+    }
 
     internal static bool IsValidSpriteName(string name)
         => (name.Length == 6 && Sprite6.IsMatch(name)) || (name.Length == 8 && Sprite8.IsMatch(name));
