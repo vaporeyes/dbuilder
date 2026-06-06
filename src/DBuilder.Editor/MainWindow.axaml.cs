@@ -5209,6 +5209,7 @@ public partial class MainWindow : Window
                 testMonsters: _settings.TestMonsters,
                 skill: _settings.NormalizedTestSkill,
                 additionalParameters: _settings.TestAdditionalParameters,
+                shortPaths: _config?.TestShortPaths == true,
                 linuxPaths: _config?.TestLinuxPaths == true);
 
             SourcePortLaunchResult launch = SourcePort.Launch(port!, args);

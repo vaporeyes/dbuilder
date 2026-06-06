@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Text;
 
@@ -28,13 +29,14 @@ public static class SourcePort
         bool testMonsters = true,
         int skill = 3,
         string? additionalParameters = null,
+        bool shortPaths = false,
         bool linuxPaths = false)
     {
         var (l, l1, l2) = WarpTokens(map);
-        string launchIwad = ConvertPath(iwad, linuxPaths);
-        string launchFile = ConvertPath(file, linuxPaths);
-        string additional = BuildAdditionalFiles(additionalFiles, linuxPaths);
-        string iwadFile = ConvertPath(FileName(iwad), linuxPaths);
+        string launchIwad = ConvertPath(iwad, shortPaths, linuxPaths);
+        string launchFile = ConvertPath(file, shortPaths, linuxPaths);
+        string additional = BuildAdditionalFiles(additionalFiles, shortPaths, linuxPaths);
+        string iwadFile = ConvertPath(FileName(iwad), shortPaths, linuxPaths);
         string noMonsters = testMonsters ? "" : "-nomonsters";
         template = NormalizeUdbTokens(template)
             .Replace("\"%AP\"", additional)
@@ -96,7 +98,7 @@ public static class SourcePort
         }
     }
 
-    private static string BuildAdditionalFiles(IEnumerable<string>? additionalFiles, bool linuxPaths)
+    private static string BuildAdditionalFiles(IEnumerable<string>? additionalFiles, bool shortPaths, bool linuxPaths)
     {
         if (additionalFiles is null) return "";
 
@@ -104,13 +106,29 @@ public static class SourcePort
         foreach (string file in additionalFiles)
         {
             if (string.IsNullOrWhiteSpace(file)) continue;
-            result.Add(Quote(ConvertPath(file, linuxPaths)));
+            result.Add(Quote(ConvertPath(file, shortPaths, linuxPaths)));
         }
         return string.Join(" ", result);
     }
 
-    private static string ConvertPath(string value, bool linuxPaths)
-        => linuxPaths ? ToLinuxPath(value) : value;
+    private static string ConvertPath(string value, bool shortPaths, bool linuxPaths)
+    {
+        if (shortPaths) return ToShortPath(value);
+        if (linuxPaths) return ToLinuxPath(value);
+        return value;
+    }
+
+    private static string ToShortPath(string value)
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return value;
+
+        int length = GetShortPathName(value, null, 0);
+        if (length <= 0) return value;
+
+        var buffer = new StringBuilder(length);
+        int written = GetShortPathName(value, buffer, buffer.Capacity);
+        return written > 0 ? buffer.ToString() : value;
+    }
 
     private static string ToLinuxPath(string value)
     {
@@ -133,6 +151,9 @@ public static class SourcePort
 
     private static string Quote(string value)
         => "\"" + value.Replace("\"", "\\\"") + "\"";
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    private static extern int GetShortPathName(string longPath, StringBuilder? shortPath, int bufferSize);
 
     private static List<string> SplitArguments(string template)
     {

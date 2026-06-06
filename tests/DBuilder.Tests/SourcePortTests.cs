@@ -3,6 +3,7 @@
 
 using DBuilder.IO;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace DBuilder.Tests;
 
@@ -169,6 +170,28 @@ public class SourcePortTests
         finally
         {
             Environment.SetEnvironmentVariable("WINEPREFIX", winePrefix);
+        }
+    }
+
+    [Fact]
+    public void UdbShortPathSettingTakesPrecedenceOverLinuxPaths()
+    {
+        var args = SourcePort.BuildArgs(
+            "-iwad %WP -file \"%F\"",
+            @"C:\Games\doom2.wad",
+            @"Z:\tmp\dbuilder_test_MAP01.wad",
+            "MAP01",
+            shortPaths: true,
+            linuxPaths: true);
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            Assert.DoesNotContain("/drive_c", args);
+            Assert.DoesNotContain("/tmp/dbuilder_test_MAP01.wad", args);
+        }
+        else
+        {
+            Assert.Equal(new[] { "-iwad", @"C:\Games\doom2.wad", "-file", @"Z:\tmp\dbuilder_test_MAP01.wad" }, args);
         }
     }
 
