@@ -26,7 +26,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Render-device multisample antialias compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device sampler-filter overload planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device target start-rendering planning", replacement.CoveredResponsibilities);
-        Assert.Contains("Render-device inline vertex draw planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device inline vertex draw planning and overload", replacement.CoveredResponsibilities);
         Assert.Contains("Index-buffer binding and primitive draw dispatch", replacement.CoveredResponsibilities);
         Assert.Contains("Length-based vertex-buffer allocation", replacement.CoveredResponsibilities);
         Assert.Contains("Flat and world vertex-buffer subdata updates", replacement.CoveredResponsibilities);
@@ -210,6 +210,9 @@ public class RendererArchitectureModelTests
         Assert.NotNull(typeof(RenderDevice).GetMethod(
             nameof(RenderDevice.Draw),
             new[] { typeof(PrimitiveType), typeof(int), typeof(int) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(
+            nameof(RenderDevice.Draw),
+            new[] { typeof(PrimitiveType), typeof(int), typeof(int), typeof(FlatVertex[]) }));
         Assert.NotNull(typeof(RenderDevice).GetMethod(
             nameof(RenderDevice.DrawIndexed),
             new[] { typeof(PrimitiveType), typeof(int), typeof(int) }));

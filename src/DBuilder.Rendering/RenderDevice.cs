@@ -458,9 +458,44 @@ public sealed class RenderDevice : IDisposable
         _gl.DrawArrays(MapPrim(type), startVertex, (uint)PrimToVerts(type, primitiveCount));
     }
 
+    public unsafe void Draw(PrimitiveType type, int startVertex, int primitiveCount, FlatVertex[] data)
+    {
+        uint tempBuffer = _gl.GenBuffer();
+        try
+        {
+            _gl.BindBuffer(BufferTargetARB.ArrayBuffer, tempBuffer);
+            fixed (FlatVertex* p = data)
+            {
+                _gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)(data.Length * FlatVertex.Stride), p, BufferUsageARB.StaticDraw);
+            }
+            ConfigureFlatAttribs();
+            _gl.DrawArrays(MapPrim(type), startVertex, (uint)PrimToVerts(type, primitiveCount));
+        }
+        finally
+        {
+            _gl.DeleteBuffer(tempBuffer);
+            RestoreVertexBufferBinding();
+        }
+    }
+
     public unsafe void DrawIndexed(PrimitiveType type, int startIndex, int primitiveCount)
     {
         _gl.DrawElements(MapPrim(type), (uint)PrimToVerts(type, primitiveCount), DrawElementsType.UnsignedInt, (void*)(startIndex * sizeof(int)));
+    }
+
+    private unsafe void RestoreVertexBufferBinding()
+    {
+        if (_boundVb is null)
+        {
+            _gl.BindBuffer(BufferTargetARB.ArrayBuffer, 0);
+            return;
+        }
+
+        _gl.BindBuffer(BufferTargetARB.ArrayBuffer, _boundVb.Handle);
+        if (_boundVb.Format == VertexFormat.Flat)
+            ConfigureFlatAttribs();
+        else
+            ConfigureWorldAttribs();
     }
 
     private static Silk.NET.OpenGL.PrimitiveType MapPrim(PrimitiveType type) => type switch
