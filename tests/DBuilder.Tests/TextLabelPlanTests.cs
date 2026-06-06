@@ -375,4 +375,112 @@ public sealed class TextLabelPlanTests
         Assert.False(state.LayoutUpdateNeeded);
         Assert.False(state.TextureUpdateNeeded);
     }
+
+    [Fact]
+    public void ResourceUpdatePlanRefreshesTextureAndUploadsQuadForVisibleDirtyLabel()
+    {
+        TextLabelLayout layout = TextLabelPlan.Build(
+            "Visible",
+            new TextLabelSize(24, 10),
+            new TextLabelPoint(8, 8),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+
+        TextLabelResourceUpdatePlan plan = TextLabelPlan.BuildResourceUpdatePlan(
+            TextLabelInvalidation.Initial,
+            layout,
+            hasTexture: true,
+            hasVertexBuffer: true,
+            vertexBufferDisposed: false);
+
+        Assert.True(plan.DisposeTexture);
+        Assert.True(plan.CreateLabelImage);
+        Assert.True(plan.CreateTexture);
+        Assert.False(plan.CreateVertexBuffer);
+        Assert.True(plan.UploadQuadBuffer);
+        Assert.Equal(TextLabelInvalidation.Clean, plan.ResultInvalidation);
+    }
+
+    [Fact]
+    public void ResourceUpdatePlanReusesCleanTextureAndBuffer()
+    {
+        TextLabelLayout layout = TextLabelPlan.Build(
+            "Visible",
+            new TextLabelSize(24, 10),
+            new TextLabelPoint(8, 8),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+
+        TextLabelResourceUpdatePlan plan = TextLabelPlan.BuildResourceUpdatePlan(
+            TextLabelInvalidation.Clean,
+            layout,
+            hasTexture: true,
+            hasVertexBuffer: true,
+            vertexBufferDisposed: false);
+
+        Assert.False(plan.DisposeTexture);
+        Assert.False(plan.CreateLabelImage);
+        Assert.False(plan.CreateTexture);
+        Assert.False(plan.CreateVertexBuffer);
+        Assert.False(plan.UploadQuadBuffer);
+        Assert.Equal(TextLabelInvalidation.Clean, plan.ResultInvalidation);
+    }
+
+    [Fact]
+    public void ResourceUpdatePlanCreatesMissingOrDisposedVertexBuffer()
+    {
+        TextLabelLayout layout = TextLabelPlan.Build(
+            "Visible",
+            new TextLabelSize(24, 10),
+            new TextLabelPoint(8, 8),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+
+        TextLabelResourceUpdatePlan missing = TextLabelPlan.BuildResourceUpdatePlan(
+            TextLabelInvalidation.Clean,
+            layout,
+            hasTexture: true,
+            hasVertexBuffer: false,
+            vertexBufferDisposed: false);
+        TextLabelResourceUpdatePlan disposed = TextLabelPlan.BuildResourceUpdatePlan(
+            TextLabelInvalidation.Clean,
+            layout,
+            hasTexture: true,
+            hasVertexBuffer: true,
+            vertexBufferDisposed: true);
+
+        Assert.True(missing.CreateVertexBuffer);
+        Assert.True(missing.UploadQuadBuffer);
+        Assert.True(disposed.CreateVertexBuffer);
+        Assert.True(disposed.UploadQuadBuffer);
+    }
+
+    [Fact]
+    public void ResourceUpdatePlanSkipsOffscreenLabelAndKeepsInvalidation()
+    {
+        TextLabelLayout layout = TextLabelPlan.Build(
+            "Skipped",
+            new TextLabelSize(24, 10),
+            new TextLabelPoint(400, 8),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+
+        TextLabelResourceUpdatePlan plan = TextLabelPlan.BuildResourceUpdatePlan(
+            TextLabelInvalidation.Initial,
+            layout,
+            hasTexture: true,
+            hasVertexBuffer: true,
+            vertexBufferDisposed: false);
+
+        Assert.False(plan.DisposeTexture);
+        Assert.False(plan.CreateLabelImage);
+        Assert.False(plan.CreateTexture);
+        Assert.False(plan.CreateVertexBuffer);
+        Assert.False(plan.UploadQuadBuffer);
+        Assert.Equal(TextLabelInvalidation.Initial, plan.ResultInvalidation);
+    }
 }

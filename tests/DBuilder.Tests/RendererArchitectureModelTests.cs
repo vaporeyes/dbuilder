@@ -60,6 +60,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Text label render dispatch planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label render-state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label dirty-state and resource invalidation planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Text label texture and vertex-buffer update planning", replacement.CoveredResponsibilities);
     }
 
     [Fact]

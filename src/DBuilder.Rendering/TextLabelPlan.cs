@@ -89,6 +89,14 @@ public readonly record struct TextLabelInvalidation(bool LayoutUpdateNeeded, boo
     public static TextLabelInvalidation Clean => new(LayoutUpdateNeeded: false, TextureUpdateNeeded: false);
 }
 
+public sealed record TextLabelResourceUpdatePlan(
+    bool DisposeTexture,
+    bool CreateLabelImage,
+    bool CreateTexture,
+    bool CreateVertexBuffer,
+    bool UploadQuadBuffer,
+    TextLabelInvalidation ResultInvalidation);
+
 public sealed record TextLabelFontPlan(
     string RequestedFamily,
     string ResolvedFamily,
@@ -331,6 +339,35 @@ public static class TextLabelPlan
 
     public static TextLabelInvalidation MarkUpdated()
         => TextLabelInvalidation.Clean;
+
+    public static TextLabelResourceUpdatePlan BuildResourceUpdatePlan(
+        TextLabelInvalidation invalidation,
+        TextLabelLayout layout,
+        bool hasTexture,
+        bool hasVertexBuffer,
+        bool vertexBufferDisposed)
+    {
+        if (layout.SkipRendering)
+        {
+            return new TextLabelResourceUpdatePlan(
+                DisposeTexture: false,
+                CreateLabelImage: false,
+                CreateTexture: false,
+                CreateVertexBuffer: false,
+                UploadQuadBuffer: false,
+                invalidation);
+        }
+
+        bool updateTexture = invalidation.TextureUpdateNeeded;
+        bool createVertexBuffer = !hasVertexBuffer || vertexBufferDisposed;
+        return new TextLabelResourceUpdatePlan(
+            DisposeTexture: updateTexture && hasTexture,
+            CreateLabelImage: updateTexture,
+            CreateTexture: updateTexture,
+            CreateVertexBuffer: createVertexBuffer,
+            UploadQuadBuffer: invalidation.LayoutUpdateNeeded || createVertexBuffer,
+            TextLabelInvalidation.Clean);
+    }
 
     public static int NextPowerOfTwo(int value)
     {
