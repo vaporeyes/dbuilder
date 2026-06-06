@@ -28,6 +28,13 @@ public enum TextureOperationKind
     UnmapPbo,
 }
 
+public enum DrawOperationKind
+{
+    Draw,
+    DrawIndexed,
+    DrawData,
+}
+
 public enum RenderStateToggleKind
 {
     AlphaTest,
@@ -57,6 +64,13 @@ public sealed record RenderStartPlan(
     uint ClearColorArgb,
     bool HasTarget,
     bool UseDepthBuffer);
+
+public sealed record DrawOperationPlan(
+    DrawOperationKind Kind,
+    PrimitiveType PrimitiveType,
+    int StartIndex,
+    int PrimitiveCount,
+    int InlineVertexCount = 0);
 
 public sealed class RenderDevice : IDisposable
 {
@@ -358,6 +372,15 @@ public sealed class RenderDevice : IDisposable
 
     public static RenderStartPlan BuildStartRenderingPlan(bool clear, uint clearColorArgb, Texture? target, bool useDepthBuffer)
         => new(clear, clearColorArgb, target is not null, useDepthBuffer);
+
+    public static DrawOperationPlan BuildDrawPlan(PrimitiveType type, int startIndex, int primitiveCount)
+        => new(DrawOperationKind.Draw, type, startIndex, primitiveCount);
+
+    public static DrawOperationPlan BuildDrawIndexedPlan(PrimitiveType type, int startIndex, int primitiveCount)
+        => new(DrawOperationKind.DrawIndexed, type, startIndex, primitiveCount);
+
+    public static DrawOperationPlan BuildDrawDataPlan(PrimitiveType type, int startIndex, int primitiveCount, FlatVertex[] data)
+        => new(DrawOperationKind.DrawData, type, startIndex, primitiveCount, data.Length);
 
     public static SamplerFilterPlan BuildSamplerFilterPlan(
         TextureFilter min,

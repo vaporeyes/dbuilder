@@ -26,6 +26,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Render-device multisample antialias compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device sampler-filter overload planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device target start-rendering planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device inline vertex draw planning", replacement.CoveredResponsibilities);
         Assert.Contains("Index-buffer binding and primitive draw dispatch", replacement.CoveredResponsibilities);
         Assert.Contains("Length-based vertex-buffer allocation", replacement.CoveredResponsibilities);
         Assert.Contains("Flat and world vertex-buffer subdata updates", replacement.CoveredResponsibilities);
@@ -201,6 +202,33 @@ public class RendererArchitectureModelTests
         Assert.Equal(0xff445566u, target.ClearColorArgb);
         Assert.False(target.HasTarget);
         Assert.False(target.UseDepthBuffer);
+    }
+
+    [Fact]
+    public void RenderDeviceBuildsUdbDrawOperationPlans()
+    {
+        Assert.NotNull(typeof(RenderDevice).GetMethod(
+            nameof(RenderDevice.Draw),
+            new[] { typeof(PrimitiveType), typeof(int), typeof(int) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(
+            nameof(RenderDevice.DrawIndexed),
+            new[] { typeof(PrimitiveType), typeof(int), typeof(int) }));
+
+        DrawOperationPlan draw = RenderDevice.BuildDrawPlan(PrimitiveType.TriangleStrip, startIndex: 2, primitiveCount: 4);
+        DrawOperationPlan indexed = RenderDevice.BuildDrawIndexedPlan(PrimitiveType.TriangleList, startIndex: 6, primitiveCount: 8);
+        DrawOperationPlan data = RenderDevice.BuildDrawDataPlan(
+            PrimitiveType.LineList,
+            startIndex: 1,
+            primitiveCount: 3,
+            new[] { new FlatVertex(), new FlatVertex(), new FlatVertex() });
+
+        Assert.Equal(DrawOperationKind.Draw, draw.Kind);
+        Assert.Equal(PrimitiveType.TriangleStrip, draw.PrimitiveType);
+        Assert.Equal(2, draw.StartIndex);
+        Assert.Equal(4, draw.PrimitiveCount);
+        Assert.Equal(DrawOperationKind.DrawIndexed, indexed.Kind);
+        Assert.Equal(DrawOperationKind.DrawData, data.Kind);
+        Assert.Equal(3, data.InlineVertexCount);
     }
 
     [Fact]
