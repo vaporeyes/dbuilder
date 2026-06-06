@@ -1295,7 +1295,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 - [ ] Port main window layout parity or define a documented Avalonia replacement.
   - [x] Make the toolbar horizontally scrollable when commands exceed the window width.
-- [ ] Port menu layout and all menu actions.
+- [x] Port menu layout and all menu actions.
   - [x] Add view-layer menu commands for sector fills and things visibility.
   - [x] Add browser menu commands for textures, flats, things, linedef actions, and sector effects.
   - [x] Let action and effect browser picks apply to selected map elements.
@@ -1303,7 +1303,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style singular and plural labels to browser apply status text.
   - [x] Add an Edit menu command for snapping the current selection to the grid.
   - [x] Add raw UDB snap vertices to grid action alias to shortcut metadata and dispatch.
-- [ ] Port toolbar layout and all toolbar actions.
+- [x] Port toolbar layout and all toolbar actions.
   - [x] Add toolbar buttons for draw mode and shape tools.
   - [x] Add toolbar buttons for cut, copy, and paste actions.
   - [x] Add toolbar buttons for grid, snap, geometry, and sidedef texture toggles.
@@ -1312,13 +1312,13 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add a toolbar button for testing the map from the current position.
   - [x] Add an Insert at Cursor toolbar action for thing and vertex placement.
   - [x] Let Things mode left-click place the configured thing type on empty map space.
-- [ ] Port status bar behavior.
+- [x] Port status bar behavior.
   - [x] Add persistent mode, snap/grid, and coordinate status fields.
   - [x] Add tested status detail formatting for config, mode, and snap/grid labels.
   - [x] Add tested cursor coordinate status formatting.
   - [x] Add a tested selected-element count to the status bar.
 - [ ] Port dockers and tabbed dock panels.
-- [ ] Port info panels for vertices, linedefs, sidedefs, sectors, and things.
+- [x] Port info panels for vertices, linedefs, sidedefs, sectors, and things.
   - [x] Add structured single-vertex info panel details.
   - [x] Add tested single-vertex info panel model.
   - [x] Add structured single-thing, linedef, and sector metadata details.
@@ -1334,18 +1334,18 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port flat browser.
 - [x] Port action browser.
 - [x] Port effect browser.
-- [ ] Port flags and bit flags dialogs.
+- [x] Port flags and bit flags dialogs.
   - [x] Add selected thing/linedef named UDMF flags dialog.
   - [x] Add selected sector named UDMF flags dialog with configured sector and portal flags.
   - [x] Add selected sidedef named UDMF flags dialog dispatch.
   - [x] Add front and back sidedef flag editing in the linedef property dialog.
-- [ ] Port custom fields dialog.
+- [x] Port custom fields dialog.
   - [x] Add generic selected-element custom UDMF fields dialog.
   - [x] Include selected sidedefs in custom-fields dialog availability and dispatch.
   - [x] Show configured universal fields separately from raw custom fields in the custom-fields dialog.
   - [x] Persist dynamic custom-field type metadata from the custom-fields dialog.
   - [x] Preserve string custom-field values that look like booleans or numbers.
-- [ ] Port map options dialog.
+- [x] Port map options dialog.
   - [x] Add basic map marker and UDMF namespace dialog.
   - [x] Add drawing default fields to the map options dialog.
   - [x] Add drawing override toggles to the map options dialog.
@@ -1357,7 +1357,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add raw UDB center on coordinates action alias to shortcut metadata and dispatch.
   - [x] Add script compiler field to the map options dialog.
   - [x] Add UDB-style script compiler selector using compiled ACS script configs.
-- [ ] Port open map options dialog.
+- [x] Port open map options dialog.
   - [x] Prompt for initial map selection when opening multi-map WAD or PK3 archives.
   - [x] Filter WAD and PK3 open-map candidates through the active game configuration map-name format.
   - [x] Add UDB-style long texture names option while switching maps.
@@ -1366,14 +1366,14 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Apply UDB-style script compiler override/default selection when loading a selected WAD map.
   - [x] Seed long texture names support from the selected WAD map sidecar configuration.
 - [x] Port preferences dialog.
-- [ ] Port resource options dialog.
+- [x] Port resource options dialog.
   - [x] Add basic add-resource options for strict WAD patches and PK3 root texture/flat discovery.
   - [x] Persist added WAD resources through UDB-compatible per-map options sidecars.
   - [x] Add directory resource picker and root texture/flat options.
   - [x] Add required-archive editing to resource options.
   - [x] Prefill required-archive and test-exclusion defaults when adding resources.
   - [x] Add a tested UDB-compatible dialog option mapping model.
-- [ ] Port config dialog.
+- [x] Port config dialog.
   - [x] Add bundled configuration picker with external cfg browse fallback.
   - [x] Preselect the active configuration by parsed title, filename, or external path.
   - [x] Show the active external configuration as a selectable picker row.
