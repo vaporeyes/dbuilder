@@ -10,6 +10,82 @@ namespace DBuilder.Tests;
 public sealed class EventLineAssociationModelTests
 {
     [Fact]
+    public void LineToLineTagLinksLinedefTagsToTaggedLinedefs()
+    {
+        var map = new MapSet();
+        Linedef source = AddLine(map, 11);
+        source.Action = 80;
+        Linedef target = AddLine(map, 11);
+        Linedef other = AddLine(map, 12);
+        GameConfiguration config = Config(lineToLineTag: true);
+
+        IReadOnlyList<EventLineAssociation> associations =
+            EventLineAssociationModel.ForElement(map, source, config);
+
+        EventLineAssociation association = Assert.Single(associations);
+        Assert.Equal(EventLineElementKind.Linedef, association.SourceKind);
+        Assert.Equal(source.Index, association.SourceIndex);
+        Assert.Equal(EventLineElementKind.Linedef, association.TargetKind);
+        Assert.Equal(target.Index, association.TargetIndex);
+        Assert.Equal(11, association.Tag);
+        Assert.DoesNotContain(associations, a => a.TargetIndex == other.Index);
+    }
+
+    [Fact]
+    public void LineToLineSameActionRequiresMatchingActionLikeUdb()
+    {
+        var map = new MapSet();
+        Linedef source = AddLine(map, 11);
+        source.Action = 80;
+        Linedef sameAction = AddLine(map, 11);
+        sameAction.Action = 80;
+        Linedef differentAction = AddLine(map, 11);
+        differentAction.Action = 81;
+        GameConfiguration config = Config(lineToLineTag: true, lineToLineSameAction: true);
+
+        IReadOnlyList<EventLineAssociation> associations =
+            EventLineAssociationModel.ForElement(map, source, config);
+
+        EventLineAssociation association = Assert.Single(associations);
+        Assert.Equal(sameAction.Index, association.TargetIndex);
+        Assert.DoesNotContain(associations, a => a.TargetIndex == differentAction.Index);
+    }
+
+    [Fact]
+    public void LineToLineTagIgnoresSelfAndTagZero()
+    {
+        var map = new MapSet();
+        Linedef source = AddLine(map, 0);
+        source.Action = 80;
+        AddLine(map, 0);
+        GameConfiguration config = Config(lineToLineTag: true);
+
+        Assert.Empty(EventLineAssociationModel.ForElement(map, source, config));
+    }
+
+    [Fact]
+    public void LinedefAssociationsIncludeLineToLineAndDoomSectorTargets()
+    {
+        var map = new MapSet();
+        Linedef source = AddLine(map, 7);
+        source.Action = 80;
+        Linedef targetLine = AddLine(map, 7);
+        Sector targetSector = map.AddSector();
+        targetSector.Tag = 7;
+        GameConfiguration config = Config(lineToLineTag: true, lineTagIndicatesSectors: true);
+
+        IReadOnlyList<EventLineAssociation> associations =
+            EventLineAssociationModel.ForElement(map, source, config);
+
+        Assert.Contains(associations, a =>
+            a.TargetKind == EventLineElementKind.Linedef &&
+            a.TargetIndex == targetLine.Index);
+        Assert.Contains(associations, a =>
+            a.TargetKind == EventLineElementKind.Sector &&
+            a.TargetIndex == targetSector.Index);
+    }
+
+    [Fact]
     public void LineTagIndicatesSectorsLinksLinedefTagsToSectorTags()
     {
         var map = new MapSet();
@@ -88,9 +164,30 @@ public sealed class EventLineAssociationModelTests
         return line;
     }
 
-    private static GameConfiguration Config(bool lineTagIndicatesSectors)
-        => GameConfiguration.FromText(
-            lineTagIndicatesSectors
-                ? "linetagindicatesectors = true;"
-                : "linetagindicatesectors = false;");
+    private static GameConfiguration Config(
+        bool lineTagIndicatesSectors = false,
+        bool lineToLineTag = false,
+        bool lineToLineSameAction = false)
+    {
+        string lineToLineTagValue = lineToLineTag ? "true" : "false";
+        string lineToLineSameActionValue = lineToLineSameAction ? "true" : "false";
+        string lineTagIndicatesSectorsValue = lineTagIndicatesSectors ? "true" : "false";
+
+        return GameConfiguration.FromText($$"""
+            linetagindicatesectors = {{lineTagIndicatesSectorsValue}};
+            linedeftypes
+            {
+                event
+                {
+                    80
+                    {
+                        title = "Event";
+                        linetolinetag = {{lineToLineTagValue}};
+                        linetolinesameaction = {{lineToLineSameActionValue}};
+                    }
+                    81 { title = "Other Event"; }
+                }
+            }
+            """);
+    }
 }

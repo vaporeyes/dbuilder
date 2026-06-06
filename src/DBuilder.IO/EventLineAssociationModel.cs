@@ -25,14 +25,56 @@ public static class EventLineAssociationModel
         object element,
         GameConfiguration? config)
     {
-        if (config?.LineTagIndicatesSectors != true) return Array.Empty<EventLineAssociation>();
-
         return element switch
         {
-            Linedef line => LinedefToTaggedSectors(map, line),
-            Sector sector => SectorToTaggedLinedefs(map, sector),
+            Linedef line => LinedefAssociations(map, line, config),
+            Sector sector => config?.LineTagIndicatesSectors == true
+                ? SectorToTaggedLinedefs(map, sector)
+                : Array.Empty<EventLineAssociation>(),
             _ => Array.Empty<EventLineAssociation>(),
         };
+    }
+
+    private static IReadOnlyList<EventLineAssociation> LinedefAssociations(
+        MapSet map,
+        Linedef line,
+        GameConfiguration? config)
+    {
+        var associations = new List<EventLineAssociation>();
+        associations.AddRange(LinedefToTaggedLinedefs(map, line, config));
+        if (config?.LineTagIndicatesSectors == true)
+            associations.AddRange(LinedefToTaggedSectors(map, line));
+        return associations;
+    }
+
+    private static IReadOnlyList<EventLineAssociation> LinedefToTaggedLinedefs(
+        MapSet map,
+        Linedef line,
+        GameConfiguration? config)
+    {
+        if (line.Action <= 0 || config?.GetLinedefAction(line.Action) is not { LineToLineTag: true } action)
+            return Array.Empty<EventLineAssociation>();
+
+        HashSet<int> tags = PositiveTags(line.Tags);
+        if (tags.Count == 0) return Array.Empty<EventLineAssociation>();
+
+        var associations = new List<EventLineAssociation>();
+        foreach (Linedef other in map.Linedefs)
+        {
+            if (ReferenceEquals(line, other)) continue;
+            int tag = other.Tag;
+            if (tag <= 0 || !tags.Contains(tag)) continue;
+            if (action.LineToLineSameAction && line.Action != other.Action) continue;
+
+            associations.Add(new EventLineAssociation(
+                EventLineElementKind.Linedef,
+                line.Index,
+                EventLineElementKind.Linedef,
+                other.Index,
+                tag));
+        }
+
+        return associations;
     }
 
     private static IReadOnlyList<EventLineAssociation> LinedefToTaggedSectors(MapSet map, Linedef line)
