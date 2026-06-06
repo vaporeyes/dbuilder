@@ -2695,9 +2695,9 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 - [x] Document current feature support.
 - [x] Document unsupported UDB features.
-- [ ] Document project architecture.
-- [ ] Document map IO behavior.
-- [ ] Document resource loading behavior.
+- [x] Document project architecture.
+- [x] Document map IO behavior.
+- [x] Document resource loading behavior.
 - [ ] Document plugin API.
 - [x] Document testing strategy.
 - [x] Document contribution workflow.

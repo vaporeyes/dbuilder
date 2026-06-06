@@ -15,6 +15,7 @@ The authoritative trackers are:
 - [docs/FEATURE_SUPPORT.md](docs/FEATURE_SUPPORT.md): current supported and unsupported feature summary.
 - [docs/PHASED_PLAN.md](docs/PHASED_PLAN.md): sequencing plan for the port.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): project map and verification policy.
+- [docs/MAP_IO_AND_RESOURCES.md](docs/MAP_IO_AND_RESOURCES.md): map IO and resource loading behavior.
 - [docs/RENDERING.md](docs/RENDERING.md): current renderer and shader compiler replacement baseline.
 - [docs/PLATFORMS_AND_TOOLS.md](docs/PLATFORMS_AND_TOOLS.md): supported OS targets and external tool discovery rules.
 - [docs/DEVELOPMENT_PROCESS.md](docs/DEVELOPMENT_PROCESS.md): testing, contribution, manual QA, and release process.
