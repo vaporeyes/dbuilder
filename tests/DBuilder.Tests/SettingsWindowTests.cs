@@ -172,6 +172,7 @@ public class SettingsWindowTests
         Assert.Contains("SegmentLength: _drawCurveSegmentLength", body, StringComparison.Ordinal);
         Assert.Contains("_settings.DrawCurveSettings = dlg.DrawCurveSettings;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.DrawCurveSettings = _settings.NormalizedDrawCurveSettings;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.CurveLinedefsSettings = _settings.NormalizedCurveLinedefsSettings;", mainWindow, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -335,6 +335,7 @@ public class SettingsTests
                 DrawRectangleSettings = new DrawRectangleModeSettings(Subdivisions: 6, BevelWidth: 12),
                 DrawEllipseSettings = new DrawEllipseModeSettings(Subdivisions: 10, BevelWidth: -8, Angle: 45),
                 DrawCurveSettings = new DrawCurveModeSettings(SegmentLength: 96, ContinuousDrawing: true),
+                CurveLinedefsSettings = new CurveLinedefsOptions(Vertices: 12, Distance: -64, Angle: 90, FixedCurve: true, FixedCurveOutwards: false),
                 DrawGridSettings = new DrawGridModeSettings(HorizontalSlices: 5, VerticalSlices: 7, Triangulate: true),
                 EditSelectionSettings = new EditSelectionModeSettings(
                     UsePrecisePosition: false,
@@ -491,6 +492,12 @@ public class SettingsTests
             Assert.Equal(10, loaded.NormalizedDrawEllipseSettings.Subdivisions);
             Assert.Equal(96, loaded.DrawCurveSettings.SegmentLength);
             Assert.Equal(96, loaded.NormalizedDrawCurveSettings.SegmentLength);
+            Assert.Equal(12, loaded.CurveLinedefsSettings.Vertices);
+            Assert.Equal(-64, loaded.CurveLinedefsSettings.Distance);
+            Assert.Equal(90, loaded.CurveLinedefsSettings.Angle);
+            Assert.True(loaded.CurveLinedefsSettings.FixedCurve);
+            Assert.False(loaded.CurveLinedefsSettings.FixedCurveOutwards);
+            Assert.Equal(12, loaded.NormalizedCurveLinedefsSettings.Vertices);
             Assert.Equal(5, loaded.DrawGridSettings.HorizontalSlices);
             Assert.Equal(7, loaded.DrawGridSettings.VerticalSlices);
             Assert.True(loaded.DrawGridSettings.Triangulate);
@@ -752,6 +759,7 @@ public class SettingsTests
         Assert.Equal(new DrawRectangleModeSettings(), s.NormalizedDrawRectangleSettings);
         Assert.Equal(new DrawEllipseModeSettings(), s.NormalizedDrawEllipseSettings);
         Assert.Equal(new DrawCurveModeSettings(), s.NormalizedDrawCurveSettings);
+        Assert.Equal(new CurveLinedefsOptions(), s.NormalizedCurveLinedefsSettings);
         Assert.Equal(new DrawGridModeSettings(), s.NormalizedDrawGridSettings);
         Assert.Equal(new EditSelectionModeSettings(), s.NormalizedEditSelectionSettings);
         Assert.Equal(new AutomapModeSettings(), s.NormalizedAutomapSettings);

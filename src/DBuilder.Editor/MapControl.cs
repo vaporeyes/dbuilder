@@ -675,6 +675,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private DrawRectangleModeSettings _drawRectangleSettings = new();
     private DrawEllipseModeSettings _drawEllipseSettings = new();
     private DrawCurveModeSettings _drawCurveSettings = new();
+    private CurveLinedefsOptions _curveLinedefsSettings = new();
     private DrawGridModeSettings _drawGridSettings = new();
     private AutomapModeSettings _automapSettings = new();
     private IReadOnlyList<LinedefColorPreset> _linedefColorPresets = LinedefColorPresetModel.DefaultPresets;
@@ -703,6 +704,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         get => _drawCurveSettings;
         set => _drawCurveSettings = (value ?? new DrawCurveModeSettings()).Normalized();
+    }
+
+    public CurveLinedefsOptions CurveLinedefsSettings
+    {
+        get => _curveLinedefsSettings;
+        set => _curveLinedefsSettings = (value ?? new CurveLinedefsOptions()).Normalized();
     }
 
     public DrawGridModeSettings DrawGridSettings
@@ -8260,7 +8267,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
 
         EditBegun?.Invoke(selected.Count == 1 ? "Curve linedef" : "Curve " + selected.Count + " linedefs");
-        CurveLinedefsResult result = CurveLinedefs.ApplyToSelectedLinedefs(_map);
+        CurveLinedefsResult result = CurveLinedefs.ApplyToSelectedLinedefs(_map, _curveLinedefsSettings);
         if (deselect)
             selected[0].Selected = false;
 

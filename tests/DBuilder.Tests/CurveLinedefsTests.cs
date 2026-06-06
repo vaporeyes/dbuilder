@@ -21,6 +21,36 @@ public class CurveLinedefsTests
     }
 
     [Fact]
+    public void OptionsUseUdbSettingKeysAndPanelLimits()
+    {
+        var source = new Dictionary<string, object?>
+        {
+            [CurveLinedefsOptions.VerticesKey] = 999,
+            [CurveLinedefsOptions.DistanceKey] = -20000,
+            [CurveLinedefsOptions.AngleKey] = 999,
+            [CurveLinedefsOptions.FixedCurveKey] = true,
+            [CurveLinedefsOptions.FixedCurveOutwardsKey] = false,
+        };
+
+        CurveLinedefsOptions options = CurveLinedefsOptions.FromDictionary(source);
+
+        Assert.Equal(CurveLinedefsOptions.MaxVertices, options.Vertices);
+        Assert.Equal(CurveLinedefsOptions.MinDistance, options.Distance);
+        Assert.Equal(CurveLinedefsOptions.MaxAngle, options.Angle);
+        Assert.True(options.FixedCurve);
+        Assert.False(options.FixedCurveOutwards);
+
+        var target = new Dictionary<string, object?>();
+        options.WriteTo(target);
+
+        Assert.Equal(200, target[CurveLinedefsOptions.VerticesKey]);
+        Assert.Equal(-10000, target[CurveLinedefsOptions.DistanceKey]);
+        Assert.Equal(350, target[CurveLinedefsOptions.AngleKey]);
+        Assert.Equal(true, target[CurveLinedefsOptions.FixedCurveKey]);
+        Assert.Equal(false, target[CurveLinedefsOptions.FixedCurveOutwardsKey]);
+    }
+
+    [Fact]
     public void GenerateCurvePointsClampsVerticesToLineLengthOverFour()
     {
         var map = new MapSet();
@@ -60,5 +90,21 @@ public class CurveLinedefsTests
         Assert.Equal(9, map.Linedefs.Count);
         Assert.Equal(10, map.Vertices.Count);
         Assert.NotEqual(0, line.End.Position.y);
+    }
+
+    [Fact]
+    public void ApplyUsesPersistedCurveLinedefOptions()
+    {
+        var map = new MapSet();
+        Linedef line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(128, 0)));
+        line.Selected = true;
+
+        CurveLinedefsResult result = CurveLinedefs.ApplyToSelectedLinedefs(
+            map,
+            new CurveLinedefsOptions(Vertices: 2, Distance: 32));
+
+        Assert.Equal(1, result.CurvedLinedefs);
+        Assert.Equal(2, result.InsertedVertices);
+        Assert.Equal(3, map.Linedefs.Count);
     }
 }

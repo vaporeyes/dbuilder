@@ -15,14 +15,53 @@ public sealed record CurveLinedefsOptions(
     public const int DefaultVertices = 8;
     public const int DefaultDistance = 128;
     public const int DefaultAngle = 180;
+    public const int MinVertices = 1;
+    public const int MaxVertices = 200;
+    public const int MinDistance = -10000;
+    public const int MaxDistance = 10000;
+    public const int MinAngle = 0;
+    public const int MaxAngle = 350;
+    public const string VerticesKey = "curvelinedefsmode.vertices";
+    public const string DistanceKey = "curvelinedefsmode.distance";
+    public const string AngleKey = "curvelinedefsmode.angle";
+    public const string FixedCurveKey = "curvelinedefsmode.fixedcurve";
+    public const string FixedCurveOutwardsKey = "curvelinedefsmode.fixedcurveoutwards";
+
+    public static CurveLinedefsOptions FromDictionary(IReadOnlyDictionary<string, object?> settings)
+        => new CurveLinedefsOptions(
+            DrawLineModeSettings.ReadInt(settings, VerticesKey, DefaultVertices),
+            DrawLineModeSettings.ReadInt(settings, DistanceKey, DefaultDistance),
+            DrawLineModeSettings.ReadInt(settings, AngleKey, DefaultAngle),
+            DrawLineModeSettings.ReadBool(settings, FixedCurveKey, false),
+            DrawLineModeSettings.ReadBool(settings, FixedCurveOutwardsKey, true))
+            .Normalized();
+
+    public void WriteTo(IDictionary<string, object?> settings)
+    {
+        CurveLinedefsOptions options = Normalized();
+        settings[VerticesKey] = options.Vertices;
+        settings[DistanceKey] = options.Distance;
+        settings[AngleKey] = options.Angle;
+        settings[FixedCurveKey] = options.FixedCurve;
+        settings[FixedCurveOutwardsKey] = options.FixedCurveOutwards;
+    }
+
+    public CurveLinedefsOptions Normalized()
+        => this with
+        {
+            Vertices = Math.Clamp(Vertices, MinVertices, MaxVertices),
+            Distance = Math.Clamp(Distance, MinDistance, MaxDistance),
+            Angle = Math.Clamp(Angle, MinAngle, MaxAngle),
+        };
 
     public CurveLinedefsOptions NormalizedFor(Linedef line)
     {
         if (line == null) throw new ArgumentNullException(nameof(line));
+        CurveLinedefsOptions options = Normalized();
         int maxVertices = Math.Max(0, (int)Math.Ceiling(line.Length / 4.0));
-        return this with
+        return options with
         {
-            Vertices = Math.Clamp(Vertices, 0, maxVertices),
+            Vertices = Math.Clamp(options.Vertices, 0, maxVertices),
         };
     }
 }

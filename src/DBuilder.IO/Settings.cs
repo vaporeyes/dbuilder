@@ -62,6 +62,7 @@ public sealed class Settings
     public DrawRectangleModeSettings DrawRectangleSettings { get; set; } = new();
     public DrawEllipseModeSettings DrawEllipseSettings { get; set; } = new();
     public DrawCurveModeSettings DrawCurveSettings { get; set; } = new();
+    public CurveLinedefsOptions CurveLinedefsSettings { get; set; } = new();
     public DrawGridModeSettings DrawGridSettings { get; set; } = new();
     public EditSelectionModeSettings EditSelectionSettings { get; set; } = new();
     public AutomapModeSettings AutomapSettings { get; set; } = new();
@@ -156,6 +157,9 @@ public sealed class Settings
 
     public DrawCurveModeSettings NormalizedDrawCurveSettings =>
         (DrawCurveSettings ?? new DrawCurveModeSettings()).Normalized();
+
+    public CurveLinedefsOptions NormalizedCurveLinedefsSettings =>
+        (CurveLinedefsSettings ?? new CurveLinedefsOptions()).Normalized();
 
     public DrawGridModeSettings NormalizedDrawGridSettings =>
         (DrawGridSettings ?? new DrawGridModeSettings()).Normalized();
@@ -360,6 +364,7 @@ public sealed class Settings
             settings.DrawRectangleSettings ??= new();
             settings.DrawEllipseSettings ??= new();
             settings.DrawCurveSettings ??= new();
+            settings.CurveLinedefsSettings ??= new();
             settings.DrawGridSettings ??= new();
             settings.EditSelectionSettings ??= new();
             settings.AutomapSettings ??= new();

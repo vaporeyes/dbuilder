@@ -216,6 +216,7 @@ public partial class MainWindow : Window
         MapView.DrawRectangleSettings = _settings.NormalizedDrawRectangleSettings;
         MapView.DrawEllipseSettings = _settings.NormalizedDrawEllipseSettings;
         MapView.DrawCurveSettings = _settings.NormalizedDrawCurveSettings;
+        MapView.CurveLinedefsSettings = _settings.NormalizedCurveLinedefsSettings;
         MapView.DrawGridSettings = _settings.NormalizedDrawGridSettings;
         MapView.AutomapSettings = _settings.NormalizedAutomapSettings;
         MapView.LinedefColorPresets = _settings.NormalizedLinedefColorPresets;
@@ -1425,6 +1426,7 @@ public partial class MainWindow : Window
         MapView.DrawRectangleSettings = _settings.NormalizedDrawRectangleSettings;
         MapView.DrawEllipseSettings = _settings.NormalizedDrawEllipseSettings;
         MapView.DrawCurveSettings = _settings.NormalizedDrawCurveSettings;
+        MapView.CurveLinedefsSettings = _settings.NormalizedCurveLinedefsSettings;
         MapView.DrawGridSettings = _settings.NormalizedDrawGridSettings;
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
         MapView.DynamicGridSizeEnabled = _settings.DynamicGridSize;
