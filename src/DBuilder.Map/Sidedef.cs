@@ -199,52 +199,55 @@ public class Sidedef : IMapElement, ISelectable, IMarkable, IFielded
         {
             if (autoClearSidedefTextures && !HighRequired())
             {
-                changed |= SetTextureHighIfDifferent("-");
+                changed |= SetTextureHighIfDifferent("-", MapSet.EmptyLongName);
             }
             else if (shiftMiddle && HighTexture == "-" && HighRequired())
             {
-                changed |= SetTextureHighIfDifferent(MidTexture);
+                changed |= SetTextureHighIfDifferent(MidTexture, LongMiddleTexture);
             }
 
             if (autoClearSidedefTextures && !LowRequired())
             {
-                changed |= SetTextureLowIfDifferent("-");
+                changed |= SetTextureLowIfDifferent("-", MapSet.EmptyLongName);
             }
             else if (shiftMiddle && LowTexture == "-" && LowRequired())
             {
-                changed |= SetTextureLowIfDifferent(MidTexture);
+                changed |= SetTextureLowIfDifferent(MidTexture, LongMiddleTexture);
             }
         }
 
         if (removeMiddle && !MiddleRequired())
         {
-            changed |= SetTextureMidIfDifferent("-");
+            changed |= SetTextureMidIfDifferent("-", MapSet.EmptyLongName);
         }
 
         return changed;
     }
 
-    private bool SetTextureHighIfDifferent(string? name)
+    private bool SetTextureHighIfDifferent(string? name, long longName)
     {
         string texture = NormalizeTextureName(name);
-        if (HighTexture == texture) return false;
+        if (HighTexture == texture && LongHighTexture == longName) return false;
         HighTexture = texture;
+        LongHighTexture = longName;
         return true;
     }
 
-    private bool SetTextureMidIfDifferent(string? name)
+    private bool SetTextureMidIfDifferent(string? name, long longName)
     {
         string texture = NormalizeTextureName(name);
-        if (MidTexture == texture) return false;
+        if (MidTexture == texture && LongMiddleTexture == longName) return false;
         MidTexture = texture;
+        LongMiddleTexture = longName;
         return true;
     }
 
-    private bool SetTextureLowIfDifferent(string? name)
+    private bool SetTextureLowIfDifferent(string? name, long longName)
     {
         string texture = NormalizeTextureName(name);
-        if (LowTexture == texture) return false;
+        if (LowTexture == texture && LongLowTexture == longName) return false;
         LowTexture = texture;
+        LongLowTexture = longName;
         return true;
     }
 

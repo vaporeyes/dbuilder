@@ -152,12 +152,18 @@ public class SidedefPartTests
         front.HighTexture = "UP";
         front.MidTexture = "MID";
         front.LowTexture = "LOW";
+        front.LongHighTexture = 11;
+        front.LongMiddleTexture = 22;
+        front.LongLowTexture = 33;
 
         Assert.True(front.RemoveUnneededTextures(removeMiddle: true));
 
         Assert.Equal("-", front.HighTexture);
         Assert.Equal("-", front.MidTexture);
         Assert.Equal("-", front.LowTexture);
+        Assert.Equal(MapSet.EmptyLongName, front.LongHighTexture);
+        Assert.Equal(MapSet.EmptyLongName, front.LongMiddleTexture);
+        Assert.Equal(MapSet.EmptyLongName, front.LongLowTexture);
         Assert.False(back.HighRequired());
     }
 
@@ -232,6 +238,7 @@ public class SidedefPartTests
         front.HighTexture = "-";
         front.MidTexture = "MID";
         front.LowTexture = "-";
+        front.LongMiddleTexture = 44;
         map.BuildIndexes();
 
         Assert.True(front.RemoveUnneededTextures(removeMiddle: false, force: false, shiftMiddle: true));
@@ -239,6 +246,9 @@ public class SidedefPartTests
         Assert.Equal("MID", front.HighTexture);
         Assert.Equal("MID", front.LowTexture);
         Assert.Equal("MID", front.MidTexture);
+        Assert.Equal(44, front.LongHighTexture);
+        Assert.Equal(44, front.LongLowTexture);
+        Assert.Equal(44, front.LongMiddleTexture);
     }
 
     private static (Sidedef Front, Sidedef Back) TwoSidedSameHeightSides()
