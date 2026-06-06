@@ -141,6 +141,7 @@ public static class EventLineAssociationModel
         {
             if (ReferenceEquals(source, target)) continue;
             if (target.Type != directLinkType || target.Tag != source.Tag) continue;
+            if (target.Action <= 0 || config?.GetLinedefAction(target.Action) == null) continue;
             associations.Add(new EventLineAssociation(
                 EventLineElementKind.Thing,
                 source.Index,
@@ -345,11 +346,22 @@ public static class EventLineAssociationModel
         foreach (Thing thing in map.Things)
         {
             if (sourceThing != null && ReferenceEquals(sourceThing, thing)) continue;
+            if (ShouldSkipChildLinkThingAssociation(sourceThing, thing, config)) continue;
             if (FirstMatchingThingArg(thing, sourceTagType, sourceTags, config) is not { } tag) continue;
             associations.Add(new EventLineAssociation(sourceKind, sourceIndex, EventLineElementKind.Thing, thing.Index, tag));
         }
 
         return associations;
+    }
+
+    private static bool ShouldSkipChildLinkThingAssociation(
+        Thing? sourceThing,
+        Thing targetThing,
+        GameConfiguration? config)
+    {
+        if (sourceThing == null || config?.GetThing(targetThing.Type) == null) return false;
+        int directLinkType = config.GetThing(sourceThing.Type)?.ThingLink ?? 0;
+        return directLinkType < 0 && directLinkType != -targetThing.Type;
     }
 
     private static IReadOnlyList<EventLineAssociation> SectorFieldAssociations(

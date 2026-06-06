@@ -207,6 +207,32 @@ public sealed class EventLineAssociationModelTests
     }
 
     [Fact]
+    public void ChildThingLinksSuppressReverseArgLinksToOtherThingTypesLikeUdb()
+    {
+        var map = new MapSet();
+        Thing source = map.AddThing(new Vector2D(0, 0), 9001);
+        source.Tag = 9;
+        Thing childType = map.AddThing(new Vector2D(32, 32), 9002);
+        childType.Action = 80;
+        childType.Args[1] = 9;
+        Thing otherType = map.AddThing(new Vector2D(64, 32), 9003);
+        otherType.Action = 80;
+        otherType.Args[1] = 9;
+        GameConfiguration config = ThingTypeArgConfig(thingLink: -9002, includeAction: true);
+
+        IReadOnlyList<EventLineAssociation> associations =
+            EventLineAssociationModel.ForElement(map, source, config);
+
+        EventLineAssociation association = Assert.Single(associations);
+        Assert.Equal(EventLineElementKind.Thing, association.SourceKind);
+        Assert.Equal(source.Index, association.SourceIndex);
+        Assert.Equal(EventLineElementKind.Thing, association.TargetKind);
+        Assert.Equal(childType.Index, association.TargetIndex);
+        Assert.Equal(9, association.Tag);
+        Assert.DoesNotContain(associations, a => a.TargetIndex == otherType.Index);
+    }
+
+    [Fact]
     public void LinedefActionArgsLinkToTaggedSectorsLinedefsAndThings()
     {
         var map = new MapSet();
@@ -308,11 +334,14 @@ public sealed class EventLineAssociationModelTests
         source.Tag = 7;
         Thing target = map.AddThing(new Vector2D(32, 0), 9002);
         target.Tag = 7;
+        target.Action = 80;
         Thing wrongType = map.AddThing(new Vector2D(64, 0), 3002);
         wrongType.Tag = 7;
+        wrongType.Action = 80;
         Thing wrongTag = map.AddThing(new Vector2D(96, 0), 9002);
         wrongTag.Tag = 8;
-        GameConfiguration config = ThingTypeArgConfig(thingLink: 9002);
+        wrongTag.Action = 80;
+        GameConfiguration config = ThingTypeArgConfig(thingLink: 9002, includeAction: true);
 
         IReadOnlyList<EventLineAssociation> associations =
             EventLineAssociationModel.ForElement(map, source, config);
@@ -333,6 +362,7 @@ public sealed class EventLineAssociationModelTests
         var map = new MapSet();
         Thing zeroTag = map.AddThing(new Vector2D(0, 0), 9001);
         Thing target = map.AddThing(new Vector2D(32, 0), 9002);
+        target.Action = 80;
         Thing childLink = map.AddThing(new Vector2D(64, 0), 9001);
         childLink.Tag = 7;
         target.Tag = 7;
@@ -340,11 +370,11 @@ public sealed class EventLineAssociationModelTests
         Assert.Empty(EventLineAssociationModel.ForElement(
             map,
             zeroTag,
-            ThingTypeArgConfig(thingLink: 9002)));
+            ThingTypeArgConfig(thingLink: 9002, includeAction: true)));
         Assert.Empty(EventLineAssociationModel.ForElement(
             map,
             childLink,
-            ThingTypeArgConfig(thingLink: -9002)));
+            ThingTypeArgConfig(thingLink: -9002, includeAction: true)));
     }
 
     [Fact]
@@ -688,9 +718,25 @@ public sealed class EventLineAssociationModelTests
             """);
     }
 
-    private static GameConfiguration ThingTypeArgConfig(int thingLink = 0, int selfLinkType = 0)
+    private static GameConfiguration ThingTypeArgConfig(int thingLink = 0, int selfLinkType = 0, bool includeAction = false)
     {
         int secondThingLink = selfLinkType == 0 ? 0 : selfLinkType;
+        string thingTagType = ((int)UniversalType.ThingTag).ToString();
+        string actions = includeAction
+            ? $$"""
+            linedeftypes
+            {
+                event
+                {
+                    80
+                    {
+                        title = "Event";
+                        arg1 { type = {{thingTagType}}; }
+                    }
+                }
+            }
+            """
+            : "";
 
         return GameConfiguration.FromText($$"""
             thingtypes
@@ -711,8 +757,13 @@ public sealed class EventLineAssociationModelTests
                         thinglink = {{secondThingLink}};
                         arg0 { type = {{(int)UniversalType.SectorTag}}; }
                     }
+                    9003
+                    {
+                        title = "Other Link";
+                    }
                 }
             }
+            {{actions}}
             """);
     }
 }
