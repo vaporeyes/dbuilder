@@ -32,7 +32,16 @@ public static class ScriptTypeDetector
         => TokenAt(tokens, index + 2) == "{" ? ScriptType.ModelDef : ScriptType.Unknown;
 
     private static ScriptType DetectAcs(IReadOnlyList<string> tokens, int index)
-        => TokenAt(tokens, index + 3) == "{" ? ScriptType.Acs : ScriptType.Unknown;
+    {
+        for (int i = index + 2; i < tokens.Count && i <= index + 12; i++)
+        {
+            string token = tokens[i];
+            if (token == "{") return ScriptType.Acs;
+            if (token == ";" || token == "}") return ScriptType.Unknown;
+        }
+
+        return ScriptType.Unknown;
+    }
 
     private static ScriptType DetectDecorate(IReadOnlyList<string> tokens, int index)
     {

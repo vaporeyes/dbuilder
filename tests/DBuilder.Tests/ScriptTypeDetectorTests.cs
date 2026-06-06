@@ -36,6 +36,23 @@ public class ScriptTypeDetectorTests
     }
 
     [Theory]
+    [InlineData("script 1 (void) { }")]
+    [InlineData("script \"OpenDoor\" (int tid, int speed) { }")]
+    [InlineData("script 2 OPEN (void) { }")]
+    public void DetectsAcsScriptHeadersWithArguments(string text)
+    {
+        Assert.Equal(ScriptType.Acs, ScriptTypeDetector.Detect(text));
+    }
+
+    [Fact]
+    public void AcsDetectionStopsAtStatementTerminators()
+    {
+        const string text = "script = \"not a script\"; {";
+
+        Assert.Equal(ScriptType.Unknown, ScriptTypeDetector.Detect(text));
+    }
+
+    [Theory]
     [InlineData("actor Imp { }")]
     [InlineData("actor FastImp : DoomImp { }")]
     [InlineData("actor NewImp replaces DoomImp { }")]
