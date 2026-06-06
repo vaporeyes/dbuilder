@@ -3228,6 +3228,102 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Target3DChanged?.Invoke(result.StatusMessage);
     }
 
+    private void ApplyVisualSlopeBetweenHandles3D()
+    {
+        IReadOnlyList<VisualSlopeLevel> levels = SelectedVisualSlopeLevels3D();
+        IReadOnlyList<VisualSlopeHandle> handles = SelectedVisualSlopeLineHandles3D();
+        if (levels.Count > 0 && IsVisualSlopeLineHandlePair(handles))
+            EditBegun?.Invoke("Slope between handles");
+
+        VisualSlopeBetweenHandlesApplyResult result = VisualSlopeHandles.ApplySlopeBetweenHandles(
+            levels,
+            handles);
+        ApplyVisualSlopeBetweenHandlesResult(result);
+    }
+
+    private void ApplyVisualArchBetweenHandles3D()
+    {
+        IReadOnlyList<VisualSlopeLevel> levels = SelectedVisualSlopeLevels3D();
+        IReadOnlyList<VisualSlopeHandle> handles = SelectedVisualSlopeLineHandles3D();
+        if (levels.Count >= 2 && IsVisualSlopeLineHandlePair(handles))
+            EditBegun?.Invoke("Arch between slope handles");
+
+        VisualSlopeBetweenHandlesApplyResult result = VisualSlopeHandles.ApplyArchBetweenHandles(
+            levels,
+            handles);
+        ApplyVisualSlopeBetweenHandlesResult(result);
+    }
+
+    private static bool IsVisualSlopeLineHandlePair(IReadOnlyList<VisualSlopeHandle> handles)
+        => handles.Count == 2
+            && handles[0].Kind == VisualSlopeHandleKind.Line
+            && handles[1].Kind == VisualSlopeHandleKind.Line
+            && handles[0].Sidedef != null
+            && handles[1].Sidedef != null;
+
+    private void ApplyVisualSlopeBetweenHandlesResult(VisualSlopeBetweenHandlesApplyResult result)
+    {
+        if (result.Result == VisualSlopeBetweenHandlesResult.Changed && result.ChangedLevels > 0)
+        {
+            _geo3DDirty = true;
+            MarkGeometryDirty();
+            Changed?.Invoke();
+            RequestNextFrameRendering();
+        }
+
+        Target3DChanged?.Invoke(result.StatusMessage);
+    }
+
+    private IReadOnlyList<VisualSlopeLevel> SelectedVisualSlopeLevels3D()
+    {
+        var levels = new List<VisualSlopeLevel>();
+        var seen = new HashSet<(Sector Sector, VisualSlopeLevelType Type)>();
+        foreach (VisualHit hit in _sel3D)
+        {
+            if (hit.Kind == VisualHitKind.Floor && hit.Sector is { } floor && seen.Add((floor, VisualSlopeLevelType.Floor)))
+                levels.Add(VisualSlopeLevel.Floor(floor));
+            else if (hit.Kind == VisualHitKind.Ceiling && hit.Sector is { } ceiling && seen.Add((ceiling, VisualSlopeLevelType.Ceiling)))
+                levels.Add(VisualSlopeLevel.Ceiling(ceiling));
+        }
+
+        return levels;
+    }
+
+    private IReadOnlyList<VisualSlopeHandle> SelectedVisualSlopeLineHandles3D()
+    {
+        var handles = new List<VisualSlopeHandle>();
+        var seen = new HashSet<Sidedef>(ReferenceEqualityComparer.Instance);
+        foreach (VisualHit hit in _sel3D)
+        {
+            if (hit.Kind != VisualHitKind.Wall || hit.Line == null) continue;
+            Sidedef? side = hit.Front ? hit.Line.Front : hit.Line.Back;
+            Sector? sector = hit.Sector ?? side?.Sector;
+            if (side == null || sector == null || !seen.Add(side)) continue;
+
+            VisualSlopeLevel level = VisualSlopeLevelForWallHit(hit, sector);
+            bool up = hit.Point.z >= WallHitMidpointZ(hit, sector);
+            handles.Add(VisualSlopeHandles.CreateSidedef(side, level, up) with { Selected = true });
+        }
+
+        return handles;
+    }
+
+    private static VisualSlopeLevel VisualSlopeLevelForWallHit(VisualHit hit, Sector sector)
+    {
+        Vec2D position = new(hit.Point.x, hit.Point.y);
+        double floorZ = sector.GetFloorZ(position);
+        double ceilingZ = sector.GetCeilZ(position);
+        return Math.Abs(hit.Point.z - ceilingZ) < Math.Abs(hit.Point.z - floorZ)
+            ? VisualSlopeLevel.Ceiling(sector)
+            : VisualSlopeLevel.Floor(sector);
+    }
+
+    private static double WallHitMidpointZ(VisualHit hit, Sector sector)
+    {
+        Vec2D position = new(hit.Point.x, hit.Point.y);
+        return (sector.GetFloorZ(position) + sector.GetCeilZ(position)) * 0.5;
+    }
+
     // Deletes selected or targeted visual things, or clears selected or targeted surface textures.
     private void DeleteVisualTargets3D()
     {
@@ -6712,6 +6808,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map3d.reset-slope":
             case "map3d.resetslope":
                 ResetSlope3D();
+                return true;
+            case "map3d.slope-between-handles":
+            case "map3d.slopebetweenhandles":
+                ApplyVisualSlopeBetweenHandles3D();
+                return true;
+            case "map3d.arch-between-handles":
+            case "map3d.archbetweenhandles":
+                ApplyVisualArchBetweenHandles3D();
                 return true;
             case "map3d.toggle-alpha-based-texture-highlighting":
             case "map3d.alphabasedtexturehighlighting":

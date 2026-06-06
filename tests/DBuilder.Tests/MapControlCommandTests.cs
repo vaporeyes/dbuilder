@@ -1949,6 +1949,35 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void VisualSlopeHandleCommandsUseSelectedSurfacesAndLineHandles()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("case \"map3d.slope-between-handles\":", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map3d.slopebetweenhandles\":", body, StringComparison.Ordinal);
+        Assert.Contains("ApplyVisualSlopeBetweenHandles3D();", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map3d.arch-between-handles\":", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map3d.archbetweenhandles\":", body, StringComparison.Ordinal);
+        Assert.Contains("ApplyVisualArchBetweenHandles3D();", body, StringComparison.Ordinal);
+
+        int slopeIndex = body.IndexOf("private void ApplyVisualSlopeBetweenHandles3D()", StringComparison.Ordinal);
+        int archIndex = body.IndexOf("private void ApplyVisualArchBetweenHandles3D()", StringComparison.Ordinal);
+        int levelsIndex = body.IndexOf("private IReadOnlyList<VisualSlopeLevel> SelectedVisualSlopeLevels3D()", StringComparison.Ordinal);
+        int handlesIndex = body.IndexOf("private IReadOnlyList<VisualSlopeHandle> SelectedVisualSlopeLineHandles3D()", StringComparison.Ordinal);
+
+        Assert.True(slopeIndex >= 0);
+        Assert.True(archIndex > slopeIndex);
+        Assert.True(levelsIndex > archIndex);
+        Assert.True(handlesIndex > levelsIndex);
+        Assert.Contains("VisualSlopeHandles.ApplySlopeBetweenHandles(", body[slopeIndex..archIndex], StringComparison.Ordinal);
+        Assert.Contains("VisualSlopeHandles.ApplyArchBetweenHandles(", body[archIndex..levelsIndex], StringComparison.Ordinal);
+        Assert.Contains("VisualSlopeLevel.Floor(floor)", body[levelsIndex..handlesIndex], StringComparison.Ordinal);
+        Assert.Contains("VisualSlopeLevel.Ceiling(ceiling)", body[levelsIndex..handlesIndex], StringComparison.Ordinal);
+        Assert.Contains("VisualSlopeHandles.CreateSidedef(side, level, up) with { Selected = true }", body[handlesIndex..], StringComparison.Ordinal);
+        Assert.Contains("Target3DChanged?.Invoke(result.StatusMessage);", body[slopeIndex..levelsIndex], StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void VisualTexturePasteTargetsOnlySurfacesLikeUdb()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
