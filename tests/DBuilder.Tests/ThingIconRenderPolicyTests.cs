@@ -325,9 +325,30 @@ public sealed class ThingIconRenderPolicyTests
             mapRadius: 10,
             viewScale: 8,
             fixedThingsScale: false));
-        Assert.True(ThingIconRenderPolicy.ShouldRenderThing(
+        Assert.False(ThingIconRenderPolicy.ShouldRenderThing(
             mapRadius: 12,
             viewScale: 8,
+            fixedThingsScale: false));
+        Assert.True(ThingIconRenderPolicy.ShouldRenderThing(
+            mapRadius: 32,
+            viewScale: 8,
+            fixedThingsScale: false));
+    }
+
+    [Fact]
+    public void FarOverviewRequiresReadableThingMarkers()
+    {
+        Assert.Equal(ThingIconRenderPolicy.MinimumThingScreenRadius, ThingIconRenderPolicy.MinimumThingScreenRadiusFor(
+            ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold - 0.01));
+        Assert.Equal(ThingIconRenderPolicy.MinimumFarOverviewThingScreenRadius, ThingIconRenderPolicy.MinimumThingScreenRadiusFor(
+            ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold));
+        Assert.False(ThingIconRenderPolicy.ShouldRenderThing(
+            mapRadius: 20,
+            viewScale: 8,
+            fixedThingsScale: false));
+        Assert.True(ThingIconRenderPolicy.ShouldRenderThing(
+            mapRadius: 20,
+            viewScale: ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold - 0.01,
             fixedThingsScale: false));
     }
 
