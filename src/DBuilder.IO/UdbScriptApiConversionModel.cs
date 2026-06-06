@@ -2249,6 +2249,13 @@ public sealed class UdbScriptSidedefWrapper : IEquatable<UdbScriptSidedefWrapper
         return new UdbScriptVector2DWrapper(point.x, point.y);
     }
 
+    public UdbScriptVector2DWrapper getCoordinatesAt(double u)
+    {
+        ThrowIfDisposed("getCoordinatesAt");
+        Vector2D point = sidedef.Line.Line.GetCoordinatesAt(u);
+        return new UdbScriptVector2DWrapper(point.x, point.y);
+    }
+
     public bool Equals(UdbScriptSidedefWrapper? other)
         => other is not null && ReferenceEquals(sidedef, other.sidedef);
 
