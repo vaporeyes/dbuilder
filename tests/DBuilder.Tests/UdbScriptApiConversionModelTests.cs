@@ -1175,8 +1175,66 @@ localsidedeftextureoffsets = true;
         keepWrapper.delete();
 
         Assert.DoesNotContain(keep, map.Sectors);
-        Assert.Null(side.Sector);
+        Assert.DoesNotContain(side, map.Sidedefs);
         Assert.True(keep.IsDisposed);
+        Assert.True(side.IsDisposed);
+        Assert.DoesNotContain(line, map.Linedefs);
+        Assert.True(line.IsDisposed);
+    }
+
+    [Fact]
+    public void MapOwnedSectorWrapperDeleteFlipsRemainingBackSideAndRepairsTextures()
+    {
+        var map = new MapSet();
+        var remove = map.AddSector();
+        var keep = map.AddSector();
+        var start = map.AddVertex(new Vector2D(0, 0));
+        var end = map.AddVertex(new Vector2D(64, 0));
+        var line = map.AddLinedef(start, end);
+        Sidedef removedSide = map.AddSidedef(line, isFront: true, remove);
+        Sidedef keptSide = map.AddSidedef(line, isFront: false, keep);
+        keptSide.HighTexture = "STONE";
+        keptSide.LongHighTexture = 1234;
+        map.BuildIndexes();
+
+        new UdbScriptSectorWrapper(remove, map).delete();
+
+        Assert.DoesNotContain(remove, map.Sectors);
+        Assert.True(remove.IsDisposed);
+        Assert.DoesNotContain(removedSide, map.Sidedefs);
+        Assert.True(removedSide.IsDisposed);
+        Assert.Contains(line, map.Linedefs);
+        Assert.Same(end, line.Start);
+        Assert.Same(start, line.End);
+        Assert.Same(keptSide, line.Front);
+        Assert.Null(line.Back);
+        Assert.True(keptSide.IsFront);
+        Assert.True(keptSide.MiddleRequired());
+        Assert.Equal("STONE", keptSide.MidTexture);
+        Assert.Equal(1234, keptSide.LongMiddleTexture);
+        Assert.Equal("-", keptSide.HighTexture);
+        Assert.Equal(MapSet.EmptyLongName, keptSide.LongHighTexture);
+        Assert.True(line.IsFlagSet("blocking"));
+        Assert.False(line.IsFlagSet("twosided"));
+    }
+
+    [Fact]
+    public void MapOwnedSectorWrapperDeleteRemovesOrphanedLines()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        Sidedef side = map.AddSidedef(line, isFront: true, sector);
+        map.BuildIndexes();
+
+        new UdbScriptSectorWrapper(sector, map).delete();
+
+        Assert.DoesNotContain(sector, map.Sectors);
+        Assert.DoesNotContain(side, map.Sidedefs);
+        Assert.DoesNotContain(line, map.Linedefs);
+        Assert.True(sector.IsDisposed);
+        Assert.True(side.IsDisposed);
+        Assert.True(line.IsDisposed);
     }
 
     [Fact]

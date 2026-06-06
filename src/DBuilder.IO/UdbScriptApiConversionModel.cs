@@ -2702,10 +2702,70 @@ public sealed class UdbScriptSectorWrapper : IEquatable<UdbScriptSectorWrapper>
         if (sector.IsDisposed)
             return;
 
-        if (owner != null)
-            owner.RemoveSector(sector);
-        else
+        if (owner == null)
+        {
             sector.IsDisposed = true;
+            return;
+        }
+
+        owner.BuildIndexes();
+        var lines = new List<Linedef>();
+        foreach (Sidedef side in sector.Sidedefs)
+        {
+            if (!lines.Any(line => ReferenceEquals(line, side.Line)))
+                lines.Add(side.Line);
+        }
+
+        foreach (Sidedef side in sector.Sidedefs.ToArray())
+            owner.RemoveSidedef(side);
+
+        owner.RemoveSector(sector);
+
+        for (int i = lines.Count - 1; i >= 0; i--)
+        {
+            Linedef line = lines[i];
+            if (line.Front == null && line.Back == null)
+            {
+                owner.RemoveLinedef(line);
+                continue;
+            }
+
+            if (line.Front == null && line.Back != null)
+            {
+                line.FlipVertices();
+                line.FlipSidedefs();
+            }
+
+            if (line.Front != null) line.Front.Other = line.Back;
+            if (line.Back != null) line.Back.Other = line.Front;
+
+            if (line.Front != null)
+            {
+                MoveRequiredMiddleTexture(line.Front);
+                line.Front.RemoveUnneededTextures(removeMiddle: false);
+            }
+
+            line.ApplySidedFlags();
+        }
+
+        owner.BuildIndexes();
+    }
+
+    private static void MoveRequiredMiddleTexture(Sidedef side)
+    {
+        if (!side.MiddleRequired() || side.LongMiddleTexture != MapSet.EmptyLongName)
+            return;
+
+        if (side.LongHighTexture != MapSet.EmptyLongName)
+        {
+            side.MidTexture = side.HighTexture;
+            side.LongMiddleTexture = side.LongHighTexture;
+        }
+        else if (side.LongLowTexture != MapSet.EmptyLongName)
+        {
+            side.MidTexture = side.LowTexture;
+            side.LongMiddleTexture = side.LongLowTexture;
+        }
     }
 
     public bool Equals(UdbScriptSectorWrapper? other)
