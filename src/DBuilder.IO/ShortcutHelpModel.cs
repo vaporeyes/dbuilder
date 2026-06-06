@@ -50,7 +50,7 @@ public static class ShortcutHelpModel
                 .Where(command => string.Equals(GroupTitle(command), title, StringComparison.Ordinal))
                 .Select(command => new ShortcutHelpRow(
                     command,
-                    EditorCommandCatalog.GestureText(command.Id, bindings),
+                    GestureText(command, bindings),
                     DefaultGestureText(command),
                     ModifierText(command),
                     ScopeTitle(command.Scope),
@@ -96,6 +96,12 @@ public static class ShortcutHelpModel
     {
         string bindingText = EditorCommandCatalog.GestureText(command.Id, EditorCommandCatalog.DefaultShortcuts);
         return bindingText == "-" ? command.DefaultGesture : bindingText;
+    }
+
+    private static string GestureText(EditorCommandDescriptor command, IReadOnlyList<EditorShortcutBinding> bindings)
+    {
+        string bindingText = EditorCommandCatalog.GestureText(command.Id, bindings);
+        return bindingText == "-" ? "Unassigned" : bindingText;
     }
 
     public static bool IsDefaultExpanded(string title)

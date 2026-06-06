@@ -123,8 +123,15 @@ public sealed class ShortcutHelpModelTests
             EditorCommandCatalog.DefaultShortcuts,
             "window.new-map");
         ShortcutHelpRow newMap = Assert.Single(menuOnly.SelectMany(section => section.Rows), row => row.Command.Id == "window.new-map");
-        Assert.Equal("-", newMap.GestureText);
+        Assert.Equal("Unassigned", newMap.GestureText);
         Assert.Equal("Menu", newMap.DefaultGestureText);
+
+        var unassigned = ShortcutHelpModel.BuildSections(
+            EditorCommandCatalog.All,
+            EditorCommandCatalog.DefaultShortcuts,
+            "unassigned");
+        Assert.Contains(unassigned.SelectMany(section => section.Rows), row => row.Command.Id == "window.new-map");
+        Assert.All(unassigned.SelectMany(section => section.Rows), row => Assert.Equal("Unassigned", row.GestureText));
     }
 
     [Fact]
@@ -225,7 +232,7 @@ public sealed class ShortcutHelpModelTests
                 filter: "window.save")
             .SelectMany(section => section.Rows), row => row.Command.Id == "window.save");
 
-        Assert.Equal("-", save.GestureText);
+        Assert.Equal("Unassigned", save.GestureText);
         Assert.Equal("Ctrl/Cmd+S", save.DefaultGestureText);
     }
 
