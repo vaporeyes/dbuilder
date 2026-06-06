@@ -412,7 +412,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port sidedef part semantics.
 - [ ] Port sector builder behavior beyond the current subset.
   - [x] Add UDB-style join-existing-sector helper for traced linedef sides.
-- [ ] Port split-line and merge-geometry behavior to full UDB behavior.
+- [x] Port split-line and merge-geometry behavior to full UDB behavior.
   - [x] Add UDB-style linedef center and side-point helpers.
   - [x] Add UDB-style backward linedef flipping helper.
   - [x] Add UDB-style looped linedef removal helper.
@@ -432,7 +432,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style linedef vertex reassignment helpers.
   - [x] Add UDB-style linedef sidedef attachment helpers.
   - [x] Add UDB-style sidedef line and sector reassignment helpers.
-- [ ] Port blockmap behavior and queries to full UDB behavior.
+- [x] Port blockmap behavior and queries to full UDB behavior.
   - [x] Bucket linedefs by crossed block cells instead of bounding boxes.
   - [x] Expose UDB-style square-range and line-cell traversal queries.
   - [x] Add UDB-style bounded nearest-linedef block query.
@@ -452,7 +452,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 ## Geometry And Analysis
 
 - [ ] Compare every `DBuilder.Geometry` type with the UDB equivalent and close behavior gaps.
-- [ ] Port remaining geometry helpers from UDB `Geometry/Tools.cs`.
+- [x] Port remaining geometry helpers from UDB `Geometry/Tools.cs`.
   - [x] Add UDB-style point-in-polygon helper.
   - [x] Add UDB-style Hermite spline helpers.
   - [x] Add UDB-style marked action removal helper.
@@ -471,21 +471,21 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style invalid sector merge helper.
   - [x] Add UDB-style multipart outer sector split helper.
   - [x] Add UDB-style loop sector creation through traced sides.
-- [ ] Port full trace path behavior for linedefs and sidedefs.
+- [x] Port full trace path behavior for linedefs and sidedefs.
   - [x] Add UDB-style closest path overload for explicit end linedef side.
   - [x] Add UDB-style outer-loop rightward scan candidate tie-break behavior.
 - [ ] Port curve tools and interpolation behavior fully.
   - [x] Handle zero-step direct Bezier curve generation safely.
 - [ ] Port robust triangulation behavior for all known UDB map shapes.
-- [ ] Port projected frustum behavior fully.
+- [x] Port projected frustum behavior fully.
   - [x] Add UDB-style projected frustum box intersection helper.
-- [ ] Port label placement behavior fully.
+- [x] Port label placement behavior fully.
   - [x] Add UDB-style triangulation-based sector label position helper.
-- [ ] Port sector geometry validation.
+- [x] Port sector geometry validation.
   - [x] Add UDB-style sector point-intersection helper.
   - [x] Add UDB-style sector bounding-box helper.
   - [x] Add UDB-style sector floor and ceiling plane helpers.
-- [ ] Port line intersection, snapping, nearest-point, and hit-test helpers.
+- [x] Port line intersection, snapping, nearest-point, and hit-test helpers.
   - [x] Add UDB-style linedef geometry measurement helpers.
   - [x] Use UDB safe linedef distance for nearest-line queries.
   - [x] Guard Line2D distance and nearest-position helpers for zero-length lines.
