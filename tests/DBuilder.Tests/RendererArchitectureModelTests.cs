@@ -27,6 +27,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Render-device sampler-filter overload planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device setup settings planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device setup settings state application", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device resource registration lifecycle planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device target start-rendering planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device inline vertex draw planning and overload", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device finish and present frame handoff planning", replacement.CoveredResponsibilities);
@@ -265,6 +266,36 @@ public class RendererArchitectureModelTests
         Assert.Equal(0xff445566u, target.ClearColorArgb);
         Assert.False(target.HasTarget);
         Assert.False(target.UseDepthBuffer);
+    }
+
+    [Fact]
+    public void RenderDeviceExposesUdbResourceRegistrationLifecycle()
+    {
+        Assert.NotNull(typeof(RenderDevice).GetProperty(nameof(RenderDevice.RegisteredResourceCount)));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.RegisterResource), new[] { typeof(IRenderResource) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.UnregisterResource), new[] { typeof(IRenderResource) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.UnloadRegisteredResources), Type.EmptyTypes));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.ReloadRegisteredResources), Type.EmptyTypes));
+        Assert.NotNull(typeof(IRenderResource).GetMethod(nameof(IRenderResource.UnloadResource), Type.EmptyTypes));
+        Assert.NotNull(typeof(IRenderResource).GetMethod(nameof(IRenderResource.ReloadResource), Type.EmptyTypes));
+
+        RenderResourceRegistrationPlan register = RenderDevice.BuildResourceRegistrationPlan(
+            RenderResourceRegistrationKind.Register,
+            wasRegistered: false);
+        RenderResourceRegistrationPlan duplicate = RenderDevice.BuildResourceRegistrationPlan(
+            RenderResourceRegistrationKind.Register,
+            wasRegistered: true);
+        RenderResourceRegistrationPlan unregister = RenderDevice.BuildResourceRegistrationPlan(
+            RenderResourceRegistrationKind.Unregister,
+            wasRegistered: true);
+
+        Assert.Equal(RenderResourceRegistrationKind.Register, register.Kind);
+        Assert.True(register.WillBeRegistered);
+        Assert.True(register.ChangesRegistry);
+        Assert.False(duplicate.ChangesRegistry);
+        Assert.Equal(RenderResourceRegistrationKind.Unregister, unregister.Kind);
+        Assert.False(unregister.WillBeRegistered);
+        Assert.True(unregister.ChangesRegistry);
     }
 
     [Fact]

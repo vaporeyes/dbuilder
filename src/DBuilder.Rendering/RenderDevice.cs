@@ -50,6 +50,18 @@ public enum RenderStateToggleKind
     MultisampleAntialias,
 }
 
+public enum RenderResourceRegistrationKind
+{
+    Register,
+    Unregister,
+}
+
+public interface IRenderResource
+{
+    void UnloadResource();
+    void ReloadResource();
+}
+
 public sealed record TextureOperationPlan(
     TextureOperationKind Kind,
     int Unit,
@@ -99,9 +111,16 @@ public sealed record RenderFrameOperationPlan(
     RenderFrameOperationKind Kind,
     bool FlushCommands);
 
+public sealed record RenderResourceRegistrationPlan(
+    RenderResourceRegistrationKind Kind,
+    bool WasRegistered,
+    bool WillBeRegistered,
+    bool ChangesRegistry);
+
 public sealed class RenderDevice : IDisposable
 {
     private readonly GL _gl;
+    private readonly List<IRenderResource> _resources = new();
     private uint _streamVao;
     private VertexBuffer? _boundVb;
     private IndexBuffer? _boundIb;
@@ -121,6 +140,7 @@ public sealed class RenderDevice : IDisposable
     public bool Disposed => _streamVao == 0;
     public bool AlphaTestEnabled => _alphaTestEnabled;
     public bool MultisampleAntialiasEnabled => _multisampleAntialiasEnabled;
+    public int RegisteredResourceCount => _resources.Count;
 
     public void SetViewport(int width, int height)
     {
@@ -208,6 +228,33 @@ public sealed class RenderDevice : IDisposable
             plan.SamplerFilter.Unit);
 
         return plan.InitializePresentation;
+    }
+
+    public bool RegisterResource(IRenderResource resource)
+    {
+        if (_resources.Contains(resource)) return false;
+
+        _resources.Add(resource);
+        return true;
+    }
+
+    public bool UnregisterResource(IRenderResource resource)
+        => _resources.Remove(resource);
+
+    public void UnloadRegisteredResources()
+    {
+        foreach (IRenderResource resource in _resources.ToArray())
+        {
+            resource.UnloadResource();
+        }
+    }
+
+    public void ReloadRegisteredResources()
+    {
+        foreach (IRenderResource resource in _resources.ToArray())
+        {
+            resource.ReloadResource();
+        }
     }
 
     public unsafe void SetBufferData(VertexBuffer buffer, FlatVertex[] data)
@@ -463,6 +510,20 @@ public sealed class RenderDevice : IDisposable
 
     public static TextureOperationPlan BuildUnmapPboPlan(Texture? texture)
         => new(TextureOperationKind.UnmapPbo, 0, texture != null);
+
+    public static RenderResourceRegistrationPlan BuildResourceRegistrationPlan(
+        RenderResourceRegistrationKind kind,
+        bool wasRegistered)
+    {
+        bool willBeRegistered = kind switch
+        {
+            RenderResourceRegistrationKind.Register => true,
+            RenderResourceRegistrationKind.Unregister => false,
+            _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+        };
+
+        return new(kind, wasRegistered, willBeRegistered, wasRegistered != willBeRegistered);
+    }
 
     public static RenderStateTogglePlan BuildAlphaTestPlan(bool enabled)
         => new(RenderStateToggleKind.AlphaTest, enabled);

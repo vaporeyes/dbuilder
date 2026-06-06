@@ -33,6 +33,7 @@ public static class RendererArchitectureModel
             "Render-device sampler-filter overload planning",
             "Render-device setup settings planning",
             "Render-device setup settings state application",
+            "Render-device resource registration lifecycle planning",
             "Render-device target start-rendering planning",
             "Render-device inline vertex draw planning and overload",
             "Render-device finish and present frame handoff planning",
