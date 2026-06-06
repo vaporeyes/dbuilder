@@ -31,6 +31,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Surface buffer reset invalidation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface buffer unload and reload resource-state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label size, alignment, transform, culling, and quad planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Text label plain and background image drawing planning", replacement.CoveredResponsibilities);
     }
 
     [Fact]

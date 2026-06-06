@@ -40,6 +40,7 @@ public static class RendererArchitectureModel
             "Surface buffer reset invalidation planning",
             "Surface buffer unload and reload resource-state planning",
             "Text label size, alignment, transform, culling, and quad planning",
+            "Text label plain and background image drawing planning",
             "Runtime shader compile, link, disposal, and uniform lookup caching",
             "Shader disposed-state reporting",
         },

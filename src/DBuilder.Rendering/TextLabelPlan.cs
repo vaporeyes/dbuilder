@@ -41,10 +41,27 @@ public sealed record TextLabelLayout(
     bool SkipRendering,
     FlatVertex[] Vertices);
 
+public enum TextLabelImageStyle
+{
+    Plain,
+    Background,
+}
+
+public sealed record TextLabelImagePlan(
+    TextLabelImageStyle Style,
+    TextLabelSize TextureSize,
+    TextLabelRectangle BackgroundFillRectangle,
+    TextLabelRectangle TextDrawRectangle,
+    PixelColor BackgroundFillColor,
+    PixelColor TextColor,
+    PixelColor? BorderColor,
+    double CornerRadius);
+
 public static class TextLabelPlan
 {
     public const double TextOriginX = 4.0;
     public const double TextOriginY = 3.0;
+    public const double BackgroundBorderWidth = 1.0;
 
     public static TextLabelLayout Build(
         string? text,
@@ -135,6 +152,45 @@ public static class TextLabelPlan
             skipRendering ? Array.Empty<FlatVertex>() : BuildVertices(screenRectangle, color ?? new PixelColor(255, 255, 255, 255)));
     }
 
+    public static TextLabelImagePlan BuildImagePlan(
+        string text,
+        TextLabelLayout layout,
+        bool drawBackground,
+        PixelColor color,
+        PixelColor backColor)
+    {
+        if (drawBackground)
+        {
+            return new TextLabelImagePlan(
+                TextLabelImageStyle.Background,
+                layout.TextureSize,
+                layout.BackgroundRectangle with
+                {
+                    Width = Math.Max(0.0, layout.BackgroundRectangle.Width - BackgroundBorderWidth),
+                    Height = Math.Max(0.0, layout.BackgroundRectangle.Height - BackgroundBorderWidth),
+                },
+                Inflate(layout.TextRectangle, 4.0, 2.0),
+                BackgroundFillColor: color,
+                TextColor: backColor,
+                BorderColor: backColor,
+                CornerRadius: TextOriginX);
+        }
+
+        TextLabelRectangle backgroundRectangle = text.Length > 1
+            ? Inflate(layout.TextRectangle, 6.0, 2.0)
+            : layout.TextRectangle;
+
+        return new TextLabelImagePlan(
+            TextLabelImageStyle.Plain,
+            layout.TextureSize,
+            backgroundRectangle,
+            Inflate(layout.TextRectangle, 6.0, 4.0),
+            BackgroundFillColor: backColor,
+            TextColor: color,
+            BorderColor: null,
+            CornerRadius: 0.0);
+    }
+
     public static int NextPowerOfTwo(int value)
     {
         if (value <= 1) return 1;
@@ -143,6 +199,13 @@ public static class TextLabelPlan
         while (result < value) result <<= 1;
         return result;
     }
+
+    public static TextLabelRectangle Inflate(TextLabelRectangle rectangle, double width, double height)
+        => new(
+            rectangle.X - width,
+            rectangle.Y - height,
+            rectangle.Width + width * 2.0,
+            rectangle.Height + height * 2.0);
 
     private static FlatVertex[] BuildVertices(TextLabelRectangle rectangle, PixelColor color)
     {

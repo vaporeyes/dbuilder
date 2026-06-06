@@ -99,4 +99,76 @@ public sealed class TextLabelPlanTests
         Assert.Equal(new TextLabelSize(0, 0), layout.TextureSize);
         Assert.Empty(layout.Vertices);
     }
+
+    [Fact]
+    public void BuildImagePlanMatchesUdbPlainTextDrawingRectangles()
+    {
+        TextLabelLayout layout = TextLabelPlan.Build(
+            "Sector",
+            new TextLabelSize(32, 12),
+            new TextLabelPoint(0, 0),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+
+        var color = new PixelColor(255, 255, 255, 255);
+        var backColor = new PixelColor(128, 0, 0, 0);
+        TextLabelImagePlan image = TextLabelPlan.BuildImagePlan("Sector", layout, drawBackground: false, color, backColor);
+
+        Assert.Equal(TextLabelImageStyle.Plain, image.Style);
+        Assert.Equal(layout.TextureSize, image.TextureSize);
+        Assert.Equal(new TextLabelRectangle(-2, 1, 44, 16), image.BackgroundFillRectangle);
+        Assert.Equal(new TextLabelRectangle(-2, -1, 44, 20), image.TextDrawRectangle);
+        Assert.Equal(backColor, image.BackgroundFillColor);
+        Assert.Equal(color, image.TextColor);
+        Assert.Null(image.BorderColor);
+        Assert.Equal(0, image.CornerRadius);
+    }
+
+    [Fact]
+    public void BuildImagePlanKeepsSingleCharacterPlainBackgroundTightLikeUdb()
+    {
+        TextLabelLayout layout = TextLabelPlan.Build(
+            "A",
+            new TextLabelSize(8, 12),
+            new TextLabelPoint(0, 0),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+
+        TextLabelImagePlan image = TextLabelPlan.BuildImagePlan(
+            "A",
+            layout,
+            drawBackground: false,
+            new PixelColor(255, 1, 2, 3),
+            new PixelColor(128, 4, 5, 6));
+
+        Assert.Equal(layout.TextRectangle, image.BackgroundFillRectangle);
+        Assert.Equal(new TextLabelRectangle(-2, -1, 20, 20), image.TextDrawRectangle);
+    }
+
+    [Fact]
+    public void BuildImagePlanMatchesUdbBackgroundLabelDrawingRectangles()
+    {
+        TextLabelLayout layout = TextLabelPlan.Build(
+            "Line",
+            new TextLabelSize(24, 10),
+            new TextLabelPoint(0, 0),
+            alignX: TextLabelAlignmentX.Left,
+            alignY: TextLabelAlignmentY.Top,
+            viewportWidth: 320,
+            viewportHeight: 200);
+
+        var color = new PixelColor(255, 240, 230, 220);
+        var backColor = new PixelColor(192, 10, 20, 30);
+        TextLabelImagePlan image = TextLabelPlan.BuildImagePlan("Line", layout, drawBackground: true, color, backColor);
+
+        Assert.Equal(TextLabelImageStyle.Background, image.Style);
+        Assert.Equal(new TextLabelRectangle(0, 0, 31, 15), image.BackgroundFillRectangle);
+        Assert.Equal(new TextLabelRectangle(0, 1, 32, 14), image.TextDrawRectangle);
+        Assert.Equal(color, image.BackgroundFillColor);
+        Assert.Equal(backColor, image.TextColor);
+        Assert.Equal(backColor, image.BorderColor);
+        Assert.Equal(TextLabelPlan.TextOriginX, image.CornerRadius);
+    }
 }
