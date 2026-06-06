@@ -1738,7 +1738,10 @@ public static class DBuilderPluginHostModel
             key => string.Equals(key, pluginName, StringComparison.OrdinalIgnoreCase));
         if (existingKey != null) settings.Remove(existingKey);
 
-        settings[pluginName] = NormalizeSettings(snapshot.Values);
+        Dictionary<string, object?> values = NormalizeSettings(snapshot.Values);
+        if (values.Count == 0) return;
+
+        settings[pluginName] = values;
     }
 
     private static int? ReadPluginIntProperty(Type pluginType, object instance, string propertyName)

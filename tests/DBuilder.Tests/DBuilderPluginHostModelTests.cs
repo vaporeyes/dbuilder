@@ -3264,6 +3264,55 @@ public sealed class DBuilderPluginHostModelTests
         Assert.Equal(16, settings["TagRange"]["tagrange.step"]);
     }
 
+    [Fact]
+    public void WriteSettingsRemovesPluginSectionWhenSnapshotHasNoValues()
+    {
+        var settings = new Dictionary<string, Dictionary<string, object?>>
+        {
+            ["tagrange"] = new()
+            {
+                ["tagrange.step"] = 8
+            },
+            ["CommentsPanel"] = new()
+            {
+                ["dock"] = "left"
+            }
+        };
+        var snapshot = new DBuilderPluginSettingsSnapshot(
+            "TagRange",
+            new Dictionary<string, object?>(),
+            Array.Empty<string>());
+
+        DBuilderPluginHostModel.WriteSettings(settings, snapshot);
+
+        Assert.False(settings.ContainsKey("tagrange"));
+        Assert.False(settings.ContainsKey("TagRange"));
+        Assert.Equal("left", settings["CommentsPanel"]["dock"]);
+    }
+
+    [Fact]
+    public void WriteSettingsLeavesStoreUntouchedWhenSnapshotHasWarnings()
+    {
+        var settings = new Dictionary<string, Dictionary<string, object?>>
+        {
+            ["TagRange"] = new()
+            {
+                ["tagrange.step"] = 8
+            }
+        };
+        var snapshot = new DBuilderPluginSettingsSnapshot(
+            "TagRange",
+            new Dictionary<string, object?>
+            {
+                ["tagrange.step"] = 16
+            },
+            new[] { "Plugin TagRange is disabled." });
+
+        DBuilderPluginHostModel.WriteSettings(settings, snapshot);
+
+        Assert.Equal(8, settings["TagRange"]["tagrange.step"]);
+    }
+
     private static DBuilderPluginRuntimeInstancePlan RuntimeInstancePlan(
         IDBuilderPlugin plugin,
         string pluginName)
