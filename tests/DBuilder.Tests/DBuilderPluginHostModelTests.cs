@@ -2045,6 +2045,54 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void ExecuteReflectionPreferenceAndActionHelpersDispatchCallbacksInOrder()
+    {
+        ReflectionPreferenceActionCallbackPlugin.Calls.Clear();
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            new[]
+            {
+                new DBuilderPluginRuntimeInstance(
+                    "Second",
+                    "/plugins/second.dll",
+                    typeof(ReflectionPreferenceActionCallbackPlugin).FullName!,
+                    1,
+                    new ReflectionPreferenceActionCallbackPlugin("Second")),
+                new DBuilderPluginRuntimeInstance(
+                    "First",
+                    "/plugins/first.dll",
+                    typeof(ReflectionPreferenceActionCallbackPlugin).FullName!,
+                    0,
+                    new ReflectionPreferenceActionCallbackPlugin("First"))
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginCallbackExecutionResult showPreferences = DBuilderPluginHostModel.ExecuteReflectionShowPreferences(plan);
+        DBuilderPluginCallbackExecutionResult closePreferences = DBuilderPluginHostModel.ExecuteReflectionClosePreferences(plan);
+        DBuilderPluginCallbackExecutionResult actionBegin = DBuilderPluginHostModel.ExecuteReflectionActionBegin(plan);
+        DBuilderPluginCallbackExecutionResult actionEnd = DBuilderPluginHostModel.ExecuteReflectionActionEnd(plan);
+
+        Assert.All(
+            new[] { showPreferences, closePreferences, actionBegin, actionEnd },
+            result =>
+            {
+                Assert.True(result.Completed);
+                Assert.False(result.Aborted);
+                Assert.Empty(result.Diagnostics);
+            });
+        Assert.Equal(new[]
+        {
+            "First:ShowPreferences",
+            "Second:ShowPreferences",
+            "First:ClosePreferences",
+            "Second:ClosePreferences",
+            "First:ActionBegin",
+            "Second:ActionBegin",
+            "First:ActionEnd",
+            "Second:ActionEnd"
+        }, ReflectionPreferenceActionCallbackPlugin.Calls);
+    }
+
+    [Fact]
     public void ExecuteReflectionCallbackPassesCopiedPasteOptionsToEachPlugin()
     {
         ReflectionPasteCallbackPlugin.Calls.Clear();
@@ -3191,6 +3239,38 @@ public sealed class ReflectionEditOperationCallbackPlugin : IDBuilderPlugin
     public void OnEditAccept()
     {
         Calls.Add(_name + ":EditAccept");
+    }
+}
+
+public sealed class ReflectionPreferenceActionCallbackPlugin : IDBuilderPlugin
+{
+    public static List<string> Calls { get; } = new();
+
+    private readonly string _name;
+
+    public ReflectionPreferenceActionCallbackPlugin(string name)
+    {
+        _name = name;
+    }
+
+    public void OnShowPreferences()
+    {
+        Calls.Add(_name + ":ShowPreferences");
+    }
+
+    public void OnClosePreferences()
+    {
+        Calls.Add(_name + ":ClosePreferences");
+    }
+
+    public void OnActionBegin()
+    {
+        Calls.Add(_name + ":ActionBegin");
+    }
+
+    public void OnActionEnd()
+    {
+        Calls.Add(_name + ":ActionEnd");
     }
 }
 

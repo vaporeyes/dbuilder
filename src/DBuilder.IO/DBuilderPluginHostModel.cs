@@ -1096,6 +1096,22 @@ public static class DBuilderPluginHostModel
         DBuilderPluginRuntimeInstancePlan instancePlan)
         => ExecuteReflectionCallback(instancePlan, "OnEditAccept");
 
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionShowPreferences(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnShowPreferences");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionClosePreferences(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnClosePreferences");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionActionBegin(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnActionBegin");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionActionEnd(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnActionEnd");
+
     public static DBuilderPluginCallbackExecutionResult ExecuteReflectionMapSaveBegin(
         DBuilderPluginRuntimeInstancePlan instancePlan,
         SavePurpose purpose)
