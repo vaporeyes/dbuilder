@@ -212,7 +212,9 @@ public sealed record PresentationRenderTargetPlan(
     IReadOnlyList<string> ClearTargets,
     FlatVertex[] ScreenVertices,
     bool ResetGridScale,
-    bool ResetGridSize)
+    bool ResetGridSize,
+    bool ResetGridOrigin,
+    bool RedrawExistingMap)
 {
     public const int ThingBufferSize = 100;
     public const int ThingVerticesPerBufferItem = 12;
@@ -236,7 +238,11 @@ public sealed record PresentationRenderTargetPlan(
             addOverlayTexture ? existingOverlayTextureCount + 1 : existingOverlayTextureCount);
     }
 
-    public static PresentationRenderTargetPlan Create(int width, int height, PresentationPlan? presentation)
+    public static PresentationRenderTargetPlan Create(
+        int width,
+        int height,
+        PresentationPlan? presentation,
+        bool hasMapConfiguration = false)
     {
         int overlayCount = presentation?.Layers.Count(layer => layer.Layer == PresentationRendererLayer.Overlay) ?? 1;
 
@@ -250,7 +256,9 @@ public sealed record PresentationRenderTargetPlan(
             ClearTargetsFor(overlayCount),
             CreateScreenVertices(width, height),
             ResetGridScale: true,
-            ResetGridSize: true);
+            ResetGridSize: true,
+            ResetGridOrigin: true,
+            RedrawExistingMap: hasMapConfiguration);
     }
 
     private static IReadOnlyList<PresentationRenderTargetResource> ResourcesFor(int width, int height, int overlayCount)

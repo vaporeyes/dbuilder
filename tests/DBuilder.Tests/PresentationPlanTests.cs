@@ -172,6 +172,8 @@ public sealed class PresentationPlanTests
         Assert.Equal(new[] { "things", "overlay0" }, plan.ClearTargets);
         Assert.True(plan.ResetGridScale);
         Assert.True(plan.ResetGridSize);
+        Assert.True(plan.ResetGridOrigin);
+        Assert.False(plan.RedrawExistingMap);
     }
 
     [Fact]
@@ -204,6 +206,26 @@ public sealed class PresentationPlanTests
         Assert.Equal(2, plan.OverlayTextureCount);
         Assert.Equal(new[] { "things", "overlay0", "overlay1" }, plan.ClearTargets);
         Assert.Equal(new[] { "plotter", "gridplotter", "things", "surface", "overlay0", "overlay1" }, plan.Resources.Select(resource => resource.Name));
+    }
+
+    [Fact]
+    public void RenderTargetPlanRedrawsExistingMapOnlyWhenMapConfigurationExists()
+    {
+        PresentationRenderTargetPlan noMap = PresentationRenderTargetPlan.Create(
+            320,
+            200,
+            PresentationPlan.Standard(0.4f, 0.25f));
+        PresentationRenderTargetPlan withMap = PresentationRenderTargetPlan.Create(
+            320,
+            200,
+            PresentationPlan.Standard(0.4f, 0.25f),
+            hasMapConfiguration: true);
+
+        Assert.False(noMap.RedrawExistingMap);
+        Assert.True(withMap.RedrawExistingMap);
+        Assert.True(withMap.ResetGridScale);
+        Assert.True(withMap.ResetGridSize);
+        Assert.True(withMap.ResetGridOrigin);
     }
 
     [Fact]

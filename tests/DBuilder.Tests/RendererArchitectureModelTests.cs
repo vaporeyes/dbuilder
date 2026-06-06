@@ -25,6 +25,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("2D presentation frame operation sequence planning", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation render-layer mask planning", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation set-presentation overlay lifecycle planning", replacement.CoveredResponsibilities);
+        Assert.Contains("2D presentation render-target transform reset and redraw planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device alpha-test compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device multisample antialias compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device sampler-filter overload planning", replacement.CoveredResponsibilities);
