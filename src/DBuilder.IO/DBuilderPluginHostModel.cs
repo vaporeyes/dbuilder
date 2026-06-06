@@ -222,6 +222,10 @@ public sealed record DBuilderPluginApiContributionPlan(
     IReadOnlyList<DBuilderPluginApiContribution> Dockers,
     IReadOnlyList<string> Warnings);
 
+public sealed record DBuilderPluginActionCommandPlan(
+    DBuilderPluginApiContribution? Action,
+    IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
+
 public sealed record DBuilderPluginHostPlan(
     DBuilderPluginDescriptorPlan DescriptorPlan,
     DBuilderPluginLoadPlan LoadPlan,
@@ -1668,6 +1672,45 @@ public static class DBuilderPluginHostModel
             SortApiContributions(editModes),
             SortApiContributions(dockers),
             warnings);
+    }
+
+    public static DBuilderPluginActionCommandPlan PlanActionCommand(
+        DBuilderPluginHostPlan hostPlan,
+        string actionId)
+    {
+        string id = actionId.Trim();
+        var diagnostics = new List<DBuilderPluginDiagnostic>(hostPlan.DescriptorPlan.Diagnostics);
+        if (id.Length == 0)
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                "(plugin host)",
+                "Plugin action id is missing."));
+            return new DBuilderPluginActionCommandPlan(null, diagnostics);
+        }
+
+        DBuilderPluginApiContribution[] matches = hostPlan.ApiContributions.Actions
+            .Where(action => string.Equals(action.Id, id, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        if (matches.Length == 0)
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                "(plugin host)",
+                $"Plugin action {id} was not found."));
+            return new DBuilderPluginActionCommandPlan(null, diagnostics);
+        }
+
+        if (matches.Length > 1)
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                "(plugin host)",
+                $"Plugin action {id} is ambiguous."));
+            return new DBuilderPluginActionCommandPlan(null, diagnostics);
+        }
+
+        return new DBuilderPluginActionCommandPlan(matches[0], diagnostics);
     }
 
     public static Dictionary<string, Dictionary<string, object?>> NormalizeSettingsStore(

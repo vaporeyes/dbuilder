@@ -3261,6 +3261,76 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void PlanActionCommandResolvesActionContributionById()
+    {
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor(
+                    "BuilderModes",
+                    "/plugins/buildermodes.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "builder.draw.action", "Draw action"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, "builder.draw.menu", "Draw menu")
+                    }),
+                new DBuilderPluginDescriptor(
+                    "CommentsPanel",
+                    "/plugins/comments.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "comments.open.action", "Open Comments")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest());
+
+        DBuilderPluginActionCommandPlan command = DBuilderPluginHostModel.PlanActionCommand(
+            hostPlan,
+            " comments.open.action ");
+
+        Assert.Empty(command.Diagnostics);
+        Assert.NotNull(command.Action);
+        Assert.Equal("CommentsPanel", command.Action.PluginName);
+        Assert.Equal("comments.open.action", command.Action.Id);
+        Assert.Equal("Open Comments", command.Action.Title);
+    }
+
+    [Fact]
+    public void PlanActionCommandReportsMissingAndAmbiguousActions()
+    {
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor(
+                    "BuilderModes",
+                    "/plugins/buildermodes.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "shared.action", "Draw action")
+                    }),
+                new DBuilderPluginDescriptor(
+                    "CommentsPanel",
+                    "/plugins/comments.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "shared.action", "Open Comments")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest());
+
+        DBuilderPluginActionCommandPlan missingId = DBuilderPluginHostModel.PlanActionCommand(hostPlan, " ");
+        DBuilderPluginActionCommandPlan missingAction = DBuilderPluginHostModel.PlanActionCommand(hostPlan, "missing.action");
+        DBuilderPluginActionCommandPlan ambiguous = DBuilderPluginHostModel.PlanActionCommand(hostPlan, "shared.action");
+
+        Assert.Null(missingId.Action);
+        Assert.Equal("Plugin action id is missing.", Assert.Single(missingId.Diagnostics).Message);
+        Assert.Null(missingAction.Action);
+        Assert.Equal("Plugin action missing.action was not found.", Assert.Single(missingAction.Diagnostics).Message);
+        Assert.Null(ambiguous.Action);
+        Assert.Equal("Plugin action shared.action is ambiguous.", Assert.Single(ambiguous.Diagnostics).Message);
+    }
+
+    [Fact]
     public void NormalizeSettingsStoreTrimsPluginsAndSettingsWithoutDroppingUnknownValues()
     {
         var settings = DBuilderPluginHostModel.NormalizeSettingsStore(new Dictionary<string, Dictionary<string, object?>>
