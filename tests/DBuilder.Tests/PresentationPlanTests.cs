@@ -574,6 +574,37 @@ public sealed class PresentationPlanTests
     }
 
     [Fact]
+    public void DisplaySettingStepsMatchUdbUniformAndSamplerOrder()
+    {
+        PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);
+        PresentationRenderTargetPlan targets = PresentationRenderTargetPlan.Create(320, 200, presentation);
+        PresentationDisplaySettings setting = targets.BuildDisplaySettings(presentation, qualityDisplay: false)[0];
+
+        IReadOnlyList<PresentationDisplaySettingStep> steps = targets.BuildDisplaySettingSteps(setting);
+
+        Assert.Equal(new[]
+        {
+            PresentationDisplaySettingStepKind.SetRenderSettingsUniform,
+            PresentationDisplaySettingStepKind.SetProjectionUniform,
+            PresentationDisplaySettingStepKind.SetSamplerFilter,
+        }, steps.Select(step => step.Kind));
+        Assert.Equal(new[] { "rendersettings", "projection", "Nearest" }, steps.Select(step => step.TargetName));
+    }
+
+    [Fact]
+    public void DisplaySettingStepsPreserveBilinearSamplerFilter()
+    {
+        PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);
+        PresentationRenderTargetPlan targets = PresentationRenderTargetPlan.Create(320, 200, presentation);
+        PresentationDisplaySettings setting = targets.BuildDisplaySettings(presentation, qualityDisplay: true, bilinear: true)[0];
+
+        IReadOnlyList<PresentationDisplaySettingStep> steps = targets.BuildDisplaySettingSteps(setting);
+
+        Assert.Equal(PresentationDisplaySettingStepKind.SetSamplerFilter, steps[^1].Kind);
+        Assert.Equal("Linear", steps[^1].TargetName);
+    }
+
+    [Fact]
     public void DisplaySettingsAssignOverlayIndexesInLayerOrder()
     {
         var presentation = new PresentationPlan(new[]

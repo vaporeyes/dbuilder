@@ -1478,6 +1478,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style 2D presentation render-target lifecycle planning.
   - [x] Add UDB-style 2D presentation plotter and texture target allocation planning.
   - [x] Add UDB-style 2D presentation display shader settings planning.
+  - [x] Add UDB-style 2D presentation display uniform application planning.
   - [x] Add UDB-style 2D presentation frame operation sequence planning.
   - [x] Add UDB-style 2D presentation render-layer mask planning.
   - [x] Add UDB-style 2D presentation set-presentation overlay lifecycle planning.

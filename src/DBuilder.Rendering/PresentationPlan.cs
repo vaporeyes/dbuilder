@@ -237,6 +237,17 @@ public sealed record PresentationDisplaySettings(
     TextureFilter SamplerFilter,
     int? OverlayIndex);
 
+public enum PresentationDisplaySettingStepKind
+{
+    SetRenderSettingsUniform,
+    SetProjectionUniform,
+    SetSamplerFilter,
+}
+
+public sealed record PresentationDisplaySettingStep(
+    PresentationDisplaySettingStepKind Kind,
+    string TargetName);
+
 public sealed record PresentationLayerDrawPlan(
     PresentationRendererLayer Layer,
     string SourceTargetName,
@@ -570,6 +581,15 @@ public sealed record PresentationRenderTargetPlan(
 
     private static bool FlipY(PresentationRendererLayer layer)
         => layer != PresentationRendererLayer.Geometry;
+
+    public IReadOnlyList<PresentationDisplaySettingStep> BuildDisplaySettingSteps(
+        PresentationDisplaySettings settings)
+        => new[]
+        {
+            new PresentationDisplaySettingStep(PresentationDisplaySettingStepKind.SetRenderSettingsUniform, "rendersettings"),
+            new PresentationDisplaySettingStep(PresentationDisplaySettingStepKind.SetProjectionUniform, "projection"),
+            new PresentationDisplaySettingStep(PresentationDisplaySettingStepKind.SetSamplerFilter, settings.SamplerFilter.ToString()),
+        };
 
     public IReadOnlyList<PresentationLayerDrawPlan> BuildLayerDrawPlans(
         PresentationPlan presentation,
