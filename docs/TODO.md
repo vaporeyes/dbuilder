@@ -355,7 +355,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 ## Map Model Parity
 
 - [ ] Expand `MapSet` to cover full UDB map behavior.
-- [ ] Port all selection, marking, and indexing semantics.
+- [x] Port all selection, marking, and indexing semantics.
   - [x] Add UDB-style mark set and invert helpers across all element types.
   - [x] Add UDB-style selection group count labels.
   - [x] Add UDB-style sidedef lookup from selected linedefs.
@@ -378,7 +378,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style selection group helpers on groupable elements.
   - [x] Add UDB-style marked-sidedef selection helpers.
 - [x] Port element disposal and orphan cleanup behavior.
-- [ ] Port element copy, paste, clone, and serialization behavior.
+- [x] Port element copy, paste, clone, and serialization behavior.
   - [x] Add UDB-style map element property copy helpers.
   - [x] Duplicate selected elements without replacing the editor clipboard buffer.
   - [x] Copy standalone selected sidedefs with their linedef, vertices, and sector.
@@ -397,7 +397,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Preserve selection groups through clipboard and undo snapshots.
 - [x] Port map-options-backed selection group persistence.
 - [x] Port remaining map options.
-- [ ] Port all UDMF field semantics for vertices, linedefs, sidedefs, sectors, and things.
+- [x] Port all UDMF field semantics for vertices, linedefs, sidedefs, sectors, and things.
   - [x] Add UDB-style custom UDMF field name validation for editable field text.
   - [x] Preserve raw custom-field string values through quoted text editing.
   - [x] Preserve large integer custom fields through editable field text.
