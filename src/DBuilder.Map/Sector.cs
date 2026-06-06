@@ -9,9 +9,11 @@ using DBuilder.Geometry;
 public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, IMultiTaggedMapElement
 {
     private RectangleF bbox;
+    private bool updateNeeded;
 
     public int Index { get; set; }
     public RectangleF BBox => bbox;
+    public bool UpdateNeeded { get => updateNeeded; set => updateNeeded |= value; }
 
     /// <summary>True after this element has been removed from its owning map.</summary>
     public bool IsDisposed { get; set; }

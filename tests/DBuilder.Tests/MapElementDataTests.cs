@@ -196,6 +196,22 @@ public class MapElementDataTests
     }
 
     [Fact]
+    public void SectorUpdateNeededSetterMatchesUdbStickyBehavior()
+    {
+        var sector = new Sector();
+
+        Assert.False(sector.UpdateNeeded);
+
+        sector.UpdateNeeded = false;
+        Assert.False(sector.UpdateNeeded);
+
+        sector.UpdateNeeded = true;
+        sector.UpdateNeeded = false;
+
+        Assert.True(sector.UpdateNeeded);
+    }
+
+    [Fact]
     public void RawFlagsExposeUdbUnsignedBinaryFlagSurface()
     {
         var line = new Linedef { Flags = 0x12345 };
