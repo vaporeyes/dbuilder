@@ -342,6 +342,62 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void BuildRuntimePlanKeepsMissingAssembliesOutOfReadyHost()
+    {
+        DBuilderPluginRuntimePlan plan = DBuilderPluginHostModel.BuildRuntimePlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor("TagRange", "/plugins/tagrange.dll"),
+                new DBuilderPluginDescriptor(
+                    "BuilderModes",
+                    "/plugins/buildermodes.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "builder.draw.action", "Draw action")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest(Engage: true),
+            path => path.EndsWith("buildermodes.dll", StringComparison.OrdinalIgnoreCase));
+
+        Assert.Equal(2, plan.HostPlan.LoadPlan.Candidates.Count);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.AssemblyLoadPlan.Diagnostics);
+        Assert.Equal("TagRange", diagnostic.PluginName);
+        Assert.Equal("Plugin TagRange assembly was not found at /plugins/tagrange.dll.", diagnostic.Message);
+        DBuilderPluginDescriptor readyDescriptor = Assert.Single(plan.ReadyHostPlan.DescriptorPlan.Descriptors);
+        Assert.Equal("BuilderModes", readyDescriptor.Name);
+        DBuilderPluginApiContribution action = Assert.Single(plan.ReadyHostPlan.ApiContributions.Actions);
+        Assert.Equal("builder.draw.action", action.Id);
+
+        DBuilderPluginCallbackInvocationPlan callbackPlan = DBuilderPluginHostModel.PlanCallbackInvocations(
+            plan.ReadyHostPlan,
+            "OnMapOpenBegin");
+
+        DBuilderPluginCallbackInvocation invocation = Assert.Single(callbackPlan.Invocations);
+        Assert.Equal("BuilderModes", invocation.PluginName);
+    }
+
+    [Fact]
+    public void BuildRuntimePlanKeepsInvalidLoadCandidatesOutOfReadyHost()
+    {
+        DBuilderPluginRuntimePlan plan = DBuilderPluginHostModel.BuildRuntimePlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor("LooseScript", "/plugins/loose.txt"),
+                new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll")
+            },
+            new DBuilderPluginLifecycleRequest(),
+            _ => true);
+
+        DBuilderPluginAssemblyLoadAttempt attempt = Assert.Single(plan.AssemblyLoadPlan.Attempts);
+        Assert.Equal("BuilderModes", attempt.PluginName);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.AssemblyLoadPlan.Diagnostics);
+        Assert.Equal("LooseScript", diagnostic.PluginName);
+        Assert.Equal("Plugin LooseScript assembly path must point to a .dll file.", diagnostic.Message);
+        DBuilderPluginDescriptor readyDescriptor = Assert.Single(plan.ReadyHostPlan.DescriptorPlan.Descriptors);
+        Assert.Equal("BuilderModes", readyDescriptor.Name);
+    }
+
+    [Fact]
     public void BuildHostPlanAggregatesDescriptorsLifecycleAndContributionPlans()
     {
         DBuilderPluginHostPlan plan = DBuilderPluginHostModel.BuildHostPlan(

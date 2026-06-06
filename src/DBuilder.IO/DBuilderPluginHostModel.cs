@@ -86,6 +86,11 @@ public sealed record DBuilderPluginAssemblyLoadPlan(
     IReadOnlyList<DBuilderPluginAssemblyLoadAttempt> Attempts,
     IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
 
+public sealed record DBuilderPluginRuntimePlan(
+    DBuilderPluginHostPlan HostPlan,
+    DBuilderPluginAssemblyLoadPlan AssemblyLoadPlan,
+    DBuilderPluginHostPlan ReadyHostPlan);
+
 public sealed record DBuilderPluginSettingDescriptor(
     string Key,
     object? DefaultValue = null);
@@ -365,6 +370,30 @@ public static class DBuilderPluginHostModel
         }
 
         return new DBuilderPluginAssemblyLoadPlan(attempts, diagnostics);
+    }
+
+    public static DBuilderPluginRuntimePlan BuildRuntimePlan(
+        IEnumerable<DBuilderPluginDescriptor> descriptors,
+        DBuilderPluginLifecycleRequest request,
+        Func<string, bool> assemblyExists)
+    {
+        DBuilderPluginDescriptor[] descriptorRows = descriptors.ToArray();
+        DBuilderPluginHostPlan hostPlan = BuildHostPlan(descriptorRows, request);
+        DBuilderPluginAssemblyLoadPlan assemblyLoadPlan = PlanAssemblyLoadAttempts(
+            hostPlan.LoadPlan,
+            assemblyExists);
+        var foundPlugins = assemblyLoadPlan.Attempts
+            .Where(attempt => attempt.AssemblyFound)
+            .Select(attempt => attempt.PluginName)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        DBuilderPluginHostPlan readyHostPlan = BuildHostPlan(
+            descriptorRows.Where(descriptor => foundPlugins.Contains(descriptor.Name.Trim())),
+            request);
+
+        return new DBuilderPluginRuntimePlan(
+            hostPlan,
+            assemblyLoadPlan,
+            readyHostPlan);
     }
 
     public static DBuilderPluginCallbackInvocationPlan PlanCallbackInvocations(
