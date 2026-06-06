@@ -29,6 +29,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("2D presentation renderer lifecycle operation planning", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation render-target destroy sequence planning", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation render-target create sequence planning", replacement.CoveredResponsibilities);
+        Assert.Contains("2D presentation background draw availability planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device alpha-test compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device multisample antialias compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device sampler-filter overload planning", replacement.CoveredResponsibilities);

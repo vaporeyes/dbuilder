@@ -235,6 +235,13 @@ public sealed record PresentationDisplaySettings(
     TextureFilter SamplerFilter,
     int? OverlayIndex);
 
+public sealed record PresentationLayerDrawPlan(
+    PresentationRendererLayer Layer,
+    string SourceTargetName,
+    bool Draws,
+    string? SkipReason,
+    int? OverlayIndex);
+
 public enum PresentationFrameOperationKind
 {
     PluginPresentBegin,
@@ -554,6 +561,31 @@ public sealed record PresentationRenderTargetPlan(
 
     private static bool FlipY(PresentationRendererLayer layer)
         => layer != PresentationRendererLayer.Geometry;
+
+    public IReadOnlyList<PresentationLayerDrawPlan> BuildLayerDrawPlans(
+        PresentationPlan presentation,
+        bool qualityDisplay,
+        bool hasBackgroundVertices,
+        bool hasBackgroundTexture,
+        bool bilinear = false)
+    {
+        IReadOnlyList<PresentationDisplaySettings> settings = BuildDisplaySettings(presentation, qualityDisplay, bilinear);
+        var plans = new List<PresentationLayerDrawPlan>(settings.Count);
+
+        foreach (PresentationDisplaySettings setting in settings)
+        {
+            bool skipBackground = setting.Layer == PresentationRendererLayer.Background
+                && (!hasBackgroundVertices || !hasBackgroundTexture);
+            plans.Add(new PresentationLayerDrawPlan(
+                setting.Layer,
+                setting.SourceTargetName,
+                Draws: !skipBackground,
+                SkipReason: skipBackground ? "Missing background vertices or texture" : null,
+                setting.OverlayIndex));
+        }
+
+        return plans;
+    }
 
     public PresentationFramePlan BuildFramePlan(
         PresentationPlan presentation,

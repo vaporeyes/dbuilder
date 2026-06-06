@@ -34,6 +34,7 @@ public static class RendererArchitectureModel
             "2D presentation renderer lifecycle operation planning",
             "2D presentation render-target destroy sequence planning",
             "2D presentation render-target create sequence planning",
+            "2D presentation background draw availability planning",
             "Render-device alpha-test compatibility state planning",
             "Render-device multisample antialias compatibility state planning",
             "Render-device sampler-filter overload planning",

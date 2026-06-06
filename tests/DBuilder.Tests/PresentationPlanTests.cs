@@ -590,6 +590,79 @@ public sealed class PresentationPlanTests
     }
 
     [Fact]
+    public void LayerDrawPlansSkipOnlyBackgroundWhenBackgroundVerticesAreMissingLikeUdb()
+    {
+        PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);
+        PresentationRenderTargetPlan targets = PresentationRenderTargetPlan.Create(320, 200, presentation);
+
+        IReadOnlyList<PresentationLayerDrawPlan> plans = targets.BuildLayerDrawPlans(
+            presentation,
+            qualityDisplay: false,
+            hasBackgroundVertices: false,
+            hasBackgroundTexture: true);
+
+        Assert.False(plans[0].Draws);
+        Assert.Equal(PresentationRendererLayer.Background, plans[0].Layer);
+        Assert.Equal("Missing background vertices or texture", plans[0].SkipReason);
+        Assert.All(plans.Skip(1), plan =>
+        {
+            Assert.True(plan.Draws);
+            Assert.Null(plan.SkipReason);
+        });
+    }
+
+    [Fact]
+    public void LayerDrawPlansSkipOnlyBackgroundWhenBackgroundTextureIsMissingLikeUdb()
+    {
+        PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);
+        PresentationRenderTargetPlan targets = PresentationRenderTargetPlan.Create(320, 200, presentation);
+
+        IReadOnlyList<PresentationLayerDrawPlan> plans = targets.BuildLayerDrawPlans(
+            presentation,
+            qualityDisplay: false,
+            hasBackgroundVertices: true,
+            hasBackgroundTexture: false);
+
+        Assert.False(plans[0].Draws);
+        Assert.Equal("background", plans[0].SourceTargetName);
+        Assert.Equal("Missing background vertices or texture", plans[0].SkipReason);
+        Assert.Equal(new[]
+        {
+            PresentationRendererLayer.Surface,
+            PresentationRendererLayer.Things,
+            PresentationRendererLayer.Grid,
+            PresentationRendererLayer.Geometry,
+            PresentationRendererLayer.Overlay,
+        }, plans.Skip(1).Select(plan => plan.Layer));
+        Assert.All(plans.Skip(1), plan => Assert.True(plan.Draws));
+    }
+
+    [Fact]
+    public void LayerDrawPlansDrawEveryLayerWhenBackgroundImageInputsExist()
+    {
+        var presentation = new PresentationPlan(new[]
+        {
+            new PresentationLayer(PresentationRendererLayer.Background, PresentationBlendingMode.Mask),
+            new PresentationLayer(PresentationRendererLayer.Overlay, PresentationBlendingMode.Alpha),
+            new PresentationLayer(PresentationRendererLayer.Overlay, PresentationBlendingMode.Additive),
+        });
+        PresentationRenderTargetPlan targets = PresentationRenderTargetPlan.Create(320, 200, presentation);
+
+        IReadOnlyList<PresentationLayerDrawPlan> plans = targets.BuildLayerDrawPlans(
+            presentation,
+            qualityDisplay: true,
+            hasBackgroundVertices: true,
+            hasBackgroundTexture: true);
+
+        Assert.All(plans, plan =>
+        {
+            Assert.True(plan.Draws);
+            Assert.Null(plan.SkipReason);
+        });
+        Assert.Equal(new int?[] { null, 0, 1 }, plans.Select(plan => plan.OverlayIndex));
+    }
+
+    [Fact]
     public void FramePlanMatchesUdbPresentOperationEnvelope()
     {
         PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);
