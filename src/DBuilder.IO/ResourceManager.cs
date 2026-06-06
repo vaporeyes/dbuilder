@@ -615,6 +615,12 @@ public sealed class ResourceManager : IDisposable
             if (GetModelResourceBytes(stem + extension) is { } bytes)
                 return bytes;
 
+        string basename = Path.GetFileName(stem);
+        if (!string.IsNullOrEmpty(basename))
+            foreach (string extension in ModelTextureExtensions)
+                if (GetModelResourceBytes(basename + extension) is { } bytes)
+                    return bytes;
+
         return null;
     }
 
