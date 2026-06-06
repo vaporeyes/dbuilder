@@ -33,6 +33,7 @@ public class Sidedef : IMapElement, ISelectable, IMarkable, IFielded
     public int OffsetY { get; set; }
     public string HighTexture { get; set; } = "-";
     public string MidTexture { get; set; } = "-";
+    public string MiddleTexture { get => MidTexture; set => MidTexture = value; }
     public string LowTexture { get; set; } = "-";
 
     // UDMF-specific named flags collected as a string set so sidedef options survive clone and clipboard round-trips.

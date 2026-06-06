@@ -172,6 +172,18 @@ public class MapElementDataTests
     }
 
     [Fact]
+    public void SidedefMiddleTextureAliasMatchesUdbSurface()
+    {
+        var side = new Sidedef();
+
+        side.MidTexture = "STARTAN";
+        Assert.Equal("STARTAN", side.MiddleTexture);
+
+        side.MiddleTexture = "BRICK1";
+        Assert.Equal("BRICK1", side.MidTexture);
+    }
+
+    [Fact]
     public void NamedFlagHelpersMatchUdbSurface()
     {
         var line = new Linedef();
