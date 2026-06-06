@@ -121,11 +121,26 @@ public sealed record PresentationDrawCommand(
     }
 }
 
+public enum PresentationRenderTargetKind
+{
+    Plotter,
+    Texture,
+}
+
+public sealed record PresentationRenderTargetResource(
+    string Name,
+    PresentationRenderTargetKind Kind,
+    int Width,
+    int Height,
+    TextureFormat? Format = null);
+
 public sealed record PresentationRenderTargetPlan(
     int Width,
     int Height,
     int OverlayTextureCount,
     int ThingVertexCapacity,
+    int ScreenVertexCapacity,
+    IReadOnlyList<PresentationRenderTargetResource> Resources,
     IReadOnlyList<string> ClearTargets,
     FlatVertex[] ScreenVertices,
     bool ResetGridScale,
@@ -143,10 +158,28 @@ public sealed record PresentationRenderTargetPlan(
             height,
             overlayCount,
             ThingBufferSize * ThingVerticesPerBufferItem,
+            4,
+            ResourcesFor(width, height, overlayCount),
             ClearTargetsFor(overlayCount),
             CreateScreenVertices(width, height),
             ResetGridScale: true,
             ResetGridSize: true);
+    }
+
+    private static IReadOnlyList<PresentationRenderTargetResource> ResourcesFor(int width, int height, int overlayCount)
+    {
+        var resources = new List<PresentationRenderTargetResource>(overlayCount + 4)
+        {
+            new("plotter", PresentationRenderTargetKind.Plotter, width, height),
+            new("gridplotter", PresentationRenderTargetKind.Plotter, width, height),
+            new("things", PresentationRenderTargetKind.Texture, width, height, TextureFormat.Rgba8),
+            new("surface", PresentationRenderTargetKind.Texture, width, height, TextureFormat.Rgba8),
+        };
+
+        for (int i = 0; i < overlayCount; i++)
+            resources.Add(new PresentationRenderTargetResource("overlay" + i, PresentationRenderTargetKind.Texture, width, height, TextureFormat.Rgba8));
+
+        return resources;
     }
 
     private static IReadOnlyList<string> ClearTargetsFor(int overlayCount)

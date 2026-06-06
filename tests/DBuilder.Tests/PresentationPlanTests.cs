@@ -146,9 +146,25 @@ public sealed class PresentationPlanTests
         PresentationRenderTargetPlan plan = PresentationRenderTargetPlan.Create(320, 200, presentation: null);
 
         Assert.Equal(1, plan.OverlayTextureCount);
+        Assert.Equal(4, plan.ScreenVertexCapacity);
         Assert.Equal(new[] { "things", "overlay0" }, plan.ClearTargets);
         Assert.True(plan.ResetGridScale);
         Assert.True(plan.ResetGridSize);
+    }
+
+    [Fact]
+    public void RenderTargetPlanAllocatesUdbPlotterAndTextureTargets()
+    {
+        PresentationRenderTargetPlan plan = PresentationRenderTargetPlan.Create(320, 200, presentation: null);
+
+        Assert.Equal(new[]
+        {
+            new PresentationRenderTargetResource("plotter", PresentationRenderTargetKind.Plotter, 320, 200),
+            new PresentationRenderTargetResource("gridplotter", PresentationRenderTargetKind.Plotter, 320, 200),
+            new PresentationRenderTargetResource("things", PresentationRenderTargetKind.Texture, 320, 200, TextureFormat.Rgba8),
+            new PresentationRenderTargetResource("surface", PresentationRenderTargetKind.Texture, 320, 200, TextureFormat.Rgba8),
+            new PresentationRenderTargetResource("overlay0", PresentationRenderTargetKind.Texture, 320, 200, TextureFormat.Rgba8),
+        }, plan.Resources);
     }
 
     [Fact]
@@ -165,6 +181,7 @@ public sealed class PresentationPlanTests
 
         Assert.Equal(2, plan.OverlayTextureCount);
         Assert.Equal(new[] { "things", "overlay0", "overlay1" }, plan.ClearTargets);
+        Assert.Equal(new[] { "plotter", "gridplotter", "things", "surface", "overlay0", "overlay1" }, plan.Resources.Select(resource => resource.Name));
     }
 
     [Fact]
