@@ -25,6 +25,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Surface manager vertex chunk and buffer allocation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface buffer hole allocation and free-entry planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface update entry application and chunk reuse planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Surface render pass visibility filtering and texture grouping", replacement.CoveredResponsibilities);
     }
 
     [Fact]
