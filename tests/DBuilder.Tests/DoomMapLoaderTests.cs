@@ -271,6 +271,8 @@ public class DoomMapLoaderTests
         Assert.Equal(128, s.CeilHeight);
         Assert.Equal("FLOOR1", s.FloorTexture);
         Assert.Equal("CEIL1",  s.CeilTexture);
+        Assert.Equal(Lump.MakeLongName("FLOOR1", useLongNames: false), s.LongFloorTexture);
+        Assert.Equal(Lump.MakeLongName("CEIL1", useLongNames: false), s.LongCeilTexture);
         Assert.Equal(160, s.Brightness);
         Assert.Equal(7, s.Tag);
     }
@@ -287,6 +289,9 @@ public class DoomMapLoaderTests
         Assert.Equal("UPPER", sd.HighTexture);
         Assert.Equal("LOWER", sd.LowTexture);
         Assert.Equal("MIDDLE", sd.MidTexture);
+        Assert.Equal(Lump.MakeLongName("UPPER", useLongNames: false), sd.LongHighTexture);
+        Assert.Equal(Lump.MakeLongName("LOWER", useLongNames: false), sd.LongLowTexture);
+        Assert.Equal(Lump.MakeLongName("MIDDLE", useLongNames: false), sd.LongMiddleTexture);
         Assert.Same(map.Sectors[0], sd.Sector);
     }
 

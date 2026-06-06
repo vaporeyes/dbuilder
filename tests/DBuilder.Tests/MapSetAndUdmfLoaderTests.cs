@@ -179,6 +179,8 @@ public class MapSetAndUdmfLoaderTests
         Assert.Equal(128, s.CeilHeight);
         Assert.Equal("FLOOR1", s.FloorTexture);
         Assert.Equal("CEIL1", s.CeilTexture);
+        Assert.Equal(Lump.MakeLongName("FLOOR1", useLongNames: true), s.LongFloorTexture);
+        Assert.Equal(Lump.MakeLongName("CEIL1", useLongNames: true), s.LongCeilTexture);
         Assert.Equal(192, s.Brightness);
     }
 
@@ -188,6 +190,7 @@ public class MapSetAndUdmfLoaderTests
         var map = UdmfMapLoader.Load(SimpleUdmfRoom, out _)!;
         Assert.All(map.Sidedefs, sd => Assert.Same(map.Sectors[0], sd.Sector));
         Assert.All(map.Sidedefs, sd => Assert.Equal("STARTAN", sd.MidTexture));
+        Assert.All(map.Sidedefs, sd => Assert.Equal(Lump.MakeLongName("STARTAN", useLongNames: true), sd.LongMiddleTexture));
     }
 
     [Fact]

@@ -47,6 +47,8 @@ internal static class DoomMapLoaderInternals
                 CeilHeight = ceilHeight,
                 FloorTexture = floorTex,
                 CeilTexture = ceilTex,
+                LongFloorTexture = Lump.MakeLongName(floorTex, useLongNames: false),
+                LongCeilTexture = Lump.MakeLongName(ceilTex, useLongNames: false),
                 Brightness = light,
                 Special = special,
                 Tag = tag,
@@ -75,6 +77,9 @@ internal static class DoomMapLoaderInternals
                 HighTexture = upper,
                 LowTexture = lower,
                 MidTexture = middle,
+                LongHighTexture = Lump.MakeLongName(upper, useLongNames: false),
+                LongMiddleTexture = Lump.MakeLongName(middle, useLongNames: false),
+                LongLowTexture = Lump.MakeLongName(lower, useLongNames: false),
                 Sector = (sectorIdx >= 0 && sectorIdx < map.Sectors.Count) ? map.Sectors[sectorIdx] : null,
             });
         }
@@ -99,6 +104,9 @@ internal static class DoomMapLoaderInternals
                 HighTexture = sd.HighTexture,
                 MidTexture = sd.MidTexture,
                 LowTexture = sd.LowTexture,
+                LongHighTexture = sd.LongHighTexture,
+                LongMiddleTexture = sd.LongMiddleTexture,
+                LongLowTexture = sd.LongLowTexture,
                 Sector = sd.Sector,
             };
             foreach (var kv in sd.Fields) clone.Fields[kv.Key] = kv.Value;

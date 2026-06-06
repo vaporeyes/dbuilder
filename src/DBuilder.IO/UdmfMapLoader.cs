@@ -98,13 +98,17 @@ public static class UdmfMapLoader
 
     private static Sector LoadSector(UniversalCollection c, int index)
     {
+        string floorTexture = GetString(c, "texturefloor", "-");
+        string ceilTexture = GetString(c, "textureceiling", "-");
         var s = new Sector
         {
             Index = index,
             FloorHeight = GetInt(c, "heightfloor"),
             CeilHeight = GetInt(c, "heightceiling"),
-            FloorTexture = GetString(c, "texturefloor", "-"),
-            CeilTexture = GetString(c, "textureceiling", "-"),
+            FloorTexture = floorTexture,
+            CeilTexture = ceilTexture,
+            LongFloorTexture = Lump.MakeLongName(floorTexture, useLongNames: true),
+            LongCeilTexture = Lump.MakeLongName(ceilTexture, useLongNames: true),
             Brightness = GetInt(c, "lightlevel", 160),
             Special = GetInt(c, "special"),
             Tag = GetInt(c, "id"),
@@ -139,15 +143,21 @@ public static class UdmfMapLoader
         int sectorIdx = GetInt(c, "sector");
         if (sectorIdx < 0 || sectorIdx >= sectors.Count) return null;
 
+        string highTexture = GetString(c, "texturetop", "-");
+        string midTexture = GetString(c, "texturemiddle", "-");
+        string lowTexture = GetString(c, "texturebottom", "-");
         var sd = new Sidedef
         {
             // Line is back-filled when the owning linedef is loaded.
             Sector = sectors[sectorIdx],
             OffsetX = GetInt(c, "offsetx"),
             OffsetY = GetInt(c, "offsety"),
-            HighTexture = GetString(c, "texturetop", "-"),
-            MidTexture = GetString(c, "texturemiddle", "-"),
-            LowTexture = GetString(c, "texturebottom", "-"),
+            HighTexture = highTexture,
+            MidTexture = midTexture,
+            LowTexture = lowTexture,
+            LongHighTexture = Lump.MakeLongName(highTexture, useLongNames: true),
+            LongMiddleTexture = Lump.MakeLongName(midTexture, useLongNames: true),
+            LongLowTexture = Lump.MakeLongName(lowTexture, useLongNames: true),
         };
         foreach (var entry in c)
         {
