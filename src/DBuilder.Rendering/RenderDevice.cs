@@ -473,6 +473,24 @@ public sealed class RenderDevice : IDisposable
     public void SetPixels(Texture texture, int width, int height, byte[] rgba, bool generateMipmaps = true)
         => texture.SetPixelsRgba8(width, height, rgba, generateMipmaps);
 
+    public unsafe void SetPixels(Texture texture, uint* pixelData)
+    {
+        if (texture.Width <= 0 || texture.Height <= 0)
+            throw new InvalidOperationException("Texture dimensions are not initialized.");
+
+        _gl.BindTexture(TextureTarget.Texture2D, texture.Handle);
+        _gl.TexSubImage2D(
+            TextureTarget.Texture2D,
+            0,
+            0,
+            0,
+            (uint)texture.Width,
+            (uint)texture.Height,
+            PixelFormat.Bgra,
+            PixelType.UnsignedByte,
+            pixelData);
+    }
+
     public void CopyTexture(CubeTexture destination, CubeMapFace face)
     {
         _gl.BindTexture(TextureTarget.TextureCubeMap, destination.Handle);

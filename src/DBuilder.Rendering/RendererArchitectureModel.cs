@@ -49,6 +49,7 @@ public static class RendererArchitectureModel
             "Texture 2D format allocation application",
             "Render-device texture operation planning",
             "Render-device 2D texture clear and pixel upload application",
+            "Render-device unsafe plotter pixel upload surface",
             "Cube texture resource and render-device cube operation surface",
             "Owned indexed-triangle mesh wrapper",
             "Surface-entry chunk metadata and bounds model",

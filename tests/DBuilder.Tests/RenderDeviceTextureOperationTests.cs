@@ -25,6 +25,12 @@ public sealed class RenderDeviceTextureOperationTests
         Assert.NotNull(typeof(RenderDevice).GetMethod(
             nameof(RenderDevice.SetPixels),
             new[] { typeof(Texture), typeof(int), typeof(int), typeof(byte[]), typeof(bool) }));
+        Assert.Contains(typeof(RenderDevice).GetMethods(), method =>
+            method.Name == nameof(RenderDevice.SetPixels)
+            && method.GetParameters() is { Length: 2 } parameters
+            && parameters[0].ParameterType == typeof(Texture)
+            && parameters[1].ParameterType.IsPointer
+            && parameters[1].ParameterType.GetElementType() == typeof(uint));
         Assert.NotNull(typeof(RenderDevice).GetMethod(
             nameof(RenderDevice.CopyTexture),
             new[] { typeof(CubeTexture), typeof(CubeMapFace) }));
