@@ -376,6 +376,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add plugin action command resolution with missing and ambiguous action diagnostics.
   - [x] Add plugin edit-mode and docker command resolution diagnostics.
   - [x] Add reflection execution for configured plugin action methods.
+  - [x] Add reflection execution for configured plugin edit-mode and docker methods.
 - [ ] Port plugin toolbar and menu contribution behavior.
   - [x] Add plugin menu and toolbar contribution planning with stable ordering and warning isolation.
   - [x] Add plugin menu and toolbar action binding resolution diagnostics.
