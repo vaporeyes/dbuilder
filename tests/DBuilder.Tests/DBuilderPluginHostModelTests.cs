@@ -3414,6 +3414,119 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void PlanEditModeAndDockerCommandsResolveApiContributionsById()
+    {
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor(
+                    "BuilderModes",
+                    "/plugins/buildermodes.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.EditMode, "builder.draw.mode", "Draw mode"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Docker, "builder.tags.docker", "Tags docker")
+                    }),
+                new DBuilderPluginDescriptor(
+                    "CommentsPanel",
+                    "/plugins/comments.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Docker, "comments.panel.docker", "Comments panel")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest());
+
+        DBuilderPluginEditModeCommandPlan editMode = DBuilderPluginHostModel.PlanEditModeCommand(
+            hostPlan,
+            " BUILDER.DRAW.MODE ");
+        DBuilderPluginDockerCommandPlan docker = DBuilderPluginHostModel.PlanDockerCommand(
+            hostPlan,
+            "comments.panel.docker");
+
+        Assert.Empty(editMode.Diagnostics);
+        Assert.NotNull(editMode.EditMode);
+        Assert.Equal("BuilderModes", editMode.EditMode.PluginName);
+        Assert.Equal("builder.draw.mode", editMode.EditMode.Id);
+        Assert.Equal("Draw mode", editMode.EditMode.Title);
+        Assert.Empty(docker.Diagnostics);
+        Assert.NotNull(docker.Docker);
+        Assert.Equal("CommentsPanel", docker.Docker.PluginName);
+        Assert.Equal("comments.panel.docker", docker.Docker.Id);
+        Assert.Equal("Comments panel", docker.Docker.Title);
+    }
+
+    [Fact]
+    public void PlanEditModeCommandReportsMissingAndAmbiguousEditModes()
+    {
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor(
+                    "BuilderModes",
+                    "/plugins/buildermodes.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.EditMode, "shared.mode", "Draw mode")
+                    }),
+                new DBuilderPluginDescriptor(
+                    "VisualModes",
+                    "/plugins/visualmodes.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.EditMode, "shared.mode", "Visual mode")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest());
+
+        DBuilderPluginEditModeCommandPlan missingId = DBuilderPluginHostModel.PlanEditModeCommand(hostPlan, " ");
+        DBuilderPluginEditModeCommandPlan missingEditMode = DBuilderPluginHostModel.PlanEditModeCommand(hostPlan, "missing.mode");
+        DBuilderPluginEditModeCommandPlan ambiguous = DBuilderPluginHostModel.PlanEditModeCommand(hostPlan, "shared.mode");
+
+        Assert.Null(missingId.EditMode);
+        Assert.Equal("Plugin edit mode id is missing.", Assert.Single(missingId.Diagnostics).Message);
+        Assert.Null(missingEditMode.EditMode);
+        Assert.Equal("Plugin edit mode missing.mode was not found.", Assert.Single(missingEditMode.Diagnostics).Message);
+        Assert.Null(ambiguous.EditMode);
+        Assert.Equal("Plugin edit mode shared.mode is ambiguous.", Assert.Single(ambiguous.Diagnostics).Message);
+    }
+
+    [Fact]
+    public void PlanDockerCommandReportsMissingAndAmbiguousDockers()
+    {
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor(
+                    "BuilderModes",
+                    "/plugins/buildermodes.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Docker, "shared.docker", "Tags docker")
+                    }),
+                new DBuilderPluginDescriptor(
+                    "CommentsPanel",
+                    "/plugins/comments.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Docker, "shared.docker", "Comments panel")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest());
+
+        DBuilderPluginDockerCommandPlan missingId = DBuilderPluginHostModel.PlanDockerCommand(hostPlan, " ");
+        DBuilderPluginDockerCommandPlan missingDocker = DBuilderPluginHostModel.PlanDockerCommand(hostPlan, "missing.docker");
+        DBuilderPluginDockerCommandPlan ambiguous = DBuilderPluginHostModel.PlanDockerCommand(hostPlan, "shared.docker");
+
+        Assert.Null(missingId.Docker);
+        Assert.Equal("Plugin docker id is missing.", Assert.Single(missingId.Diagnostics).Message);
+        Assert.Null(missingDocker.Docker);
+        Assert.Equal("Plugin docker missing.docker was not found.", Assert.Single(missingDocker.Diagnostics).Message);
+        Assert.Null(ambiguous.Docker);
+        Assert.Equal("Plugin docker shared.docker is ambiguous.", Assert.Single(ambiguous.Diagnostics).Message);
+    }
+
+    [Fact]
     public void PlanActionCommandResolvesActionContributionById()
     {
         DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(

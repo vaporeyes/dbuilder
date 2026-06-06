@@ -234,6 +234,14 @@ public sealed record DBuilderPluginActionCommandPlan(
     DBuilderPluginApiContribution? Action,
     IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
 
+public sealed record DBuilderPluginEditModeCommandPlan(
+    DBuilderPluginApiContribution? EditMode,
+    IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
+
+public sealed record DBuilderPluginDockerCommandPlan(
+    DBuilderPluginApiContribution? Docker,
+    IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
+
 public sealed record DBuilderPluginUiCommandPlan(
     DBuilderPluginUiContribution? UiContribution,
     DBuilderPluginApiContribution? Action,
@@ -1737,6 +1745,84 @@ public static class DBuilderPluginHostModel
         }
 
         return new DBuilderPluginActionCommandPlan(matches[0], diagnostics);
+    }
+
+    public static DBuilderPluginEditModeCommandPlan PlanEditModeCommand(
+        DBuilderPluginHostPlan hostPlan,
+        string editModeId)
+    {
+        string id = editModeId.Trim();
+        var diagnostics = new List<DBuilderPluginDiagnostic>(hostPlan.DescriptorPlan.Diagnostics);
+        if (id.Length == 0)
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                "(plugin host)",
+                "Plugin edit mode id is missing."));
+            return new DBuilderPluginEditModeCommandPlan(null, diagnostics);
+        }
+
+        DBuilderPluginApiContribution[] matches = hostPlan.ApiContributions.EditModes
+            .Where(editMode => string.Equals(editMode.Id, id, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        if (matches.Length == 0)
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                "(plugin host)",
+                $"Plugin edit mode {id} was not found."));
+            return new DBuilderPluginEditModeCommandPlan(null, diagnostics);
+        }
+
+        if (matches.Length > 1)
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                "(plugin host)",
+                $"Plugin edit mode {id} is ambiguous."));
+            return new DBuilderPluginEditModeCommandPlan(null, diagnostics);
+        }
+
+        return new DBuilderPluginEditModeCommandPlan(matches[0], diagnostics);
+    }
+
+    public static DBuilderPluginDockerCommandPlan PlanDockerCommand(
+        DBuilderPluginHostPlan hostPlan,
+        string dockerId)
+    {
+        string id = dockerId.Trim();
+        var diagnostics = new List<DBuilderPluginDiagnostic>(hostPlan.DescriptorPlan.Diagnostics);
+        if (id.Length == 0)
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                "(plugin host)",
+                "Plugin docker id is missing."));
+            return new DBuilderPluginDockerCommandPlan(null, diagnostics);
+        }
+
+        DBuilderPluginApiContribution[] matches = hostPlan.ApiContributions.Dockers
+            .Where(docker => string.Equals(docker.Id, id, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        if (matches.Length == 0)
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                "(plugin host)",
+                $"Plugin docker {id} was not found."));
+            return new DBuilderPluginDockerCommandPlan(null, diagnostics);
+        }
+
+        if (matches.Length > 1)
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                "(plugin host)",
+                $"Plugin docker {id} is ambiguous."));
+            return new DBuilderPluginDockerCommandPlan(null, diagnostics);
+        }
+
+        return new DBuilderPluginDockerCommandPlan(matches[0], diagnostics);
     }
 
     public static DBuilderPluginUiCommandPlan PlanUiCommand(
