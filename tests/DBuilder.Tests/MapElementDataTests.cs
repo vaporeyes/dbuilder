@@ -206,6 +206,25 @@ public class MapElementDataTests
     }
 
     [Fact]
+    public void ThingAngleAliasesMatchUdbSurface()
+    {
+        var thing = new Thing(new Vector2D(0, 0), 3001)
+        {
+            Angle = 90,
+            Pitch = 45,
+            Roll = 180,
+        };
+
+        Assert.Equal(90, thing.AngleDoom);
+        Assert.Equal(Math.PI / 4.0, thing.PitchRad, 1e-9);
+        Assert.Equal(Math.PI, thing.RollRad, 1e-9);
+
+        thing.AngleDoom = 270;
+
+        Assert.Equal(270, thing.Angle);
+    }
+
+    [Fact]
     public void NamedFlagHelpersMatchUdbSurface()
     {
         var line = new Linedef();

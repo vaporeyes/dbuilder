@@ -33,12 +33,15 @@ public class Thing : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, 
     public double Height { get; set; } // UDMF Z; Doom-format things have no height
     public int Type { get; set; }
     public int Angle { get; set; }
+    public int AngleDoom { get => Angle; set => Angle = value; }
 
     /// <summary>UDMF pitch in degrees (rotation about the actor's lateral axis). Default 0.</summary>
     public int Pitch { get; set; }
+    public double PitchRad => Pitch * Math.PI / 180.0;
 
     /// <summary>UDMF roll in degrees (rotation about the actor's forward axis). Default 0.</summary>
     public int Roll { get; set; }
+    public double RollRad => Roll * Math.PI / 180.0;
 
     /// <summary>UDMF horizontal scale multiplier. Default 1.0 (unscaled).</summary>
     public double ScaleX { get; set; } = 1.0;
