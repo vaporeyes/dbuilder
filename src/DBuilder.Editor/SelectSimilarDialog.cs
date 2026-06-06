@@ -2,6 +2,7 @@
 // ABOUTME: Builds mode-specific similarity option objects consumed by the map selection helpers.
 
 using Avalonia.Controls;
+using Avalonia.Layout;
 using DBuilder.IO;
 using DBuilder.Map;
 
@@ -15,6 +16,7 @@ public sealed class SelectSimilarDialog : PropertyDialog
     private static SidedefSimilarityOptions SavedSidedefOptions { get; set; } = new();
     private static ThingSimilarityOptions SavedThingOptions { get; set; } = new();
 
+    private readonly List<CheckBox> _visibleChecks = new();
     private readonly MapControl.EditMode _mode;
     private readonly MapFormat _mapFormat;
     private readonly CheckBox? _vertexZFloor;
@@ -226,6 +228,8 @@ public sealed class SelectSimilarDialog : PropertyDialog
                 _thingComment = AddUdmfCheckBox("Comment", SavedThingOptions.Comment);
                 break;
         }
+
+        AddEnableAllButton();
     }
 
     protected override void OnConfirm()
@@ -361,6 +365,33 @@ public sealed class SelectSimilarDialog : PropertyDialog
 
     private CheckBox? AddSupportedCheckBox(string label, bool isChecked, bool doom = true, bool hexen = true, bool udmf = true)
         => SupportsCurrentMapFormat(doom, hexen, udmf) ? AddCheckBox(label, isChecked) : null;
+
+    private new CheckBox AddCheckBox(string label, bool isChecked)
+    {
+        CheckBox check = base.AddCheckBox(label, isChecked);
+        _visibleChecks.Add(check);
+        return check;
+    }
+
+    private void AddEnableAllButton()
+    {
+        if (_visibleChecks.Count == 0) return;
+        var enableAll = new Button { Content = "Enable All", MinWidth = 96 };
+        enableAll.Click += (_, _) => ToggleVisibleChecks();
+        AddCustomRow(new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Children = { enableAll },
+        });
+    }
+
+    private void ToggleVisibleChecks()
+    {
+        bool enable = _visibleChecks[0].IsChecked != true;
+        foreach (CheckBox check in _visibleChecks)
+            check.IsChecked = enable;
+    }
 
     private bool SupportsCurrentMapFormat(bool doom, bool hexen, bool udmf)
         => _mapFormat switch

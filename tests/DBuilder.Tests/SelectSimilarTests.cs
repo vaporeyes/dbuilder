@@ -438,6 +438,11 @@ public class SelectSimilarTests
         Assert.Contains("_thingFillColor = AddUdmfCheckBox(\"Fill color\", SavedThingOptions.FillColor);", body, StringComparison.Ordinal);
         Assert.Contains("_thingRenderStyle = AddUdmfCheckBox(\"Render style\", SavedThingOptions.RenderStyle);", body, StringComparison.Ordinal);
         Assert.Contains("_thingComment = AddUdmfCheckBox(\"Comment\", SavedThingOptions.Comment);", body, StringComparison.Ordinal);
+        Assert.Contains("Content = \"Enable All\"", body, StringComparison.Ordinal);
+        Assert.Contains("private void ToggleVisibleChecks()", body, StringComparison.Ordinal);
+        Assert.Contains("bool enable = _visibleChecks[0].IsChecked != true;", body, StringComparison.Ordinal);
+        Assert.Contains("foreach (CheckBox check in _visibleChecks)", body, StringComparison.Ordinal);
+        Assert.Contains("_visibleChecks.Add(check);", body, StringComparison.Ordinal);
         Assert.Contains("private CheckBox? AddUdmfCheckBox(string label, bool isChecked)", body, StringComparison.Ordinal);
         Assert.Contains("private bool SupportsCurrentMapFormat(bool doom, bool hexen, bool udmf)", body, StringComparison.Ordinal);
         Assert.Contains("SavedVertexOptions = VertexOptions;", body, StringComparison.Ordinal);
