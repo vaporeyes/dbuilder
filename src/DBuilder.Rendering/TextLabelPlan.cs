@@ -89,12 +89,70 @@ public readonly record struct TextLabelInvalidation(bool LayoutUpdateNeeded, boo
     public static TextLabelInvalidation Clean => new(LayoutUpdateNeeded: false, TextureUpdateNeeded: false);
 }
 
+public sealed record TextLabelFontPlan(
+    string RequestedFamily,
+    string ResolvedFamily,
+    double Size,
+    bool Bold,
+    bool UsedFallback);
+
 public static class TextLabelPlan
 {
+    public const string DefaultTextLabelFontName = "Microsoft Sans Serif";
+    public const double DefaultTextLabelFontSize = 10.0;
+    public const bool DefaultTextLabelFontBold = false;
     public const double TextOriginX = 4.0;
     public const double TextOriginY = 3.0;
     public const double BackgroundBorderWidth = 1.0;
     public const string Display2DNormalShaderName = "display2d_normal";
+
+    public static TextLabelFontPlan BuildDefaultFontPlan(
+        IReadOnlyCollection<string>? availableFamilies = null,
+        string fallbackFamily = DefaultTextLabelFontName)
+        => BuildFontPlan(
+            DefaultTextLabelFontName,
+            DefaultTextLabelFontSize,
+            DefaultTextLabelFontBold,
+            availableFamilies,
+            fallbackFamily);
+
+    public static TextLabelFontPlan BuildFontPlan(
+        string? requestedFamily,
+        double size,
+        bool bold,
+        IReadOnlyCollection<string>? availableFamilies = null,
+        string fallbackFamily = DefaultTextLabelFontName)
+    {
+        string requested = string.IsNullOrWhiteSpace(requestedFamily)
+            ? DefaultTextLabelFontName
+            : requestedFamily.Trim();
+        string fallback = string.IsNullOrWhiteSpace(fallbackFamily)
+            ? DefaultTextLabelFontName
+            : fallbackFamily.Trim();
+        bool requestedAvailable = availableFamilies == null
+            || availableFamilies.Any(family => string.Equals(family, requested, StringComparison.OrdinalIgnoreCase));
+        string resolved = requestedAvailable ? requested : fallback;
+
+        return new TextLabelFontPlan(
+            requested,
+            resolved,
+            size,
+            bold,
+            UsedFallback: !requestedAvailable);
+    }
+
+    public static TextLabelFontPlan BuildLegacyScaleFontPlan(
+        double scale,
+        string? requestedFamily = DefaultTextLabelFontName,
+        bool bold = DefaultTextLabelFontBold,
+        IReadOnlyCollection<string>? availableFamilies = null,
+        string fallbackFamily = DefaultTextLabelFontName)
+        => BuildFontPlan(
+            requestedFamily,
+            Math.Round(scale * 0.75),
+            bold,
+            availableFamilies,
+            fallbackFamily);
 
     public static TextLabelLayout Build(
         string? text,

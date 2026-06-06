@@ -8,6 +8,68 @@ namespace DBuilder.Tests;
 public sealed class TextLabelPlanTests
 {
     [Fact]
+    public void BuildDefaultFontPlanMatchesUdbConfigurationDefaults()
+    {
+        TextLabelFontPlan plan = TextLabelPlan.BuildDefaultFontPlan(
+            availableFamilies: [TextLabelPlan.DefaultTextLabelFontName]);
+
+        Assert.Equal("Microsoft Sans Serif", plan.RequestedFamily);
+        Assert.Equal("Microsoft Sans Serif", plan.ResolvedFamily);
+        Assert.Equal(10, plan.Size);
+        Assert.False(plan.Bold);
+        Assert.False(plan.UsedFallback);
+    }
+
+    [Fact]
+    public void BuildFontPlanUsesConfiguredFamilyWhenAvailable()
+    {
+        TextLabelFontPlan plan = TextLabelPlan.BuildFontPlan(
+            requestedFamily: "Consolas",
+            size: 12,
+            bold: true,
+            availableFamilies: ["Arial", "consolas"],
+            fallbackFamily: "Avalonia Default");
+
+        Assert.Equal("Consolas", plan.RequestedFamily);
+        Assert.Equal("Consolas", plan.ResolvedFamily);
+        Assert.Equal(12, plan.Size);
+        Assert.True(plan.Bold);
+        Assert.False(plan.UsedFallback);
+    }
+
+    [Fact]
+    public void BuildFontPlanFallsBackWhenConfiguredFamilyIsUnavailable()
+    {
+        TextLabelFontPlan plan = TextLabelPlan.BuildFontPlan(
+            requestedFamily: "Missing Family",
+            size: 14,
+            bold: false,
+            availableFamilies: ["Arial", "Consolas"],
+            fallbackFamily: "Avalonia Default");
+
+        Assert.Equal("Missing Family", plan.RequestedFamily);
+        Assert.Equal("Avalonia Default", plan.ResolvedFamily);
+        Assert.Equal(14, plan.Size);
+        Assert.False(plan.Bold);
+        Assert.True(plan.UsedFallback);
+    }
+
+    [Fact]
+    public void BuildLegacyScaleFontPlanRoundsScaleLikeUdb()
+    {
+        TextLabelFontPlan plan = TextLabelPlan.BuildLegacyScaleFontPlan(
+            scale: 13.6,
+            requestedFamily: "Consolas",
+            bold: true,
+            availableFamilies: ["Consolas"]);
+
+        Assert.Equal("Consolas", plan.ResolvedFamily);
+        Assert.Equal(10, plan.Size);
+        Assert.True(plan.Bold);
+        Assert.False(plan.UsedFallback);
+    }
+
+    [Fact]
     public void BuildPadsMeasuredTextAndUsesPowerOfTwoTextureSize()
     {
         TextLabelLayout layout = TextLabelPlan.Build(

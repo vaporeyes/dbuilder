@@ -1494,6 +1494,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port mesh behavior.
   - [x] Add UDB-style owned indexed-triangle mesh wrapper.
 - [ ] Port text font and text label rendering.
+  - [x] Add UDB-style text label font selection and legacy scale planning.
   - [x] Add UDB-style text label size, alignment, transform, culling, and quad planning.
   - [x] Add UDB-style plain and background text label image drawing planning.
   - [x] Add UDB-style skipped-label filtering and render dispatch planning.
