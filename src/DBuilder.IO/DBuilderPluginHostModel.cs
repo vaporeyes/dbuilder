@@ -76,6 +76,16 @@ public sealed record DBuilderPluginLoadPlan(
     IReadOnlyList<DBuilderPluginLoadCandidate> Candidates,
     IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
 
+public sealed record DBuilderPluginAssemblyLoadAttempt(
+    string PluginName,
+    string AssemblyPath,
+    int Order,
+    bool AssemblyFound);
+
+public sealed record DBuilderPluginAssemblyLoadPlan(
+    IReadOnlyList<DBuilderPluginAssemblyLoadAttempt> Attempts,
+    IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
+
 public sealed record DBuilderPluginSettingDescriptor(
     string Key,
     object? DefaultValue = null);
@@ -327,6 +337,34 @@ public static class DBuilderPluginHostModel
         }
 
         return new DBuilderPluginLoadPlan(candidates, diagnostics);
+    }
+
+    public static DBuilderPluginAssemblyLoadPlan PlanAssemblyLoadAttempts(
+        DBuilderPluginLoadPlan loadPlan,
+        Func<string, bool> assemblyExists)
+    {
+        var attempts = new List<DBuilderPluginAssemblyLoadAttempt>();
+        var diagnostics = new List<DBuilderPluginDiagnostic>(loadPlan.Diagnostics);
+
+        foreach (DBuilderPluginLoadCandidate candidate in loadPlan.Candidates)
+        {
+            bool found = assemblyExists(candidate.AssemblyPath);
+            attempts.Add(new DBuilderPluginAssemblyLoadAttempt(
+                candidate.PluginName,
+                candidate.AssemblyPath,
+                candidate.Order,
+                found));
+
+            if (!found)
+            {
+                diagnostics.Add(new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Error,
+                    candidate.PluginName,
+                    $"Plugin {candidate.PluginName} assembly was not found at {candidate.AssemblyPath}."));
+            }
+        }
+
+        return new DBuilderPluginAssemblyLoadPlan(attempts, diagnostics);
     }
 
     public static DBuilderPluginCallbackInvocationPlan PlanCallbackInvocations(

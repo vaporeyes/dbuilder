@@ -259,6 +259,89 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void PlanAssemblyLoadAttemptsProbesEachLoadCandidate()
+    {
+        DBuilderPluginLoadPlan loadPlan = DBuilderPluginHostModel.PlanLoadCandidates(
+            DBuilderPluginHostModel.PlanDescriptors(new[]
+            {
+                new DBuilderPluginDescriptor("TagRange", "/plugins/tagrange.dll"),
+                new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll")
+            }));
+
+        DBuilderPluginAssemblyLoadPlan plan = DBuilderPluginHostModel.PlanAssemblyLoadAttempts(
+            loadPlan,
+            path => path.EndsWith("buildermodes.dll", StringComparison.OrdinalIgnoreCase)
+                || path.EndsWith("tagrange.dll", StringComparison.OrdinalIgnoreCase));
+
+        Assert.Empty(plan.Diagnostics);
+        Assert.Collection(
+            plan.Attempts,
+            attempt =>
+            {
+                Assert.Equal("BuilderModes", attempt.PluginName);
+                Assert.Equal("/plugins/buildermodes.dll", attempt.AssemblyPath);
+                Assert.Equal(0, attempt.Order);
+                Assert.True(attempt.AssemblyFound);
+            },
+            attempt =>
+            {
+                Assert.Equal("TagRange", attempt.PluginName);
+                Assert.Equal("/plugins/tagrange.dll", attempt.AssemblyPath);
+                Assert.Equal(1, attempt.Order);
+                Assert.True(attempt.AssemblyFound);
+            });
+    }
+
+    [Fact]
+    public void PlanAssemblyLoadAttemptsReportsMissingAssembliesWithoutDroppingOtherAttempts()
+    {
+        DBuilderPluginLoadPlan loadPlan = DBuilderPluginHostModel.PlanLoadCandidates(
+            DBuilderPluginHostModel.PlanDescriptors(new[]
+            {
+                new DBuilderPluginDescriptor("TagRange", "/plugins/tagrange.dll"),
+                new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll")
+            }));
+
+        DBuilderPluginAssemblyLoadPlan plan = DBuilderPluginHostModel.PlanAssemblyLoadAttempts(
+            loadPlan,
+            path => path.EndsWith("buildermodes.dll", StringComparison.OrdinalIgnoreCase));
+
+        Assert.Collection(
+            plan.Attempts,
+            attempt => Assert.True(attempt.AssemblyFound),
+            attempt =>
+            {
+                Assert.Equal("TagRange", attempt.PluginName);
+                Assert.False(attempt.AssemblyFound);
+            });
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.Diagnostics);
+        Assert.Equal(DBuilderPluginDiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.Equal("TagRange", diagnostic.PluginName);
+        Assert.Equal("Plugin TagRange assembly was not found at /plugins/tagrange.dll.", diagnostic.Message);
+    }
+
+    [Fact]
+    public void PlanAssemblyLoadAttemptsPreservesLoadPlanDiagnostics()
+    {
+        DBuilderPluginLoadPlan loadPlan = DBuilderPluginHostModel.PlanLoadCandidates(
+            DBuilderPluginHostModel.PlanDescriptors(new[]
+            {
+                new DBuilderPluginDescriptor("LooseScript", "/plugins/loose.txt"),
+                new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll")
+            }));
+
+        DBuilderPluginAssemblyLoadPlan plan = DBuilderPluginHostModel.PlanAssemblyLoadAttempts(
+            loadPlan,
+            _ => true);
+
+        DBuilderPluginAssemblyLoadAttempt attempt = Assert.Single(plan.Attempts);
+        Assert.Equal("BuilderModes", attempt.PluginName);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.Diagnostics);
+        Assert.Equal("LooseScript", diagnostic.PluginName);
+        Assert.Equal("Plugin LooseScript assembly path must point to a .dll file.", diagnostic.Message);
+    }
+
+    [Fact]
     public void BuildHostPlanAggregatesDescriptorsLifecycleAndContributionPlans()
     {
         DBuilderPluginHostPlan plan = DBuilderPluginHostModel.BuildHostPlan(
