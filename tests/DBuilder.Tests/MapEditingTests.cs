@@ -58,6 +58,18 @@ public class MapEditingTests
     }
 
     [Fact]
+    public void IsSafeToAccessDefaultsTrueAndCanBeToggled()
+    {
+        var map = new MapSet();
+
+        Assert.True(map.IsSafeToAccess);
+
+        map.IsSafeToAccess = false;
+
+        Assert.False(map.IsSafeToAccess);
+    }
+
+    [Fact]
     public void BeginAddRemoveSetCapacityAndEndAddRemoveMatchUdbSurface()
     {
         var map = new MapSet();

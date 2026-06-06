@@ -87,6 +87,7 @@ public class MapSet : IDisposable
     public List<Thing> Things { get; } = new();
 
     public bool IsDisposed { get; private set; }
+    public bool IsSafeToAccess { get; set; } = true;
 
     private int addRemoveDepth;
 
