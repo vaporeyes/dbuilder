@@ -23,13 +23,13 @@ public static class InterpolationTools
     public static Mode NormalizeMode(Mode mode)
         => Enum.IsDefined(mode) ? mode : Mode.LINEAR;
 
-    public static double Interpolate(double val1, double val2, double delta, Mode mode) => mode switch
+    public static double Interpolate(double val1, double val2, double delta, Mode mode) => NormalizeMode(mode) switch
     {
         Mode.LINEAR => Linear(val1, val2, delta),
         Mode.EASE_IN_SINE => EaseInSine(val1, val2, delta),
         Mode.EASE_OUT_SINE => EaseOutSine(val1, val2, delta),
         Mode.EASE_IN_OUT_SINE => EaseInOutSine(val1, val2, delta),
-        _ => throw new NotImplementedException("InterpolationTools.Interpolate: \"" + mode + "\" mode is not supported!"),
+        _ => Linear(val1, val2, delta),
     };
 
     // Based on Robert Penner's original easing equations (http://www.robertpenner.com/easing/)

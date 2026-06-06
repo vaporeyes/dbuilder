@@ -35,6 +35,12 @@ public class InterpolationToolsTests
     }
 
     [Fact]
+    public void InterpolateFallsBackToLinearForUnknownModes()
+    {
+        Assert.Equal(5.0, InterpolationTools.Interpolate(0.0, 10.0, 0.5, (InterpolationTools.Mode)999), Epsilon);
+    }
+
+    [Fact]
     public void InterpolateColorMidpointAveragesARGB()
     {
         // Halfway between 0x00000000 and 0xffffffff should be ~(127, 127, 127, 127).
@@ -47,5 +53,13 @@ public class InterpolationToolsTests
         Assert.InRange(r, 126, 128);
         Assert.InRange(g, 126, 128);
         Assert.InRange(b, 126, 128);
+    }
+
+    [Fact]
+    public void InterpolateColorFallsBackToLinearForUnknownModes()
+    {
+        uint mid = InterpolationTools.InterpolateColor(0xff000000u, 0xffffffffu, 0.5, (InterpolationTools.Mode)999);
+
+        Assert.Equal(0xff808080u, mid);
     }
 }
