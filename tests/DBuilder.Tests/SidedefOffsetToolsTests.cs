@@ -24,6 +24,17 @@ public class SidedefOffsetToolsTests
     }
 
     [Fact]
+    public void DisabledScaledTextureOffsetsIgnoreTextureScaleLikeUdb()
+    {
+        var (_, front, _) = TwoSided(0, 128, 32, 96);
+        var config = Config(scaledTextureOffsets: false);
+
+        Assert.Equal(-22, SidedefOffsetTools.GetTopOffsetY(front, 10, -2, fromNormalized: false, config));
+        Assert.Equal(-22, SidedefOffsetTools.GetMiddleOffsetY(front, 10, 2, fromNormalized: false, config));
+        Assert.Equal(-86, SidedefOffsetTools.GetBottomOffsetY(front, 10, 2, fromNormalized: false, config));
+    }
+
+    [Fact]
     public void MiddleOffsetUsesCeilingDeltaForTwoSidedWalls()
     {
         var (_, front, _) = TwoSided(0, 128, 0, 96);
@@ -85,11 +96,12 @@ public class SidedefOffsetToolsTests
         Assert.Equal(-118, SidedefOffsetTools.GetMiddleOffsetY(front, 10, 1, fromNormalized: false, Config(lower: "16")));
     }
 
-    private static GameConfiguration Config(string upper = "dontpegtop", string lower = "dontpegbottom")
+    private static GameConfiguration Config(string upper = "dontpegtop", string lower = "dontpegbottom", bool scaledTextureOffsets = true)
         => GameConfiguration.FromText($$"""
             upperunpeggedflag = "{{upper}}";
             lowerunpeggedflag = "{{lower}}";
             skyflatname = "F_SKY1";
+            scaledtextureoffsets = {{scaledTextureOffsets.ToString().ToLowerInvariant()}};
             """);
 
     private static (MapSet Map, Sidedef Front, Sidedef Back) TwoSided(int frontFloor, int frontCeil, int backFloor, int backCeil)

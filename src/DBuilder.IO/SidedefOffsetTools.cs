@@ -35,7 +35,7 @@ public static class SidedefOffsetTools
         if (IsLineFlagSet(side.Line, config?.UpperUnpeggedFlag) || side.Other?.Sector == null)
             return offset;
 
-        double surfaceHeight = side.GetHighHeight() * Math.Abs(scaleY);
+        double surfaceHeight = side.GetHighHeight() * TextureOffsetScale(scaleY, config);
         return NormalizeOffset(offset, surfaceHeight, fromNormalized, decimals);
     }
 
@@ -50,7 +50,7 @@ public static class SidedefOffsetTools
         if (side.Sector == null) return offset;
 
         double surfaceHeight;
-        double scale = Math.Abs(scaleY);
+        double scale = TextureOffsetScale(scaleY, config);
         if (side.Other?.Sector != null)
         {
             if (IsLineFlagSet(side.Line, config?.LowerUnpeggedFlag))
@@ -85,7 +85,7 @@ public static class SidedefOffsetTools
         if (side.Sector == null || side.Other?.Sector == null) return offset;
 
         double surfaceHeight;
-        double scale = Math.Abs(scaleY);
+        double scale = TextureOffsetScale(scaleY, config);
         if (IsLineFlagSet(side.Line, config?.LowerUnpeggedFlag))
         {
             string skyFlatName = config?.SkyFlatName ?? "F_SKY1";
@@ -104,6 +104,9 @@ public static class SidedefOffsetTools
 
     private static double NormalizeOffset(double offset, double surfaceHeight, bool fromNormalized, int decimals)
         => Math.Round(fromNormalized ? offset + surfaceHeight : offset - surfaceHeight, decimals);
+
+    private static double TextureOffsetScale(double scaleY, GameConfiguration? config)
+        => config?.ScaledTextureOffsets == false ? 1.0 : Math.Abs(scaleY);
 
     private static bool IsLineFlagSet(Linedef line, string? flag)
     {
