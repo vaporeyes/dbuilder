@@ -7107,7 +7107,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_map != null)
         {
             var (minX, minY, maxX, maxY) = _map.Bounds();
-            _cam3DPos = new Vector3((float)((minX + maxX) * 0.5), (float)((minY + maxY) * 0.5), 200f);
+            var center = new Vec2D((minX + maxX) * 0.5, (minY + maxY) * 0.5);
+            double currentZ = _cam3DPos.Z == 0 ? 200.0 : _cam3DPos.Z;
+            DBuilder.Geometry.Vector3D position = VisualCameraMovement.PlanEngagePosition(center, currentZ, _map.GetSectorAt(center));
+            _cam3DPos = new Vector3((float)position.x, (float)position.y, (float)position.z);
         }
         else _cam3DPos = new Vector3(0, 0, 200f);
         _yaw = 0; _pitch = -0.3;

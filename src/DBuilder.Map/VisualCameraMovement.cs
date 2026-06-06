@@ -8,6 +8,9 @@ namespace DBuilder.Map;
 public static class VisualCameraMovement
 {
     public const double MoveCameraToCursorDistance = 64.0;
+    public const int DoomPlayerHeight = 41;
+    public const int LowSectorMinimumCameraHeight = 16;
+    public const int CeilingCameraClearance = 4;
     public const double OrbitAngleFromMouse = 0.005;
     public const double MinOrbitPitch = -1.5;
     public const double MaxOrbitPitch = 1.5;
@@ -19,6 +22,23 @@ public static class VisualCameraMovement
 
     public static bool TryMoveCameraToCursor(Vector3D currentPosition, Vector3D hitPosition, out Vector3D nextPosition)
         => TryMoveCameraToCursor(currentPosition, hitPosition, MoveCameraToCursorDistance, out nextPosition);
+
+    public static Vector3D PlanEngagePosition(Vector2D initialPosition, double currentZ, Sector? nearestSector)
+    {
+        double z = currentZ;
+        if (nearestSector != null)
+        {
+            int sectorHeight = nearestSector.CeilHeight - nearestSector.FloorHeight;
+            if (sectorHeight < DoomPlayerHeight)
+                z = nearestSector.FloorHeight + Math.Max(LowSectorMinimumCameraHeight, sectorHeight / 2);
+            else if (z < nearestSector.FloorHeight + DoomPlayerHeight)
+                z = nearestSector.FloorHeight + DoomPlayerHeight;
+            else if (z > nearestSector.CeilHeight)
+                z = nearestSector.CeilHeight - CeilingCameraClearance;
+        }
+
+        return new Vector3D(initialPosition.x, initialPosition.y, z);
+    }
 
     public static bool TryMoveCameraToCursor(Vector3D currentPosition, Vector3D hitPosition, double distance, out Vector3D nextPosition)
     {

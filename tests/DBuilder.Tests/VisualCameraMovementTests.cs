@@ -49,6 +49,69 @@ public class VisualCameraMovementTests
     }
 
     [Fact]
+    public void EngagePositionRaisesCameraToDoomPlayerHeightInNormalSectors()
+    {
+        var sector = new Sector { FloorHeight = 16, CeilHeight = 128 };
+
+        Vector3D position = VisualCameraMovement.PlanEngagePosition(
+            new Vector2D(32, 64),
+            currentZ: 24,
+            sector);
+
+        Assert.Equal(new Vector3D(32, 64, 57), position);
+    }
+
+    [Fact]
+    public void EngagePositionKeepsCameraZWhenAlreadyInsideNormalSector()
+    {
+        var sector = new Sector { FloorHeight = 16, CeilHeight = 128 };
+
+        Vector3D position = VisualCameraMovement.PlanEngagePosition(
+            new Vector2D(32, 64),
+            currentZ: 80,
+            sector);
+
+        Assert.Equal(new Vector3D(32, 64, 80), position);
+    }
+
+    [Fact]
+    public void EngagePositionClampsCameraBelowCeilingWhenTooHigh()
+    {
+        var sector = new Sector { FloorHeight = 0, CeilHeight = 96 };
+
+        Vector3D position = VisualCameraMovement.PlanEngagePosition(
+            new Vector2D(32, 64),
+            currentZ: 200,
+            sector);
+
+        Assert.Equal(new Vector3D(32, 64, 92), position);
+    }
+
+    [Fact]
+    public void EngagePositionUsesLowSectorFallbackLikeUdb()
+    {
+        var sector = new Sector { FloorHeight = 8, CeilHeight = 30 };
+
+        Vector3D position = VisualCameraMovement.PlanEngagePosition(
+            new Vector2D(32, 64),
+            currentZ: 200,
+            sector);
+
+        Assert.Equal(new Vector3D(32, 64, 24), position);
+    }
+
+    [Fact]
+    public void EngagePositionPreservesZWithoutSector()
+    {
+        Vector3D position = VisualCameraMovement.PlanEngagePosition(
+            new Vector2D(32, 64),
+            currentZ: 200,
+            nearestSector: null);
+
+        Assert.Equal(new Vector3D(32, 64, 200), position);
+    }
+
+    [Fact]
     public void OrbitKeepsCameraAtRadiusAndLookingAtTarget()
     {
         var current = new Vector3D(64, 0, 0);
