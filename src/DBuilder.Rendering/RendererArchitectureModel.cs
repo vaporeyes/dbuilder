@@ -60,6 +60,7 @@ public static class RendererArchitectureModel
             "Surface render pass visibility filtering and texture grouping",
             "Surface render texture fallback resolution planning",
             "Surface render draw-command and vertex-buffer binding planning",
+            "Surface render shader and sampler state planning",
             "Surface buffer resource reload upload planning",
             "Surface buffer reset invalidation planning",
             "Surface buffer unload and reload resource-state planning",

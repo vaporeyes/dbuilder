@@ -274,6 +274,45 @@ public sealed class SurfaceRenderPlanTests
             bindings);
     }
 
+    [Fact]
+    public void BuildRenderStatePlanSelectsFullbrightShaderOutsideBrightnessPass()
+    {
+        SurfaceRenderStatePlan floor = SurfaceRenderPlan.BuildRenderStatePlan(
+            SurfaceRenderPass.Floor,
+            fullBrightness: true,
+            visualBilinear: false,
+            filterAnisotropy: 0);
+        SurfaceRenderStatePlan brightness = SurfaceRenderPlan.BuildRenderStatePlan(
+            SurfaceRenderPass.Brightness,
+            fullBrightness: true,
+            visualBilinear: false,
+            filterAnisotropy: 0);
+
+        Assert.Equal(SurfaceRenderPlan.Display2DFullBrightShaderName, floor.ShaderName);
+        Assert.Equal(SurfaceRenderPlan.Display2DNormalShaderName, brightness.ShaderName);
+        Assert.True(floor.ResetDesaturationAfterRender);
+    }
+
+    [Fact]
+    public void BuildRenderStatePlanUsesWrappedBilinearSamplerSettings()
+    {
+        SurfaceRenderStatePlan plan = SurfaceRenderPlan.BuildRenderStatePlan(
+            SurfaceRenderPass.Ceiling,
+            fullBrightness: false,
+            visualBilinear: true,
+            filterAnisotropy: 4.0f);
+
+        Assert.Equal(SurfaceRenderPlan.Display2DNormalShaderName, plan.ShaderName);
+        Assert.Equal(TextureAddress.Wrap, plan.SamplerAddress);
+        Assert.Equal(new SamplerFilterPlan(
+            TextureFilter.Linear,
+            TextureFilter.Linear,
+            MipmapFilter.Linear,
+            4.0f,
+            Unit: 0), plan.SamplerFilter);
+        Assert.True(plan.ResetDesaturationAfterRender);
+    }
+
     private static SurfaceBufferSetState SetWith(params SurfaceEntry[] entries)
     {
         var set = new SurfaceBufferSetState(verticesPerEntry: 3);

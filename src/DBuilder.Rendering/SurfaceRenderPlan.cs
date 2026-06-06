@@ -31,12 +31,20 @@ public enum SurfaceTextureFallback
 
 public sealed record SurfaceTextureResolution(long Texture, SurfaceTextureFallback Fallback);
 
+public sealed record SurfaceRenderStatePlan(
+    string ShaderName,
+    TextureAddress SamplerAddress,
+    SamplerFilterPlan SamplerFilter,
+    bool ResetDesaturationAfterRender);
+
 public static class SurfaceRenderPlan
 {
     public const long BrightnessTexture = 0;
     public const long WhiteTextureToken = 0;
     public const long MissingTextureToken = -1;
     public const long UnknownTextureToken = -2;
+    public const string Display2DNormalShaderName = "display2d_normal";
+    public const string Display2DFullBrightShaderName = "display2d_fullbright";
 
     public static IReadOnlyList<SurfaceRenderBatch> Build(
         IEnumerable<SurfaceBufferSetState> sets,
@@ -136,5 +144,24 @@ public static class SurfaceRenderPlan
         }
 
         return bindings;
+    }
+
+    public static SurfaceRenderStatePlan BuildRenderStatePlan(
+        SurfaceRenderPass pass,
+        bool fullBrightness,
+        bool visualBilinear,
+        float filterAnisotropy)
+    {
+        TextureFilter filter = visualBilinear ? TextureFilter.Linear : TextureFilter.Nearest;
+        MipmapFilter mipFilter = visualBilinear ? MipmapFilter.Linear : MipmapFilter.Nearest;
+        string shaderName = fullBrightness && pass != SurfaceRenderPass.Brightness
+            ? Display2DFullBrightShaderName
+            : Display2DNormalShaderName;
+
+        return new SurfaceRenderStatePlan(
+            shaderName,
+            TextureAddress.Wrap,
+            RenderDevice.BuildSamplerFilterPlan(filter, filter, mipFilter, filterAnisotropy),
+            ResetDesaturationAfterRender: true);
     }
 }
