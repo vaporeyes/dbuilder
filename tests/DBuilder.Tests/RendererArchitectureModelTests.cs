@@ -16,6 +16,7 @@ public class RendererArchitectureModelTests
         Assert.Equal("Desktop OpenGL 3.3 core profile", replacement.MinimumGlProfile);
         Assert.Contains("Viewport and clear state", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device disposed-state reporting", replacement.CoveredResponsibilities);
+        Assert.Contains("2D presentation layer stack planning", replacement.CoveredResponsibilities);
         Assert.Contains("Index-buffer binding and primitive draw dispatch", replacement.CoveredResponsibilities);
         Assert.Contains("Length-based vertex-buffer allocation", replacement.CoveredResponsibilities);
         Assert.Contains("Flat and world vertex-buffer subdata updates", replacement.CoveredResponsibilities);
