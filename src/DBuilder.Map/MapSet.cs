@@ -935,6 +935,40 @@ public class MapSet : IDisposable
     }
 
     /// <summary>
+    /// Joins nearby vertices in one collection into the first matching vertex.
+    /// </summary>
+    public int JoinVertices(List<Vertex> vertices, double joinDistance)
+    {
+        double joinDistanceSquared = joinDistance * joinDistance;
+        int joins = 0;
+        bool joined;
+        do
+        {
+            joined = false;
+            for (int i = 0; i < vertices.Count - 1 && !joined; i++)
+            {
+                for (int c = i + 1; c < vertices.Count; c++)
+                {
+                    Vertex first = vertices[i];
+                    Vertex second = vertices[c];
+                    if (ReferenceEquals(first, second)) continue;
+                    if (!ContainsVertex(first) || !ContainsVertex(second)) continue;
+                    if (Vector2D.DistanceSq(first.Position, second.Position) > joinDistanceSquared) continue;
+
+                    second.Position = first.Position;
+                    JoinVertices(first, second);
+                    vertices.Remove(second);
+                    joins++;
+                    joined = true;
+                    break;
+                }
+            }
+        } while (joined);
+
+        return joins;
+    }
+
+    /// <summary>
     /// Removes linedefs whose endpoints are the same vertex or occupy the same position.
     /// Returns the number of unique linedefs removed. Call BuildIndexes() afterward.
     /// </summary>

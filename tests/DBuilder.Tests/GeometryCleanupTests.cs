@@ -141,6 +141,44 @@ public class GeometryCleanupTests
     }
 
     [Fact]
+    public void JoinVerticesWithinCollectionKeepsFirstMatchingVertex()
+    {
+        var map = new MapSet();
+        var first = map.AddVertex(new Vector2D(0, 0));
+        var second = map.AddVertex(new Vector2D(0.25, 0));
+        var end = map.AddVertex(new Vector2D(64, 0));
+        var line = map.AddLinedef(second, end);
+        var vertices = new List<Vertex> { first, second, end };
+
+        int joins = map.JoinVertices(vertices, 1.0);
+
+        Assert.Equal(1, joins);
+        Assert.Same(first, line.Start);
+        Assert.Equal(new[] { first, end }, vertices);
+        Assert.Contains(first, map.Vertices);
+        Assert.DoesNotContain(second, map.Vertices);
+        Assert.True(second.IsDisposed);
+    }
+
+    [Fact]
+    public void JoinVerticesWithinCollectionRestartsAfterListMutation()
+    {
+        var map = new MapSet();
+        var first = map.AddVertex(new Vector2D(0, 0));
+        var second = map.AddVertex(new Vector2D(0.25, 0));
+        var third = map.AddVertex(new Vector2D(0.5, 0));
+        var vertices = new List<Vertex> { first, second, third };
+
+        int joins = map.JoinVertices(vertices, 1.0);
+
+        Assert.Equal(2, joins);
+        Assert.Equal(new[] { first }, vertices);
+        Assert.Equal(new[] { first }, map.Vertices);
+        Assert.True(second.IsDisposed);
+        Assert.True(third.IsDisposed);
+    }
+
+    [Fact]
     public void GetSectorsFromLinedefsReturnsOnlyFullyBoundedSectors()
     {
         var map = BuildTwoAdjacentSquares();
