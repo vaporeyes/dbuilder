@@ -3872,6 +3872,58 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void PlanReflectionSettingsMergesDiscoveredDefaultsWithPersistedValues()
+    {
+        DBuilderPluginRuntimeInstance runtimeInstance = RuntimeInstance(new ReflectionSettingsPlugin(), "SettingsPlugin", 0);
+        var descriptor = new DBuilderPluginDescriptor("SettingsPlugin", "/plugins/settings.dll");
+        var settings = new Dictionary<string, Dictionary<string, object?>>
+        {
+            ["settingsplugin"] = new()
+            {
+                ["settings.step"] = 16,
+                ["settings.extra"] = "preserved"
+            }
+        };
+
+        DBuilderPluginSettingsSnapshot snapshot = DBuilderPluginHostModel.PlanReflectionSettings(
+            runtimeInstance,
+            descriptor,
+            settings);
+
+        Assert.Equal("SettingsPlugin", snapshot.PluginName);
+        Assert.Empty(snapshot.Warnings);
+        Assert.Equal(true, snapshot.Values["settings.enabled"]);
+        Assert.Equal(16, snapshot.Values["settings.step"]);
+        Assert.Equal("preserved", snapshot.Values["settings.extra"]);
+    }
+
+    [Fact]
+    public void PlanReflectionSettingsPreservesDescriptorDiagnosticsAsWritebackWarnings()
+    {
+        DBuilderPluginRuntimeInstance runtimeInstance = RuntimeInstance(new ReflectionUnsupportedSettingsPlugin(), "UnsupportedSettings", 0);
+        var descriptor = new DBuilderPluginDescriptor("UnsupportedSettings", "/plugins/settings.dll");
+        var settings = new Dictionary<string, Dictionary<string, object?>>
+        {
+            ["UnsupportedSettings"] = new()
+            {
+                ["settings.step"] = 8
+            }
+        };
+
+        DBuilderPluginSettingsSnapshot snapshot = DBuilderPluginHostModel.PlanReflectionSettings(
+            runtimeInstance,
+            descriptor,
+            settings);
+
+        DBuilderPluginHostModel.WriteSettings(settings, snapshot);
+
+        Assert.Equal(
+            new[] { "Plugin UnsupportedSettings SettingDescriptors property must return setting descriptors." },
+            snapshot.Warnings);
+        Assert.Equal(8, settings["UnsupportedSettings"]["settings.step"]);
+    }
+
+    [Fact]
     public void PlanSettingsMergesDescriptorDefaultsWithPersistedAndUnknownValues()
     {
         var descriptor = new DBuilderPluginDescriptor("TagRange", "/plugins/tagrange.dll");

@@ -2037,6 +2037,26 @@ public static class DBuilderPluginHostModel
             diagnostics);
     }
 
+    public static DBuilderPluginSettingsSnapshot PlanReflectionSettings(
+        DBuilderPluginRuntimeInstance runtimeInstance,
+        DBuilderPluginDescriptor descriptor,
+        IDictionary<string, Dictionary<string, object?>>? settings)
+    {
+        DBuilderPluginSettingDescriptorPlan descriptorPlan = PlanReflectionSettingDescriptors(runtimeInstance);
+        DBuilderPluginSettingsSnapshot snapshot = PlanSettings(
+            descriptor,
+            settings,
+            descriptorPlan.Settings);
+        if (descriptorPlan.Diagnostics.Count == 0) return snapshot;
+
+        return snapshot with
+        {
+            Warnings = snapshot.Warnings
+                .Concat(descriptorPlan.Diagnostics.Select(diagnostic => diagnostic.Message))
+                .ToArray()
+        };
+    }
+
     public static DBuilderPluginSettingsSnapshot PlanSettings(
         DBuilderPluginDescriptor descriptor,
         IDictionary<string, Dictionary<string, object?>>? settings,
