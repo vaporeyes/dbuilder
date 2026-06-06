@@ -1863,6 +1863,10 @@ public partial class MainWindow : Window
                 return;
             }
 
+            foreach (UdbScriptLoadedSourceFile library in loadedSources.Libraries)
+                runner.ApplyLog(UdbScriptRunnerModel.LoadedLibrarySourceStatusText(
+                    library.Source.EngineSourceName,
+                    library.Text.Length));
             runner.ApplyLog(UdbScriptRunnerModel.LoadedScriptSourceStatusText(loadedSources.Script?.Text.Length ?? 0));
             UdbScriptRunnerBindingPlan bindingPlan = UdbScriptRunnerModel.BindingPlan(script);
             runner.ApplyLog($"Script options: {bindingPlan.ScriptOptions.Count}");

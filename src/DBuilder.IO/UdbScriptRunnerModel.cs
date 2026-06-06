@@ -409,6 +409,9 @@ public static class UdbScriptRunnerModel
     public static string LoadedScriptSourceStatusText(int characterCount)
         => $"Loaded script source: {CountLabel(characterCount, "character")}";
 
+    public static string LoadedLibrarySourceStatusText(string engineSourceName, int characterCount)
+        => $"Loaded library source: {engineSourceName}: {CountLabel(characterCount, "character")}";
+
     public static IReadOnlyList<UdbScriptHostMember> HostMembers { get; } =
     [
         new("GameConfiguration", UdbScriptHostMemberKind.Object, "GameConfigurationWrapper"),

@@ -94,6 +94,12 @@ public class UdbScriptRunnerModelTests
     public void LoadedScriptSourceStatusTextFormatsSingularAndPluralCharacterCounts(int characterCount, string expected)
         => Assert.Equal(expected, UdbScriptRunnerModel.LoadedScriptSourceStatusText(characterCount));
 
+    [Theory]
+    [InlineData(1, "Loaded library source: /UDBScript/Libraries/math.js: 1 character")]
+    [InlineData(2, "Loaded library source: /UDBScript/Libraries/math.js: 2 characters")]
+    public void LoadedLibrarySourceStatusTextIncludesEngineNameAndCharacterCount(int characterCount, string expected)
+        => Assert.Equal(expected, UdbScriptRunnerModel.LoadedLibrarySourceStatusText("/UDBScript/Libraries/math.js", characterCount));
+
     [Fact]
     public void PreAndPostRunPlansMatchUdbExecutionSideEffects()
     {

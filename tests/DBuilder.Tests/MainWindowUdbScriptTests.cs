@@ -84,4 +84,21 @@ public class MainWindowUdbScriptTests
         Assert.Contains("SetStatus($\"UDBScript source file not found: {loadedSources.MissingPath}\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
         Assert.Contains("SetStatus($\"UDBScript runtime constraint aborted: {script.Name}\", StatusHistoryKind.Warning);", body, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void MainWindowLogsLoadedUdbScriptLibrariesBeforeScriptSource()
+    {
+        string body = File.ReadAllText(Path.Combine(
+            AppContext.BaseDirectory,
+            "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        int libraryIndex = body.IndexOf("foreach (UdbScriptLoadedSourceFile library in loadedSources.Libraries)", StringComparison.Ordinal);
+        int scriptIndex = body.IndexOf("UdbScriptRunnerModel.LoadedScriptSourceStatusText", StringComparison.Ordinal);
+
+        Assert.True(libraryIndex >= 0);
+        Assert.True(scriptIndex > libraryIndex);
+        Assert.Contains("UdbScriptRunnerModel.LoadedLibrarySourceStatusText(", body, StringComparison.Ordinal);
+        Assert.Contains("library.Source.EngineSourceName", body, StringComparison.Ordinal);
+        Assert.Contains("library.Text.Length", body, StringComparison.Ordinal);
+    }
 }
