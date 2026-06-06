@@ -3803,6 +3803,75 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void PlanReflectionSettingDescriptorsReadsAndNormalizesDescriptorProperty()
+    {
+        DBuilderPluginSettingDescriptorPlan descriptorPlan = DBuilderPluginHostModel.PlanReflectionSettingDescriptors(
+            RuntimeInstance(new ReflectionSettingsPlugin(), "SettingsPlugin", 0));
+        var settings = new Dictionary<string, Dictionary<string, object?>>
+        {
+            ["settingsplugin"] = new()
+            {
+                ["settings.step"] = 16
+            }
+        };
+
+        DBuilderPluginSettingsSnapshot snapshot = DBuilderPluginHostModel.PlanSettings(
+            new DBuilderPluginDescriptor("SettingsPlugin", "/plugins/settings.dll"),
+            settings,
+            descriptorPlan.Settings);
+
+        Assert.Equal("SettingsPlugin", descriptorPlan.PluginName);
+        Assert.Empty(descriptorPlan.Diagnostics);
+        Assert.Collection(
+            descriptorPlan.Settings,
+            descriptor =>
+            {
+                Assert.Equal("settings.enabled", descriptor.Key);
+                Assert.Equal(true, descriptor.DefaultValue);
+            },
+            descriptor =>
+            {
+                Assert.Equal("settings.step", descriptor.Key);
+                Assert.Equal(8, descriptor.DefaultValue);
+            });
+        Assert.Equal(true, snapshot.Values["settings.enabled"]);
+        Assert.Equal(16, snapshot.Values["settings.step"]);
+    }
+
+    [Fact]
+    public void PlanReflectionSettingDescriptorsTreatsMissingDescriptorsAsEmpty()
+    {
+        DBuilderPluginSettingDescriptorPlan descriptorPlan = DBuilderPluginHostModel.PlanReflectionSettingDescriptors(
+            RuntimeInstance(new ReflectionPluginHostTestPlugin(), "NoSettings", 0));
+
+        Assert.Equal("NoSettings", descriptorPlan.PluginName);
+        Assert.Empty(descriptorPlan.Settings);
+        Assert.Empty(descriptorPlan.Diagnostics);
+    }
+
+    [Fact]
+    public void PlanReflectionSettingDescriptorsReportsUnsupportedAndThrowingProperties()
+    {
+        DBuilderPluginSettingDescriptorPlan unsupported = DBuilderPluginHostModel.PlanReflectionSettingDescriptors(
+            RuntimeInstance(new ReflectionUnsupportedSettingsPlugin(), "UnsupportedSettings", 0));
+        DBuilderPluginSettingDescriptorPlan throwing = DBuilderPluginHostModel.PlanReflectionSettingDescriptors(
+            RuntimeInstance(new ReflectionThrowingSettingsPlugin(), "ThrowingSettings", 0));
+
+        Assert.Empty(unsupported.Settings);
+        DBuilderPluginDiagnostic unsupportedDiagnostic = Assert.Single(unsupported.Diagnostics);
+        Assert.Equal(DBuilderPluginDiagnosticSeverity.Error, unsupportedDiagnostic.Severity);
+        Assert.Equal("UnsupportedSettings", unsupportedDiagnostic.PluginName);
+        Assert.Equal(
+            "Plugin UnsupportedSettings SettingDescriptors property must return setting descriptors.",
+            unsupportedDiagnostic.Message);
+        Assert.Empty(throwing.Settings);
+        DBuilderPluginDiagnostic throwingDiagnostic = Assert.Single(throwing.Diagnostics);
+        Assert.Equal(DBuilderPluginDiagnosticSeverity.Error, throwingDiagnostic.Severity);
+        Assert.Equal("ThrowingSettings", throwingDiagnostic.PluginName);
+        Assert.Equal("settings failed", throwingDiagnostic.Message);
+    }
+
+    [Fact]
     public void PlanSettingsMergesDescriptorDefaultsWithPersistedAndUnknownValues()
     {
         var descriptor = new DBuilderPluginDescriptor("TagRange", "/plugins/tagrange.dll");
@@ -4036,6 +4105,28 @@ public sealed class ReflectionActionCommandPlugin : IDBuilderPlugin
     {
         throw new InvalidOperationException("action failed");
     }
+}
+
+public sealed class ReflectionSettingsPlugin : IDBuilderPlugin
+{
+    public IReadOnlyList<DBuilderPluginSettingDescriptor> SettingDescriptors { get; } = new[]
+    {
+        new DBuilderPluginSettingDescriptor(" settings.step ", 8),
+        new DBuilderPluginSettingDescriptor("settings.enabled", true),
+        new DBuilderPluginSettingDescriptor("settings.step", 32),
+        new DBuilderPluginSettingDescriptor("", "ignored")
+    };
+}
+
+public sealed class ReflectionUnsupportedSettingsPlugin : IDBuilderPlugin
+{
+    public string SettingDescriptors => "unsupported";
+}
+
+public sealed class ReflectionThrowingSettingsPlugin : IDBuilderPlugin
+{
+    public IReadOnlyList<DBuilderPluginSettingDescriptor> SettingDescriptors
+        => throw new InvalidOperationException("settings failed");
 }
 
 public sealed class ReflectionMapLifecycleCallbackPlugin : IDBuilderPlugin

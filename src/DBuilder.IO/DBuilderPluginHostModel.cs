@@ -187,6 +187,11 @@ public sealed record DBuilderPluginSettingDescriptor(
     string Key,
     object? DefaultValue = null);
 
+public sealed record DBuilderPluginSettingDescriptorPlan(
+    string PluginName,
+    IReadOnlyList<DBuilderPluginSettingDescriptor> Settings,
+    IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
+
 public sealed record DBuilderPluginSettingsSnapshot(
     string PluginName,
     IReadOnlyDictionary<string, object?> Values,
@@ -1974,6 +1979,64 @@ public static class DBuilderPluginHostModel
                 StringComparer.Ordinal);
     }
 
+    public static DBuilderPluginSettingDescriptorPlan PlanReflectionSettingDescriptors(
+        DBuilderPluginRuntimeInstance runtimeInstance)
+    {
+        var diagnostics = new List<DBuilderPluginDiagnostic>();
+        PropertyInfo? property = runtimeInstance.Instance.GetType().GetProperty(
+            "SettingDescriptors",
+            BindingFlags.Instance | BindingFlags.Public);
+        if (property == null)
+        {
+            return new DBuilderPluginSettingDescriptorPlan(
+                runtimeInstance.PluginName,
+                Array.Empty<DBuilderPluginSettingDescriptor>(),
+                diagnostics);
+        }
+
+        if (!typeof(IEnumerable<DBuilderPluginSettingDescriptor>).IsAssignableFrom(property.PropertyType))
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                runtimeInstance.PluginName,
+                $"Plugin {runtimeInstance.PluginName} SettingDescriptors property must return setting descriptors."));
+            return new DBuilderPluginSettingDescriptorPlan(
+                runtimeInstance.PluginName,
+                Array.Empty<DBuilderPluginSettingDescriptor>(),
+                diagnostics);
+        }
+
+        try
+        {
+            var descriptors = (IEnumerable<DBuilderPluginSettingDescriptor>?)property.GetValue(runtimeInstance.Instance);
+            return new DBuilderPluginSettingDescriptorPlan(
+                runtimeInstance.PluginName,
+                NormalizeSettingDescriptors(descriptors),
+                diagnostics);
+        }
+        catch (TargetInvocationException ex) when (ex.InnerException != null)
+        {
+            string error = ex.InnerException.Message.Trim();
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                runtimeInstance.PluginName,
+                error));
+        }
+        catch (Exception ex)
+        {
+            string error = ex.Message.Trim();
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                runtimeInstance.PluginName,
+                error));
+        }
+
+        return new DBuilderPluginSettingDescriptorPlan(
+            runtimeInstance.PluginName,
+            Array.Empty<DBuilderPluginSettingDescriptor>(),
+            diagnostics);
+    }
+
     public static DBuilderPluginSettingsSnapshot PlanSettings(
         DBuilderPluginDescriptor descriptor,
         IDictionary<string, Dictionary<string, object?>>? settings,
@@ -2211,6 +2274,25 @@ public static class DBuilderPluginHostModel
                 entry => entry.Key,
                 entry => entry.Value,
                 StringComparer.Ordinal);
+    }
+
+    private static IReadOnlyList<DBuilderPluginSettingDescriptor> NormalizeSettingDescriptors(
+        IEnumerable<DBuilderPluginSettingDescriptor>? descriptors)
+    {
+        if (descriptors == null) return Array.Empty<DBuilderPluginSettingDescriptor>();
+
+        var result = new List<DBuilderPluginSettingDescriptor>();
+        var keys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (DBuilderPluginSettingDescriptor descriptor in descriptors)
+        {
+            string key = descriptor.Key.Trim();
+            if (key.Length == 0 || !keys.Add(key)) continue;
+            result.Add(descriptor with { Key = key });
+        }
+
+        return result
+            .OrderBy(descriptor => descriptor.Key, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
     }
 
     private static IReadOnlyList<DBuilderPluginUiContribution> SortUiContributions(
