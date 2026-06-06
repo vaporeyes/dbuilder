@@ -50,7 +50,7 @@ public sealed class ThingIconRenderPolicyTests
     [Fact]
     public void CompactThresholdStartsWhenSpriteIconsCollapse()
     {
-        Assert.Equal(0.08, ThingIconRenderPolicy.CompactMarkerScaleThreshold);
+        Assert.Equal(0.04, ThingIconRenderPolicy.CompactMarkerScaleThreshold);
         Assert.Equal(0.02, ThingIconRenderPolicy.MinimumInteractiveViewScale);
         Assert.False(ThingIconRenderPolicy.UseCompactMarkers(
             viewScale: ThingIconRenderPolicy.MinimumInteractiveViewScale,
@@ -210,7 +210,7 @@ public sealed class ThingIconRenderPolicyTests
     [Fact]
     public void SpriteIconsRenderOnlyWhenScreenFootprintStaysReadable()
     {
-        Assert.Equal(0.08, ThingIconRenderPolicy.SpriteIconScaleThreshold);
+        Assert.Equal(0.04, ThingIconRenderPolicy.SpriteIconScaleThreshold);
         Assert.Equal(8.0, ThingIconRenderPolicy.MinimumSpriteScreenRadius);
         Assert.False(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
             mapRadius: 20,
@@ -218,15 +218,15 @@ public sealed class ThingIconRenderPolicyTests
             fixedThingsScale: false));
         Assert.False(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
             mapRadius: 20,
-            viewScale: 0.08,
+            viewScale: 0.04,
+            fixedThingsScale: false));
+        Assert.False(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
+            mapRadius: 20,
+            viewScale: 0.05,
             fixedThingsScale: false));
         Assert.True(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
             mapRadius: 20,
             viewScale: 0.02,
-            fixedThingsScale: false));
-        Assert.True(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
-            mapRadius: 20,
-            viewScale: 0.05,
             fixedThingsScale: false));
         Assert.True(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
             mapRadius: 20,
