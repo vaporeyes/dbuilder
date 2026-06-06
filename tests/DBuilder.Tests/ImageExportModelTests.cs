@@ -3,6 +3,7 @@
 
 using DBuilder.Map;
 using DBuilder.Geometry;
+using DBuilder.IO;
 
 namespace DBuilder.Tests;
 
@@ -420,6 +421,29 @@ public sealed class ImageExportModelTests
 
         Assert.Equal(ImageExportPlanner.CreateOutputPlan([sector], settings).ImageNames, files.Select(file => file.Path).ToArray());
         Assert.All(files, file => AssertPngSize(file.Content, 64, 64));
+    }
+
+    [Fact]
+    public void RendererAppliesRgb555ColorDepthBeforeEncoding()
+    {
+        Sector sector = BuildSector((0, 0), (64, 0), (64, -64), (0, -64));
+        sector.FloorTexture = "ODD";
+        ImageExportSettings settings = ImageExportSettings.FromOptions(new ImageExportOptions(
+            Path.Combine("export", "MAP01.png"),
+            PixelFormatIndex: 2));
+
+        ImageExportImageFile file = Assert.Single(ImageExportRenderer.CreateImageFiles(
+            [sector],
+            settings,
+            name => name == "ODD" ? SolidTexture(123, 231, 17) : null));
+
+        ImageData? image = PngDecoder.Decode(file.Content);
+        Assert.NotNull(image);
+        int pixel = (32 * image!.Width + 32) * 4;
+        Assert.Equal(123, image.Rgba[pixel]);
+        Assert.Equal(230, image.Rgba[pixel + 1]);
+        Assert.Equal(16, image.Rgba[pixel + 2]);
+        Assert.Equal(255, image.Rgba[pixel + 3]);
     }
 
     private static Sector BuildSector(params (double X, double Y)[] points)

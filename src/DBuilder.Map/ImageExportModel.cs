@@ -437,9 +437,10 @@ public static class ImageExportRenderer
         if (!settings.Tiles)
         {
             string suffix = brightmap ? "_brightmap" : "";
+            ImageExportRaster output = ApplyPixelFormat(raster, settings.PixelFormat);
             files.Add(new ImageExportImageFile(
                 Path.Combine(settings.Directory, settings.Name) + suffix + settings.Extension,
-                WavefrontPngEncoder.EncodeRgba(raster.Width, raster.Height, raster.Rgba),
+                WavefrontPngEncoder.EncodeRgba(output.Width, output.Height, output.Rgba),
                 brightmap,
                 TileIndex: 0));
             return;
@@ -454,6 +455,7 @@ public static class ImageExportRenderer
             {
                 byte[] tile = CreateTile(raster, x, y);
                 string suffix = brightmap ? "_brightmap" : "";
+                tile = ApplyPixelFormat(tile, settings.PixelFormat);
                 files.Add(new ImageExportImageFile(
                     $"{Path.Combine(settings.Directory, settings.Name)}{tileIndex}{suffix}{settings.Extension}",
                     WavefrontPngEncoder.EncodeRgba(ImageExportPlanner.TileSize, ImageExportPlanner.TileSize, tile),
@@ -463,6 +465,33 @@ public static class ImageExportRenderer
             }
         }
     }
+
+    private static ImageExportRaster ApplyPixelFormat(ImageExportRaster raster, ImageExportPixelFormat pixelFormat)
+        => pixelFormat == ImageExportPixelFormat.Format32BppArgb
+            ? raster
+            : raster with { Rgba = ApplyPixelFormat(raster.Rgba, pixelFormat) };
+
+    private static byte[] ApplyPixelFormat(byte[] rgba, ImageExportPixelFormat pixelFormat)
+    {
+        if (pixelFormat == ImageExportPixelFormat.Format32BppArgb) return rgba;
+
+        byte[] result = (byte[])rgba.Clone();
+        for (int i = 0; i < result.Length; i += 4)
+        {
+            if (pixelFormat == ImageExportPixelFormat.Format16BppRgb555)
+            {
+                result[i] = QuantizeRgb555(result[i]);
+                result[i + 1] = QuantizeRgb555(result[i + 1]);
+                result[i + 2] = QuantizeRgb555(result[i + 2]);
+            }
+            result[i + 3] = 255;
+        }
+
+        return result;
+    }
+
+    private static byte QuantizeRgb555(byte value)
+        => (byte)((value >> 3) * 255 / 31);
 
     private static byte[] CreateTile(ImageExportRaster raster, int tileX, int tileY)
     {
