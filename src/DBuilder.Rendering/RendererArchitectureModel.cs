@@ -38,6 +38,7 @@ public static class RendererArchitectureModel
             "Surface render draw-command and vertex-buffer binding planning",
             "Surface buffer resource reload upload planning",
             "Surface buffer reset invalidation planning",
+            "Surface buffer unload and reload resource-state planning",
             "Runtime shader compile, link, disposal, and uniform lookup caching",
             "Shader disposed-state reporting",
         },

@@ -15,6 +15,8 @@ public sealed record SurfaceBufferUpload(int VertexOffset, SurfaceBufferUploadPl
 
 public sealed record SurfaceBufferReloadPlan(int BufferIndex, int BufferSize, IReadOnlyList<SurfaceBufferUpload> Uploads);
 
+public sealed record SurfaceBufferUnloadPlan(IReadOnlyList<int> DisposedBufferIndexes);
+
 public sealed class SurfaceBufferSetState
 {
     public SurfaceBufferSetState(int verticesPerEntry)
@@ -24,8 +26,10 @@ public sealed class SurfaceBufferSetState
 
     public int VerticesPerEntry { get; }
     public List<int> BufferSizes { get; } = new();
+    public List<bool> BufferLoaded { get; } = new();
     public List<SurfaceEntry> Entries { get; } = new();
     public List<SurfaceEntry> Holes { get; } = new();
+    public bool ResourcesUnloaded { get; private set; }
 
     public void EnsureFreeEntries(int freeEntries)
     {
@@ -44,6 +48,7 @@ public sealed class SurfaceBufferSetState
                 int bufferEntries = Math.Min(addEntries, maxEntriesPerBuffer);
                 int allocatedBufferIndex = BufferSizes.Count;
                 BufferSizes.Add(bufferEntries * bufferVerticesPerEntry);
+                BufferLoaded.Add(!ResourcesUnloaded);
                 for (int i = 0; i < bufferEntries; i++)
                     Holes.Add(new SurfaceEntry(VerticesPerEntry, allocatedBufferIndex, i * bufferVerticesPerEntry));
 
@@ -65,6 +70,7 @@ public sealed class SurfaceBufferSetState
                 }
 
                 BufferSizes[bufferIndex] = entryCount * bufferVerticesPerEntry;
+                BufferLoaded[bufferIndex] = !ResourcesUnloaded;
                 Holes.Clear();
                 for (int i = 0; i < freeEntriesAdded; i++)
                     Holes.Add(new SurfaceEntry(VerticesPerEntry, bufferIndex, i * bufferVerticesPerEntry + vertexOffset));
@@ -124,6 +130,30 @@ public sealed class SurfaceBufferSetState
         return plans;
     }
 
+    public SurfaceBufferUnloadPlan UnloadResources()
+    {
+        var disposed = new List<int>();
+        ResourcesUnloaded = true;
+        for (int i = 0; i < BufferLoaded.Count; i++)
+        {
+            if (!BufferLoaded[i]) continue;
+
+            disposed.Add(i);
+            BufferLoaded[i] = false;
+        }
+
+        return new SurfaceBufferUnloadPlan(disposed);
+    }
+
+    public IReadOnlyList<SurfaceBufferReloadPlan> ReloadResources()
+    {
+        IReadOnlyList<SurfaceBufferReloadPlan> plans = PlanReload();
+        for (int i = 0; i < BufferLoaded.Count; i++)
+            BufferLoaded[i] = true;
+        ResourcesUnloaded = false;
+        return plans;
+    }
+
     public void Reset()
     {
         foreach (SurfaceEntry entry in Entries)
@@ -132,6 +162,7 @@ public sealed class SurfaceBufferSetState
             Invalidate(hole);
 
         BufferSizes.Clear();
+        BufferLoaded.Clear();
         Entries.Clear();
         Holes.Clear();
     }

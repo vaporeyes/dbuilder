@@ -29,6 +29,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Surface render draw-command and vertex-buffer binding planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface buffer resource reload upload planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface buffer reset invalidation planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Surface buffer unload and reload resource-state planning", replacement.CoveredResponsibilities);
     }
 
     [Fact]

@@ -60,6 +60,7 @@ public sealed class SurfaceManagerPlanTests
         set.EnsureFreeEntries(4);
 
         Assert.Equal(new[] { 24 }, set.BufferSizes);
+        Assert.Equal(new[] { true }, set.BufferLoaded);
         Assert.Equal(new[] { 0, 6, 12, 18 }, set.Holes.Select(entry => entry.VertexOffset).ToArray());
         Assert.All(set.Holes, entry =>
         {
@@ -96,6 +97,7 @@ public sealed class SurfaceManagerPlanTests
         set.EnsureFreeEntries(1);
 
         Assert.Equal(new[] { 24000, 12000 }, set.BufferSizes);
+        Assert.Equal(new[] { true, true }, set.BufferLoaded);
         SurfaceEntry hole = Assert.Single(set.Holes);
         Assert.Equal(1, hole.BufferIndex);
         Assert.Equal(0, hole.VertexOffset);
@@ -185,6 +187,7 @@ public sealed class SurfaceManagerPlanTests
         Assert.Equal(-1, hole.NumVertices);
         Assert.Equal(-1, hole.BufferIndex);
         Assert.Empty(set.BufferSizes);
+        Assert.Empty(set.BufferLoaded);
         Assert.Empty(set.Entries);
         Assert.Empty(set.Holes);
     }
@@ -199,9 +202,59 @@ public sealed class SurfaceManagerPlanTests
         SurfaceEntry entry = set.AllocateEntry();
 
         Assert.Equal(new[] { 6 }, set.BufferSizes);
+        Assert.Equal(new[] { true }, set.BufferLoaded);
         Assert.Equal(3, entry.NumVertices);
         Assert.Equal(0, entry.BufferIndex);
         Assert.Equal(0, entry.VertexOffset);
+    }
+
+    [Fact]
+    public void UnloadResourcesDisposesLoadedBuffersAndKeepsBufferSizes()
+    {
+        var set = new SurfaceBufferSetState(verticesPerEntry: 6000);
+        set.AllocateEntry();
+        set.AllocateEntry();
+        set.EnsureFreeEntries(1);
+        set.BufferLoaded[1] = false;
+
+        SurfaceBufferUnloadPlan plan = set.UnloadResources();
+
+        Assert.True(set.ResourcesUnloaded);
+        Assert.Equal(new[] { 0 }, plan.DisposedBufferIndexes);
+        Assert.Equal(new[] { 24000, 12000 }, set.BufferSizes);
+        Assert.Equal(new[] { false, false }, set.BufferLoaded);
+    }
+
+    [Fact]
+    public void AllocatingWhileResourcesAreUnloadedCreatesUnloadedBufferSlots()
+    {
+        var set = new SurfaceBufferSetState(verticesPerEntry: 3);
+        set.UnloadResources();
+
+        SurfaceEntry entry = set.AllocateEntry();
+
+        Assert.True(set.ResourcesUnloaded);
+        Assert.Equal(0, entry.BufferIndex);
+        Assert.Equal(new[] { 6 }, set.BufferSizes);
+        Assert.Equal(new[] { false }, set.BufferLoaded);
+    }
+
+    [Fact]
+    public void ReloadResourcesMarksBuffersLoadedAndReturnsUploadPlan()
+    {
+        var set = new SurfaceBufferSetState(verticesPerEntry: 3);
+        SurfaceEntry entry = set.AllocateEntry();
+        entry.FloorVertices = Vertices(3);
+        entry.CeilingVertices = Vertices(3);
+        set.UnloadResources();
+
+        IReadOnlyList<SurfaceBufferReloadPlan> plans = set.ReloadResources();
+
+        Assert.False(set.ResourcesUnloaded);
+        Assert.Equal(new[] { true }, set.BufferLoaded);
+        SurfaceBufferReloadPlan plan = Assert.Single(plans);
+        Assert.Equal(0, plan.BufferIndex);
+        Assert.Equal(new[] { 3, 3 }, plan.Uploads.Select(upload => upload.VertexCount).ToArray());
     }
 
     private static FlatVertex[] Vertices(int count)

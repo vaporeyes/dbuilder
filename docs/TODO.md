@@ -1488,6 +1488,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style surface render draw-command and vertex-buffer binding planning.
   - [x] Add UDB-style surface buffer resource reload upload planning.
   - [x] Add UDB-style surface buffer reset invalidation planning.
+  - [x] Add UDB-style surface buffer unload and reload resource-state planning.
 - [ ] Port surface entries and updates.
   - [x] Add UDB-style surface entry, update, collection, and bounds model.
 - [ ] Port mesh behavior.
