@@ -3,6 +3,7 @@
 
 namespace DBuilder.Map;
 
+using System.Drawing;
 using DBuilder.Geometry;
 
 public class Thing : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, IHasArguments, ITaggedMapElement
@@ -48,6 +49,9 @@ public class Thing : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, 
 
     /// <summary>UDMF vertical scale multiplier. Default 1.0 (unscaled).</summary>
     public double ScaleY { get; set; } = 1.0;
+
+    /// <summary>Actor sprite scale from thing type metadata. Not serialized in map data.</summary>
+    public SizeF ActorScale { get; set; } = new(1.0f, 1.0f);
 
     /// <summary>Editor display radius from thing type metadata. Not serialized in map data.</summary>
     public double Size { get; set; }
@@ -133,6 +137,7 @@ public class Thing : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, 
         thing.Roll = Roll;
         thing.ScaleX = ScaleX;
         thing.ScaleY = ScaleY;
+        thing.ActorScale = ActorScale;
         thing.Size = Size;
         thing.RenderSize = RenderSize;
         thing.FixedSize = FixedSize;

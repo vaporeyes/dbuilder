@@ -3,6 +3,7 @@
 
 using DBuilder.Geometry;
 using DBuilder.Map;
+using System.Drawing;
 
 namespace DBuilder.Tests;
 
@@ -286,6 +287,7 @@ public class MapElementDataTests
     {
         var source = new Thing(new Vector2D(0, 0), 3001)
         {
+            ActorScale = new SizeF(1.25f, 0.75f),
             Size = 16,
             RenderSize = 24,
             FixedSize = true,
@@ -294,6 +296,7 @@ public class MapElementDataTests
 
         source.CopyPropertiesTo(target);
 
+        Assert.Equal(new SizeF(1.25f, 0.75f), target.ActorScale);
         Assert.Equal(16, target.Size);
         Assert.Equal(24, target.RenderSize);
         Assert.True(target.FixedSize);
