@@ -213,6 +213,10 @@ public sealed record DBuilderPluginResourceHandlerPlan(
     IReadOnlyList<DBuilderPluginResourceHandler> Handlers,
     IReadOnlyList<string> Warnings);
 
+public sealed record DBuilderPluginResourceHandlerCommandPlan(
+    DBuilderPluginResourceHandler? Handler,
+    IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
+
 public sealed record DBuilderPluginApiContribution(
     string PluginName,
     DBuilderPluginContributionKind Kind,
@@ -1786,6 +1790,45 @@ public static class DBuilderPluginHostModel
         DBuilderPluginActionCommandPlan action = PlanActionCommand(hostPlan, actionId);
         diagnostics.AddRange(action.Diagnostics.Except(hostPlan.DescriptorPlan.Diagnostics));
         return new DBuilderPluginUiCommandPlan(contribution, action.Action, diagnostics);
+    }
+
+    public static DBuilderPluginResourceHandlerCommandPlan PlanResourceHandlerCommand(
+        DBuilderPluginHostPlan hostPlan,
+        string handlerId)
+    {
+        string id = handlerId.Trim();
+        var diagnostics = new List<DBuilderPluginDiagnostic>(hostPlan.DescriptorPlan.Diagnostics);
+        if (id.Length == 0)
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                "(plugin host)",
+                "Plugin resource handler id is missing."));
+            return new DBuilderPluginResourceHandlerCommandPlan(null, diagnostics);
+        }
+
+        DBuilderPluginResourceHandler[] matches = hostPlan.ResourceHandlers.Handlers
+            .Where(handler => string.Equals(handler.Id, id, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        if (matches.Length == 0)
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                "(plugin host)",
+                $"Plugin resource handler {id} was not found."));
+            return new DBuilderPluginResourceHandlerCommandPlan(null, diagnostics);
+        }
+
+        if (matches.Length > 1)
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                "(plugin host)",
+                $"Plugin resource handler {id} is ambiguous."));
+            return new DBuilderPluginResourceHandlerCommandPlan(null, diagnostics);
+        }
+
+        return new DBuilderPluginResourceHandlerCommandPlan(matches[0], diagnostics);
     }
 
     public static DBuilderPluginActionExecutionResult ExecuteReflectionActionCommand(

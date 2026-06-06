@@ -3250,6 +3250,75 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void PlanResourceHandlerCommandResolvesResourceHandlerById()
+    {
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor(
+                    "ZipResource",
+                    "/plugins/zipresource.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, "resource.zip", "Zip archives")
+                    }),
+                new DBuilderPluginDescriptor(
+                    "DirectoryResource",
+                    "/plugins/directoryresource.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, "resource.directory", "Directory resources")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest());
+
+        DBuilderPluginResourceHandlerCommandPlan command = DBuilderPluginHostModel.PlanResourceHandlerCommand(
+            hostPlan,
+            " RESOURCE.ZIP ");
+
+        Assert.Empty(command.Diagnostics);
+        Assert.NotNull(command.Handler);
+        Assert.Equal("ZipResource", command.Handler.PluginName);
+        Assert.Equal("resource.zip", command.Handler.Id);
+        Assert.Equal("Zip archives", command.Handler.Title);
+    }
+
+    [Fact]
+    public void PlanResourceHandlerCommandReportsMissingAndAmbiguousHandlers()
+    {
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor(
+                    "ZipResource",
+                    "/plugins/zipresource.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, "resource.shared", "Zip archives")
+                    }),
+                new DBuilderPluginDescriptor(
+                    "DirectoryResource",
+                    "/plugins/directoryresource.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, "resource.shared", "Directory resources")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest());
+
+        DBuilderPluginResourceHandlerCommandPlan missingId = DBuilderPluginHostModel.PlanResourceHandlerCommand(hostPlan, " ");
+        DBuilderPluginResourceHandlerCommandPlan missingHandler = DBuilderPluginHostModel.PlanResourceHandlerCommand(hostPlan, "resource.missing");
+        DBuilderPluginResourceHandlerCommandPlan ambiguous = DBuilderPluginHostModel.PlanResourceHandlerCommand(hostPlan, "resource.shared");
+
+        Assert.Null(missingId.Handler);
+        Assert.Equal("Plugin resource handler id is missing.", Assert.Single(missingId.Diagnostics).Message);
+        Assert.Null(missingHandler.Handler);
+        Assert.Equal("Plugin resource handler resource.missing was not found.", Assert.Single(missingHandler.Diagnostics).Message);
+        Assert.Null(ambiguous.Handler);
+        Assert.Equal("Plugin resource handler resource.shared is ambiguous.", Assert.Single(ambiguous.Diagnostics).Message);
+    }
+
+    [Fact]
     public void PlanApiContributionsSeparatesActionsEditModesAndDockers()
     {
         var plan = DBuilderPluginHostModel.PlanApiContributions(new[]
