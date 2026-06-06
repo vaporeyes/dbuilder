@@ -33,6 +33,7 @@ public sealed class ImageExportDialog : PropertyDialog
         _transparency = AddCheckBox(ImageExportSettings.TransparencyText, options.Transparency);
         _tiles = AddCheckBox(ImageExportSettings.TilesText, options.Tiles);
         _imageFormat = AddCombo(ImageExportSettings.ImageFormatLabel, ImageFormatItems(), Math.Max(0, options.ImageFormatIndex));
+        _imageFormat.SelectionChanged += (_, _) => SyncPathExtensionToImageFormat();
         _pixelFormat = AddCombo(ImageExportSettings.PixelFormatLabel, PixelFormatItems(), Math.Max(0, options.PixelFormatIndex));
         _scale = AddCombo(ImageExportSettings.ScaleLabel, ScaleItems(), Math.Max(0, options.ScaleIndex));
     }
@@ -50,6 +51,15 @@ public sealed class ImageExportDialog : PropertyDialog
             ScaleIndex: ComboNumber(_scale, ResultOptions.ScaleIndex),
             ImageFormatIndex: ComboNumber(_imageFormat, ResultOptions.ImageFormatIndex),
             PixelFormatIndex: ComboNumber(_pixelFormat, ResultOptions.PixelFormatIndex));
+    }
+
+    private void SyncPathExtensionToImageFormat()
+    {
+        string path = _filePath.Text?.Trim() ?? "";
+        if (path.Length == 0) return;
+        _filePath.Text = ImageExportSettings.ChangeExtensionForFormat(
+            path,
+            ComboNumber(_imageFormat, ResultOptions.ImageFormatIndex));
     }
 
     private static IEnumerable<CatalogItem> ImageFormatItems()

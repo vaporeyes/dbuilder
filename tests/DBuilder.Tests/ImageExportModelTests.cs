@@ -100,6 +100,9 @@ public sealed class ImageExportModelTests
         Assert.Contains("ImageExportSettings.ScaleTexts", body, StringComparison.Ordinal);
         Assert.Contains("ImageFormatIndex: ComboNumber(_imageFormat", body, StringComparison.Ordinal);
         Assert.Contains("PixelFormatIndex: ComboNumber(_pixelFormat", body, StringComparison.Ordinal);
+        Assert.Contains("_imageFormat.SelectionChanged += (_, _) => SyncPathExtensionToImageFormat();", body, StringComparison.Ordinal);
+        Assert.Contains("private void SyncPathExtensionToImageFormat()", body, StringComparison.Ordinal);
+        Assert.Contains("ImageExportSettings.ChangeExtensionForFormat", body, StringComparison.Ordinal);
     }
 
     [Theory]
