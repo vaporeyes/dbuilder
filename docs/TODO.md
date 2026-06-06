@@ -1494,6 +1494,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port mesh behavior.
   - [x] Add UDB-style owned indexed-triangle mesh wrapper.
 - [ ] Port text font and text label rendering.
+  - [x] Add UDB-style text label size, alignment, transform, culling, and quad planning.
 - [x] Port visual vertex handles.
   - [x] Add UDB-style visual vertex handle model for floor/ceiling pairs, sector-height fallback, height-offset state, and pick bounds.
   - [x] Add UDB-style visual vertex handle visibility gating for UDMF, vertex-height support, and the visual-vertices toggle.

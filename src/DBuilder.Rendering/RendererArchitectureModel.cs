@@ -39,6 +39,7 @@ public static class RendererArchitectureModel
             "Surface buffer resource reload upload planning",
             "Surface buffer reset invalidation planning",
             "Surface buffer unload and reload resource-state planning",
+            "Text label size, alignment, transform, culling, and quad planning",
             "Runtime shader compile, link, disposal, and uniform lookup caching",
             "Shader disposed-state reporting",
         },
@@ -47,7 +48,7 @@ public static class RendererArchitectureModel
             "Full UDB render-pass graph",
             "Surface manager and surface-entry lifecycle",
             "Full mesh behavior",
-            "Text font and label rendering",
+            "Live text font texture generation and render dispatch",
             "Complete visual-mode rendering parity",
         });
 
