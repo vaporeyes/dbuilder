@@ -27,13 +27,15 @@ public static class CommandPaletteModel
         IReadOnlyList<string>? recentCommandIds = null)
     {
         string searchText = filter?.Trim() ?? "";
-        var matchingRows = commands
-            .Where(command => MatchesText(command.Title, searchText))
+        var allRows = commands
             .Select(command => new CommandPaletteRow(
                 command,
                 command.CategoryTitle,
-                EditorCommandCatalog.GestureText(command.Id, bindings),
+                GestureText(command, bindings),
                 usableCommandIds.Contains(command.Id)))
+            .ToArray();
+        var matchingRows = allRows
+            .Where(row => Matches(row, searchText))
             .ToArray();
 
         var groups = new List<CommandPaletteGroup>(3);
@@ -119,6 +121,19 @@ public static class CommandPaletteModel
 
         if (sortedRows.Length > 0)
             groups.Add(new CommandPaletteGroup(title, sortedRows));
+    }
+
+    private static bool Matches(CommandPaletteRow row, string searchText)
+        => MatchesText(row.Command.Title, searchText)
+           || MatchesText(row.Command.Id, searchText)
+           || MatchesText(row.CategoryText, searchText)
+           || MatchesText(row.GestureText, searchText)
+           || MatchesText(row.Command.Description, searchText);
+
+    private static string GestureText(EditorCommandDescriptor command, IReadOnlyList<EditorShortcutBinding> bindings)
+    {
+        string bindingText = EditorCommandCatalog.GestureText(command.Id, bindings);
+        return bindingText == "-" ? "Unassigned" : bindingText;
     }
 
     private static string Normalize(string text)

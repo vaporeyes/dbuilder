@@ -131,6 +131,51 @@ public sealed class CommandPaletteModelTests
 
         var row = Assert.Single(groups.SelectMany(group => group.Rows), row => row.Command.Id == "map3d.toggle-classic-rendering");
         Assert.Equal("Rendering", row.CategoryText);
-        Assert.Equal(EditorCommandCatalog.GestureText(row.Command.Id, EditorCommandCatalog.DefaultShortcuts), row.GestureText);
+        Assert.Equal("Unassigned", row.GestureText);
+    }
+
+    [Fact]
+    public void BuildGroupsFiltersByVisibleMetadata()
+    {
+        var byId = CommandPaletteModel.BuildGroups(
+            EditorCommandCatalog.All,
+            EditorCommandCatalog.DefaultShortcuts,
+            UsableCommands,
+            "window.open-command-palette");
+        Assert.Contains(byId.SelectMany(group => group.Rows), row => row.Command.Id == "window.open-command-palette");
+
+        var byCategory = CommandPaletteModel.BuildGroups(
+            EditorCommandCatalog.All,
+            EditorCommandCatalog.DefaultShortcuts,
+            UsableCommands,
+            "Rendering");
+        Assert.Contains(byCategory.SelectMany(group => group.Rows), row => row.Command.Id == "map3d.toggle-classic-rendering");
+
+        var byGesture = CommandPaletteModel.BuildGroups(
+            EditorCommandCatalog.All,
+            EditorCommandCatalog.DefaultShortcuts,
+            UsableCommands,
+            "Ctrl/Cmd+S");
+        Assert.Contains(byGesture.SelectMany(group => group.Rows), row => row.Command.Id == "window.save");
+
+        var byDescription = CommandPaletteModel.BuildGroups(
+            EditorCommandCatalog.All,
+            EditorCommandCatalog.DefaultShortcuts,
+            UsableCommands,
+            "opened source WAD");
+        Assert.Contains(byDescription.SelectMany(group => group.Rows), row => row.Command.Id == "window.save");
+    }
+
+    [Fact]
+    public void BuildGroupsLabelsAndFiltersUnassignedCommands()
+    {
+        var groups = CommandPaletteModel.BuildGroups(
+            EditorCommandCatalog.All,
+            EditorCommandCatalog.DefaultShortcuts,
+            UsableCommands,
+            "unassigned");
+
+        Assert.Contains(groups.SelectMany(group => group.Rows), row => row.Command.Id == "window.new-map");
+        Assert.All(groups.SelectMany(group => group.Rows), row => Assert.Equal("Unassigned", row.GestureText));
     }
 }
