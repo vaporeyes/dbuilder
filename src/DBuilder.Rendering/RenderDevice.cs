@@ -28,12 +28,21 @@ public enum TextureOperationKind
     UnmapPbo,
 }
 
+public enum RenderStateToggleKind
+{
+    AlphaTest,
+}
+
 public sealed record TextureOperationPlan(
     TextureOperationKind Kind,
     int Unit,
     bool HasTexture,
     CubeMapFace? CubeFace = null,
     uint? ColorArgb = null);
+
+public sealed record RenderStateTogglePlan(
+    RenderStateToggleKind Kind,
+    bool Enabled);
 
 public sealed class RenderDevice : IDisposable
 {
@@ -44,6 +53,7 @@ public sealed class RenderDevice : IDisposable
     private Shader? _boundShader;
     private int _viewportW;
     private int _viewportH;
+    private bool _alphaTestEnabled;
 
     public RenderDevice(GL gl)
     {
@@ -53,6 +63,7 @@ public sealed class RenderDevice : IDisposable
 
     public GL GL => _gl;
     public bool Disposed => _streamVao == 0;
+    public bool AlphaTestEnabled => _alphaTestEnabled;
 
     public void SetViewport(int width, int height)
     {
@@ -86,6 +97,11 @@ public sealed class RenderDevice : IDisposable
     public void SetAlphaBlendEnable(bool value)
     {
         if (value) _gl.Enable(EnableCap.Blend); else _gl.Disable(EnableCap.Blend);
+    }
+
+    public void SetAlphaTestEnable(bool value)
+    {
+        _alphaTestEnabled = value;
     }
 
     public void SetZEnable(bool value)
@@ -305,6 +321,9 @@ public sealed class RenderDevice : IDisposable
 
     public static TextureOperationPlan BuildUnmapPboPlan(Texture? texture)
         => new(TextureOperationKind.UnmapPbo, 0, texture != null);
+
+    public static RenderStateTogglePlan BuildAlphaTestPlan(bool enabled)
+        => new(RenderStateToggleKind.AlphaTest, enabled);
 
     public void SetSamplerFilter(TextureFilter min, TextureFilter mag, MipmapFilter mip, int unit = 0)
     {
