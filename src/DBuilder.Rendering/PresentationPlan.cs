@@ -255,6 +255,12 @@ public sealed record PresentationDisplaySettingStep(
     PresentationDisplaySettingStepKind Kind,
     string TargetName);
 
+public readonly record struct PresentationRenderSettingsVector(
+    float TexelX,
+    float TexelY,
+    float FsaaFactor,
+    float Alpha);
+
 public sealed record PresentationLayerDrawPlan(
     PresentationRendererLayer Layer,
     string SourceTargetName,
@@ -603,6 +609,10 @@ public sealed record PresentationRenderTargetPlan(
             new PresentationDisplaySettingStep(PresentationDisplaySettingStepKind.SetProjectionUniform, "projection"),
             new PresentationDisplaySettingStep(PresentationDisplaySettingStepKind.SetSamplerFilter, settings.SamplerFilter.ToString()),
         };
+
+    public static PresentationRenderSettingsVector BuildRenderSettingsVector(
+        PresentationDisplaySettings settings)
+        => new(settings.TexelX, settings.TexelY, settings.FsaaFactor, settings.Alpha);
 
     public IReadOnlyList<PresentationLayerDrawPlan> BuildLayerDrawPlans(
         PresentationPlan presentation,

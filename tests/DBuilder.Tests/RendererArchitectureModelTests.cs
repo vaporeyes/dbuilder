@@ -24,6 +24,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("2D presentation plotter and texture target allocation planning", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation display shader settings planning", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation display uniform application planning", replacement.CoveredResponsibilities);
+        Assert.Contains("2D presentation display render-settings vector planning", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation projection transform planning", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation frame operation sequence planning", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation render-layer mask planning", replacement.CoveredResponsibilities);

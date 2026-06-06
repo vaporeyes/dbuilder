@@ -29,6 +29,7 @@ public static class RendererArchitectureModel
             "2D presentation plotter and texture target allocation planning",
             "2D presentation display shader settings planning",
             "2D presentation display uniform application planning",
+            "2D presentation display render-settings vector planning",
             "2D presentation projection transform planning",
             "2D presentation frame operation sequence planning",
             "2D presentation render-layer mask planning",

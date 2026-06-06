@@ -571,6 +571,21 @@ public sealed class PresentationPlanTests
     }
 
     [Fact]
+    public void RenderSettingsVectorMatchesUdbDisplayUniformPayload()
+    {
+        PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);
+        PresentationRenderTargetPlan targets = PresentationRenderTargetPlan.Create(320, 200, presentation);
+        PresentationDisplaySettings setting = targets.BuildDisplaySettings(presentation, qualityDisplay: false)[0];
+
+        PresentationRenderSettingsVector vector = PresentationRenderTargetPlan.BuildRenderSettingsVector(setting);
+
+        Assert.Equal(1.0f / 320, vector.TexelX);
+        Assert.Equal(1.0f / 200, vector.TexelY);
+        Assert.Equal(PresentationRenderTargetPlan.FsaaFactor, vector.FsaaFactor);
+        Assert.Equal(0.4f, vector.Alpha);
+    }
+
+    [Fact]
     public void DisplaySettingsTrackQualityShaderAndSamplerFilter()
     {
         PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);
