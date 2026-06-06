@@ -2216,15 +2216,15 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port flat alignment behavior.
   - [x] Add UDB-style UDMF floor and ceiling alignment to selected linedef front/back sides.
   - [x] Add UDB-style Apply lightfog flag action for selected linedefs.
-- [ ] Port bridge mode.
+- [x] Port bridge mode.
   - [x] Add UDB-style Bridge Mode action metadata, shortcut, and command dispatch.
   - [x] Add UDB-style bridge line-chain validation, Bezier shape planning, and sector property interpolation.
   - [x] Add editor menu and toolbar bridge materialization from selected linedef chains.
-- [ ] Port slope arch tools.
+- [x] Port slope arch tools.
   - [x] Add UDB-style slope arch plane calculation and floor/ceiling application helper.
   - [x] Add editor menu and toolbar floor slope-arch command for selected sectors.
   - [x] Add UDB-style singular and plural labels to slope arch status text.
-- [ ] Port make-door tools.
+- [x] Port make-door tools.
   - [x] Add UDB-style Make Door action metadata and window command dispatch.
   - [x] Add UDB-style map-level Make Door sector mutation helper.
   - [x] Add editor menu and toolbar Make Door command for selected sectors.
@@ -2232,12 +2232,12 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Persist Make Door dialog defaults in editor settings.
   - [x] Match UDB Make Door floor-flat defaults for same-floor and mixed-floor selections.
   - [x] Add UDB-style singular and plural labels to Make Door status text.
-- [ ] Port object export tools.
+- [x] Port object export tools.
   - [x] Add UDB-style legacy object export settings defaults, scale and texture options, and path validation.
   - [x] Add UDB-style legacy object export form labels and save-dialog metadata.
   - [x] Add UDB-style legacy object export geometry writer and OBJ/MTL file planning.
   - [x] Add editor command integration for legacy object OBJ export with options, file writing, and texture image export.
-- [ ] Port image export tools.
+- [x] Port image export tools.
   - [x] Add UDB-style image export settings model for format, pixel depth, scale, tiles, brightmaps, transparency, and default output paths.
   - [x] Add UDB-style image export form labels and option text.
   - [x] Add UDB-style image export bounds, tile count, and output-name planning helpers.
@@ -2248,7 +2248,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style image export PNG rendering, brightmap rendering, tiling, and file writing helpers.
   - [x] Add editor command integration for PNG image export with options, file writing, tiling, and brightmaps.
   - [x] Add UDB-style singular and plural labels to image export status text.
-- [ ] Port Wavefront export tools.
+- [x] Port Wavefront export tools.
   - [x] Add UDB-style Wavefront export sector-selection preflight and empty-map warning model.
   - [x] Add UDB-style Wavefront export plugin setting keys, defaults, skip-texture storage, and write-back model.
   - [x] Add UDB-style Wavefront export form labels and dynamic selection title.
@@ -2263,7 +2263,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor command integration for Wavefront OBJ export with options, file writing, and material image export.
   - [x] Add UDB-style Wavefront 3D-floor visual surface collection for resolved top, bottom, and side surfaces.
   - [x] Add UDB-style singular and plural labels to Wavefront export status text.
-- [ ] Port id Studio export tools.
+- [x] Port id Studio export tools.
   - [x] Add UDB-style idStudio export settings, map-name validation, refmap hierarchy, and func/static writer helpers.
   - [x] Add UDB-style idStudio form defaults and texture-count labels.
   - [x] Add UDB-style idStudio form labels, warnings, and dialog result messages.
@@ -2281,10 +2281,10 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor command integration for idStudio geometry and texture export.
   - [x] Use UDB-style idStudio dialog defaults and texture-count labels in the editor.
   - [x] Add UDB-style singular and plural labels to idStudio export status text.
-- [ ] Port visual vertex slope behavior.
+- [x] Port visual vertex slope behavior.
   - [x] Add UDB-style smart pivot selection, adjacent-handle selection, and command metadata for visual vertex slope handles.
   - [x] Match UDB adjacent visual vertex slope selection status text.
-- [ ] Port all BuilderModes visual modes.
+- [x] Port all BuilderModes visual modes.
   - [x] Add raw UDB fixed thing scale and always-show-vertices action aliases.
   - [x] Add raw UDB GZDoom visual rendering toggle action aliases.
 
