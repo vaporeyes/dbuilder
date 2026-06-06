@@ -53,6 +53,7 @@ public class Thing : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, 
     public bool FixedSize { get; set; }
 
     public int Flags { get; set; }
+    public ushort RawFlags => unchecked((ushort)Flags);
     public int Tag { get; set; }
     public int Action { get; set; }
 

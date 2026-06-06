@@ -54,6 +54,7 @@ public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
 
     // Binary record fields (Doom + UDMF).
     public int Flags { get; set; }
+    public ushort RawFlags => unchecked((ushort)Flags);
     public int Action { get; set; }
     public int Activate { get; set; }
 

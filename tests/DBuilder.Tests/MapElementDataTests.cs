@@ -196,6 +196,16 @@ public class MapElementDataTests
     }
 
     [Fact]
+    public void RawFlagsExposeUdbUnsignedBinaryFlagSurface()
+    {
+        var line = new Linedef { Flags = 0x12345 };
+        var thing = new Thing(new Vector2D(0, 0), 3001) { Flags = 0x23456 };
+
+        Assert.Equal((ushort)0x2345, line.RawFlags);
+        Assert.Equal((ushort)0x3456, thing.RawFlags);
+    }
+
+    [Fact]
     public void NamedFlagHelpersMatchUdbSurface()
     {
         var line = new Linedef();
