@@ -272,19 +272,19 @@ public sealed class ThingIconRenderPolicyTests
             ThingIconRenderPolicy.OverviewCullCellPixels - 0.01));
         Assert.Equal(1, ThingIconRenderPolicy.OverviewCullCell(
             ThingIconRenderPolicy.OverviewCullCellPixels));
-        Assert.Equal(768.0, ThingIconRenderPolicy.OverviewCullCellPixels);
+        Assert.Equal(48.0, ThingIconRenderPolicy.OverviewCullCellPixels);
     }
 
     [Fact]
     public void FarOverviewCullsWithLargerScreenCells()
     {
-        Assert.Equal(768.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
+        Assert.Equal(48.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
             ThingIconRenderPolicy.OverviewMarkerScaleThreshold - 0.01,
             thingArrows: false));
-        Assert.Equal(1600.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
+        Assert.Equal(96.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
             ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
             thingArrows: false));
-        Assert.Equal(1600.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
+        Assert.Equal(96.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
             ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
             thingArrows: true));
         Assert.Equal(0, ThingIconRenderPolicy.OverviewCullCell(
@@ -294,6 +294,27 @@ public sealed class ThingIconRenderPolicyTests
         Assert.Equal(1, ThingIconRenderPolicy.OverviewCullCell(
             ThingIconRenderPolicy.FarOverviewCullCellPixels,
             ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
+            thingArrows: false));
+    }
+
+    [Fact]
+    public void OverviewCellsGroupNearbyScreenThings()
+    {
+        Assert.Equal(0, ThingIconRenderPolicy.OverviewCullCell(
+            screenCoordinate: 47.99,
+            viewScale: ThingIconRenderPolicy.OverviewMarkerScaleThreshold,
+            thingArrows: false));
+        Assert.Equal(1, ThingIconRenderPolicy.OverviewCullCell(
+            screenCoordinate: 48.0,
+            viewScale: ThingIconRenderPolicy.OverviewMarkerScaleThreshold,
+            thingArrows: false));
+        Assert.Equal(0, ThingIconRenderPolicy.OverviewCullCell(
+            screenCoordinate: 95.99,
+            viewScale: ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
+            thingArrows: false));
+        Assert.Equal(1, ThingIconRenderPolicy.OverviewCullCell(
+            screenCoordinate: 96.0,
+            viewScale: ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
             thingArrows: false));
     }
 
