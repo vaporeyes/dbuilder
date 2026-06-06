@@ -86,9 +86,21 @@ public static class PastePropertiesApplier
 
     public static void Apply(Sidedef source, Sidedef target, ISet<string> enabledKeys)
     {
-        if (enabledKeys.Contains(PastePropertiesKeys.SidedefUpperTexture)) target.SetTextureHigh(source.HighTexture);
-        if (enabledKeys.Contains(PastePropertiesKeys.SidedefMiddleTexture)) target.SetTextureMid(source.MidTexture);
-        if (enabledKeys.Contains(PastePropertiesKeys.SidedefLowerTexture)) target.SetTextureLow(source.LowTexture);
+        if (enabledKeys.Contains(PastePropertiesKeys.SidedefUpperTexture))
+        {
+            target.SetTextureHigh(source.HighTexture);
+            if (target.HighTexture != "-") target.LongHighTexture = source.LongHighTexture;
+        }
+        if (enabledKeys.Contains(PastePropertiesKeys.SidedefMiddleTexture))
+        {
+            target.SetTextureMid(source.MidTexture);
+            if (target.MidTexture != "-") target.LongMiddleTexture = source.LongMiddleTexture;
+        }
+        if (enabledKeys.Contains(PastePropertiesKeys.SidedefLowerTexture))
+        {
+            target.SetTextureLow(source.LowTexture);
+            if (target.LowTexture != "-") target.LongLowTexture = source.LongLowTexture;
+        }
         if (enabledKeys.Contains(PastePropertiesKeys.SidedefOffsetX)) target.OffsetX = source.OffsetX;
         if (enabledKeys.Contains(PastePropertiesKeys.SidedefOffsetY)) target.OffsetY = source.OffsetY;
         if (enabledKeys.Contains(PastePropertiesKeys.SidedefFlags)) CopyFlags(source.UdmfFlags, target.UdmfFlags);
@@ -99,8 +111,16 @@ public static class PastePropertiesApplier
     {
         if (enabledKeys.Contains(PastePropertiesKeys.SectorFloorHeight)) target.FloorHeight = source.FloorHeight;
         if (enabledKeys.Contains(PastePropertiesKeys.SectorCeilingHeight)) target.CeilHeight = source.CeilHeight;
-        if (enabledKeys.Contains(PastePropertiesKeys.SectorFloorTexture)) target.SetFloorTexture(source.FloorTexture);
-        if (enabledKeys.Contains(PastePropertiesKeys.SectorCeilingTexture)) target.SetCeilTexture(source.CeilTexture);
+        if (enabledKeys.Contains(PastePropertiesKeys.SectorFloorTexture))
+        {
+            target.SetFloorTexture(source.FloorTexture);
+            if (target.FloorTexture != "-") target.LongFloorTexture = source.LongFloorTexture;
+        }
+        if (enabledKeys.Contains(PastePropertiesKeys.SectorCeilingTexture))
+        {
+            target.SetCeilTexture(source.CeilTexture);
+            if (target.CeilTexture != "-") target.LongCeilTexture = source.LongCeilTexture;
+        }
         if (enabledKeys.Contains(PastePropertiesKeys.SectorBrightness)) target.Brightness = source.Brightness;
         if (enabledKeys.Contains(PastePropertiesKeys.SectorTag)) CopyList(source.Tags, target.Tags);
         if (enabledKeys.Contains(PastePropertiesKeys.SectorSpecial)) target.Special = source.Special;

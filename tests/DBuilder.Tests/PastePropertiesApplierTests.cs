@@ -49,8 +49,10 @@ public class PastePropertiesApplierTests
         source.Args[0] = 77;
         source.UdmfFlags.Add("blocking");
         source.Front!.HighTexture = "STONE2";
+        source.Front.LongHighTexture = 101;
         source.Front.OffsetX = 24;
         source.Back!.LowTexture = "BROWN1";
+        source.Back.LongLowTexture = 202;
         source.Back.OffsetY = 32;
 
         Linedef target = CreateLineWithSides(10, 10, 10, 80);
@@ -61,8 +63,10 @@ public class PastePropertiesApplierTests
         target.Tags.Add(1);
         target.Args[0] = 2;
         target.Front!.HighTexture = "STARTAN";
+        target.Front.LongHighTexture = 11;
         target.Front.OffsetX = 1;
         target.Back!.LowTexture = "ASHWALL";
+        target.Back.LongLowTexture = 22;
         target.Back.OffsetY = 2;
 
         PastePropertiesApplier.Apply(
@@ -87,8 +91,10 @@ public class PastePropertiesApplierTests
         Assert.Equal(77, target.Args[0]);
         Assert.Contains("blocking", target.UdmfFlags);
         Assert.Equal("STONE2", target.Front.HighTexture);
+        Assert.Equal(101, target.Front.LongHighTexture);
         Assert.Equal(24, target.Front.OffsetX);
         Assert.Equal("BROWN1", target.Back.LowTexture);
+        Assert.Equal(202, target.Back.LongLowTexture);
         Assert.Equal(32, target.Back.OffsetY);
     }
 
@@ -118,6 +124,8 @@ public class PastePropertiesApplierTests
             CeilHeight = 160,
             FloorTexture = "FLOOR0_1",
             CeilTexture = "CEIL1_1",
+            LongFloorTexture = 303,
+            LongCeilTexture = 404,
             Brightness = 192,
             Special = 7,
         };
@@ -130,6 +138,8 @@ public class PastePropertiesApplierTests
             CeilHeight = 128,
             FloorTexture = "OLD",
             CeilTexture = "OLDCEIL",
+            LongFloorTexture = 33,
+            LongCeilTexture = 44,
             Brightness = 96,
             Special = 1,
         };
@@ -147,7 +157,9 @@ public class PastePropertiesApplierTests
         Assert.Equal(8, target.FloorHeight);
         Assert.Equal(128, target.CeilHeight);
         Assert.Equal("OLD", target.FloorTexture);
+        Assert.Equal(33, target.LongFloorTexture);
         Assert.Equal("CEIL1_1", target.CeilTexture);
+        Assert.Equal(404, target.LongCeilTexture);
         Assert.Equal(96, target.Brightness);
         Assert.Equal(1, target.Special);
         Assert.Equal([12], target.Tags);

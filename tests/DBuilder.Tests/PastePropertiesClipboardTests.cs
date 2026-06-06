@@ -44,15 +44,18 @@ public class PastePropertiesClipboardTests
         source.FloorHeight = 24;
         source.CeilHeight = 160;
         source.FloorTexture = "FLOOR0_1";
+        source.LongFloorTexture = 101;
         PastePropertiesClipboard clipboard = new();
         clipboard.CopySelected(map, PastePropertiesElementKind.Sector);
 
         source.Selected = false;
+        source.LongFloorTexture = 202;
         Sector target = map.AddSector();
         target.Selected = true;
         target.FloorHeight = 0;
         target.CeilHeight = 96;
         target.FloorTexture = "OLD";
+        target.LongFloorTexture = 303;
 
         PastePropertiesApplyResult paste = clipboard.ApplySelected(
             map,
@@ -63,6 +66,7 @@ public class PastePropertiesClipboardTests
         Assert.Equal(24, target.FloorHeight);
         Assert.Equal(96, target.CeilHeight);
         Assert.Equal("OLD", target.FloorTexture);
+        Assert.Equal(303, target.LongFloorTexture);
     }
 
     [Fact]
@@ -73,15 +77,18 @@ public class PastePropertiesClipboardTests
         source.Selected = true;
         source.Action = 80;
         source.Front!.MidTexture = "STARTAN3";
+        source.Front.LongMiddleTexture = 404;
 
         PastePropertiesClipboard clipboard = new();
         clipboard.CopySelected(map, PastePropertiesElementKind.Linedef);
 
         source.Selected = false;
+        source.Front.LongMiddleTexture = 505;
         Linedef target = AddLineWithSides(map, 0, 64, 64, 64);
         target.Selected = true;
         target.Action = 1;
         target.Front!.MidTexture = "OLD";
+        target.Front.LongMiddleTexture = 606;
 
         PastePropertiesApplyResult paste = clipboard.ApplySelected(
             map,
@@ -91,6 +98,7 @@ public class PastePropertiesClipboardTests
         Assert.True(paste.Applied);
         Assert.Equal(80, target.Action);
         Assert.Equal("STARTAN3", target.Front.MidTexture);
+        Assert.Equal(404, target.Front.LongMiddleTexture);
     }
 
     [Fact]
@@ -100,14 +108,17 @@ public class PastePropertiesClipboardTests
         Linedef source = AddLineWithSides(map, 0, 0, 64, 0);
         source.Selected = true;
         source.Front!.HighTexture = "STONE2";
+        source.Front.LongHighTexture = 707;
 
         PastePropertiesClipboard clipboard = new();
         clipboard.CopySelected(map, PastePropertiesElementKind.Linedef);
 
         source.Selected = false;
+        source.Front.LongHighTexture = 808;
         Linedef targetLine = AddLineWithSides(map, 0, 64, 64, 64);
         targetLine.Front!.Selected = true;
         targetLine.Front.HighTexture = "OLD";
+        targetLine.Front.LongHighTexture = 909;
 
         PastePropertiesApplyResult paste = clipboard.ApplySelected(
             map,
@@ -116,6 +127,7 @@ public class PastePropertiesClipboardTests
 
         Assert.True(paste.Applied);
         Assert.Equal("STONE2", targetLine.Front.HighTexture);
+        Assert.Equal(707, targetLine.Front.LongHighTexture);
     }
 
     [Fact]
