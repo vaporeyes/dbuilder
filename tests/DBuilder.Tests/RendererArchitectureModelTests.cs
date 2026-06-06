@@ -37,6 +37,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("2D presentation background vertex-buffer restore planning", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation layer draw dispatch argument planning", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation layer texture binding planning", replacement.CoveredResponsibilities);
+        Assert.Contains("2D presentation per-layer draw operation sequence planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device alpha-test compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device multisample antialias compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device sampler-filter overload planning", replacement.CoveredResponsibilities);

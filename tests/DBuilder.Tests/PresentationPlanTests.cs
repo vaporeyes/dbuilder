@@ -840,6 +840,77 @@ public sealed class PresentationPlanTests
     }
 
     [Fact]
+    public void LayerDrawStepsMatchUdbBackgroundOperationOrder()
+    {
+        PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);
+        PresentationRenderTargetPlan targets = PresentationRenderTargetPlan.Create(320, 200, presentation);
+        PresentationLayerDrawPlan background = targets.BuildLayerDrawPlans(
+            presentation,
+            qualityDisplay: false,
+            hasBackgroundVertices: true,
+            hasBackgroundTexture: true)[0];
+
+        IReadOnlyList<PresentationLayerDrawStep> steps = PresentationRenderTargetPlan.BuildLayerDrawSteps(background);
+
+        Assert.Equal(new[]
+        {
+            PresentationLayerDrawStepKind.SetShader,
+            PresentationLayerDrawStepKind.SetTexture,
+            PresentationLayerDrawStepKind.SetSamplerState,
+            PresentationLayerDrawStepKind.ApplyDisplaySettings,
+            PresentationLayerDrawStepKind.Draw,
+            PresentationLayerDrawStepKind.RestoreScreenVertexBuffer,
+        }, steps.Select(step => step.Kind));
+        Assert.Equal("map-grid-background", steps[1].TargetName);
+        Assert.Equal("backimageverts", steps[4].TargetName);
+        Assert.Equal("screenverts", steps[5].TargetName);
+    }
+
+    [Fact]
+    public void LayerDrawStepsMatchUdbOverlayOperationOrder()
+    {
+        var presentation = new PresentationPlan(new[]
+        {
+            new PresentationLayer(PresentationRendererLayer.Overlay, PresentationBlendingMode.Alpha),
+        });
+        PresentationRenderTargetPlan targets = PresentationRenderTargetPlan.Create(320, 200, presentation);
+        PresentationLayerDrawPlan overlay = targets.BuildLayerDrawPlans(
+            presentation,
+            qualityDisplay: false,
+            hasBackgroundVertices: false,
+            hasBackgroundTexture: false)[0];
+
+        IReadOnlyList<PresentationLayerDrawStep> steps = PresentationRenderTargetPlan.BuildLayerDrawSteps(overlay);
+
+        Assert.Equal(new[]
+        {
+            PresentationLayerDrawStepKind.SetShader,
+            PresentationLayerDrawStepKind.SetTexture,
+            PresentationLayerDrawStepKind.SetSamplerState,
+            PresentationLayerDrawStepKind.ApplyDisplaySettings,
+            PresentationLayerDrawStepKind.Draw,
+            PresentationLayerDrawStepKind.AdvanceOverlayLayer,
+        }, steps.Select(step => step.Kind));
+        Assert.Equal("overlay0", steps[1].TargetName);
+        Assert.Equal("screenverts", steps[4].TargetName);
+        Assert.Null(steps[5].TargetName);
+    }
+
+    [Fact]
+    public void LayerDrawStepsAreEmptyWhenBackgroundDrawIsSkipped()
+    {
+        PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);
+        PresentationRenderTargetPlan targets = PresentationRenderTargetPlan.Create(320, 200, presentation);
+        PresentationLayerDrawPlan background = targets.BuildLayerDrawPlans(
+            presentation,
+            qualityDisplay: false,
+            hasBackgroundVertices: false,
+            hasBackgroundTexture: true)[0];
+
+        Assert.Empty(PresentationRenderTargetPlan.BuildLayerDrawSteps(background));
+    }
+
+    [Fact]
     public void FramePlanMatchesUdbPresentOperationEnvelope()
     {
         PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);

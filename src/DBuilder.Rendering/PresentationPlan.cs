@@ -261,6 +261,21 @@ public readonly record struct PresentationRenderSettingsVector(
     float FsaaFactor,
     float Alpha);
 
+public enum PresentationLayerDrawStepKind
+{
+    SetShader,
+    SetTexture,
+    SetSamplerState,
+    ApplyDisplaySettings,
+    Draw,
+    RestoreScreenVertexBuffer,
+    AdvanceOverlayLayer,
+}
+
+public sealed record PresentationLayerDrawStep(
+    PresentationLayerDrawStepKind Kind,
+    string? TargetName = null);
+
 public sealed record PresentationLayerDrawPlan(
     PresentationRendererLayer Layer,
     string SourceTargetName,
@@ -613,6 +628,29 @@ public sealed record PresentationRenderTargetPlan(
     public static PresentationRenderSettingsVector BuildRenderSettingsVector(
         PresentationDisplaySettings settings)
         => new(settings.TexelX, settings.TexelY, settings.FsaaFactor, settings.Alpha);
+
+    public static IReadOnlyList<PresentationLayerDrawStep> BuildLayerDrawSteps(
+        PresentationLayerDrawPlan plan)
+    {
+        if (!plan.Draws) return Array.Empty<PresentationLayerDrawStep>();
+
+        var steps = new List<PresentationLayerDrawStep>
+        {
+            new(PresentationLayerDrawStepKind.SetShader),
+            new(PresentationLayerDrawStepKind.SetTexture, plan.TextureBindingName),
+            new(PresentationLayerDrawStepKind.SetSamplerState, plan.UsesRenderTargetTexture ? plan.SourceTargetName : plan.TextureBindingName),
+            new(PresentationLayerDrawStepKind.ApplyDisplaySettings, plan.SourceTargetName),
+            new(PresentationLayerDrawStepKind.Draw, plan.VertexSourceName),
+        };
+
+        if (plan.RestoreScreenVertexBufferAfterDraw)
+            steps.Add(new PresentationLayerDrawStep(PresentationLayerDrawStepKind.RestoreScreenVertexBuffer, "screenverts"));
+
+        if (plan.Layer == PresentationRendererLayer.Overlay)
+            steps.Add(new PresentationLayerDrawStep(PresentationLayerDrawStepKind.AdvanceOverlayLayer));
+
+        return steps;
+    }
 
     public IReadOnlyList<PresentationLayerDrawPlan> BuildLayerDrawPlans(
         PresentationPlan presentation,
