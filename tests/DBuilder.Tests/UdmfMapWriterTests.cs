@@ -486,6 +486,63 @@ public class UdmfMapWriterTests
     }
 
     [Fact]
+    public void UnsignedIntegerCustomFieldsAreWrittenAsUdmfNumbers()
+    {
+        var map = new MapSet { Namespace = "ZDoom" };
+        map.Fields["map_byte"] = (byte)7;
+        map.Fields["map_short"] = (ushort)513;
+        map.Fields["map_uint"] = uint.MaxValue;
+        map.Vertices.Add(new Vertex(new Vector2D(0, 0)));
+        map.Vertices[0].Fields["vertex_sbyte"] = (sbyte)-8;
+        map.Vertices[0].Fields["vertex_ushort"] = (ushort)1024;
+        map.Sectors.Add(new Sector { Index = 0, FloorTexture = "A", CeilTexture = "B" });
+        map.Sectors[0].Fields["sector_uint"] = 4000000000u;
+
+        string written = UdmfMapWriter.Write(map);
+
+        Assert.Contains("map_byte = 7;", written);
+        Assert.Contains("map_short = 513;", written);
+        Assert.Contains("map_uint = 4294967295;", written);
+        Assert.Contains("vertex_sbyte = -8;", written);
+        Assert.Contains("vertex_ushort = 1024;", written);
+        Assert.Contains("sector_uint = 4000000000;", written);
+
+        MapSet reloaded = UdmfMapLoader.Load(written, out UniversalParser parser)!;
+        Assert.Equal(0, parser.ErrorResult);
+        Assert.Equal(7, Assert.IsType<int>(reloaded.Fields["map_byte"]));
+        Assert.Equal(513, Assert.IsType<int>(reloaded.Fields["map_short"]));
+        Assert.Equal((long)uint.MaxValue, Assert.IsType<long>(reloaded.Fields["map_uint"]));
+        Assert.Equal(-8, Assert.IsType<int>(reloaded.Vertices[0].Fields["vertex_sbyte"]));
+        Assert.Equal(1024, Assert.IsType<int>(reloaded.Vertices[0].Fields["vertex_ushort"]));
+        Assert.Equal(4000000000L, Assert.IsType<long>(reloaded.Sectors[0].Fields["sector_uint"]));
+    }
+
+    [Fact]
+    public void UnsignedIntegerUnknownFieldsAreWrittenAsUdmfNumbers()
+    {
+        var map = new MapSet { Namespace = "ZDoom" };
+        map.UnknownUdmfData.Add(new UnknownUdmfEntry("editorstate", new List<UnknownUdmfEntry>
+        {
+            new("byte_value", (byte)9),
+            new("uint_value", uint.MaxValue),
+            new("ulong_value", (ulong)long.MaxValue),
+        }));
+
+        string written = UdmfMapWriter.Write(map);
+
+        Assert.Contains("byte_value = 9;", written);
+        Assert.Contains("uint_value = 4294967295;", written);
+        Assert.Contains("ulong_value = 9223372036854775807;", written);
+
+        MapSet reloaded = UdmfMapLoader.Load(written, out UniversalParser parser)!;
+        Assert.Equal(0, parser.ErrorResult);
+        UnknownUdmfEntry state = Assert.Single(reloaded.UnknownUdmfData);
+        Assert.Equal(9, Assert.IsType<int>(state.Children[0].Value));
+        Assert.Equal((long)uint.MaxValue, Assert.IsType<long>(state.Children[1].Value));
+        Assert.Equal(long.MaxValue, Assert.IsType<long>(state.Children[2].Value));
+    }
+
+    [Fact]
     public void FalseBooleanLinedefAndThingCustomFieldsRoundTrip()
     {
         const string udmf = """

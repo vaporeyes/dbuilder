@@ -219,8 +219,14 @@ public static class UdmfMapWriter
             switch (kv.Value)
             {
                 case bool b:   WriteAssignment(sb, kv.Key, b, indent); break;
+                case byte b:   WriteAssignment(sb, kv.Key, b, indent); break;
+                case sbyte b:  WriteAssignment(sb, kv.Key, b, indent); break;
+                case short s:  WriteAssignment(sb, kv.Key, s, indent); break;
+                case ushort s: WriteAssignment(sb, kv.Key, s, indent); break;
                 case int i:    WriteAssignment(sb, kv.Key, i, indent); break;
+                case uint i:   WriteAssignment(sb, kv.Key, i, indent); break;
                 case long l:   WriteAssignment(sb, kv.Key, l, indent); break;
+                case ulong l when l <= long.MaxValue: WriteAssignment(sb, kv.Key, l, indent); break;
                 case double d: WriteAssignment(sb, kv.Key, d, indent); break;
                 case float f:  WriteAssignment(sb, kv.Key, f, indent); break;
                 case string s: WriteAssignment(sb, kv.Key, s, indent); break;
@@ -269,10 +275,28 @@ public static class UdmfMapWriter
             case bool b:
                 sb.Append(b ? "true" : "false");
                 break;
+            case byte b:
+                sb.Append(b.ToString(CultureInfo.InvariantCulture));
+                break;
+            case sbyte b:
+                sb.Append(b.ToString(CultureInfo.InvariantCulture));
+                break;
+            case short s:
+                sb.Append(s.ToString(CultureInfo.InvariantCulture));
+                break;
+            case ushort s:
+                sb.Append(s.ToString(CultureInfo.InvariantCulture));
+                break;
             case int i:
                 sb.Append(i.ToString(CultureInfo.InvariantCulture));
                 break;
+            case uint i:
+                sb.Append(i.ToString(CultureInfo.InvariantCulture));
+                break;
             case long l:
+                sb.Append(l.ToString(CultureInfo.InvariantCulture));
+                break;
+            case ulong l when l <= long.MaxValue:
                 sb.Append(l.ToString(CultureInfo.InvariantCulture));
                 break;
             case double d:
@@ -319,7 +343,21 @@ public static class UdmfMapWriter
         sb.AppendLine();
     }
 
+    private static void WriteAssignment(StringBuilder sb, string key, uint value, bool indent = false)
+    {
+        if (indent) sb.Append('\t');
+        sb.Append(key).Append(" = ").Append(value.ToString(CultureInfo.InvariantCulture)).Append(';');
+        sb.AppendLine();
+    }
+
     private static void WriteAssignment(StringBuilder sb, string key, long value, bool indent = false)
+    {
+        if (indent) sb.Append('\t');
+        sb.Append(key).Append(" = ").Append(value.ToString(CultureInfo.InvariantCulture)).Append(';');
+        sb.AppendLine();
+    }
+
+    private static void WriteAssignment(StringBuilder sb, string key, ulong value, bool indent = false)
     {
         if (indent) sb.Append('\t');
         sb.Append(key).Append(" = ").Append(value.ToString(CultureInfo.InvariantCulture)).Append(';');
