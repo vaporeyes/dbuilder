@@ -2000,28 +2000,48 @@ public sealed class DBuilderPluginHostModelTests
 
         DBuilderPluginCallbackExecutionResult copyBegin = DBuilderPluginHostModel.ExecuteReflectionCopyBegin(plan);
         DBuilderPluginCallbackExecutionResult copyEnd = DBuilderPluginHostModel.ExecuteReflectionCopyEnd(plan);
+        DBuilderPluginCallbackExecutionResult undoCreated = DBuilderPluginHostModel.ExecuteReflectionUndoCreated(plan);
+        DBuilderPluginCallbackExecutionResult undoWithdrawn = DBuilderPluginHostModel.ExecuteReflectionUndoWithdrawn(plan);
         DBuilderPluginCallbackExecutionResult redoBegin = DBuilderPluginHostModel.ExecuteReflectionRedoBegin(plan);
         DBuilderPluginCallbackExecutionResult redoEnd = DBuilderPluginHostModel.ExecuteReflectionRedoEnd(plan);
+        DBuilderPluginCallbackExecutionResult editCancel = DBuilderPluginHostModel.ExecuteReflectionEditCancel(plan);
+        DBuilderPluginCallbackExecutionResult editAccept = DBuilderPluginHostModel.ExecuteReflectionEditAccept(plan);
 
         Assert.True(copyBegin.Aborted);
         Assert.True(redoBegin.Aborted);
         Assert.False(copyEnd.Aborted);
+        Assert.False(undoCreated.Aborted);
+        Assert.False(undoWithdrawn.Aborted);
         Assert.False(redoEnd.Aborted);
+        Assert.False(editCancel.Aborted);
+        Assert.False(editAccept.Aborted);
         Assert.Equal(new[]
         {
             "First:CopyBegin:True",
             "Second:CopyBegin:False",
             "First:CopyEnd",
             "Second:CopyEnd",
+            "First:UndoCreated",
+            "Second:UndoCreated",
+            "First:UndoWithdrawn",
+            "Second:UndoWithdrawn",
             "First:RedoBegin:True",
             "Second:RedoBegin:False",
             "First:RedoEnd",
-            "Second:RedoEnd"
+            "Second:RedoEnd",
+            "First:EditCancel",
+            "Second:EditCancel",
+            "First:EditAccept",
+            "Second:EditAccept"
         }, ReflectionEditOperationCallbackPlugin.Calls);
         Assert.Empty(copyBegin.Diagnostics);
         Assert.Empty(copyEnd.Diagnostics);
+        Assert.Empty(undoCreated.Diagnostics);
+        Assert.Empty(undoWithdrawn.Diagnostics);
         Assert.Empty(redoBegin.Diagnostics);
         Assert.Empty(redoEnd.Diagnostics);
+        Assert.Empty(editCancel.Diagnostics);
+        Assert.Empty(editAccept.Diagnostics);
     }
 
     [Fact]
@@ -3142,6 +3162,16 @@ public sealed class ReflectionEditOperationCallbackPlugin : IDBuilderPlugin
         Calls.Add(_name + ":CopyEnd");
     }
 
+    public void OnUndoCreated()
+    {
+        Calls.Add(_name + ":UndoCreated");
+    }
+
+    public void OnUndoWithdrawn()
+    {
+        Calls.Add(_name + ":UndoWithdrawn");
+    }
+
     public bool OnRedoBegin(bool result)
     {
         Calls.Add(_name + ":RedoBegin:" + result);
@@ -3151,6 +3181,16 @@ public sealed class ReflectionEditOperationCallbackPlugin : IDBuilderPlugin
     public void OnRedoEnd()
     {
         Calls.Add(_name + ":RedoEnd");
+    }
+
+    public void OnEditCancel()
+    {
+        Calls.Add(_name + ":EditCancel");
+    }
+
+    public void OnEditAccept()
+    {
+        Calls.Add(_name + ":EditAccept");
     }
 }
 

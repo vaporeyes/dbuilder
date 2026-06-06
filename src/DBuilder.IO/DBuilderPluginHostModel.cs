@@ -1072,6 +1072,14 @@ public static class DBuilderPluginHostModel
         DBuilderPluginRuntimeInstancePlan instancePlan)
         => ExecuteReflectionCallback(instancePlan, "OnUndoEnd");
 
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionUndoCreated(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnUndoCreated");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionUndoWithdrawn(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnUndoWithdrawn");
+
     public static DBuilderPluginCallbackExecutionResult ExecuteReflectionRedoBegin(
         DBuilderPluginRuntimeInstancePlan instancePlan)
         => ExecuteReflectionCallback(instancePlan, "OnRedoBegin");
@@ -1079,6 +1087,14 @@ public static class DBuilderPluginHostModel
     public static DBuilderPluginCallbackExecutionResult ExecuteReflectionRedoEnd(
         DBuilderPluginRuntimeInstancePlan instancePlan)
         => ExecuteReflectionCallback(instancePlan, "OnRedoEnd");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionEditCancel(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnEditCancel");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionEditAccept(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnEditAccept");
 
     public static DBuilderPluginCallbackExecutionResult ExecuteReflectionMapSaveBegin(
         DBuilderPluginRuntimeInstancePlan instancePlan,
