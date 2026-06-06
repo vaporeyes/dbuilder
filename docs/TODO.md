@@ -46,7 +46,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] List and recover autosave snapshots from the File menu.
   - [x] Prompt for recoverable autosave snapshots when the editor starts.
   - [x] Prune old autosave snapshots after successful autosave writes.
-- [ ] Port launcher and external command execution behavior.
+- [x] Port launcher and external command execution behavior.
   - [x] Build testable external command launch plans from parsed command settings.
   - [x] Drain external command stdout and stderr during pre/post command execution.
   - [x] Add UDB-style singular and plural labels to external command run status messages.
@@ -131,11 +131,11 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Expose event-line visibility in the Settings dialog.
   - [x] Expose visual vertex visibility in the Settings dialog.
   - [x] Expose adjacent visual vertex slope handle selection in the Settings dialog.
-- [ ] Port pre-command and post-command support.
+- [x] Port pre-command and post-command support.
   - [x] Execute configured before/after Test Map commands.
   - [x] Pass the temporary Test Map WAD path to before/after Test Map commands.
   - [x] Execute configured before/after Reload Resources commands.
-- [ ] Port game testing flow with configurable source ports.
+- [x] Port game testing flow with configurable source ports.
   - [x] Use loaded game configuration test parameter templates when no user override is set.
   - [x] Add UDB-style Test Map from current position action and temporary player-start placement.
   - [x] Include non-excluded map resources in Test Map launch parameters.
@@ -149,7 +149,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Honor persisted Test Map skill and no-monsters launch selections.
   - [x] Expose UDB-style Test Map skill and no-monsters selections in the Tools menu.
   - [x] Expose the Test Map from current position action in the Tools menu.
-- [ ] Port node-builder discovery, configuration, and execution flow.
+- [x] Port node-builder discovery, configuration, and execution flow.
   - [x] Load UDB node-builder configuration profiles and apply save/test profile parameters.
   - [x] Strip stale nodebuilder lumps and verify required output lumps before accepting nodebuilder results.
   - [x] Fail nodebuilder runs before launch when required support files are missing.
