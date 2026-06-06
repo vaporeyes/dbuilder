@@ -1519,6 +1519,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style owned indexed-triangle mesh wrapper.
   - [x] Add UDB-style mesh disposal and finalizer lifecycle.
 - [ ] Port text font and text label rendering.
+  - [x] Add UDB-style text font glyph metrics and vertex planning.
   - [x] Add UDB-style text label font selection and legacy scale planning.
   - [x] Add UDB-style text label size, alignment, transform, culling, and quad planning.
   - [x] Add UDB-style plain and background text label image drawing planning.
