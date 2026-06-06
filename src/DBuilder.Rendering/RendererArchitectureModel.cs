@@ -31,6 +31,7 @@ public static class RendererArchitectureModel
             "Texture disposed-state reporting",
             "Owned indexed-triangle mesh wrapper",
             "Runtime shader compile, link, disposal, and uniform lookup caching",
+            "Shader disposed-state reporting",
         },
         RemainingGaps: new[]
         {

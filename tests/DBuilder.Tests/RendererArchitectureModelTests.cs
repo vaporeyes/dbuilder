@@ -31,6 +31,7 @@ public class RendererArchitectureModelTests
         Assert.True(RendererArchitectureModel.HasDocumentedShaderCompilerReplacement(replacement));
         Assert.Contains("uniform-location caching", replacement.ShaderManagerReplacement);
         Assert.Contains("Runtime shader compile, link, disposal, and uniform lookup caching", replacement.CoveredResponsibilities);
+        Assert.Contains("Shader disposed-state reporting", replacement.CoveredResponsibilities);
     }
 
     [Fact]
@@ -102,5 +103,11 @@ public class RendererArchitectureModelTests
     public void RenderDeviceExposesUdbDisposedState()
     {
         Assert.NotNull(typeof(RenderDevice).GetProperty(nameof(RenderDevice.Disposed)));
+    }
+
+    [Fact]
+    public void ShaderWrapperExposesDisposedState()
+    {
+        Assert.NotNull(typeof(Shader).GetProperty(nameof(Shader.Disposed)));
     }
 }

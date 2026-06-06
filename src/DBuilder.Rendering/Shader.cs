@@ -10,6 +10,7 @@ public sealed class Shader : IDisposable
     private readonly GL _gl;
     private readonly Dictionary<string, int> _uniformLocations = new();
     internal uint Program { get; private set; }
+    public bool Disposed => Program == 0;
 
     public Shader(GL gl, string vertexSource, string fragmentSource)
     {
@@ -59,7 +60,7 @@ public sealed class Shader : IDisposable
 
     public void Dispose()
     {
-        if (Program != 0)
+        if (!Disposed)
         {
             _gl.DeleteProgram(Program);
             Program = 0;
