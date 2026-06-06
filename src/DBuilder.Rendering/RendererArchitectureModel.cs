@@ -35,6 +35,7 @@ public static class RendererArchitectureModel
             "Render-device setup settings state application",
             "Render-device target start-rendering planning",
             "Render-device inline vertex draw planning and overload",
+            "Render-device finish and present frame handoff planning",
             "Cull, depth, fill, blend, sampler, and texture state",
             "Flat and world vertex-buffer attribute binding",
             "Length-based vertex-buffer allocation",

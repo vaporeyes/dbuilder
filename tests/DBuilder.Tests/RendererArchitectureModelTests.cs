@@ -29,6 +29,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Render-device setup settings state application", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device target start-rendering planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device inline vertex draw planning and overload", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device finish and present frame handoff planning", replacement.CoveredResponsibilities);
         Assert.Contains("Index-buffer binding and primitive draw dispatch", replacement.CoveredResponsibilities);
         Assert.Contains("Length-based vertex-buffer allocation", replacement.CoveredResponsibilities);
         Assert.Contains("Flat and world vertex-buffer subdata updates", replacement.CoveredResponsibilities);
@@ -290,6 +291,21 @@ public class RendererArchitectureModelTests
         Assert.Equal(DrawOperationKind.DrawIndexed, indexed.Kind);
         Assert.Equal(DrawOperationKind.DrawData, data.Kind);
         Assert.Equal(3, data.InlineVertexCount);
+    }
+
+    [Fact]
+    public void RenderDeviceExposesUdbFinishAndPresentFrameOperations()
+    {
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.FinishRendering), Type.EmptyTypes));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.Present), Type.EmptyTypes));
+
+        RenderFrameOperationPlan finish = RenderDevice.BuildFinishRenderingPlan();
+        RenderFrameOperationPlan present = RenderDevice.BuildPresentPlan();
+
+        Assert.Equal(RenderFrameOperationKind.FinishRendering, finish.Kind);
+        Assert.False(finish.FlushCommands);
+        Assert.Equal(RenderFrameOperationKind.Present, present.Kind);
+        Assert.True(present.FlushCommands);
     }
 
     [Fact]

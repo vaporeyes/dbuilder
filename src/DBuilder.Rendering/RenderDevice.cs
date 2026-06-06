@@ -35,6 +35,12 @@ public enum DrawOperationKind
     DrawData,
 }
 
+public enum RenderFrameOperationKind
+{
+    FinishRendering,
+    Present,
+}
+
 public enum RenderStateToggleKind
 {
     AlphaBlend,
@@ -89,6 +95,10 @@ public sealed record DrawOperationPlan(
     int PrimitiveCount,
     int InlineVertexCount = 0);
 
+public sealed record RenderFrameOperationPlan(
+    RenderFrameOperationKind Kind,
+    bool FlushCommands);
+
 public sealed class RenderDevice : IDisposable
 {
     private readonly GL _gl;
@@ -134,6 +144,11 @@ public sealed class RenderDevice : IDisposable
     }
 
     public void FinishRendering() { /* nothing to flush yet */ }
+
+    public void Present()
+    {
+        _gl.Flush();
+    }
 
     public void SetCullMode(Cull mode)
     {
@@ -450,6 +465,12 @@ public sealed class RenderDevice : IDisposable
 
     public static DrawOperationPlan BuildDrawDataPlan(PrimitiveType type, int startIndex, int primitiveCount, FlatVertex[] data)
         => new(DrawOperationKind.DrawData, type, startIndex, primitiveCount, data.Length);
+
+    public static RenderFrameOperationPlan BuildFinishRenderingPlan()
+        => new(RenderFrameOperationKind.FinishRendering, FlushCommands: false);
+
+    public static RenderFrameOperationPlan BuildPresentPlan()
+        => new(RenderFrameOperationKind.Present, FlushCommands: true);
 
     public static SamplerFilterPlan BuildSamplerFilterPlan(
         TextureFilter min,
