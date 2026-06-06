@@ -91,4 +91,57 @@ public class CurveToolsTests
         Assert.True(curve.Segments.Count >= 1);
         Assert.NotEmpty(curve.Shape);
     }
+
+    [Fact]
+    public void HermiteSplineVector2DMatchesEndpoints()
+    {
+        var p1 = new Vector2D(0, 0);
+        var p2 = new Vector2D(10, 2);
+        var t1 = new Vector2D(4, 8);
+        var t2 = new Vector2D(-2, 6);
+
+        Assert.Equal(p1, CurveTools.HermiteSpline(p1, t1, p2, t2, 0));
+        Assert.Equal(p2, CurveTools.HermiteSpline(p1, t1, p2, t2, 1));
+    }
+
+    [Fact]
+    public void HermiteSplineVector2DInterpolatesWithTangents()
+    {
+        var result = CurveTools.HermiteSpline(
+            new Vector2D(0, 0),
+            new Vector2D(4, 8),
+            new Vector2D(10, 2),
+            new Vector2D(-2, 6),
+            0.25f);
+
+        Assert.InRange(result.x, 2.21875 - Epsilon, 2.21875 + Epsilon);
+        Assert.InRange(result.y, 1.15625 - Epsilon, 1.15625 + Epsilon);
+    }
+
+    [Fact]
+    public void HermiteSplineVector3DMatchesEndpoints()
+    {
+        var p1 = new Vector3D(1, 2, 3);
+        var p2 = new Vector3D(9, 6, 0);
+        var t1 = new Vector3D(4, -2, 1);
+        var t2 = new Vector3D(-3, 5, 2);
+
+        Assert.Equal(p1, CurveTools.HermiteSpline(p1, t1, p2, t2, 0));
+        Assert.Equal(p2, CurveTools.HermiteSpline(p1, t1, p2, t2, 1));
+    }
+
+    [Fact]
+    public void HermiteSplineVector3DInterpolatesWithTangents()
+    {
+        var result = CurveTools.HermiteSpline(
+            new Vector3D(1, 2, 3),
+            new Vector3D(4, -2, 1),
+            new Vector3D(9, 6, 0),
+            new Vector3D(-3, 5, 2),
+            0.5f);
+
+        Assert.InRange(result.x, 5.875 - Epsilon, 5.875 + Epsilon);
+        Assert.InRange(result.y, 3.125 - Epsilon, 3.125 + Epsilon);
+        Assert.InRange(result.z, 1.375 - Epsilon, 1.375 + Epsilon);
+    }
 }

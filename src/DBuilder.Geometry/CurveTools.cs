@@ -264,6 +264,28 @@ public static class CurveTools
         return new Vector2D(px, py);
     }
 
+    public static Vector2D HermiteSpline(Vector2D p1, Vector2D t1, Vector2D p2, Vector2D t2, float u)
+    {
+        double u2 = u * u;
+        double u3 = u2 * u;
+        double h1 = 2 * u3 - 3 * u2 + 1;
+        double h2 = -2 * u3 + 3 * u2;
+        double h3 = u3 - 2 * u2 + u;
+        double h4 = u3 - u2;
+        return h1 * p1 + h2 * p2 + h3 * t1 + h4 * t2;
+    }
+
+    public static Vector3D HermiteSpline(Vector3D p1, Vector3D t1, Vector3D p2, Vector3D t2, float u)
+    {
+        double u2 = u * u;
+        double u3 = u2 * u;
+        double h1 = 2 * u3 - 3 * u2 + 1;
+        double h2 = -2 * u3 + 3 * u2;
+        double h3 = u3 - 2 * u2 + u;
+        double h4 = u3 - u2;
+        return h1 * p1 + h2 * p2 + h3 * t1 + h4 * t2;
+    }
+
     // basically 2-point bezier
     public static Vector2D GetPointOnLine(Vector2D p1, Vector2D p2, double delta)
     {
