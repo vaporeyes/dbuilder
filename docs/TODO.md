@@ -378,6 +378,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port plugin toolbar and menu contribution behavior.
   - [x] Add plugin menu and toolbar contribution planning with stable ordering and warning isolation.
   - [x] Add plugin menu and toolbar action binding resolution diagnostics.
+  - [x] Add reflection execution for bound plugin menu and toolbar actions.
 - [ ] Port plugin settings persistence.
   - [x] Add plugin settings store normalization, default merge planning, and writeback helpers.
 - [ ] Port plugin resource handling.
