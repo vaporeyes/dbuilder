@@ -104,7 +104,7 @@ public static class EventLineAssociationModel
         GameConfiguration? config)
     {
         var associations = new List<EventLineAssociation>();
-        associations.AddRange(ActionArgAssociations(map, thing, config));
+        associations.AddRange(ThingForwardAssociations(map, thing, config));
 
         HashSet<int> tags = thing.Tag > 0 ? new HashSet<int> { thing.Tag } : new HashSet<int>();
         associations.AddRange(ReverseActionArgAssociations(
@@ -123,6 +123,22 @@ public static class EventLineAssociationModel
             thing.Fields,
             config,
             sourceSector: null));
+        return associations;
+    }
+
+    private static IReadOnlyList<EventLineAssociation> ThingForwardAssociations(
+        MapSet map,
+        Thing thing,
+        GameConfiguration? config)
+    {
+        IReadOnlyDictionary<UniversalType, HashSet<int>> tagsByType =
+            ThingForwardTagsByType(thing, config);
+        if (tagsByType.Count == 0) return Array.Empty<EventLineAssociation>();
+
+        var associations = new List<EventLineAssociation>();
+        AddTaggedSectors(associations, map, EventLineElementKind.Thing, thing.Index, tagsByType);
+        AddTaggedLinedefs(associations, map, EventLineElementKind.Thing, thing.Index, null, tagsByType);
+        AddTaggedThings(associations, map, EventLineElementKind.Thing, thing.Index, thing, tagsByType);
         return associations;
     }
 
@@ -232,6 +248,18 @@ public static class EventLineAssociationModel
         return associations;
     }
 
+    private static IReadOnlyDictionary<UniversalType, HashSet<int>> ThingForwardTagsByType(
+        Thing thing,
+        GameConfiguration? config)
+    {
+        if (thing.Action > 0) return ActionArgTagsByType(thing.Action, thing.Args, config);
+        ThingTypeInfo? info = config?.GetThing(thing.Type);
+        if (info == null || info.ThingLink < 0 || Math.Abs(info.ThingLink) == thing.Type)
+            return new Dictionary<UniversalType, HashSet<int>>();
+
+        return ArgsTagsByType(thing.Args, info.Args);
+    }
+
     private static IReadOnlyDictionary<UniversalType, HashSet<int>> ActionArgTagsByType(
         int action,
         int[] actionArgs,
@@ -240,8 +268,15 @@ public static class EventLineAssociationModel
         if (action <= 0 || config?.GetLinedefAction(action)?.Args is not { Length: > 0 } args)
             return new Dictionary<UniversalType, HashSet<int>>();
 
+        return ArgsTagsByType(actionArgs, args);
+    }
+
+    private static IReadOnlyDictionary<UniversalType, HashSet<int>> ArgsTagsByType(
+        int[] actionArgs,
+        IReadOnlyList<ArgInfo> args)
+    {
         var tagsByType = new Dictionary<UniversalType, HashSet<int>>();
-        int count = Math.Min(Math.Min(actionArgs.Length, args.Length), 5);
+        int count = Math.Min(Math.Min(actionArgs.Length, args.Count), 5);
         for (int i = 0; i < count; i++)
         {
             if (actionArgs[i] <= 0) continue;
@@ -284,7 +319,7 @@ public static class EventLineAssociationModel
         foreach (Thing thing in map.Things)
         {
             if (sourceThing != null && ReferenceEquals(sourceThing, thing)) continue;
-            if (FirstMatchingActionArg(thing.Action, thing.Args, sourceTagType, sourceTags, config) is not { } tag) continue;
+            if (FirstMatchingThingArg(thing, sourceTagType, sourceTags, config) is not { } tag) continue;
             associations.Add(new EventLineAssociation(sourceKind, sourceIndex, EventLineElementKind.Thing, thing.Index, tag));
         }
 
@@ -412,6 +447,40 @@ public static class EventLineAssociationModel
             return null;
 
         int count = Math.Min(Math.Min(actionArgs.Length, args.Length), 5);
+        for (int i = 0; i < count; i++)
+        {
+            int value = actionArgs[i];
+            if (value <= 0) continue;
+            if ((UniversalType)args[i].Type != tagType) continue;
+            if (sourceTags.Contains(value)) return value;
+        }
+
+        return null;
+    }
+
+    private static int? FirstMatchingThingArg(
+        Thing thing,
+        UniversalType tagType,
+        HashSet<int> sourceTags,
+        GameConfiguration? config)
+    {
+        if (thing.Action > 0)
+            return FirstMatchingActionArg(thing.Action, thing.Args, tagType, sourceTags, config);
+
+        ThingTypeInfo? info = config?.GetThing(thing.Type);
+        if (info == null || info.ThingLink < 0 || Math.Abs(info.ThingLink) == thing.Type)
+            return null;
+
+        return FirstMatchingArg(thing.Args, info.Args, tagType, sourceTags);
+    }
+
+    private static int? FirstMatchingArg(
+        int[] actionArgs,
+        IReadOnlyList<ArgInfo> args,
+        UniversalType tagType,
+        HashSet<int> sourceTags)
+    {
+        int count = Math.Min(Math.Min(actionArgs.Length, args.Count), 5);
         for (int i = 0; i < count; i++)
         {
             int value = actionArgs[i];

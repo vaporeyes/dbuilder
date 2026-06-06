@@ -272,6 +272,77 @@ public sealed class EventLineAssociationModelTests
     }
 
     [Fact]
+    public void ThingTypeArgsLinkToTaggedTargetsWhenThingHasNoAction()
+    {
+        var map = new MapSet();
+        Thing source = map.AddThing(new Vector2D(0, 0), 9001);
+        source.Args[0] = 7;
+        source.Args[1] = 9;
+        source.Args[2] = 11;
+        Sector sector = map.AddSector();
+        sector.Tag = 7;
+        Thing targetThing = map.AddThing(new Vector2D(32, 32), 3002);
+        targetThing.Tag = 9;
+        Linedef targetLine = AddLine(map, 11);
+        GameConfiguration config = ThingTypeArgConfig();
+
+        IReadOnlyList<EventLineAssociation> associations =
+            EventLineAssociationModel.ForElement(map, source, config);
+
+        Assert.Contains(associations, a =>
+            a.TargetKind == EventLineElementKind.Sector &&
+            a.TargetIndex == sector.Index);
+        Assert.Contains(associations, a =>
+            a.TargetKind == EventLineElementKind.Thing &&
+            a.TargetIndex == targetThing.Index);
+        Assert.Contains(associations, a =>
+            a.TargetKind == EventLineElementKind.Linedef &&
+            a.TargetIndex == targetLine.Index);
+    }
+
+    [Fact]
+    public void ThingTypeArgsAreSkippedForChildLinksAndSelfLinksLikeUdb()
+    {
+        var map = new MapSet();
+        Thing childLink = map.AddThing(new Vector2D(0, 0), 9001);
+        childLink.Args[0] = 7;
+        Thing selfLink = map.AddThing(new Vector2D(16, 0), 9002);
+        selfLink.Args[0] = 7;
+        Sector sector = map.AddSector();
+        sector.Tag = 7;
+
+        Assert.Empty(EventLineAssociationModel.ForElement(
+            map,
+            childLink,
+            ThingTypeArgConfig(thingLink: -3002)));
+        Assert.Empty(EventLineAssociationModel.ForElement(
+            map,
+            selfLink,
+            ThingTypeArgConfig(selfLinkType: 9002)));
+    }
+
+    [Fact]
+    public void ReverseAssociationsIncludeThingTypeArgs()
+    {
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        sector.Tag = 7;
+        Thing source = map.AddThing(new Vector2D(0, 0), 9001);
+        source.Args[0] = 7;
+        GameConfiguration config = ThingTypeArgConfig();
+
+        IReadOnlyList<EventLineAssociation> associations =
+            EventLineAssociationModel.ForElement(map, sector, config);
+
+        EventLineAssociation association = Assert.Single(associations);
+        Assert.Equal(EventLineElementKind.Sector, association.SourceKind);
+        Assert.Equal(sector.Index, association.SourceIndex);
+        Assert.Equal(EventLineElementKind.Thing, association.TargetKind);
+        Assert.Equal(source.Index, association.TargetIndex);
+        Assert.Equal(7, association.Tag);
+    }
+
+    [Fact]
     public void ActionArgAssociationsIgnoreZeroUnknownAndDuplicateArgs()
     {
         var map = new MapSet();
@@ -564,6 +635,34 @@ public sealed class EventLineAssociationModelTests
                                 nevershoweventlines = {{neverShowEventLinesValue}};
                             }
                         }
+                    }
+                }
+            }
+            """);
+    }
+
+    private static GameConfiguration ThingTypeArgConfig(int thingLink = 0, int selfLinkType = 0)
+    {
+        int secondThingLink = selfLinkType == 0 ? 0 : selfLinkType;
+
+        return GameConfiguration.FromText($$"""
+            thingtypes
+            {
+                scripted
+                {
+                    9001
+                    {
+                        title = "Scripted";
+                        thinglink = {{thingLink}};
+                        arg0 { type = {{(int)UniversalType.SectorTag}}; }
+                        arg1 { type = {{(int)UniversalType.ThingTag}}; }
+                        arg2 { type = {{(int)UniversalType.LinedefTag}}; }
+                    }
+                    9002
+                    {
+                        title = "Self Link";
+                        thinglink = {{secondThingLink}};
+                        arg0 { type = {{(int)UniversalType.SectorTag}}; }
                     }
                 }
             }
