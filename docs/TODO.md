@@ -177,7 +177,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Resolve 2D map keyboard shortcuts through stable command ids.
   - [x] Resolve discrete 3D map keyboard shortcuts through stable command ids.
   - [x] Resolve the explicit Properties command through a stable command id.
-- [ ] Port configurable key bindings.
+- [x] Port configurable key bindings.
   - [x] Persist shortcut overrides and merge them with default command bindings.
   - [x] Parse line and comma separated shortcut overrides while preserving comma shortcut keys.
   - [x] Show effective shortcut bindings in the shortcuts reference window.
@@ -195,12 +195,12 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Apply Help shortcut expand and collapse controls to filtered results.
   - [x] Show original default bindings for customized Help shortcut rows.
   - [x] Support clearing default shortcuts from shortcut override text.
-- [ ] Port mouse input abstractions.
+- [x] Port mouse input abstractions.
   - [x] Normalize wheel directions as UDB-style scroll command keys.
   - [x] Normalize mouse buttons as UDB-style button command keys.
   - [x] Normalize UDB internal MScroll shortcut aliases to scroll command keys.
   - [x] Dispatch separate 2D shortcut checks for combined wheel-axis input.
-- [ ] Port special key handling.
+- [x] Port special key handling.
   - [x] Normalize configurable shortcut aliases for escape, delete and backspace keys.
   - [x] Normalize configurable shortcut aliases for punctuation and numpad keys.
   - [x] Normalize configurable shortcut aliases for Return, Prior and Next keys.
