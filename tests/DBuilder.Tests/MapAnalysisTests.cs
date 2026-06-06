@@ -2502,6 +2502,17 @@ public class MapAnalysisTests
         };
 
         Assert.False(Has(map, ctx, MapIssueKind.MissingActivation));
+
+        map.Linedefs[0].UdmfFlags.Clear();
+        ctx = new MapCheckContext
+        {
+            IsUdmf = false,
+            CheckMissingActivations = true,
+            ActionRequiresActivation = a => a == 80,
+            TriggerActivationFlags = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "playeruse" },
+        };
+
+        Assert.False(Has(map, ctx, MapIssueKind.MissingActivation));
     }
 
     [Fact]

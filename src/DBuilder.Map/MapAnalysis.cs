@@ -889,7 +889,7 @@ public static class MapAnalysis
                         $"Sector {i} uses unknown effect {s.Special}"));
             }
 
-        if (ctx.CheckMissingActivations && ctx.ActionRequiresActivation != null && ctx.TriggerActivationFlags != null)
+        if (ctx.IsUdmf && ctx.CheckMissingActivations && ctx.ActionRequiresActivation != null && ctx.TriggerActivationFlags != null)
             for (int i = 0; i < map.Linedefs.Count; i++)
             {
                 var l = map.Linedefs[i];
