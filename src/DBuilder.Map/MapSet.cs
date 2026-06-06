@@ -1997,26 +1997,50 @@ public class MapSet : IDisposable
     public bool ChangeVertexIndex(Vertex vertex, int newIndex)
         => ChangeIndex(Vertices, vertex, newIndex);
 
+    public bool ChangeVertexIndex(int oldIndex, int newIndex)
+        => ChangeIndex(Vertices, oldIndex, newIndex);
+
     public bool ChangeLinedefIndex(Linedef linedef, int newIndex)
         => ChangeIndex(Linedefs, linedef, newIndex);
 
+    public bool ChangeLinedefIndex(int oldIndex, int newIndex)
+        => ChangeIndex(Linedefs, oldIndex, newIndex);
+
+    public bool ChangeLindefIndex(int oldIndex, int newIndex)
+        => ChangeLinedefIndex(oldIndex, newIndex);
+
     public bool ChangeSidedefIndex(Sidedef sidedef, int newIndex)
         => ChangeIndex(Sidedefs, sidedef, newIndex);
+
+    public bool ChangeSidedefIndex(int oldIndex, int newIndex)
+        => ChangeIndex(Sidedefs, oldIndex, newIndex);
 
     public bool ChangeSectorIndex(Sector sector, int newIndex)
     {
         return ChangeIndex(Sectors, sector, newIndex);
     }
 
+    public bool ChangeSectorIndex(int oldIndex, int newIndex)
+        => ChangeIndex(Sectors, oldIndex, newIndex);
+
     public bool ChangeThingIndex(Thing thing, int newIndex)
         => ChangeIndex(Things, thing, newIndex);
+
+    public bool ChangeThingIndex(int oldIndex, int newIndex)
+        => ChangeIndex(Things, oldIndex, newIndex);
 
     private static bool ChangeIndex<T>(List<T> list, T item, int newIndex) where T : class, IMapElement
     {
         int oldIndex = list.IndexOf(item);
-        if (oldIndex < 0 || newIndex < 0 || newIndex >= list.Count) return false;
+        return ChangeIndex(list, oldIndex, newIndex);
+    }
+
+    private static bool ChangeIndex<T>(List<T> list, int oldIndex, int newIndex) where T : class, IMapElement
+    {
+        if (oldIndex < 0 || oldIndex >= list.Count || newIndex < 0 || newIndex >= list.Count) return false;
         if (oldIndex == newIndex) return true;
 
+        T item = list[oldIndex];
         list.RemoveAt(oldIndex);
         list.Insert(newIndex, item);
         ReindexElements(list);

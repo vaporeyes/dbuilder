@@ -41,6 +41,45 @@ public class MapElementIndexTests
     }
 
     [Fact]
+    public void ChangeIndexOverloadsMoveElementsByOldAndNewIndex()
+    {
+        var map = new MapSet();
+        Vertex firstVertex = map.AddVertex(new Vector2D(0, 0));
+        Vertex secondVertex = map.AddVertex(new Vector2D(1, 0));
+        Vertex thirdVertex = map.AddVertex(new Vector2D(2, 0));
+        Sector firstSector = map.AddSector();
+        Sector secondSector = map.AddSector();
+        Thing firstThing = map.AddThing(new Vector2D(0, 0), 1);
+        Thing secondThing = map.AddThing(new Vector2D(1, 0), 2);
+
+        Assert.True(map.ChangeVertexIndex(0, 2));
+        Assert.True(map.ChangeSectorIndex(1, 0));
+        Assert.True(map.ChangeThingIndex(0, 1));
+
+        Assert.Equal([secondVertex, thirdVertex, firstVertex], map.Vertices);
+        Assert.Equal([secondSector, firstSector], map.Sectors);
+        Assert.Equal([secondThing, firstThing], map.Things);
+        AssertIndexes(map.Vertices);
+        AssertIndexes(map.Sectors);
+        AssertIndexes(map.Things);
+    }
+
+    [Fact]
+    public void ChangeLindefIndexAliasMatchesUdbSpelling()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(1, 0));
+        Linedef first = map.AddLinedef(a, b);
+        Linedef second = map.AddLinedef(a, b);
+
+        Assert.True(map.ChangeLindefIndex(1, 0));
+
+        Assert.Equal([second, first], map.Linedefs);
+        AssertIndexes(map.Linedefs);
+    }
+
+    [Fact]
     public void ChangeSectorIndexReindexesSectors()
     {
         var map = new MapSet();
@@ -67,6 +106,20 @@ public class MapElementIndexTests
         Assert.False(changed);
         Assert.Equal([first, second], map.Things);
         AssertIndexes(map.Things);
+    }
+
+    [Fact]
+    public void ChangeIndexOverloadsRejectOutOfRangeIndexes()
+    {
+        var map = new MapSet();
+        Vertex first = map.AddVertex(new Vector2D(0, 0));
+        Vertex second = map.AddVertex(new Vector2D(1, 0));
+
+        Assert.False(map.ChangeVertexIndex(-1, 0));
+        Assert.False(map.ChangeVertexIndex(0, 2));
+
+        Assert.Equal([first, second], map.Vertices);
+        AssertIndexes(map.Vertices);
     }
 
     [Fact]
