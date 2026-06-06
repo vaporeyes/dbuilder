@@ -51,7 +51,8 @@ public interface IDBuilderPlugin
 public sealed record DBuilderPluginContribution(
     DBuilderPluginContributionKind Kind,
     string Id,
-    string Title);
+    string Title,
+    string? MethodName = null);
 
 public sealed record DBuilderPluginDescriptor(
     string Name,
@@ -214,7 +215,8 @@ public sealed record DBuilderPluginApiContribution(
     string PluginName,
     DBuilderPluginContributionKind Kind,
     string Id,
-    string Title);
+    string Title,
+    string? MethodName = null);
 
 public sealed record DBuilderPluginApiContributionPlan(
     IReadOnlyList<DBuilderPluginApiContribution> Actions,
@@ -223,6 +225,11 @@ public sealed record DBuilderPluginApiContributionPlan(
     IReadOnlyList<string> Warnings);
 
 public sealed record DBuilderPluginActionCommandPlan(
+    DBuilderPluginApiContribution? Action,
+    IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
+
+public sealed record DBuilderPluginActionExecutionResult(
+    bool Completed,
     DBuilderPluginApiContribution? Action,
     IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
 
@@ -1659,7 +1666,8 @@ public static class DBuilderPluginHostModel
                     lifecycle.Descriptor.Name,
                     contribution.Kind,
                     contribution.Id,
-                    contribution.Title);
+                    contribution.Title,
+                    contribution.MethodName);
 
                 if (contribution.Kind == DBuilderPluginContributionKind.Action) actions.Add(apiContribution);
                 if (contribution.Kind == DBuilderPluginContributionKind.EditMode) editModes.Add(apiContribution);
@@ -1711,6 +1719,83 @@ public static class DBuilderPluginHostModel
         }
 
         return new DBuilderPluginActionCommandPlan(matches[0], diagnostics);
+    }
+
+    public static DBuilderPluginActionExecutionResult ExecuteReflectionActionCommand(
+        DBuilderPluginRuntimeInstancePlan instancePlan,
+        DBuilderPluginHostPlan hostPlan,
+        string actionId)
+    {
+        DBuilderPluginActionCommandPlan command = PlanActionCommand(hostPlan, actionId);
+        var diagnostics = new List<DBuilderPluginDiagnostic>(instancePlan.Diagnostics);
+        diagnostics.AddRange(command.Diagnostics);
+        if (command.Action == null) return new DBuilderPluginActionExecutionResult(false, null, diagnostics);
+
+        string methodName = command.Action.MethodName?.Trim() ?? "";
+        if (methodName.Length == 0)
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                command.Action.PluginName,
+                $"Plugin action {command.Action.Id} does not specify a method name."));
+            return new DBuilderPluginActionExecutionResult(false, command.Action, diagnostics);
+        }
+
+        DBuilderPluginRuntimeInstance? runtimeInstance = instancePlan.Instances.FirstOrDefault(
+            instance => string.Equals(instance.PluginName, command.Action.PluginName, StringComparison.OrdinalIgnoreCase));
+        if (runtimeInstance == null)
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                command.Action.PluginName,
+                $"Plugin {command.Action.PluginName} is not active."));
+            return new DBuilderPluginActionExecutionResult(false, command.Action, diagnostics);
+        }
+
+        MethodInfo? method = runtimeInstance.Instance.GetType().GetMethod(
+            methodName,
+            BindingFlags.Instance | BindingFlags.Public);
+        if (method == null)
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                runtimeInstance.PluginName,
+                $"Plugin action {command.Action.Id} method {methodName} was not found."));
+            return new DBuilderPluginActionExecutionResult(false, command.Action, diagnostics);
+        }
+
+        if (method.GetParameters().Length != 0 || method.ReturnType != typeof(void))
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                runtimeInstance.PluginName,
+                $"Plugin action {command.Action.Id} method {methodName} must be public void with no parameters."));
+            return new DBuilderPluginActionExecutionResult(false, command.Action, diagnostics);
+        }
+
+        try
+        {
+            method.Invoke(runtimeInstance.Instance, Array.Empty<object>());
+            return new DBuilderPluginActionExecutionResult(true, command.Action, diagnostics);
+        }
+        catch (TargetInvocationException ex) when (ex.InnerException != null)
+        {
+            string error = ex.InnerException.Message.Trim();
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                runtimeInstance.PluginName,
+                error));
+            return new DBuilderPluginActionExecutionResult(false, command.Action, diagnostics);
+        }
+        catch (Exception ex)
+        {
+            string error = ex.Message.Trim();
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                runtimeInstance.PluginName,
+                error));
+            return new DBuilderPluginActionExecutionResult(false, command.Action, diagnostics);
+        }
     }
 
     public static Dictionary<string, Dictionary<string, object?>> NormalizeSettingsStore(
@@ -1865,10 +1950,12 @@ public static class DBuilderPluginHostModel
         {
             string id = contribution.Id.Trim();
             string title = contribution.Title.Trim();
+            string? methodName = contribution.MethodName?.Trim();
+            if (methodName is { Length: 0 }) methodName = null;
             if (id.Length == 0 || title.Length == 0) continue;
             if (!ids.Add(id)) continue;
 
-            result.Add(contribution with { Id = id, Title = title });
+            result.Add(contribution with { Id = id, Title = title, MethodName = methodName });
         }
 
         return result

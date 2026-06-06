@@ -3236,7 +3236,7 @@ public sealed class DBuilderPluginHostModelTests
                 " /plugins/buildermodes.dll ",
                 Contributions: new[]
                 {
-                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, " builder.draw.action ", " Draw action "),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, " builder.draw.action ", " Draw action ", " DrawAction "),
                     new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "builder.draw.action", "Duplicate"),
                     new DBuilderPluginContribution(DBuilderPluginContributionKind.EditMode, "", "Missing Id"),
                     new DBuilderPluginContribution(DBuilderPluginContributionKind.Docker, "builder.empty", "")
@@ -3257,6 +3257,7 @@ public sealed class DBuilderPluginHostModelTests
         Assert.Equal("BuilderModes", action.PluginName);
         Assert.Equal("builder.draw.action", action.Id);
         Assert.Equal("Draw action", action.Title);
+        Assert.Equal("DrawAction", action.MethodName);
         Assert.Equal(new[] { "Plugin DisabledModes is disabled." }, plan.Warnings);
     }
 
@@ -3328,6 +3329,97 @@ public sealed class DBuilderPluginHostModelTests
         Assert.Equal("Plugin action missing.action was not found.", Assert.Single(missingAction.Diagnostics).Message);
         Assert.Null(ambiguous.Action);
         Assert.Equal("Plugin action shared.action is ambiguous.", Assert.Single(ambiguous.Diagnostics).Message);
+    }
+
+    [Fact]
+    public void ExecuteReflectionActionCommandInvokesConfiguredActionMethod()
+    {
+        ReflectionActionCommandPlugin.Calls.Clear();
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor(
+                    "ActionPlugin",
+                    "/plugins/actionplugin.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(
+                            DBuilderPluginContributionKind.Action,
+                            "action.run",
+                            "Run Action",
+                            "RunAction")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest());
+        DBuilderPluginRuntimeInstancePlan instancePlan = RuntimeInstancePlan(
+            new ReflectionActionCommandPlugin("ActionPlugin"),
+            "ActionPlugin");
+
+        DBuilderPluginActionExecutionResult result = DBuilderPluginHostModel.ExecuteReflectionActionCommand(
+            instancePlan,
+            hostPlan,
+            "action.run");
+
+        Assert.True(result.Completed);
+        Assert.Empty(result.Diagnostics);
+        Assert.NotNull(result.Action);
+        Assert.Equal("RunAction", result.Action.MethodName);
+        Assert.Equal(new[] { "ActionPlugin:RunAction" }, ReflectionActionCommandPlugin.Calls);
+    }
+
+    [Fact]
+    public void ExecuteReflectionActionCommandReportsInactiveMissingAndBadActionMethods()
+    {
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor(
+                    "ActionPlugin",
+                    "/plugins/actionplugin.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "action.no-method", "No Method"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "action.missing", "Missing", "MissingAction"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "action.bad", "Bad", "BadAction"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "action.throw", "Throw", "ThrowAction")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest());
+        DBuilderPluginRuntimeInstancePlan instancePlan = RuntimeInstancePlan(
+            new ReflectionActionCommandPlugin("ActionPlugin"),
+            "ActionPlugin");
+
+        DBuilderPluginActionExecutionResult noMethod = DBuilderPluginHostModel.ExecuteReflectionActionCommand(
+            instancePlan,
+            hostPlan,
+            "action.no-method");
+        DBuilderPluginActionExecutionResult missing = DBuilderPluginHostModel.ExecuteReflectionActionCommand(
+            instancePlan,
+            hostPlan,
+            "action.missing");
+        DBuilderPluginActionExecutionResult bad = DBuilderPluginHostModel.ExecuteReflectionActionCommand(
+            instancePlan,
+            hostPlan,
+            "action.bad");
+        DBuilderPluginActionExecutionResult throwing = DBuilderPluginHostModel.ExecuteReflectionActionCommand(
+            instancePlan,
+            hostPlan,
+            "action.throw");
+        DBuilderPluginActionExecutionResult inactive = DBuilderPluginHostModel.ExecuteReflectionActionCommand(
+            new DBuilderPluginRuntimeInstancePlan(Array.Empty<DBuilderPluginRuntimeInstance>(), Array.Empty<DBuilderPluginDiagnostic>()),
+            hostPlan,
+            "action.missing");
+
+        Assert.False(noMethod.Completed);
+        Assert.Equal("Plugin action action.no-method does not specify a method name.", Assert.Single(noMethod.Diagnostics).Message);
+        Assert.False(missing.Completed);
+        Assert.Equal("Plugin action action.missing method MissingAction was not found.", Assert.Single(missing.Diagnostics).Message);
+        Assert.False(bad.Completed);
+        Assert.Equal("Plugin action action.bad method BadAction must be public void with no parameters.", Assert.Single(bad.Diagnostics).Message);
+        Assert.False(throwing.Completed);
+        Assert.Equal("action failed", Assert.Single(throwing.Diagnostics).Message);
+        Assert.False(inactive.Completed);
+        Assert.Equal("Plugin ActionPlugin is not active.", Assert.Single(inactive.Diagnostics).Message);
     }
 
     [Fact]
@@ -3570,6 +3662,30 @@ public sealed class ReflectionCallbackPlugin : IDBuilderPlugin
     public void OnInitialize()
     {
         Calls.Add(_name + ":OnInitialize");
+    }
+}
+
+public sealed class ReflectionActionCommandPlugin : IDBuilderPlugin
+{
+    public static List<string> Calls { get; } = new();
+
+    private readonly string _name;
+
+    public ReflectionActionCommandPlugin(string name)
+    {
+        _name = name;
+    }
+
+    public void RunAction()
+    {
+        Calls.Add(_name + ":RunAction");
+    }
+
+    public bool BadAction() => true;
+
+    public void ThrowAction()
+    {
+        throw new InvalidOperationException("action failed");
     }
 }
 
