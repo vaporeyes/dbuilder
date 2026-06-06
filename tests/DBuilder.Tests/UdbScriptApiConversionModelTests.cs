@@ -628,6 +628,7 @@ localsidedeftextureoffsets = true;
         var wrapper = new UdbScriptLinedefWrapper(line);
 
         Assert.Equal(new UdbScriptVector2DWrapper(5, 0), wrapper.getCenterPoint());
+        Assert.Equal(new UdbScriptVector2DWrapper(2.5, 0), wrapper.getCoordinatesAt(0.25));
         Assert.Equal(new UdbScriptVector2DWrapper(5, 0), wrapper.nearestOnLine(new object[] { 5.0, 3.0 }));
         Assert.Equal(9, wrapper.distanceToSq(new object[] { 5.0, 3.0 }, bounded: true));
         Assert.Equal(3, wrapper.distanceTo(new object[] { 5.0, 3.0 }, bounded: true));

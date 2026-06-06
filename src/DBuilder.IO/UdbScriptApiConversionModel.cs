@@ -1826,6 +1826,13 @@ public sealed class UdbScriptLinedefWrapper : IEquatable<UdbScriptLinedefWrapper
         return new UdbScriptVector2DWrapper(point.x, point.y);
     }
 
+    public UdbScriptVector2DWrapper getCoordinatesAt(double u)
+    {
+        ThrowIfDisposed("getCoordinatesAt");
+        Vector2D point = linedef.Line.GetCoordinatesAt(u);
+        return new UdbScriptVector2DWrapper(point.x, point.y);
+    }
+
     public void applySidedFlags()
     {
         ThrowIfDisposed("applySidedFlags");
