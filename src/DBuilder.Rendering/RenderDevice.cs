@@ -104,6 +104,23 @@ public sealed class RenderDevice : IDisposable
         }
     }
 
+    public unsafe void SetBufferData(VertexBuffer buffer, int length, VertexFormat format)
+    {
+        if (length < 0) throw new ArgumentOutOfRangeException(nameof(length));
+
+        int stride = format switch
+        {
+            VertexFormat.Flat => FlatVertex.Stride,
+            VertexFormat.World => WorldVertex.Stride,
+            _ => throw new ArgumentOutOfRangeException(nameof(format)),
+        };
+
+        buffer.Format = format;
+        buffer.VertexCount = length;
+        _gl.BindBuffer(BufferTargetARB.ArrayBuffer, buffer.Handle);
+        _gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint)checked((long)length * stride), null, BufferUsageARB.StaticDraw);
+    }
+
     public unsafe void SetVertexBuffer(VertexBuffer? buffer)
     {
         _boundVb = buffer;

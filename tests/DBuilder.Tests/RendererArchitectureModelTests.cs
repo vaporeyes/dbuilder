@@ -16,6 +16,7 @@ public class RendererArchitectureModelTests
         Assert.Equal("Desktop OpenGL 3.3 core profile", replacement.MinimumGlProfile);
         Assert.Contains("Viewport and clear state", replacement.CoveredResponsibilities);
         Assert.Contains("Index-buffer binding and primitive draw dispatch", replacement.CoveredResponsibilities);
+        Assert.Contains("Length-based vertex-buffer allocation", replacement.CoveredResponsibilities);
     }
 
     [Fact]
@@ -45,5 +46,15 @@ public class RendererArchitectureModelTests
         Assert.Contains("Silk.NET OpenGL", summary);
         Assert.Contains("Runtime GLSL", summary);
         Assert.Contains("GLShaderManager", summary);
+    }
+
+    [Fact]
+    public void RenderDeviceExposesUdbLengthFormatVertexBufferUpload()
+    {
+        var overload = typeof(RenderDevice).GetMethod(
+            nameof(RenderDevice.SetBufferData),
+            new[] { typeof(VertexBuffer), typeof(int), typeof(VertexFormat) });
+
+        Assert.NotNull(overload);
     }
 }
