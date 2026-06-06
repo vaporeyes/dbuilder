@@ -31,6 +31,8 @@ public enum DBuilderPluginLifecycleHook
     MapSaved,
     MapReconfigured,
     ProgramReconfigured,
+    ResourcesReloaded,
+    MapNodesRebuilt,
     Engage,
     Disengage,
     Dispose
@@ -64,6 +66,8 @@ public sealed record DBuilderPluginLifecycleRequest(
     bool MapSave = false,
     bool MapReconfigure = false,
     bool ProgramReconfigure = false,
+    bool ReloadResources = false,
+    bool MapNodesRebuilt = false,
     bool Engage = false,
     bool Disengage = false,
     bool Shutdown = false);
@@ -1546,6 +1550,8 @@ public static class DBuilderPluginHostModel
         if (descriptor.RequiresMap && request.MapSave) hooks.Add(DBuilderPluginLifecycleHook.MapSaved);
         if (descriptor.RequiresMap && request.MapReconfigure) hooks.Add(DBuilderPluginLifecycleHook.MapReconfigured);
         if (request.ProgramReconfigure) hooks.Add(DBuilderPluginLifecycleHook.ProgramReconfigured);
+        if (descriptor.RequiresMap && request.ReloadResources) hooks.Add(DBuilderPluginLifecycleHook.ResourcesReloaded);
+        if (descriptor.RequiresMap && request.MapNodesRebuilt) hooks.Add(DBuilderPluginLifecycleHook.MapNodesRebuilt);
         if (request.Engage) hooks.Add(DBuilderPluginLifecycleHook.Engage);
         if (request.Disengage) hooks.Add(DBuilderPluginLifecycleHook.Disengage);
         if (request.Shutdown) hooks.Add(DBuilderPluginLifecycleHook.Dispose);

@@ -1504,6 +1504,8 @@ public sealed class DBuilderPluginHostModelTests
                 MapSave: true,
                 MapReconfigure: true,
                 ProgramReconfigure: true,
+                ReloadResources: true,
+                MapNodesRebuilt: true,
                 Engage: true,
                 Shutdown: true));
 
@@ -1529,6 +1531,8 @@ public sealed class DBuilderPluginHostModelTests
             DBuilderPluginLifecycleHook.MapSaved,
             DBuilderPluginLifecycleHook.MapReconfigured,
             DBuilderPluginLifecycleHook.ProgramReconfigured,
+            DBuilderPluginLifecycleHook.ResourcesReloaded,
+            DBuilderPluginLifecycleHook.MapNodesRebuilt,
             DBuilderPluginLifecycleHook.Engage,
             DBuilderPluginLifecycleHook.Dispose
         }, lifecycle.Hooks);
@@ -2901,6 +2905,34 @@ public sealed class DBuilderPluginHostModelTests
 
         Assert.Contains(DBuilderPluginLifecycleHook.ProgramReconfigured, mapScoped.Hooks);
         Assert.Contains(DBuilderPluginLifecycleHook.ProgramReconfigured, global.Hooks);
+    }
+
+    [Fact]
+    public void PlanLifecycleAddsResourceReloadOnlyForMapScopedPlugins()
+    {
+        DBuilderPluginLifecyclePlan mapScoped = DBuilderPluginHostModel.PlanLifecycle(
+            new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll", RequiresMap: true),
+            new DBuilderPluginLifecycleRequest(ReloadResources: true));
+        DBuilderPluginLifecyclePlan global = DBuilderPluginHostModel.PlanLifecycle(
+            new DBuilderPluginDescriptor("TagRange", "/plugins/tagrange.dll"),
+            new DBuilderPluginLifecycleRequest(ReloadResources: true));
+
+        Assert.Contains(DBuilderPluginLifecycleHook.ResourcesReloaded, mapScoped.Hooks);
+        Assert.DoesNotContain(DBuilderPluginLifecycleHook.ResourcesReloaded, global.Hooks);
+    }
+
+    [Fact]
+    public void PlanLifecycleAddsMapNodesRebuiltOnlyForMapScopedPlugins()
+    {
+        DBuilderPluginLifecyclePlan mapScoped = DBuilderPluginHostModel.PlanLifecycle(
+            new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll", RequiresMap: true),
+            new DBuilderPluginLifecycleRequest(MapNodesRebuilt: true));
+        DBuilderPluginLifecyclePlan global = DBuilderPluginHostModel.PlanLifecycle(
+            new DBuilderPluginDescriptor("TagRange", "/plugins/tagrange.dll"),
+            new DBuilderPluginLifecycleRequest(MapNodesRebuilt: true));
+
+        Assert.Contains(DBuilderPluginLifecycleHook.MapNodesRebuilt, mapScoped.Hooks);
+        Assert.DoesNotContain(DBuilderPluginLifecycleHook.MapNodesRebuilt, global.Hooks);
     }
 
     [Fact]
