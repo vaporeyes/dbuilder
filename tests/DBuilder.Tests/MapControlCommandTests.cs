@@ -538,11 +538,13 @@ public sealed class MapControlCommandTests
     {
         var (hit, front, back) = CreateTwoSidedWallHit();
 
-        bool changed = MapControl.TryCreateVisualMiddleTexture3D(hit, "STARTAN3");
+        bool changed = MapControl.TryCreateVisualMiddleTexture3D(hit, "MIDDLECREATED", useLongTextureNames: true);
 
         Assert.True(changed);
-        Assert.Equal("STARTAN3", front.MidTexture);
-        Assert.Equal("STARTAN3", back.MidTexture);
+        Assert.Equal("MIDDLECREATED", front.MidTexture);
+        Assert.Equal(Lump.MakeLongName("MIDDLECREATED", useLongNames: true), front.LongMiddleTexture);
+        Assert.Equal("MIDDLECREATED", back.MidTexture);
+        Assert.Equal(Lump.MakeLongName("MIDDLECREATED", useLongNames: true), back.LongMiddleTexture);
     }
 
     [Fact]
@@ -551,11 +553,13 @@ public sealed class MapControlCommandTests
         var (hit, front, back) = CreateTwoSidedWallHit();
         back.SetTextureMid("BROWN1");
 
-        bool changed = MapControl.TryCreateVisualMiddleTexture3D(hit, "STARTAN3");
+        bool changed = MapControl.TryCreateVisualMiddleTexture3D(hit, "MIDDLECREATED", useLongTextureNames: true);
 
         Assert.True(changed);
-        Assert.Equal("STARTAN3", front.MidTexture);
+        Assert.Equal("MIDDLECREATED", front.MidTexture);
+        Assert.Equal(Lump.MakeLongName("MIDDLECREATED", useLongNames: true), front.LongMiddleTexture);
         Assert.Equal("BROWN1", back.MidTexture);
+        Assert.Equal(MapSet.EmptyLongName, back.LongMiddleTexture);
     }
 
     [Fact]
@@ -564,7 +568,7 @@ public sealed class MapControlCommandTests
         var (hit, front, back) = CreateTwoSidedWallHit();
         front.SetTextureMid("STONE2");
 
-        bool changed = MapControl.TryCreateVisualMiddleTexture3D(hit, "STARTAN3");
+        bool changed = MapControl.TryCreateVisualMiddleTexture3D(hit, "MIDDLECREATED", useLongTextureNames: true);
 
         Assert.False(changed);
         Assert.Equal("STONE2", front.MidTexture);
@@ -579,7 +583,7 @@ public sealed class MapControlCommandTests
         line.AttachFront(front);
         var hit = new VisualHit(VisualHitKind.Wall, 1, new Vector3D(32, 0, 64), null, line, true, 0, 128, SidedefPart.Middle);
 
-        bool changed = MapControl.TryCreateVisualMiddleTexture3D(hit, "STARTAN3");
+        bool changed = MapControl.TryCreateVisualMiddleTexture3D(hit, "MIDDLECREATED", useLongTextureNames: true);
 
         Assert.False(changed);
         Assert.Equal("-", front.MidTexture);
@@ -1436,7 +1440,7 @@ public sealed class MapControlCommandTests
         int methodIndex = body.IndexOf("private bool InsertThingAtTarget3D()", StringComparison.Ordinal);
         int missingTargetIndex = body.IndexOf("if (_target3D is not { } target)", methodIndex, StringComparison.Ordinal);
         int warningIndex = body.IndexOf("Cannot insert thing here!", missingTargetIndex, StringComparison.Ordinal);
-        int createMiddleIndex = body.IndexOf("TryCreateVisualMiddleTexture3D(target, DefaultWallTexture3D());", warningIndex, StringComparison.Ordinal);
+        int createMiddleIndex = body.IndexOf("TryCreateVisualMiddleTexture3D(target, DefaultWallTexture3D(), _gameConfig?.UseLongTextureNames ?? false);", warningIndex, StringComparison.Ordinal);
         int middleStatusIndex = body.IndexOf("Target3DChanged?.Invoke(VisualMiddleTextureCreatedStatusText());", createMiddleIndex, StringComparison.Ordinal);
         int insertIndex = body.IndexOf("InsertThingAt(new Vec2D(target.Point.x, target.Point.y), snap: false, height: target.Point.z);", middleStatusIndex, StringComparison.Ordinal);
         int statusIndex = body.IndexOf("Target3DChanged?.Invoke(VisualThingInsertedStatusText());", insertIndex, StringComparison.Ordinal);

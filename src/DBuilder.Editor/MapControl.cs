@@ -3828,13 +3828,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public static string VisualMiddleTextureCreatedStatusText()
         => "Created middle texture.";
 
-    public static bool TryCreateVisualMiddleTexture3D(VisualHit target, string defaultWallTexture)
+    public static bool TryCreateVisualMiddleTexture3D(VisualHit target, string defaultWallTexture, bool useLongTextureNames)
     {
         if (!CanCreateVisualMiddleTexture3D(target, out Sidedef? side)) return false;
 
         side!.SetTextureMid(defaultWallTexture);
+        side.LongMiddleTexture = Lump.MakeLongName(side.MidTexture, useLongTextureNames);
         if (side.Other != null && IsBlankTexture(side.Other.MidTexture))
+        {
             side.Other.SetTextureMid(defaultWallTexture);
+            side.Other.LongMiddleTexture = Lump.MakeLongName(side.Other.MidTexture, useLongTextureNames);
+        }
         return true;
     }
 
@@ -4082,7 +4086,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (CanCreateVisualMiddleTexture3D(target, out _))
         {
             EditBegun?.Invoke("Create middle texture");
-            TryCreateVisualMiddleTexture3D(target, DefaultWallTexture3D());
+            TryCreateVisualMiddleTexture3D(target, DefaultWallTexture3D(), _gameConfig?.UseLongTextureNames ?? false);
             _geo3DDirty = true;
             MarkGeometryDirty();
             Changed?.Invoke();
