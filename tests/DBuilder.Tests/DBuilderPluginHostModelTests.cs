@@ -1802,6 +1802,48 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void FindPluginResourceNameMatchesUdbSuffixRule()
+    {
+        string? resource = DBuilderPluginHostModel.FindPluginResourceName(
+            new[]
+            {
+                "Plugin.Properties.Resources.SuperCoolMode.png",
+                "Plugin.Resources.CoolMode.png",
+                "Plugin.Resources.Other.txt"
+            },
+            "coolmode.png");
+
+        Assert.Equal("Plugin.Resources.CoolMode.png", resource);
+    }
+
+    [Fact]
+    public void FindPluginResourceNameDoesNotMatchPartialNames()
+    {
+        string? resource = DBuilderPluginHostModel.FindPluginResourceName(
+            new[] { "Plugin.Properties.Resources.SuperCoolMode.png" },
+            "CoolMode.png");
+
+        Assert.Null(resource);
+    }
+
+    [Fact]
+    public void OpenReflectionPluginResourceStreamReadsRuntimePluginAssemblyResources()
+    {
+        var runtime = new DBuilderPluginRuntimeInstance(
+            "ResourcePlugin",
+            "/plugins/resource.dll",
+            typeof(ReflectionPluginHostTestPlugin).FullName!,
+            0,
+            new ReflectionPluginHostTestPlugin());
+
+        using Stream? stream = DBuilderPluginHostModel.OpenReflectionPluginResourceStream(runtime, "CoolMode.txt");
+
+        Assert.NotNull(stream);
+        using var reader = new StreamReader(stream);
+        Assert.Equal("resource fixture", reader.ReadToEnd().Trim());
+    }
+
+    [Fact]
     public void PlanLifecycleRegistersContributionHooksInStableOrder()
     {
         var descriptor = new DBuilderPluginDescriptor(

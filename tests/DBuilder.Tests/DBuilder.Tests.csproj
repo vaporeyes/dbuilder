@@ -17,6 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="TestFixtures/PluginResources/CoolMode.txt" LogicalName="DBuilder.Tests.PluginResources.CoolMode.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\DBuilder.Geometry\DBuilder.Geometry.csproj" />
     <ProjectReference Include="..\..\src\DBuilder.Rendering\DBuilder.Rendering.csproj" />
     <ProjectReference Include="..\..\src\DBuilder.Map\DBuilder.Map.csproj" />

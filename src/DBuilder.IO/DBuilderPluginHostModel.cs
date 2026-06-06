@@ -1,6 +1,7 @@
 // ABOUTME: Models plugin descriptors, contribution kinds and lifecycle hook planning for DBuilder.
 // ABOUTME: Keeps plugin-host rules and reflection runtime execution testable outside the editor UI.
 
+using System.IO;
 using System.Reflection;
 
 namespace DBuilder.IO;
@@ -1037,6 +1038,24 @@ public static class DBuilderPluginHostModel
         }
 
         return new DBuilderPluginShutdownPlan(attempts, diagnostics);
+    }
+
+    public static string? FindPluginResourceName(
+        IEnumerable<string> resourceNames,
+        string resourceName)
+    {
+        string suffix = "." + resourceName;
+        return resourceNames.FirstOrDefault(
+            candidate => candidate.EndsWith(suffix, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public static Stream? OpenReflectionPluginResourceStream(
+        DBuilderPluginRuntimeInstance runtimeInstance,
+        string resourceName)
+    {
+        Assembly assembly = runtimeInstance.Instance.GetType().Assembly;
+        string? resource = FindPluginResourceName(assembly.GetManifestResourceNames(), resourceName);
+        return resource == null ? null : assembly.GetManifestResourceStream(resource);
     }
 
     public static IReadOnlyList<DBuilderPluginDescriptor> NormalizeDescriptors(
