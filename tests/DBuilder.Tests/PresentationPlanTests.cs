@@ -701,6 +701,41 @@ public sealed class PresentationPlanTests
     }
 
     [Fact]
+    public void LayerDrawPlansBindMapBackgroundTextureOnlyForBackgroundLayerLikeUdb()
+    {
+        PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);
+        PresentationRenderTargetPlan targets = PresentationRenderTargetPlan.Create(320, 200, presentation);
+
+        IReadOnlyList<PresentationLayerDrawPlan> plans = targets.BuildLayerDrawPlans(
+            presentation,
+            qualityDisplay: false,
+            hasBackgroundVertices: true,
+            hasBackgroundTexture: true);
+
+        Assert.Equal("map-grid-background", plans[0].TextureBindingName);
+        Assert.False(plans[0].UsesRenderTargetTexture);
+        Assert.Equal(new[] { "surface", "things", "gridplotter", "plotter", "overlay0" }, plans.Skip(1).Select(plan => plan.TextureBindingName));
+        Assert.All(plans.Skip(1), plan => Assert.True(plan.UsesRenderTargetTexture));
+    }
+
+    [Fact]
+    public void LayerDrawPlansKeepBackgroundTextureBindingWhenBackgroundDrawIsSkipped()
+    {
+        PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);
+        PresentationRenderTargetPlan targets = PresentationRenderTargetPlan.Create(320, 200, presentation);
+
+        IReadOnlyList<PresentationLayerDrawPlan> plans = targets.BuildLayerDrawPlans(
+            presentation,
+            qualityDisplay: false,
+            hasBackgroundVertices: true,
+            hasBackgroundTexture: false);
+
+        Assert.False(plans[0].Draws);
+        Assert.Equal("map-grid-background", plans[0].TextureBindingName);
+        Assert.False(plans[0].UsesRenderTargetTexture);
+    }
+
+    [Fact]
     public void LayerDrawPlansUseUdbTriangleStripDrawArgumentsForEveryLayer()
     {
         PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);

@@ -37,6 +37,7 @@ public static class RendererArchitectureModel
             "2D presentation background draw availability planning",
             "2D presentation background vertex-buffer restore planning",
             "2D presentation layer draw dispatch argument planning",
+            "2D presentation layer texture binding planning",
             "Render-device alpha-test compatibility state planning",
             "Render-device multisample antialias compatibility state planning",
             "Render-device sampler-filter overload planning",
