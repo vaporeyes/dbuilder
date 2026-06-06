@@ -285,6 +285,88 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void PlanCallbackInvocationsUsesNormalizedPluginOrder()
+    {
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor("TagRange", "/plugins/tagrange.dll"),
+                new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll"),
+                new DBuilderPluginDescriptor("Disabled", "/plugins/disabled.dll", Enabled: false)
+            },
+            new DBuilderPluginLifecycleRequest());
+
+        DBuilderPluginCallbackInvocationPlan plan = DBuilderPluginHostModel.PlanCallbackInvocations(
+            hostPlan,
+            "OnMapOpenBegin");
+
+        Assert.NotNull(plan.Callback);
+        Assert.Equal("OnMapOpenBegin", plan.Callback.Name);
+        Assert.False(plan.Callback.CanAbort);
+        Assert.Collection(
+            plan.Invocations,
+            invocation =>
+            {
+                Assert.Equal("BuilderModes", invocation.PluginName);
+                Assert.Equal("OnMapOpenBegin", invocation.CallbackName);
+                Assert.Equal(0, invocation.Order);
+                Assert.False(invocation.CanAbort);
+            },
+            invocation =>
+            {
+                Assert.Equal("TagRange", invocation.PluginName);
+                Assert.Equal("OnMapOpenBegin", invocation.CallbackName);
+                Assert.Equal(1, invocation.Order);
+                Assert.False(invocation.CanAbort);
+            });
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.Diagnostics);
+        Assert.Equal("Plugin Disabled is disabled.", diagnostic.Message);
+    }
+
+    [Fact]
+    public void PlanCallbackInvocationsMarksAbortableCallbacksOnEachInvocation()
+    {
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll")
+            },
+            new DBuilderPluginLifecycleRequest());
+
+        DBuilderPluginCallbackInvocationPlan plan = DBuilderPluginHostModel.PlanCallbackInvocations(
+            hostPlan,
+            " OnPasteBegin ");
+
+        DBuilderPluginCallbackInvocation invocation = Assert.Single(plan.Invocations);
+        Assert.NotNull(plan.Callback);
+        Assert.Equal("OnPasteBegin", plan.Callback.Name);
+        Assert.True(plan.Callback.CanAbort);
+        Assert.True(invocation.CanAbort);
+    }
+
+    [Fact]
+    public void PlanCallbackInvocationsReportsUnknownCallbacks()
+    {
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll")
+            },
+            new DBuilderPluginLifecycleRequest());
+
+        DBuilderPluginCallbackInvocationPlan plan = DBuilderPluginHostModel.PlanCallbackInvocations(
+            hostPlan,
+            "OnMissingCallback");
+
+        Assert.Null(plan.Callback);
+        Assert.Empty(plan.Invocations);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.Diagnostics);
+        Assert.Equal(DBuilderPluginDiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.Equal("(plugin host)", diagnostic.PluginName);
+        Assert.Equal("Unknown plugin callback OnMissingCallback.", diagnostic.Message);
+    }
+
+    [Fact]
     public void PlanLifecycleRegistersContributionHooksInStableOrder()
     {
         var descriptor = new DBuilderPluginDescriptor(

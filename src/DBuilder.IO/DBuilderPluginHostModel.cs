@@ -119,6 +119,17 @@ public sealed record DBuilderPluginCallbackDescriptor(
     string Category,
     bool CanAbort = false);
 
+public sealed record DBuilderPluginCallbackInvocation(
+    string PluginName,
+    string CallbackName,
+    int Order,
+    bool CanAbort);
+
+public sealed record DBuilderPluginCallbackInvocationPlan(
+    DBuilderPluginCallbackDescriptor? Callback,
+    IReadOnlyList<DBuilderPluginCallbackInvocation> Invocations,
+    IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
+
 public static class DBuilderPluginHostModel
 {
     public static IReadOnlyList<DBuilderPluginCallbackDescriptor> UdbCallbackDescriptors { get; } = new[]
@@ -259,6 +270,41 @@ public static class DBuilderPluginHostModel
             PlanUiContributions(normalizedDescriptors),
             PlanApiContributions(normalizedDescriptors),
             PlanResourceHandlers(normalizedDescriptors));
+    }
+
+    public static DBuilderPluginCallbackInvocationPlan PlanCallbackInvocations(
+        DBuilderPluginHostPlan hostPlan,
+        string callbackName)
+    {
+        string name = callbackName.Trim();
+        DBuilderPluginCallbackDescriptor? callback = UdbCallbackDescriptors.FirstOrDefault(
+            descriptor => string.Equals(descriptor.Name, name, StringComparison.Ordinal));
+        if (callback == null)
+        {
+            return new DBuilderPluginCallbackInvocationPlan(
+                null,
+                Array.Empty<DBuilderPluginCallbackInvocation>(),
+                new[]
+                {
+                    new DBuilderPluginDiagnostic(
+                        DBuilderPluginDiagnosticSeverity.Error,
+                        "(plugin host)",
+                        $"Unknown plugin callback {name}.")
+                });
+        }
+
+        DBuilderPluginCallbackInvocation[] invocations = hostPlan.DescriptorPlan.Descriptors
+            .Select((descriptor, index) => new DBuilderPluginCallbackInvocation(
+                descriptor.Name,
+                callback.Name,
+                index,
+                callback.CanAbort))
+            .ToArray();
+
+        return new DBuilderPluginCallbackInvocationPlan(
+            callback,
+            invocations,
+            hostPlan.DescriptorPlan.Diagnostics);
     }
 
     public static IReadOnlyList<DBuilderPluginDescriptor> NormalizeDescriptors(

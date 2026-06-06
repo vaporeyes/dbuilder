@@ -363,6 +363,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Add compatibility tests for plugin lifecycle behavior.
   - [x] Add tests for plugin descriptor normalization, lifecycle hook ordering, and invalid descriptor isolation.
   - [x] Add UDB plugin callback catalog compatibility tests for lifecycle, edit, input, render, and highlight callbacks.
+  - [x] Add plugin callback invocation planning with abortable callback metadata and unknown-callback diagnostics.
 
 ## Map Model Parity
 
