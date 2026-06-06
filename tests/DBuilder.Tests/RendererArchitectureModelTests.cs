@@ -26,6 +26,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Render-device multisample antialias compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device sampler-filter overload planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device setup settings planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device setup settings state application", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device target start-rendering planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device inline vertex draw planning and overload", replacement.CoveredResponsibilities);
         Assert.Contains("Index-buffer binding and primitive draw dispatch", replacement.CoveredResponsibilities);
@@ -192,6 +193,13 @@ public class RendererArchitectureModelTests
     [Fact]
     public void RenderDeviceBuildsUdbSetupSettingsPlan()
     {
+        Assert.NotNull(typeof(RenderDevice).GetMethod(
+            nameof(RenderDevice.SetupSettings),
+            new[] { typeof(bool), typeof(bool), typeof(float) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(
+            nameof(RenderDevice.SetupSettings),
+            new[] { typeof(RenderDeviceSetupSettingsPlan) }));
+
         RenderDeviceSetupSettingsPlan plan = RenderDevice.BuildSetupSettingsPlan(
             visualBilinear: true,
             antialiasingEnabled: true,

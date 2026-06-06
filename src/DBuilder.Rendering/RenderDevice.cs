@@ -170,6 +170,31 @@ public sealed class RenderDevice : IDisposable
         _gl.PolygonMode(TriangleFace.FrontAndBack, mode == FillMode.Solid ? PolygonMode.Fill : PolygonMode.Line);
     }
 
+    public bool SetupSettings(bool visualBilinear, bool antialiasingEnabled, float filterAnisotropy)
+        => SetupSettings(BuildSetupSettingsPlan(visualBilinear, antialiasingEnabled, filterAnisotropy));
+
+    public bool SetupSettings(RenderDeviceSetupSettingsPlan plan)
+    {
+        SetAlphaBlendEnable(plan.AlphaBlend.Enabled);
+        SetAlphaTestEnable(plan.AlphaTest.Enabled);
+        SetCullMode(plan.CullMode);
+        SetDestinationBlend(plan.DestinationBlend);
+        SetFillMode(plan.FillMode);
+        SetMultisampleAntialias(plan.MultisampleAntialias.Enabled);
+        SetSourceBlend(plan.SourceBlend);
+        SetZEnable(plan.Depth.Enabled);
+        SetZWriteEnable(plan.DepthWrite.Enabled);
+        SetSamplerState(plan.SamplerAddress);
+        SetSamplerFilter(
+            plan.SamplerFilter.MinFilter,
+            plan.SamplerFilter.MagFilter,
+            plan.SamplerFilter.MipFilter,
+            plan.SamplerFilter.MaxAnisotropy,
+            plan.SamplerFilter.Unit);
+
+        return plan.InitializePresentation;
+    }
+
     public unsafe void SetBufferData(VertexBuffer buffer, FlatVertex[] data)
     {
         buffer.Format = VertexFormat.Flat;

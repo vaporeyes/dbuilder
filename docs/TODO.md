@@ -1464,6 +1464,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style render-device multisample antialias compatibility state planning.
   - [x] Add UDB-style render-device sampler-filter overload planning.
   - [x] Add UDB-style render-device setup settings planning.
+  - [x] Add UDB-style render-device setup settings state application.
   - [x] Add UDB-style render-device target start-rendering planning.
   - [x] Add UDB-style render-device inline vertex draw planning and overload.
 - [ ] Port renderer 2D parity.
