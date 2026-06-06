@@ -61,6 +61,7 @@ public static class RendererArchitectureModel
             "Surface buffer resource reload upload planning",
             "Surface buffer reset invalidation planning",
             "Surface buffer unload and reload resource-state planning",
+            "Surface manager resource registration and lifecycle planning",
             "Text label font selection and legacy scale planning",
             "Text label size, alignment, transform, culling, and quad planning",
             "Text label plain and background image drawing planning",

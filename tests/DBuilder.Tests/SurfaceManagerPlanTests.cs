@@ -15,6 +15,68 @@ public sealed class SurfaceManagerPlanTests
     }
 
     [Fact]
+    public void LifecyclePlanRegistersManagerOnConstruction()
+    {
+        SurfaceManagerLifecyclePlan plan =
+            SurfaceManagerPlan.BuildLifecyclePlan(SurfaceManagerLifecycleOperation.Construct);
+
+        Assert.Equal(SurfaceManagerLifecycleOperation.Construct, plan.Operation);
+        Assert.True(plan.RegisterWithRenderDevice);
+        Assert.False(plan.UnregisterFromRenderDevice);
+        Assert.False(plan.DisposeBuffers);
+        Assert.False(plan.ResourcesUnloadedAfter);
+    }
+
+    [Fact]
+    public void LifecyclePlanUnregistersAndDisposesBuffersOnDispose()
+    {
+        SurfaceManagerLifecyclePlan plan =
+            SurfaceManagerPlan.BuildLifecyclePlan(SurfaceManagerLifecycleOperation.Dispose);
+
+        Assert.True(plan.UnregisterFromRenderDevice);
+        Assert.True(plan.DisposeBuffers);
+        Assert.False(plan.RegisterWithRenderDevice);
+        Assert.False(plan.InvalidateEntries);
+    }
+
+    [Fact]
+    public void LifecyclePlanUnloadsResourcesByDisposingBuffersAndClearingLocks()
+    {
+        SurfaceManagerLifecyclePlan plan =
+            SurfaceManagerPlan.BuildLifecyclePlan(SurfaceManagerLifecycleOperation.UnloadResource);
+
+        Assert.True(plan.DisposeBuffers);
+        Assert.True(plan.ClearLockedBuffers);
+        Assert.True(plan.ResourcesUnloadedAfter);
+        Assert.False(plan.RecreateBuffers);
+        Assert.False(plan.UploadEntries);
+    }
+
+    [Fact]
+    public void LifecyclePlanReloadsResourcesByRecreatingBuffersAndUploadingEntries()
+    {
+        SurfaceManagerLifecyclePlan plan =
+            SurfaceManagerPlan.BuildLifecyclePlan(SurfaceManagerLifecycleOperation.ReloadResource);
+
+        Assert.True(plan.RecreateBuffers);
+        Assert.True(plan.UploadEntries);
+        Assert.False(plan.DisposeBuffers);
+        Assert.False(plan.ResourcesUnloadedAfter);
+    }
+
+    [Fact]
+    public void LifecyclePlanResetDisposesBuffersAndInvalidatesEntries()
+    {
+        SurfaceManagerLifecyclePlan plan =
+            SurfaceManagerPlan.BuildLifecyclePlan(SurfaceManagerLifecycleOperation.Reset);
+
+        Assert.True(plan.DisposeBuffers);
+        Assert.True(plan.InvalidateEntries);
+        Assert.False(plan.ClearLockedBuffers);
+        Assert.False(plan.ResourcesUnloadedAfter);
+    }
+
+    [Fact]
     public void SplitsLargeSectorVertexCountsIntoUdbChunks()
     {
         IReadOnlyList<int> chunks = SurfaceManagerPlan.SplitSectorVertexCount(13500);

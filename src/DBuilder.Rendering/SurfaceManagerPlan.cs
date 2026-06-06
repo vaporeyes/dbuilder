@@ -17,6 +17,26 @@ public sealed record SurfaceBufferReloadPlan(int BufferIndex, int BufferSize, IR
 
 public sealed record SurfaceBufferUnloadPlan(IReadOnlyList<int> DisposedBufferIndexes);
 
+public enum SurfaceManagerLifecycleOperation
+{
+    Construct,
+    Dispose,
+    UnloadResource,
+    ReloadResource,
+    Reset,
+}
+
+public sealed record SurfaceManagerLifecyclePlan(
+    SurfaceManagerLifecycleOperation Operation,
+    bool RegisterWithRenderDevice,
+    bool UnregisterFromRenderDevice,
+    bool DisposeBuffers,
+    bool ClearLockedBuffers,
+    bool InvalidateEntries,
+    bool RecreateBuffers,
+    bool UploadEntries,
+    bool ResourcesUnloadedAfter);
+
 public sealed class SurfaceBufferSetState
 {
     public SurfaceBufferSetState(int verticesPerEntry)
@@ -218,4 +238,60 @@ public static class SurfaceManagerPlan
 
     public static int MaxEntriesPerBuffer(int verticesPerEntry)
         => MaxVerticesPerBuffer / VerticesPerBufferEntry(verticesPerEntry);
+
+    public static SurfaceManagerLifecyclePlan BuildLifecyclePlan(SurfaceManagerLifecycleOperation operation)
+        => operation switch
+        {
+            SurfaceManagerLifecycleOperation.Construct => new SurfaceManagerLifecyclePlan(
+                operation,
+                RegisterWithRenderDevice: true,
+                UnregisterFromRenderDevice: false,
+                DisposeBuffers: false,
+                ClearLockedBuffers: false,
+                InvalidateEntries: false,
+                RecreateBuffers: false,
+                UploadEntries: false,
+                ResourcesUnloadedAfter: false),
+            SurfaceManagerLifecycleOperation.Dispose => new SurfaceManagerLifecyclePlan(
+                operation,
+                RegisterWithRenderDevice: false,
+                UnregisterFromRenderDevice: true,
+                DisposeBuffers: true,
+                ClearLockedBuffers: false,
+                InvalidateEntries: false,
+                RecreateBuffers: false,
+                UploadEntries: false,
+                ResourcesUnloadedAfter: false),
+            SurfaceManagerLifecycleOperation.UnloadResource => new SurfaceManagerLifecyclePlan(
+                operation,
+                RegisterWithRenderDevice: false,
+                UnregisterFromRenderDevice: false,
+                DisposeBuffers: true,
+                ClearLockedBuffers: true,
+                InvalidateEntries: false,
+                RecreateBuffers: false,
+                UploadEntries: false,
+                ResourcesUnloadedAfter: true),
+            SurfaceManagerLifecycleOperation.ReloadResource => new SurfaceManagerLifecyclePlan(
+                operation,
+                RegisterWithRenderDevice: false,
+                UnregisterFromRenderDevice: false,
+                DisposeBuffers: false,
+                ClearLockedBuffers: false,
+                InvalidateEntries: false,
+                RecreateBuffers: true,
+                UploadEntries: true,
+                ResourcesUnloadedAfter: false),
+            SurfaceManagerLifecycleOperation.Reset => new SurfaceManagerLifecyclePlan(
+                operation,
+                RegisterWithRenderDevice: false,
+                UnregisterFromRenderDevice: false,
+                DisposeBuffers: true,
+                ClearLockedBuffers: false,
+                InvalidateEntries: true,
+                RecreateBuffers: false,
+                UploadEntries: false,
+                ResourcesUnloadedAfter: false),
+            _ => throw new ArgumentOutOfRangeException(nameof(operation), operation, null),
+        };
 }
