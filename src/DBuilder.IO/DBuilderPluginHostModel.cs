@@ -1002,6 +1002,14 @@ public static class DBuilderPluginHostModel
         string callbackName)
         => ExecuteReflectionCallback(instancePlan, callbackName, Array.Empty<object>());
 
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionCopyBegin(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnCopyBegin");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionCopyEnd(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnCopyEnd");
+
     public static DBuilderPluginCallbackExecutionResult ExecuteReflectionPasteBegin(
         DBuilderPluginRuntimeInstancePlan instancePlan,
         PasteOptions options)
@@ -1011,6 +1019,22 @@ public static class DBuilderPluginHostModel
         DBuilderPluginRuntimeInstancePlan instancePlan,
         PasteOptions options)
         => ExecuteReflectionCallback(instancePlan, "OnPasteEnd", new object[] { options });
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionUndoBegin(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnUndoBegin");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionUndoEnd(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnUndoEnd");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionRedoBegin(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnRedoBegin");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionRedoEnd(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnRedoEnd");
 
     public static DBuilderPluginCallbackExecutionResult ExecuteReflectionMapSaveBegin(
         DBuilderPluginRuntimeInstancePlan instancePlan,

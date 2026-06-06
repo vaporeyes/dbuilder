@@ -1895,6 +1895,54 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void ExecuteReflectionEditOperationHelpersDispatchBeginAndEndCallbacks()
+    {
+        ReflectionEditOperationCallbackPlugin.Calls.Clear();
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            new[]
+            {
+                new DBuilderPluginRuntimeInstance(
+                    "First",
+                    "/plugins/first.dll",
+                    typeof(ReflectionEditOperationCallbackPlugin).FullName!,
+                    0,
+                    new ReflectionEditOperationCallbackPlugin("First", continueResult: false)),
+                new DBuilderPluginRuntimeInstance(
+                    "Second",
+                    "/plugins/second.dll",
+                    typeof(ReflectionEditOperationCallbackPlugin).FullName!,
+                    1,
+                    new ReflectionEditOperationCallbackPlugin("Second", continueResult: true))
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginCallbackExecutionResult copyBegin = DBuilderPluginHostModel.ExecuteReflectionCopyBegin(plan);
+        DBuilderPluginCallbackExecutionResult copyEnd = DBuilderPluginHostModel.ExecuteReflectionCopyEnd(plan);
+        DBuilderPluginCallbackExecutionResult redoBegin = DBuilderPluginHostModel.ExecuteReflectionRedoBegin(plan);
+        DBuilderPluginCallbackExecutionResult redoEnd = DBuilderPluginHostModel.ExecuteReflectionRedoEnd(plan);
+
+        Assert.True(copyBegin.Aborted);
+        Assert.True(redoBegin.Aborted);
+        Assert.False(copyEnd.Aborted);
+        Assert.False(redoEnd.Aborted);
+        Assert.Equal(new[]
+        {
+            "First:CopyBegin:True",
+            "Second:CopyBegin:False",
+            "First:CopyEnd",
+            "Second:CopyEnd",
+            "First:RedoBegin:True",
+            "Second:RedoBegin:False",
+            "First:RedoEnd",
+            "Second:RedoEnd"
+        }, ReflectionEditOperationCallbackPlugin.Calls);
+        Assert.Empty(copyBegin.Diagnostics);
+        Assert.Empty(copyEnd.Diagnostics);
+        Assert.Empty(redoBegin.Diagnostics);
+        Assert.Empty(redoEnd.Diagnostics);
+    }
+
+    [Fact]
     public void ExecuteReflectionCallbackPassesCopiedPasteOptionsToEachPlugin()
     {
         ReflectionPasteCallbackPlugin.Calls.Clear();
@@ -2951,6 +2999,42 @@ public sealed class ReflectionPasteCallbackPlugin : IDBuilderPlugin
             ? "original"
             : "copy";
         Calls.Add(_name + ":End:" + options.ChangeTags + ":" + options.RemoveActions + ":" + copied);
+    }
+}
+
+public sealed class ReflectionEditOperationCallbackPlugin : IDBuilderPlugin
+{
+    public static List<string> Calls { get; } = new();
+
+    private readonly string _name;
+    private readonly bool _continueResult;
+
+    public ReflectionEditOperationCallbackPlugin(string name, bool continueResult)
+    {
+        _name = name;
+        _continueResult = continueResult;
+    }
+
+    public bool OnCopyBegin(bool result)
+    {
+        Calls.Add(_name + ":CopyBegin:" + result);
+        return _continueResult;
+    }
+
+    public void OnCopyEnd()
+    {
+        Calls.Add(_name + ":CopyEnd");
+    }
+
+    public bool OnRedoBegin(bool result)
+    {
+        Calls.Add(_name + ":RedoBegin:" + result);
+        return _continueResult;
+    }
+
+    public void OnRedoEnd()
+    {
+        Calls.Add(_name + ":RedoEnd");
     }
 }
 
