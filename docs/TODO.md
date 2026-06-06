@@ -1033,7 +1033,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 ## Game Configuration
 
-- [ ] Complete game configuration parsing parity.
+- [x] Complete game configuration parsing parity.
   - [x] Parse universal field metadata.
   - [x] Parse thing flag comparison metadata.
   - [x] Parse things filter metadata.
@@ -1131,7 +1131,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port polyobject number handler.
 - [x] Integrate handlers into argument property editors.
 - [x] Integrate handlers into configured universal field editors.
-- [ ] Integrate handlers into property editing UI.
+- [x] Integrate handlers into property editing UI.
   - [x] Add texture and flat browser buttons to property dialogs.
   - [x] Add front and back sidedef texture fields to the linedef property dialog.
   - [x] Add thing, linedef action, and sector effect browsers to configured property fields.
@@ -1149,7 +1149,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port edit mode lifecycle behavior.
   - [x] Add menu and toolbar commands for switching edit modes.
 - [ ] Port classic mode behavior.
-- [ ] Port copy/paste manager behavior fully.
+- [x] Port copy/paste manager behavior fully.
   - [x] Add menu commands for selection copy and paste.
   - [x] Add menu command for selection cut.
   - [x] Add menu command for duplicate selection.
@@ -1165,7 +1165,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor menu and command wiring for active-mode copy/paste properties.
   - [x] Add editor paste-properties options dialog for active-mode property fields.
   - [x] Add UDB-style highlight fallback for active-mode copy/paste properties.
-- [ ] Port undo manager behavior fully.
+- [x] Port undo manager behavior fully.
   - [x] Add UDB-style withdraw-undo behavior for cancelled preview edits.
   - [x] Add UDB-style grouped undo coalescing for repeated edit operations.
   - [x] Clear restored selections after undo and redo like UDB.
@@ -1198,7 +1198,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Skip invalid custom things filter drafts during active-filter lookup.
   - [x] Ignore blank custom things filter field criteria during validation and settings write-back.
   - [x] Default empty custom things filter names like UDB.
-- [ ] Port selection operations for every edit mode.
+- [x] Port selection operations for every edit mode.
   - [x] Add active-mode select all and invert selection.
   - [x] Add menu commands to add, select, and clear selection groups.
   - [x] Add UDB-style stable selection-group action ids and clear-group shortcuts.
@@ -1228,7 +1228,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add raw UDB zoom in and zoom out action aliases to shortcut metadata and dispatch.
   - [x] Add UDB-style visible grid rendering toggle action, menu state, and persisted setting.
   - [x] Preserve UDMF fractional grid sizes when confirming the grid setup dialog.
-- [ ] Port drawing behavior for sectors, lines, rectangles, ellipses, curves, and grids.
+- [x] Port drawing behavior for sectors, lines, rectangles, ellipses, curves, and grids.
   - [x] Add menu commands for sector and lines-only drawing modes.
   - [x] Add menu commands for cursor insert and make-sector actions.
   - [x] Wire make-sector-at-cursor to UDB-style traced sector creation.
@@ -1268,7 +1268,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add menu command for reference, unused sector, and unused vertex cleanup.
   - [x] Apply UDB-style unused sidedef texture cleanup from the Clean Up Geometry command.
   - [x] Add UDB-style singular and plural labels to geometry cleanup status text.
-- [ ] Port map analysis and map check integration.
+- [x] Port map analysis and map check integration.
   - [x] Detect UDB-style interior crossing linedefs with same-sector-on-all-sides exemption.
   - [x] Detect UDB-style missing activation flags for UDMF linedef actions.
   - [x] Honor UDB-style unknown texture exemptions from linedef action metadata.
