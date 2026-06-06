@@ -184,6 +184,23 @@ public sealed record PresentationRenderTargetLifecyclePlan(
     bool DisposeThingBatchBuffer,
     bool ResetGridCache);
 
+public enum PresentationRenderTargetDestroyStepKind
+{
+    DisposeResource,
+    ClearReference,
+    ResetGridCache,
+}
+
+public sealed record PresentationRenderTargetDestroyStep(
+    PresentationRenderTargetDestroyStepKind Kind,
+    string? TargetName = null);
+
+public sealed record PresentationRenderTargetDestroyPlan(
+    int OverlayTextureCount,
+    IReadOnlyList<PresentationRenderTargetDestroyStep> Steps,
+    float LastGridScaleAfter,
+    double LastGridSizeAfter);
+
 public sealed record PresentationDisplaySettings(
     PresentationRendererLayer Layer,
     string SourceTargetName,
@@ -300,6 +317,42 @@ public sealed record PresentationRenderTargetPlan(
                 ResetGridCache: true),
             _ => throw new ArgumentOutOfRangeException(nameof(operation), operation, null),
         };
+
+    public static PresentationRenderTargetDestroyPlan BuildDestroyPlan(int overlayTextureCount)
+    {
+        if (overlayTextureCount < 0) throw new ArgumentOutOfRangeException(nameof(overlayTextureCount));
+
+        var steps = new List<PresentationRenderTargetDestroyStep>(overlayTextureCount * 2 + 12)
+        {
+            new(PresentationRenderTargetDestroyStepKind.DisposeResource, "plotter"),
+            new(PresentationRenderTargetDestroyStepKind.DisposeResource, "things"),
+        };
+
+        for (int i = 0; i < overlayTextureCount; i++)
+        {
+            string name = "overlay" + i;
+            steps.Add(new PresentationRenderTargetDestroyStep(PresentationRenderTargetDestroyStepKind.DisposeResource, name));
+            steps.Add(new PresentationRenderTargetDestroyStep(PresentationRenderTargetDestroyStepKind.ClearReference, name));
+        }
+
+        steps.Add(new PresentationRenderTargetDestroyStep(PresentationRenderTargetDestroyStepKind.DisposeResource, "surface"));
+        steps.Add(new PresentationRenderTargetDestroyStep(PresentationRenderTargetDestroyStepKind.DisposeResource, "gridplotter"));
+        steps.Add(new PresentationRenderTargetDestroyStep(PresentationRenderTargetDestroyStepKind.DisposeResource, "screenverts"));
+        steps.Add(new PresentationRenderTargetDestroyStep(PresentationRenderTargetDestroyStepKind.ClearReference, "things"));
+        steps.Add(new PresentationRenderTargetDestroyStep(PresentationRenderTargetDestroyStepKind.ClearReference, "gridplotter"));
+        steps.Add(new PresentationRenderTargetDestroyStep(PresentationRenderTargetDestroyStepKind.ClearReference, "screenverts"));
+        steps.Add(new PresentationRenderTargetDestroyStep(PresentationRenderTargetDestroyStepKind.ClearReference, "overlaytex"));
+        steps.Add(new PresentationRenderTargetDestroyStep(PresentationRenderTargetDestroyStepKind.ClearReference, "surface"));
+        steps.Add(new PresentationRenderTargetDestroyStep(PresentationRenderTargetDestroyStepKind.DisposeResource, "thingsvertices"));
+        steps.Add(new PresentationRenderTargetDestroyStep(PresentationRenderTargetDestroyStepKind.ClearReference, "thingsvertices"));
+        steps.Add(new PresentationRenderTargetDestroyStep(PresentationRenderTargetDestroyStepKind.ResetGridCache));
+
+        return new PresentationRenderTargetDestroyPlan(
+            overlayTextureCount,
+            steps,
+            LastGridScaleAfter: -1.0f,
+            LastGridSizeAfter: 0.0);
+    }
 
     public static PresentationSetPlan BuildSetPresentationPlan(
         PresentationPlan presentation,

@@ -338,6 +338,68 @@ public sealed class PresentationPlanTests
     }
 
     [Fact]
+    public void DestroyPlanDisposesTargetsInUdbOrder()
+    {
+        PresentationRenderTargetDestroyPlan plan = PresentationRenderTargetPlan.BuildDestroyPlan(overlayTextureCount: 2);
+
+        Assert.Equal(new[]
+        {
+            PresentationRenderTargetDestroyStepKind.DisposeResource,
+            PresentationRenderTargetDestroyStepKind.DisposeResource,
+            PresentationRenderTargetDestroyStepKind.DisposeResource,
+            PresentationRenderTargetDestroyStepKind.ClearReference,
+            PresentationRenderTargetDestroyStepKind.DisposeResource,
+            PresentationRenderTargetDestroyStepKind.ClearReference,
+            PresentationRenderTargetDestroyStepKind.DisposeResource,
+            PresentationRenderTargetDestroyStepKind.DisposeResource,
+            PresentationRenderTargetDestroyStepKind.DisposeResource,
+        }, plan.Steps.Take(9).Select(step => step.Kind));
+        Assert.Equal(new[]
+        {
+            "plotter",
+            "things",
+            "overlay0",
+            "overlay0",
+            "overlay1",
+            "overlay1",
+            "surface",
+            "gridplotter",
+            "screenverts",
+        }, plan.Steps.Take(9).Select(step => step.TargetName));
+    }
+
+    [Fact]
+    public void DestroyPlanClearsUdbReferencesAndGridCache()
+    {
+        PresentationRenderTargetDestroyPlan plan = PresentationRenderTargetPlan.BuildDestroyPlan(overlayTextureCount: 1);
+
+        Assert.Equal(1, plan.OverlayTextureCount);
+        Assert.Equal(new[]
+        {
+            "things",
+            "gridplotter",
+            "screenverts",
+            "overlaytex",
+            "surface",
+            "thingsvertices",
+        }, plan.Steps
+            .Where(step => step.Kind == PresentationRenderTargetDestroyStepKind.ClearReference)
+            .Skip(1)
+            .Select(step => step.TargetName));
+        Assert.Equal(PresentationRenderTargetDestroyStepKind.ResetGridCache, plan.Steps[^1].Kind);
+        Assert.Null(plan.Steps[^1].TargetName);
+        Assert.Equal(-1.0f, plan.LastGridScaleAfter);
+        Assert.Equal(0.0, plan.LastGridSizeAfter);
+    }
+
+    [Fact]
+    public void DestroyPlanRejectsNegativeOverlayTextureCount()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            PresentationRenderTargetPlan.BuildDestroyPlan(overlayTextureCount: -1));
+    }
+
+    [Fact]
     public void RenderTargetPlanMatchesUdbThingVertexBufferCapacity()
     {
         PresentationRenderTargetPlan plan = PresentationRenderTargetPlan.Create(320, 200, PresentationPlan.Standard(0.4f, 0.25f));
