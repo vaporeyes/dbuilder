@@ -2219,6 +2219,57 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void ExecuteReflectionRenderingHelpersDispatchCallbacksInOrder()
+    {
+        ReflectionRenderingCallbackPlugin.Calls.Clear();
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            new[]
+            {
+                new DBuilderPluginRuntimeInstance(
+                    "Second",
+                    "/plugins/second.dll",
+                    typeof(ReflectionRenderingCallbackPlugin).FullName!,
+                    1,
+                    new ReflectionRenderingCallbackPlugin("Second")),
+                new DBuilderPluginRuntimeInstance(
+                    "First",
+                    "/plugins/first.dll",
+                    typeof(ReflectionRenderingCallbackPlugin).FullName!,
+                    0,
+                    new ReflectionRenderingCallbackPlugin("First"))
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginCallbackExecutionResult redrawBegin = DBuilderPluginHostModel.ExecuteReflectionEditRedrawDisplayBegin(plan);
+        DBuilderPluginCallbackExecutionResult redrawEnd = DBuilderPluginHostModel.ExecuteReflectionEditRedrawDisplayEnd(plan);
+        DBuilderPluginCallbackExecutionResult presentBegin = DBuilderPluginHostModel.ExecuteReflectionPresentDisplayBegin(plan);
+        DBuilderPluginCallbackExecutionResult ceilingUpdate = DBuilderPluginHostModel.ExecuteReflectionSectorCeilingSurfaceUpdate(plan);
+        DBuilderPluginCallbackExecutionResult floorUpdate = DBuilderPluginHostModel.ExecuteReflectionSectorFloorSurfaceUpdate(plan);
+
+        Assert.All(
+            new[] { redrawBegin, redrawEnd, presentBegin, ceilingUpdate, floorUpdate },
+            result =>
+            {
+                Assert.True(result.Completed);
+                Assert.False(result.Aborted);
+                Assert.Empty(result.Diagnostics);
+            });
+        Assert.Equal(new[]
+        {
+            "First:RedrawBegin",
+            "Second:RedrawBegin",
+            "First:RedrawEnd",
+            "Second:RedrawEnd",
+            "First:PresentBegin",
+            "Second:PresentBegin",
+            "First:CeilingUpdate",
+            "Second:CeilingUpdate",
+            "First:FloorUpdate",
+            "Second:FloorUpdate"
+        }, ReflectionRenderingCallbackPlugin.Calls);
+    }
+
+    [Fact]
     public void ExecuteReflectionCallbackPassesCopiedPasteOptionsToEachPlugin()
     {
         ReflectionPasteCallbackPlugin.Calls.Clear();
@@ -3491,6 +3542,43 @@ public sealed class ReflectionInputCallbackPlugin : IDBuilderPlugin
     public void OnEditMouseInput()
     {
         Calls.Add(_name + ":MouseInput");
+    }
+}
+
+public sealed class ReflectionRenderingCallbackPlugin : IDBuilderPlugin
+{
+    public static List<string> Calls { get; } = new();
+
+    private readonly string _name;
+
+    public ReflectionRenderingCallbackPlugin(string name)
+    {
+        _name = name;
+    }
+
+    public void OnEditRedrawDisplayBegin()
+    {
+        Calls.Add(_name + ":RedrawBegin");
+    }
+
+    public void OnEditRedrawDisplayEnd()
+    {
+        Calls.Add(_name + ":RedrawEnd");
+    }
+
+    public void OnPresentDisplayBegin()
+    {
+        Calls.Add(_name + ":PresentBegin");
+    }
+
+    public void OnSectorCeilingSurfaceUpdate()
+    {
+        Calls.Add(_name + ":CeilingUpdate");
+    }
+
+    public void OnSectorFloorSurfaceUpdate()
+    {
+        Calls.Add(_name + ":FloorUpdate");
     }
 }
 

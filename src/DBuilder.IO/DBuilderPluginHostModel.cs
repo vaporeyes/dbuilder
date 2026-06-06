@@ -1168,6 +1168,26 @@ public static class DBuilderPluginHostModel
         DBuilderPluginRuntimeInstancePlan instancePlan)
         => ExecuteReflectionCallback(instancePlan, "OnEditMouseInput");
 
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionEditRedrawDisplayBegin(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnEditRedrawDisplayBegin");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionEditRedrawDisplayEnd(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnEditRedrawDisplayEnd");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionPresentDisplayBegin(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnPresentDisplayBegin");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionSectorCeilingSurfaceUpdate(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnSectorCeilingSurfaceUpdate");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionSectorFloorSurfaceUpdate(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnSectorFloorSurfaceUpdate");
+
     public static DBuilderPluginCallbackExecutionResult ExecuteReflectionMapSaveBegin(
         DBuilderPluginRuntimeInstancePlan instancePlan,
         SavePurpose purpose)
