@@ -1117,6 +1117,20 @@ public class MapSet : IDisposable
     }
 
     /// <summary>
+    /// UDB-compatible split-by-lines overload. Classic mode leaves the supplied collections unchanged.
+    /// </summary>
+    public bool SplitLinesByLines(
+        ICollection<Linedef> lines,
+        HashSet<Linedef> changedLines,
+        MergeGeometryMode mergeMode)
+    {
+        if (mergeMode == MergeGeometryMode.Classic) return true;
+
+        SplitLinesByLines(lines, changedLines);
+        return true;
+    }
+
+    /// <summary>
     /// Stitches selected geometry against unselected geometry by joining nearby vertices, splitting crossed lines,
     /// removing looped changed lines, and correcting backward changed lines. Call BuildIndexes() afterward.
     /// </summary>

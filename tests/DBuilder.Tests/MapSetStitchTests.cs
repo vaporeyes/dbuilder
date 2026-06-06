@@ -186,6 +186,40 @@ public class MapSetStitchTests
     }
 
     [Fact]
+    public void SplitLinesByLinesModeOverloadLeavesClassicGeometryUnchanged()
+    {
+        var map = new MapSet();
+        var fixedLine = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(100, 0)));
+        var changedLine = map.AddLinedef(map.AddVertex(new Vector2D(50, -50)), map.AddVertex(new Vector2D(50, 50)));
+        var fixedLines = new HashSet<Linedef> { fixedLine };
+        var changedLines = new HashSet<Linedef> { changedLine };
+
+        bool succeeded = map.SplitLinesByLines(fixedLines, changedLines, MergeGeometryMode.Classic);
+
+        Assert.True(succeeded);
+        Assert.Equal(2, map.Linedefs.Count);
+        Assert.Equal(new[] { changedLine }, changedLines);
+    }
+
+    [Fact]
+    public void SplitLinesByLinesModeOverloadSplitsMergeGeometry()
+    {
+        var map = new MapSet();
+        var fixedLine = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(100, 0)));
+        var changedLine = map.AddLinedef(map.AddVertex(new Vector2D(50, -50)), map.AddVertex(new Vector2D(50, 50)));
+        var fixedLines = new HashSet<Linedef> { fixedLine };
+        var changedLines = new HashSet<Linedef> { changedLine };
+
+        bool succeeded = map.SplitLinesByLines(fixedLines, changedLines, MergeGeometryMode.Merge);
+
+        Assert.True(succeeded);
+        Assert.Equal(4, map.Linedefs.Count);
+        Assert.Equal(3, changedLines.Count);
+        Assert.Contains(map.Vertices, vertex => vertex.Position == new Vector2D(50, 0));
+        Assert.Contains(changedLines, line => !ReferenceEquals(line, changedLine));
+    }
+
+    [Fact]
     public void JoinOverlappingLinesUsesUdbBooleanContract()
     {
         var map = new MapSet();
