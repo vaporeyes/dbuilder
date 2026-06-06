@@ -45,6 +45,13 @@ public sealed record RenderStateTogglePlan(
     RenderStateToggleKind Kind,
     bool Enabled);
 
+public sealed record SamplerFilterPlan(
+    TextureFilter MinFilter,
+    TextureFilter MagFilter,
+    MipmapFilter MipFilter,
+    float MaxAnisotropy,
+    int Unit);
+
 public sealed class RenderDevice : IDisposable
 {
     private readonly GL _gl;
@@ -336,6 +343,23 @@ public sealed class RenderDevice : IDisposable
 
     public static RenderStateTogglePlan BuildMultisampleAntialiasPlan(bool enabled)
         => new(RenderStateToggleKind.MultisampleAntialias, enabled);
+
+    public static SamplerFilterPlan BuildSamplerFilterPlan(TextureFilter filter, int unit = 0)
+        => BuildSamplerFilterPlan(filter, filter, MipmapFilter.None, 0.0f, unit);
+
+    public static SamplerFilterPlan BuildSamplerFilterPlan(
+        TextureFilter min,
+        TextureFilter mag,
+        MipmapFilter mip,
+        float maxAnisotropy,
+        int unit = 0)
+        => new(min, mag, mip, maxAnisotropy, unit);
+
+    public void SetSamplerFilter(TextureFilter filter, int unit = 0)
+        => SetSamplerFilter(filter, filter, MipmapFilter.None, unit);
+
+    public void SetSamplerFilter(TextureFilter min, TextureFilter mag, MipmapFilter mip, float maxAnisotropy, int unit = 0)
+        => SetSamplerFilter(min, mag, mip, unit);
 
     public void SetSamplerFilter(TextureFilter min, TextureFilter mag, MipmapFilter mip, int unit = 0)
     {

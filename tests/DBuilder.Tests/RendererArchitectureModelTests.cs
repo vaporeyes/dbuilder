@@ -24,6 +24,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("2D presentation frame operation sequence planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device alpha-test compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device multisample antialias compatibility state planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device sampler-filter overload planning", replacement.CoveredResponsibilities);
         Assert.Contains("Index-buffer binding and primitive draw dispatch", replacement.CoveredResponsibilities);
         Assert.Contains("Length-based vertex-buffer allocation", replacement.CoveredResponsibilities);
         Assert.Contains("Flat and world vertex-buffer subdata updates", replacement.CoveredResponsibilities);
@@ -153,6 +154,36 @@ public class RendererArchitectureModelTests
 
         Assert.Equal(RenderStateToggleKind.MultisampleAntialias, plan.Kind);
         Assert.True(plan.Enabled);
+    }
+
+    [Fact]
+    public void RenderDeviceExposesUdbSamplerFilterOverloads()
+    {
+        Assert.NotNull(typeof(RenderDevice).GetMethod(
+            nameof(RenderDevice.SetSamplerFilter),
+            new[] { typeof(TextureFilter), typeof(int) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(
+            nameof(RenderDevice.SetSamplerFilter),
+            new[] { typeof(TextureFilter), typeof(TextureFilter), typeof(MipmapFilter), typeof(float), typeof(int) }));
+
+        SamplerFilterPlan single = RenderDevice.BuildSamplerFilterPlan(TextureFilter.Linear, unit: 2);
+        SamplerFilterPlan detailed = RenderDevice.BuildSamplerFilterPlan(
+            TextureFilter.Nearest,
+            TextureFilter.Linear,
+            MipmapFilter.Nearest,
+            maxAnisotropy: 4.0f,
+            unit: 3);
+
+        Assert.Equal(TextureFilter.Linear, single.MinFilter);
+        Assert.Equal(TextureFilter.Linear, single.MagFilter);
+        Assert.Equal(MipmapFilter.None, single.MipFilter);
+        Assert.Equal(0.0f, single.MaxAnisotropy);
+        Assert.Equal(2, single.Unit);
+        Assert.Equal(TextureFilter.Nearest, detailed.MinFilter);
+        Assert.Equal(TextureFilter.Linear, detailed.MagFilter);
+        Assert.Equal(MipmapFilter.Nearest, detailed.MipFilter);
+        Assert.Equal(4.0f, detailed.MaxAnisotropy);
+        Assert.Equal(3, detailed.Unit);
     }
 
     [Fact]

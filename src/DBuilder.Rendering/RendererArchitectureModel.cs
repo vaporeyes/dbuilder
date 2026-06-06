@@ -30,6 +30,7 @@ public static class RendererArchitectureModel
             "2D presentation frame operation sequence planning",
             "Render-device alpha-test compatibility state planning",
             "Render-device multisample antialias compatibility state planning",
+            "Render-device sampler-filter overload planning",
             "Cull, depth, fill, blend, sampler, and texture state",
             "Flat and world vertex-buffer attribute binding",
             "Length-based vertex-buffer allocation",
