@@ -282,6 +282,24 @@ public class MapElementDataTests
     }
 
     [Fact]
+    public void ThingRenderSizeMatchesUdbSurfaceAndCopies()
+    {
+        var source = new Thing(new Vector2D(0, 0), 3001)
+        {
+            Size = 16,
+            RenderSize = 24,
+            FixedSize = true,
+        };
+        var target = new Thing();
+
+        source.CopyPropertiesTo(target);
+
+        Assert.Equal(16, target.Size);
+        Assert.Equal(24, target.RenderSize);
+        Assert.True(target.FixedSize);
+    }
+
+    [Fact]
     public void VertexRenderingConstantsMatchUdbSurface()
     {
         Assert.Equal(1, Vertex.BUFFERVERTICES);

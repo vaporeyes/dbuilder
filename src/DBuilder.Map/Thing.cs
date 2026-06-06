@@ -52,6 +52,9 @@ public class Thing : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, 
     /// <summary>Editor display radius from thing type metadata. Not serialized in map data.</summary>
     public double Size { get; set; }
 
+    /// <summary>Editor render radius from thing type metadata. Not serialized in map data.</summary>
+    public double RenderSize { get; set; }
+
     /// <summary>Whether the thing keeps a fixed screen size in 2D rendering. Not serialized in map data.</summary>
     public bool FixedSize { get; set; }
 
@@ -131,6 +134,7 @@ public class Thing : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, 
         thing.ScaleX = ScaleX;
         thing.ScaleY = ScaleY;
         thing.Size = Size;
+        thing.RenderSize = RenderSize;
         thing.FixedSize = FixedSize;
         thing.Flags = Flags;
         thing.Tag = Tag;
