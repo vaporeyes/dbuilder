@@ -366,6 +366,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add plugin lifecycle hook ordering for load, initialize, contribution registration, map-open, engage, disengage, and dispose planning.
   - [x] Add plugin map-close lifecycle hook planning for map-scoped plugins.
   - [x] Add plugin map-save lifecycle hook planning for map-scoped plugins.
+  - [x] Add plugin map and program reconfiguration lifecycle hook planning.
 - [ ] Define plugin APIs for map access, UI contribution, actions, edit modes, and dockers.
   - [x] Add UDB-style plugin host API service planning with map-open availability.
   - [x] Add UDB-style reflection plugin embedded-resource stream lookup.
