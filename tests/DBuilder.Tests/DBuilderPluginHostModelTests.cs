@@ -425,6 +425,95 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void PlanActivationAttemptsRecordsSuccessfulPluginActivation()
+    {
+        DBuilderPluginTypeDiscoveryPlan typeDiscoveryPlan = DBuilderPluginHostModel.PlanTypeDiscovery(
+            DBuilderPluginHostModel.PlanAssemblyLoadAttempts(
+                DBuilderPluginHostModel.PlanLoadCandidates(
+                    DBuilderPluginHostModel.PlanDescriptors(new[]
+                    {
+                        new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll")
+                    })),
+                _ => true),
+            _ => "BuilderModes.BuilderModesPlugin");
+
+        DBuilderPluginActivationPlan plan = DBuilderPluginHostModel.PlanActivationAttempts(
+            typeDiscoveryPlan,
+            _ => null);
+
+        Assert.Empty(plan.Diagnostics);
+        DBuilderPluginActivationAttempt attempt = Assert.Single(plan.Attempts);
+        Assert.Equal("BuilderModes", attempt.PluginName);
+        Assert.Equal("/plugins/buildermodes.dll", attempt.AssemblyPath);
+        Assert.Equal("BuilderModes.BuilderModesPlugin", attempt.PluginTypeName);
+        Assert.Equal(0, attempt.Order);
+        Assert.True(attempt.Activated);
+        Assert.Null(attempt.Error);
+    }
+
+    [Fact]
+    public void PlanActivationAttemptsReportsPluginActivationErrors()
+    {
+        DBuilderPluginTypeDiscoveryPlan typeDiscoveryPlan = DBuilderPluginHostModel.PlanTypeDiscovery(
+            DBuilderPluginHostModel.PlanAssemblyLoadAttempts(
+                DBuilderPluginHostModel.PlanLoadCandidates(
+                    DBuilderPluginHostModel.PlanDescriptors(new[]
+                    {
+                        new DBuilderPluginDescriptor("TagRange", "/plugins/tagrange.dll"),
+                        new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll")
+                    })),
+                _ => true),
+            attempt => attempt.PluginName + ".Plugin");
+
+        DBuilderPluginActivationPlan plan = DBuilderPluginHostModel.PlanActivationAttempts(
+            typeDiscoveryPlan,
+            discovery => discovery.PluginName == "TagRange" ? " constructor failed " : null);
+
+        Assert.Collection(
+            plan.Attempts,
+            attempt =>
+            {
+                Assert.Equal("BuilderModes", attempt.PluginName);
+                Assert.True(attempt.Activated);
+            },
+            attempt =>
+            {
+                Assert.Equal("TagRange", attempt.PluginName);
+                Assert.False(attempt.Activated);
+                Assert.Equal("constructor failed", attempt.Error);
+            });
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.Diagnostics);
+        Assert.Equal(DBuilderPluginDiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.Equal("TagRange", diagnostic.PluginName);
+        Assert.Equal("constructor failed", diagnostic.Message);
+    }
+
+    [Fact]
+    public void PlanActivationAttemptsPreservesTypeDiscoveryDiagnostics()
+    {
+        DBuilderPluginTypeDiscoveryPlan typeDiscoveryPlan = DBuilderPluginHostModel.PlanTypeDiscovery(
+            DBuilderPluginHostModel.PlanAssemblyLoadAttempts(
+                DBuilderPluginHostModel.PlanLoadCandidates(
+                    DBuilderPluginHostModel.PlanDescriptors(new[]
+                    {
+                        new DBuilderPluginDescriptor("TagRange", "/plugins/tagrange.dll"),
+                        new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll")
+                    })),
+                _ => true),
+            attempt => attempt.PluginName == "BuilderModes" ? "BuilderModes.BuilderModesPlugin" : null);
+
+        DBuilderPluginActivationPlan plan = DBuilderPluginHostModel.PlanActivationAttempts(
+            typeDiscoveryPlan,
+            _ => null);
+
+        DBuilderPluginActivationAttempt attempt = Assert.Single(plan.Attempts);
+        Assert.Equal("BuilderModes", attempt.PluginName);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.Diagnostics);
+        Assert.Equal("TagRange", diagnostic.PluginName);
+        Assert.Equal("Plugin TagRange assembly does not expose a plugin type.", diagnostic.Message);
+    }
+
+    [Fact]
     public void BuildRuntimePlanKeepsMissingAssembliesOutOfReadyHost()
     {
         DBuilderPluginRuntimePlan plan = DBuilderPluginHostModel.BuildRuntimePlan(
@@ -448,6 +537,9 @@ public sealed class DBuilderPluginHostModelTests
         Assert.Equal("Plugin TagRange assembly was not found at /plugins/tagrange.dll.", diagnostic.Message);
         DBuilderPluginTypeDiscovery typeDiscovery = Assert.Single(plan.TypeDiscoveryPlan.Discoveries);
         Assert.Equal("BuilderModes", typeDiscovery.PluginName);
+        DBuilderPluginActivationAttempt activation = Assert.Single(plan.ActivationPlan.Attempts);
+        Assert.Equal("BuilderModes", activation.PluginName);
+        Assert.True(activation.Activated);
         DBuilderPluginDescriptor readyDescriptor = Assert.Single(plan.ReadyHostPlan.DescriptorPlan.Descriptors);
         Assert.Equal("BuilderModes", readyDescriptor.Name);
         DBuilderPluginApiContribution action = Assert.Single(plan.ReadyHostPlan.ApiContributions.Actions);
@@ -511,6 +603,43 @@ public sealed class DBuilderPluginHostModelTests
         Assert.Equal("BuilderModes", readyDescriptor.Name);
         DBuilderPluginApiContribution action = Assert.Single(plan.ReadyHostPlan.ApiContributions.Actions);
         Assert.Equal("builder.draw.action", action.Id);
+    }
+
+    [Fact]
+    public void BuildRuntimePlanKeepsActivationFailuresOutOfReadyHost()
+    {
+        DBuilderPluginRuntimePlan plan = DBuilderPluginHostModel.BuildRuntimePlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor("TagRange", "/plugins/tagrange.dll"),
+                new DBuilderPluginDescriptor(
+                    "BuilderModes",
+                    "/plugins/buildermodes.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "builder.draw.action", "Draw action")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest(Engage: true),
+            _ => true,
+            attempt => attempt.PluginName + ".Plugin",
+            discovery => discovery.PluginName == "TagRange" ? "activation failed" : null);
+
+        Assert.Equal(2, plan.TypeDiscoveryPlan.Discoveries.Count);
+        Assert.Collection(
+            plan.ActivationPlan.Attempts,
+            attempt => Assert.True(attempt.Activated),
+            attempt =>
+            {
+                Assert.Equal("TagRange", attempt.PluginName);
+                Assert.False(attempt.Activated);
+            });
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.ActivationPlan.Diagnostics);
+        Assert.Equal("TagRange", diagnostic.PluginName);
+        Assert.Equal("activation failed", diagnostic.Message);
+        DBuilderPluginDescriptor readyDescriptor = Assert.Single(plan.ReadyHostPlan.DescriptorPlan.Descriptors);
+        Assert.Equal("BuilderModes", readyDescriptor.Name);
+        Assert.Single(plan.ReadyHostPlan.ApiContributions.Actions);
     }
 
     [Fact]

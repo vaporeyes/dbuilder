@@ -96,10 +96,23 @@ public sealed record DBuilderPluginTypeDiscoveryPlan(
     IReadOnlyList<DBuilderPluginTypeDiscovery> Discoveries,
     IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
 
+public sealed record DBuilderPluginActivationAttempt(
+    string PluginName,
+    string AssemblyPath,
+    string PluginTypeName,
+    int Order,
+    bool Activated,
+    string? Error = null);
+
+public sealed record DBuilderPluginActivationPlan(
+    IReadOnlyList<DBuilderPluginActivationAttempt> Attempts,
+    IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
+
 public sealed record DBuilderPluginRuntimePlan(
     DBuilderPluginHostPlan HostPlan,
     DBuilderPluginAssemblyLoadPlan AssemblyLoadPlan,
     DBuilderPluginTypeDiscoveryPlan TypeDiscoveryPlan,
+    DBuilderPluginActivationPlan ActivationPlan,
     DBuilderPluginHostPlan ReadyHostPlan);
 
 public sealed record DBuilderPluginSettingDescriptor(
@@ -414,6 +427,37 @@ public static class DBuilderPluginHostModel
         return new DBuilderPluginTypeDiscoveryPlan(discoveries, diagnostics);
     }
 
+    public static DBuilderPluginActivationPlan PlanActivationAttempts(
+        DBuilderPluginTypeDiscoveryPlan typeDiscoveryPlan,
+        Func<DBuilderPluginTypeDiscovery, string?> activatePlugin)
+    {
+        var attempts = new List<DBuilderPluginActivationAttempt>();
+        var diagnostics = new List<DBuilderPluginDiagnostic>(typeDiscoveryPlan.Diagnostics);
+
+        foreach (DBuilderPluginTypeDiscovery discovery in typeDiscoveryPlan.Discoveries)
+        {
+            string error = activatePlugin(discovery)?.Trim() ?? "";
+            bool activated = error.Length == 0;
+            attempts.Add(new DBuilderPluginActivationAttempt(
+                discovery.PluginName,
+                discovery.AssemblyPath,
+                discovery.PluginTypeName,
+                discovery.Order,
+                activated,
+                activated ? null : error));
+
+            if (!activated)
+            {
+                diagnostics.Add(new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Error,
+                    discovery.PluginName,
+                    error));
+            }
+        }
+
+        return new DBuilderPluginActivationPlan(attempts, diagnostics);
+    }
+
     public static DBuilderPluginRuntimePlan BuildRuntimePlan(
         IEnumerable<DBuilderPluginDescriptor> descriptors,
         DBuilderPluginLifecycleRequest request,
@@ -422,13 +466,27 @@ public static class DBuilderPluginHostModel
             descriptors,
             request,
             assemblyExists,
-            attempt => attempt.PluginName);
+            attempt => attempt.PluginName,
+            _ => null);
 
     public static DBuilderPluginRuntimePlan BuildRuntimePlan(
         IEnumerable<DBuilderPluginDescriptor> descriptors,
         DBuilderPluginLifecycleRequest request,
         Func<string, bool> assemblyExists,
         Func<DBuilderPluginAssemblyLoadAttempt, string?> discoverPluginTypeName)
+        => BuildRuntimePlan(
+            descriptors,
+            request,
+            assemblyExists,
+            discoverPluginTypeName,
+            _ => null);
+
+    public static DBuilderPluginRuntimePlan BuildRuntimePlan(
+        IEnumerable<DBuilderPluginDescriptor> descriptors,
+        DBuilderPluginLifecycleRequest request,
+        Func<string, bool> assemblyExists,
+        Func<DBuilderPluginAssemblyLoadAttempt, string?> discoverPluginTypeName,
+        Func<DBuilderPluginTypeDiscovery, string?> activatePlugin)
     {
         DBuilderPluginDescriptor[] descriptorRows = descriptors.ToArray();
         DBuilderPluginHostPlan hostPlan = BuildHostPlan(descriptorRows, request);
@@ -438,17 +496,22 @@ public static class DBuilderPluginHostModel
         DBuilderPluginTypeDiscoveryPlan typeDiscoveryPlan = PlanTypeDiscovery(
             assemblyLoadPlan,
             discoverPluginTypeName);
-        var discoveredPlugins = typeDiscoveryPlan.Discoveries
-            .Select(discovery => discovery.PluginName)
+        DBuilderPluginActivationPlan activationPlan = PlanActivationAttempts(
+            typeDiscoveryPlan,
+            activatePlugin);
+        var activatedPlugins = activationPlan.Attempts
+            .Where(attempt => attempt.Activated)
+            .Select(attempt => attempt.PluginName)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         DBuilderPluginHostPlan readyHostPlan = BuildHostPlan(
-            descriptorRows.Where(descriptor => discoveredPlugins.Contains(descriptor.Name.Trim())),
+            descriptorRows.Where(descriptor => activatedPlugins.Contains(descriptor.Name.Trim())),
             request);
 
         return new DBuilderPluginRuntimePlan(
             hostPlan,
             assemblyLoadPlan,
             typeDiscoveryPlan,
+            activationPlan,
             readyHostPlan);
     }
 
