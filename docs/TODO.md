@@ -374,6 +374,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Model plugin contribution kinds for actions, menus, toolbars, edit modes, dockers, and resource handlers.
   - [x] Add plugin action, edit-mode, and docker contribution planning with stable ordering and warning isolation.
   - [x] Add plugin action command resolution with missing and ambiguous action diagnostics.
+  - [x] Add reflection execution for configured plugin action methods.
 - [ ] Port plugin toolbar and menu contribution behavior.
   - [x] Add plugin menu and toolbar contribution planning with stable ordering and warning isolation.
 - [ ] Port plugin settings persistence.
