@@ -143,13 +143,22 @@ public class Sidedef : IMapElement, ISelectable, IMarkable, IFielded
     }
 
     public void SetTextureHigh(string? name)
-        => HighTexture = NormalizeTextureName(name);
+    {
+        HighTexture = NormalizeTextureName(name);
+        if (HighTexture == "-") LongHighTexture = MapSet.EmptyLongName;
+    }
 
     public void SetTextureMid(string? name)
-        => MidTexture = NormalizeTextureName(name);
+    {
+        MidTexture = NormalizeTextureName(name);
+        if (MidTexture == "-") LongMiddleTexture = MapSet.EmptyLongName;
+    }
 
     public void SetTextureLow(string? name)
-        => LowTexture = NormalizeTextureName(name);
+    {
+        LowTexture = NormalizeTextureName(name);
+        if (LowTexture == "-") LongLowTexture = MapSet.EmptyLongName;
+    }
 
     public string GetTexture(SidedefPart part) => part switch
     {

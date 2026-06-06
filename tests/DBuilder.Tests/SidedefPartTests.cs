@@ -35,7 +35,12 @@ public class SidedefPartTests
     [Fact]
     public void SidedefUpdateAndNamedTextureSettersMatchUdbSurface()
     {
-        var side = new Sidedef();
+        var side = new Sidedef
+        {
+            LongHighTexture = 11,
+            LongMiddleTexture = 22,
+            LongLowTexture = 33,
+        };
 
         side.Update(
             offsetX: 8,
@@ -64,6 +69,13 @@ public class SidedefPartTests
         Assert.Equal("UP", side.HighTexture);
         Assert.Equal("-", side.MidTexture);
         Assert.Equal("-", side.LowTexture);
+        Assert.Equal(MapSet.EmptyLongName, side.LongMiddleTexture);
+        Assert.Equal(MapSet.EmptyLongName, side.LongLowTexture);
+
+        side.SetTextureHigh(null);
+
+        Assert.Equal("-", side.HighTexture);
+        Assert.Equal(MapSet.EmptyLongName, side.LongHighTexture);
 
         side.Update(1, 2, "HI", "MID", "");
 
