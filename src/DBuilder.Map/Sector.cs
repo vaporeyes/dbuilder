@@ -132,6 +132,19 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
         else UdmfFlags.Remove(flagName);
     }
 
+    public Dictionary<string, bool> GetFlags()
+    {
+        var flags = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        foreach (string flag in UdmfFlags) flags[flag] = true;
+        return flags;
+    }
+
+    public HashSet<string> GetEnabledFlags()
+        => new(UdmfFlags, StringComparer.OrdinalIgnoreCase);
+
+    public void ClearFlags()
+        => UdmfFlags.Clear();
+
     public void CopyPropertiesTo(Sector sector)
     {
         sector.Selected = Selected;

@@ -176,10 +176,45 @@ public class MapElementDataTests
         sector.SetFlag("secret", true);
         thing.SetFlag("skill1", true);
 
+        Dictionary<string, bool> lineFlags = line.GetFlags();
+        Dictionary<string, bool> sideFlags = side.GetFlags();
+        Dictionary<string, bool> sectorFlags = sector.GetFlags();
+        Dictionary<string, bool> thingFlags = thing.GetFlags();
+        HashSet<string> lineEnabled = line.GetEnabledFlags();
+        HashSet<string> sideEnabled = side.GetEnabledFlags();
+        HashSet<string> sectorEnabled = sector.GetEnabledFlags();
+        HashSet<string> thingEnabled = thing.GetEnabledFlags();
+
         Assert.True(line.IsFlagSet("blocking"));
         Assert.True(side.IsFlagSet("clipmidtex"));
         Assert.True(sector.IsFlagSet("secret"));
         Assert.True(thing.IsFlagSet("skill1"));
+        Assert.True(lineFlags["blocking"]);
+        Assert.True(sideFlags["clipmidtex"]);
+        Assert.True(sectorFlags["secret"]);
+        Assert.True(thingFlags["skill1"]);
+        Assert.Contains("blocking", lineEnabled);
+        Assert.Contains("clipmidtex", sideEnabled);
+        Assert.Contains("secret", sectorEnabled);
+        Assert.Contains("skill1", thingEnabled);
+
+        lineFlags["playeruse"] = true;
+        sideFlags["wrapmidtex"] = true;
+        sectorFlags["damagehazard"] = true;
+        thingFlags["skill2"] = true;
+        lineEnabled.Add("monsteruse");
+        sideEnabled.Add("lightfog");
+        sectorEnabled.Add("nofallingdamage");
+        thingEnabled.Add("ambush");
+
+        Assert.False(line.IsFlagSet("playeruse"));
+        Assert.False(side.IsFlagSet("wrapmidtex"));
+        Assert.False(sector.IsFlagSet("damagehazard"));
+        Assert.False(thing.IsFlagSet("skill2"));
+        Assert.False(line.IsFlagSet("monsteruse"));
+        Assert.False(side.IsFlagSet("lightfog"));
+        Assert.False(sector.IsFlagSet("nofallingdamage"));
+        Assert.False(thing.IsFlagSet("ambush"));
 
         line.SetFlag("blocking", false);
         side.SetFlag("clipmidtex", false);
@@ -194,5 +229,24 @@ public class MapElementDataTests
         Assert.Empty(side.UdmfFlags);
         Assert.Empty(sector.UdmfFlags);
         Assert.Empty(thing.UdmfFlags);
+
+        line.SetFlag("blocking", true);
+        side.SetFlag("clipmidtex", true);
+        sector.SetFlag("secret", true);
+        thing.SetFlag("skill1", true);
+
+        line.ClearFlags();
+        side.ClearFlags();
+        sector.ClearFlags();
+        thing.ClearFlags();
+
+        Assert.Empty(line.GetFlags());
+        Assert.Empty(side.GetFlags());
+        Assert.Empty(sector.GetFlags());
+        Assert.Empty(thing.GetFlags());
+        Assert.Empty(line.GetEnabledFlags());
+        Assert.Empty(side.GetEnabledFlags());
+        Assert.Empty(sector.GetEnabledFlags());
+        Assert.Empty(thing.GetEnabledFlags());
     }
 }
