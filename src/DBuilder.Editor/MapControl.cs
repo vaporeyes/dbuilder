@@ -4908,14 +4908,16 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                     farOverviewThingMarkers),
                 compactThingMarkers);
             Gldefs? gldefs = _resources?.GetGldefs();
-            System.Collections.Generic.HashSet<(int X, int Y)>? overviewCells = null;
+            System.Collections.Generic.HashSet<(int X, int Y)>? selectedOverviewCells = null;
+            System.Collections.Generic.HashSet<(int X, int Y)>? renderedOverviewCells = null;
             if (ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(_zoom, _thingArrows))
             {
-                overviewCells = new System.Collections.Generic.HashSet<(int X, int Y)>();
+                selectedOverviewCells = new System.Collections.Generic.HashSet<(int X, int Y)>();
+                renderedOverviewCells = new System.Collections.Generic.HashSet<(int X, int Y)>();
                 foreach (var selected in _map.Things)
                 {
                     if (!selected.Selected || ThingHidden2D(selected)) continue;
-                    overviewCells.Add(ThingOverviewCell(selected.Position));
+                    selectedOverviewCells.Add(ThingOverviewCell(selected.Position));
                 }
             }
 
@@ -4930,7 +4932,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                     _zoom,
                     _fixedThingsScale,
                     fixedSize)) continue;
-                if (overviewCells != null && !t.Selected && !overviewCells.Add(ThingOverviewCell(t.Position))) continue;
+                if (renderedOverviewCells != null && selectedOverviewCells != null)
+                {
+                    var cell = ThingOverviewCell(t.Position);
+                    if (!ThingIconRenderPolicy.ShouldRenderOverviewCellThing(
+                        t.Selected,
+                        selectedOverviewCells.Contains(cell),
+                        renderedOverviewCells.Contains(cell))) continue;
+                    renderedOverviewCells.Add(cell);
+                }
                 // Arrow mode: Doom-Builder-style colored disc + direction arrow (no sprites).
                 if (_thingArrows)
                 {

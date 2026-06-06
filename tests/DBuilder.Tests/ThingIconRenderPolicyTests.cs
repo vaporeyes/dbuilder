@@ -222,6 +222,27 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
+    public void OverviewCellsRenderOneThingAndPreferSelectedThings()
+    {
+        Assert.False(ThingIconRenderPolicy.ShouldRenderOverviewCellThing(
+            thingSelected: false,
+            cellHasSelectedThing: true,
+            cellAlreadyRendered: false));
+        Assert.True(ThingIconRenderPolicy.ShouldRenderOverviewCellThing(
+            thingSelected: true,
+            cellHasSelectedThing: true,
+            cellAlreadyRendered: false));
+        Assert.False(ThingIconRenderPolicy.ShouldRenderOverviewCellThing(
+            thingSelected: true,
+            cellHasSelectedThing: true,
+            cellAlreadyRendered: true));
+        Assert.True(ThingIconRenderPolicy.ShouldRenderOverviewCellThing(
+            thingSelected: false,
+            cellHasSelectedThing: false,
+            cellAlreadyRendered: false));
+    }
+
+    [Fact]
     public void SkipsThingsWhoseProjectedRadiusIsTooSmall()
     {
         Assert.False(ThingIconRenderPolicy.ShouldRenderThing(

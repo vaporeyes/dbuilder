@@ -45,6 +45,12 @@ public static class ThingIconRenderPolicy
     public static double OverviewCullCellPixelsFor(double viewScale, bool thingArrows)
         => UseFarOverviewMarkers(viewScale, thingArrows) ? FarOverviewCullCellPixels : OverviewCullCellPixels;
 
+    public static bool ShouldRenderOverviewCellThing(bool thingSelected, bool cellHasSelectedThing, bool cellAlreadyRendered)
+    {
+        if (cellAlreadyRendered) return false;
+        return !cellHasSelectedThing || thingSelected;
+    }
+
     public static bool ShouldRenderThing(double mapRadius, double viewScale, bool fixedThingsScale, bool fixedSize = false)
         => ProjectedThingScreenRadius(mapRadius, viewScale, fixedThingsScale, fixedSize) >= MinimumThingScreenRadius;
 
