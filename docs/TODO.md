@@ -1482,6 +1482,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style 2D presentation display render-settings vector planning.
   - [x] Add UDB-style 2D presentation projection transform planning.
   - [x] Add UDB-style 2D presentation frame operation sequence planning.
+  - [x] Add UDB-style 2D presentation frame setup and release binding planning.
   - [x] Add UDB-style 2D presentation render-layer mask planning.
   - [x] Add UDB-style 2D presentation set-presentation overlay lifecycle planning.
   - [x] Add UDB-style 2D presentation render-target transform reset and redraw planning.

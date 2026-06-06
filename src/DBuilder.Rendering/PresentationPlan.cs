@@ -316,6 +316,18 @@ public sealed record PresentationFramePlan(
     IReadOnlyList<PresentationDrawCommand> DrawCommands,
     IReadOnlyList<PresentationDisplaySettings> DisplaySettings);
 
+public sealed record PresentationFrameStartPlan(
+    bool ClearTarget,
+    string ClearColorName,
+    string CullMode,
+    bool DepthEnabled,
+    string VertexBufferName,
+    string WorldMatrixName);
+
+public sealed record PresentationFrameReleasePlan(
+    string TextureBindingAfter,
+    string VertexBufferBindingAfter);
+
 public sealed record PresentationRenderTargetPlan(
     int Width,
     int Height,
@@ -651,6 +663,20 @@ public sealed record PresentationRenderTargetPlan(
 
         return steps;
     }
+
+    public static PresentationFrameStartPlan BuildFrameStartPlan()
+        => new(
+            ClearTarget: true,
+            ClearColorName: "background",
+            CullMode: "none",
+            DepthEnabled: false,
+            VertexBufferName: "screenverts",
+            WorldMatrixName: "identity");
+
+    public static PresentationFrameReleasePlan BuildFrameReleasePlan()
+        => new(
+            TextureBindingAfter: "null",
+            VertexBufferBindingAfter: "null");
 
     public IReadOnlyList<PresentationLayerDrawPlan> BuildLayerDrawPlans(
         PresentationPlan presentation,

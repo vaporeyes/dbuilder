@@ -940,6 +940,28 @@ public sealed class PresentationPlanTests
     }
 
     [Fact]
+    public void FrameStartPlanMatchesUdbPresentSetupState()
+    {
+        PresentationFrameStartPlan plan = PresentationRenderTargetPlan.BuildFrameStartPlan();
+
+        Assert.True(plan.ClearTarget);
+        Assert.Equal("background", plan.ClearColorName);
+        Assert.Equal("none", plan.CullMode);
+        Assert.False(plan.DepthEnabled);
+        Assert.Equal("screenverts", plan.VertexBufferName);
+        Assert.Equal("identity", plan.WorldMatrixName);
+    }
+
+    [Fact]
+    public void FrameReleasePlanClearsTextureAndVertexBufferLikeUdb()
+    {
+        PresentationFrameReleasePlan plan = PresentationRenderTargetPlan.BuildFrameReleasePlan();
+
+        Assert.Equal("null", plan.TextureBindingAfter);
+        Assert.Equal("null", plan.VertexBufferBindingAfter);
+    }
+
+    [Fact]
     public void FramePlanDrawLayerOperationsFollowPresentationOrder()
     {
         PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);

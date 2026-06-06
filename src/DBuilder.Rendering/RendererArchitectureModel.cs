@@ -32,6 +32,7 @@ public static class RendererArchitectureModel
             "2D presentation display render-settings vector planning",
             "2D presentation projection transform planning",
             "2D presentation frame operation sequence planning",
+            "2D presentation frame setup and release binding planning",
             "2D presentation render-layer mask planning",
             "2D presentation set-presentation overlay lifecycle planning",
             "2D presentation render-target transform reset and redraw planning",
