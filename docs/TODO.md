@@ -813,11 +813,11 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Stop MAPINFO parsing on malformed `gameinfo` blocks like UDB.
   - [x] Stop MAPINFO parsing on unexpected map directives inside braced map blocks like UDB.
   - [x] Stop MAPINFO parsing on invalid or duplicate includes like UDB.
-- [ ] Complete TEXTURES parser behavior.
+- [x] Complete TEXTURES parser behavior.
   - [x] Skip unknown top-level TEXTURES blocks with arguments.
   - [x] Normalize TEXTURES patch render styles with UDB `TexturePatch` rules.
   - [x] Apply TEXTURES patch alpha only for UDB-supported render styles.
-  - [x] Normalize TEXTURES patch lump names to uppercase.
+  - [x] Preserve TEXTURES patch lump name casing like UDB.
   - [x] Require UDB-style comma separators in TEXTURES definitions and patches.
   - [x] Ignore plural TEXTURES `Offsets` metadata like UDB.
   - [x] Require UDB-style comma separators in numeric TEXTURES patch blends.
@@ -847,7 +847,6 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Preserve backslashes in quoted TEXTURES names like UDB.
   - [x] Honor TEXTURES `//$gzdb_skip` editor comments like UDB.
   - [x] Skip TEXTURES `#region` and `#endregion` directives like UDB.
-  - [x] Preserve TEXTURES patch name casing like UDB.
 - [x] Port MODELDEF parser.
   - [x] Reject unsupported MODELDEF model file extensions like UDB.
   - [x] Reject negative MODELDEF model, skin, surface skin, and frame model indexes like UDB.
