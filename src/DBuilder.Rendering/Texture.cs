@@ -49,11 +49,40 @@ public sealed class Texture : IDisposable
         if (Handle == 0) throw new InvalidOperationException("Texture allocation failed.");
     }
 
+    public Texture(GL gl, int width, int height, TextureFormat format)
+        : this(gl)
+    {
+        Allocate2D(width, height, format);
+    }
+
     public static TextureAllocationPlan Build2DAllocationPlan(int width, int height, TextureFormat format)
         => new(TextureAllocationKind.Texture2D, width, height, format);
 
     public static TextureAllocationPlan BuildCubeAllocationPlan(int size)
         => new(TextureAllocationKind.Cube, size, size, TextureFormat.Bgra8);
+
+    public unsafe void Allocate2D(int width, int height, TextureFormat format)
+    {
+        if (width <= 0) throw new ArgumentOutOfRangeException(nameof(width));
+        if (height <= 0) throw new ArgumentOutOfRangeException(nameof(height));
+
+        (InternalFormat internalFormat, PixelFormat pixelFormat, PixelType pixelType) = MapFormat(format);
+        Width = width;
+        Height = height;
+        Format = format;
+
+        _gl.BindTexture(TextureTarget.Texture2D, Handle);
+        _gl.TexImage2D(
+            TextureTarget.Texture2D,
+            0,
+            internalFormat,
+            (uint)width,
+            (uint)height,
+            0,
+            pixelFormat,
+            pixelType,
+            null);
+    }
 
     public unsafe void SetPixelsRgba8(int width, int height, ReadOnlySpan<byte> rgba, bool generateMipmaps = true)
     {
@@ -86,6 +115,22 @@ public sealed class Texture : IDisposable
         }
         GC.SuppressFinalize(this);
     }
+
+    private static (InternalFormat InternalFormat, PixelFormat PixelFormat, PixelType PixelType) MapFormat(TextureFormat format)
+        => format switch
+        {
+            TextureFormat.Rgba8 => (InternalFormat.Rgba8, PixelFormat.Rgba, PixelType.UnsignedByte),
+            TextureFormat.Bgra8 => (InternalFormat.Rgba8, PixelFormat.Bgra, PixelType.UnsignedByte),
+            TextureFormat.Rg16f => (InternalFormat.RG16f, PixelFormat.RG, PixelType.HalfFloat),
+            TextureFormat.Rgba16f => (InternalFormat.Rgba16f, PixelFormat.Rgba, PixelType.HalfFloat),
+            TextureFormat.R32f => (InternalFormat.R32f, PixelFormat.Red, PixelType.Float),
+            TextureFormat.Rg32f => (InternalFormat.RG32f, PixelFormat.RG, PixelType.Float),
+            TextureFormat.Rgb32f => (InternalFormat.Rgb32f, PixelFormat.Rgb, PixelType.Float),
+            TextureFormat.Rgba32f => (InternalFormat.Rgba32f, PixelFormat.Rgba, PixelType.Float),
+            TextureFormat.D32f_S8 => (InternalFormat.Depth32fStencil8, PixelFormat.DepthStencil, PixelType.Float32UnsignedInt248Rev),
+            TextureFormat.D24_S8 => (InternalFormat.Depth24Stencil8, PixelFormat.DepthStencil, PixelType.UnsignedInt248),
+            _ => throw new ArgumentOutOfRangeException(nameof(format)),
+        };
 }
 
 public sealed class CubeTexture : IDisposable

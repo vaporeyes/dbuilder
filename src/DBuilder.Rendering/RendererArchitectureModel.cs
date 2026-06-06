@@ -44,6 +44,7 @@ public static class RendererArchitectureModel
             "Index-buffer binding and primitive draw dispatch",
             "Texture disposed-state reporting",
             "Texture format metadata and 2D/cube allocation planning",
+            "Texture 2D format allocation application",
             "Render-device texture operation planning",
             "Render-device 2D texture clear and pixel upload application",
             "Cube texture resource and render-device cube operation surface",
