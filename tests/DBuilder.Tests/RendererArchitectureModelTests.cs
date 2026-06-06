@@ -72,4 +72,13 @@ public class RendererArchitectureModelTests
             nameof(RenderDevice.SetBufferSubdata),
             new[] { typeof(VertexBuffer), typeof(FlatVertex[]), typeof(long) }));
     }
+
+    [Fact]
+    public void MeshExposesUdbIndexedTriangleWrapperSurface()
+    {
+        Assert.NotNull(typeof(Mesh).GetConstructor(new[] { typeof(RenderDevice), typeof(WorldVertex[]), typeof(int[]) }));
+        Assert.NotNull(typeof(Mesh).GetMethod(nameof(Mesh.Draw), new[] { typeof(RenderDevice) }));
+        Assert.NotNull(typeof(Mesh).GetProperty(nameof(Mesh.PrimitivesCount)));
+        Assert.Contains(typeof(IDisposable), typeof(Mesh).GetInterfaces());
+    }
 }

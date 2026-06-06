@@ -26,6 +26,7 @@ public static class RendererArchitectureModel
             "Length-based vertex-buffer allocation",
             "Flat and world vertex-buffer subdata updates",
             "Index-buffer binding and primitive draw dispatch",
+            "Owned indexed-triangle mesh wrapper",
             "Runtime shader compile, link, disposal, and uniform lookup caching",
         },
         RemainingGaps: new[]
