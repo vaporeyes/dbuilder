@@ -388,6 +388,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port plugin resource handling.
   - [x] Add plugin resource handler contribution planning with stable ordering and warning isolation.
   - [x] Add plugin resource handler command resolution diagnostics.
+  - [x] Add reflection execution for configured plugin resource handler methods.
 - [ ] Port plugin error isolation and reporting.
   - [x] Add plugin validation warnings that keep invalid or disabled descriptors out of lifecycle plans.
   - [x] Add plugin descriptor diagnostics for missing names, missing paths, duplicates, and disabled plugins.
