@@ -10,6 +10,10 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
 {
     private RectangleF bbox;
     private int brightness = 192;
+    private Vector3D floorSlope;
+    private double floorSlopeOffset = double.NaN;
+    private Vector3D ceilSlope;
+    private double ceilSlopeOffset = double.NaN;
     private bool updateNeeded;
 
     public int Index { get; set; }
@@ -54,16 +58,16 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
     }
 
     /// <summary>Floor slope plane normal. Zero-length means a flat (unsloped) floor.</summary>
-    public Vector3D FloorSlope { get; set; }
+    public Vector3D FloorSlope { get => floorSlope; set { floorSlope = value; updateNeeded = true; } }
 
     /// <summary>Floor slope plane offset (UDMF floorplane_d). NaN means unset.</summary>
-    public double FloorSlopeOffset { get; set; } = double.NaN;
+    public double FloorSlopeOffset { get => floorSlopeOffset; set { floorSlopeOffset = value; updateNeeded = true; } }
 
     /// <summary>Ceiling slope plane normal. Zero-length means a flat (unsloped) ceiling.</summary>
-    public Vector3D CeilSlope { get; set; }
+    public Vector3D CeilSlope { get => ceilSlope; set { ceilSlope = value; updateNeeded = true; } }
 
     /// <summary>Ceiling slope plane offset (UDMF ceilingplane_d). NaN means unset.</summary>
-    public double CeilSlopeOffset { get; set; } = double.NaN;
+    public double CeilSlopeOffset { get => ceilSlopeOffset; set { ceilSlopeOffset = value; updateNeeded = true; } }
 
     /// <summary>True when the floor has an active (non-vertical, non-flat) slope plane.</summary>
     public bool HasFloorSlope => FloorSlope.GetLengthSq() > 0 && FloorSlope.z != 0;

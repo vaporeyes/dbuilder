@@ -226,6 +226,33 @@ public class MapElementDataTests
     }
 
     [Fact]
+    public void SectorSlopeSettersMarkUpdateNeededLikeUdb()
+    {
+        var floorSlope = new Vector3D(0, 1, -1);
+        var ceilSlope = new Vector3D(0, 1, 1);
+
+        var floorSlopeSector = new Sector();
+        floorSlopeSector.FloorSlope = floorSlope;
+        Assert.Equal(floorSlope, floorSlopeSector.FloorSlope);
+        Assert.True(floorSlopeSector.UpdateNeeded);
+
+        var floorOffsetSector = new Sector();
+        floorOffsetSector.FloorSlopeOffset = 4.5;
+        Assert.Equal(4.5, floorOffsetSector.FloorSlopeOffset);
+        Assert.True(floorOffsetSector.UpdateNeeded);
+
+        var ceilSlopeSector = new Sector();
+        ceilSlopeSector.CeilSlope = ceilSlope;
+        Assert.Equal(ceilSlope, ceilSlopeSector.CeilSlope);
+        Assert.True(ceilSlopeSector.UpdateNeeded);
+
+        var ceilOffsetSector = new Sector();
+        ceilOffsetSector.CeilSlopeOffset = -2.25;
+        Assert.Equal(-2.25, ceilOffsetSector.CeilSlopeOffset);
+        Assert.True(ceilOffsetSector.UpdateNeeded);
+    }
+
+    [Fact]
     public void RawFlagsExposeUdbUnsignedBinaryFlagSurface()
     {
         var line = new Linedef { Flags = 0x12345 };
