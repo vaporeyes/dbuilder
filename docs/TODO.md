@@ -1586,6 +1586,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add raw UDB held visual camera movement aliases to shortcut metadata and dispatch.
   - [x] Add UDB-style held Orbit visual action with target-centered camera movement.
   - [x] Move the Visual mode camera to sector floor plus eye height for Go To Coordinates like UDB.
+  - [x] Position the Visual mode camera from the configured start thing like UDB.
   - [x] Add raw UDB visual thing movement aliases to shortcut metadata and dispatch.
 - [x] Port visual geometry behavior.
   - [x] Add UDB-style visual floor, ceiling, and thing height step action metadata and dispatch.

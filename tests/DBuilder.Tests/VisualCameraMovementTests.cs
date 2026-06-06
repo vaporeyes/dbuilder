@@ -134,6 +134,69 @@ public class VisualCameraMovementTests
     }
 
     [Fact]
+    public void StartThingPoseUsesFirstConfiguredThingAndSectorRelativeHeightLikeUdb()
+    {
+        var sector = new Sector { FloorHeight = 32, CeilHeight = 160 };
+        var ignored = new Thing(new Vector2D(4, 8), 1, 0);
+        var start = new Thing(new Vector2D(32, 64), 32000, 90)
+        {
+            Height = 16,
+            Sector = sector,
+        };
+        var later = new Thing(new Vector2D(128, 256), 32000, 180)
+        {
+            Height = 64,
+            Sector = sector,
+        };
+
+        bool planned = VisualCameraMovement.TryPlanStartThingPose(
+            new[] { ignored, start, later },
+            startThingType: 32000,
+            currentPosition: new Vector3D(0, 0, 0),
+            out VisualCameraStartThingPlan plan);
+
+        Assert.True(planned);
+        Assert.Equal(new Vector3D(32, 64, 89), plan.Pose.Position);
+        Assert.Equal(0, plan.Pose.Yaw, 0.0001);
+        Assert.Equal(0, plan.Pose.Pitch, 0.0001);
+        Assert.True(plan.PositionChanges);
+    }
+
+    [Fact]
+    public void StartThingPoseUsesThingHeightWithoutSectorLikeUdb()
+    {
+        var start = new Thing(new Vector2D(32, 64), 32000, 180)
+        {
+            Height = 16,
+        };
+
+        bool planned = VisualCameraMovement.TryPlanStartThingPose(
+            new[] { start },
+            startThingType: 32000,
+            currentPosition: new Vector3D(32, 64, 57),
+            out VisualCameraStartThingPlan plan);
+
+        Assert.True(planned);
+        Assert.Equal(new Vector3D(32, 64, 57), plan.Pose.Position);
+        Assert.Equal(Angle2D.PI * 0.5, plan.Pose.Yaw, 0.0001);
+        Assert.False(plan.PositionChanges);
+    }
+
+    [Fact]
+    public void StartThingPoseFailsWhenConfiguredThingIsMissing()
+    {
+        bool planned = VisualCameraMovement.TryPlanStartThingPose(
+            new[] { new Thing(new Vector2D(32, 64), 1) },
+            startThingType: 32000,
+            currentPosition: new Vector3D(10, 20, 30),
+            out VisualCameraStartThingPlan plan);
+
+        Assert.False(planned);
+        Assert.Equal(new Vector3D(10, 20, 30), plan.Pose.Position);
+        Assert.False(plan.PositionChanges);
+    }
+
+    [Fact]
     public void OrbitKeepsCameraAtRadiusAndLookingAtTarget()
     {
         var current = new Vector3D(64, 0, 0);

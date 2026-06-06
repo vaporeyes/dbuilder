@@ -12,6 +12,8 @@ public static class VisualCameraMovement
     public const int LowSectorMinimumCameraHeight = 16;
     public const int CeilingCameraClearance = 4;
     public const int CenterOnCoordinatesEyeHeight = 54;
+    public const double StartThingCameraOffset = 41.0;
+    public const double StartThingMoveThreshold = 1.0;
     public const double OrbitAngleFromMouse = 0.005;
     public const double MinOrbitPitch = -1.5;
     public const double MaxOrbitPitch = 1.5;
@@ -45,6 +47,28 @@ public static class VisualCameraMovement
         => sector == null
             ? new Vector3D(coordinates.x, coordinates.y, 0.0)
             : new Vector3D(coordinates.x, coordinates.y, sector.FloorHeight + CenterOnCoordinatesEyeHeight);
+
+    public static bool TryPlanStartThingPose(
+        IReadOnlyList<Thing> things,
+        int startThingType,
+        Vector3D currentPosition,
+        out VisualCameraStartThingPlan plan)
+    {
+        plan = new VisualCameraStartThingPlan(new VisualCameraPose(currentPosition, 0.0, 0.0), PositionChanges: false);
+        if (startThingType == 0) return false;
+
+        Thing? start = things.FirstOrDefault(thing => thing.Type == startThingType);
+        if (start == null) return false;
+
+        double z = start.Height;
+        if (start.Sector != null) z += start.Sector.FloorHeight;
+
+        var position = new Vector3D(start.Position.x, start.Position.y, z + StartThingCameraOffset);
+        plan = new VisualCameraStartThingPlan(
+            new VisualCameraPose(position, YawFromThingAngle(start.Angle), 0.0),
+            (currentPosition - position).GetLength() > StartThingMoveThreshold);
+        return true;
+    }
 
     public static bool TryMoveCameraToCursor(Vector3D currentPosition, Vector3D hitPosition, double distance, out Vector3D nextPosition)
     {
@@ -148,3 +172,5 @@ public static class VisualCameraMovement
 }
 
 public sealed record VisualCameraPose(Vector3D Position, double Yaw, double Pitch, string? StatusMessage = null);
+
+public sealed record VisualCameraStartThingPlan(VisualCameraPose Pose, bool PositionChanges);
