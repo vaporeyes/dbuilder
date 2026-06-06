@@ -7,12 +7,25 @@ namespace DBuilder.Rendering;
 
 public sealed record TextFontGlyph(float Width, float Height, float U1, float V1, float U2, float V2);
 
+public sealed record TextFontGlyphSource(int Width, int Height, float U1, float V1, float U2, float V2);
+
 public sealed record TextFontGlyphVertexPlan(FlatVertex[] Vertices, float NextTextX);
 
 public static class TextFontPlan
 {
     public const float AdjustSpacing = -0.08f;
     public const float VScale = 0.5f;
+    public const float WidthNormalization = 40.0f;
+    public const float HeightNormalization = 30.0f;
+
+    public static TextFontGlyph BuildGlyph(TextFontGlyphSource source)
+        => new(
+            source.Width / WidthNormalization,
+            source.Height / HeightNormalization,
+            source.U1,
+            source.V1,
+            source.U2,
+            source.V2);
 
     public static bool Contains(TextFontGlyph glyph)
         => glyph.Width > 0.000000001f || glyph.Height > 0.000000001f;

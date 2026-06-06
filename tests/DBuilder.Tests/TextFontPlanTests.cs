@@ -8,6 +8,20 @@ namespace DBuilder.Tests;
 public sealed class TextFontPlanTests
 {
     [Fact]
+    public void BuildGlyphNormalizesFontCfgMetricsLikeUdb()
+    {
+        TextFontGlyph glyph = TextFontPlan.BuildGlyph(new TextFontGlyphSource(
+            Width: 80,
+            Height: 45,
+            U1: 0.1f,
+            V1: 0.2f,
+            U2: 0.3f,
+            V2: 0.4f));
+
+        Assert.Equal(new TextFontGlyph(2.0f, 1.5f, 0.1f, 0.2f, 0.3f, 0.4f), glyph);
+    }
+
+    [Fact]
     public void ContainsMatchesUdbWidthOrHeightThreshold()
     {
         Assert.False(TextFontPlan.Contains(new TextFontGlyph(0, 0, 0, 0, 0, 0)));
