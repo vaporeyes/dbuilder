@@ -10,6 +10,69 @@ namespace DBuilder.Tests;
 public sealed class EventLineAssociationModelTests
 {
     [Fact]
+    public void SectorFieldAssociationsLinkMatchingCustomFields()
+    {
+        var map = new MapSet();
+        Sector source = map.AddSector();
+        source.Fields["portal"] = 7;
+        Sector target = map.AddSector();
+        target.Fields["portal"] = 7;
+        Sector other = map.AddSector();
+        other.Fields["portal"] = 8;
+        GameConfiguration config = SectorFieldAssociationConfig();
+
+        IReadOnlyList<EventLineAssociation> associations =
+            EventLineAssociationModel.ForElement(map, source, config);
+
+        EventLineAssociation association = Assert.Single(associations);
+        Assert.Equal(EventLineElementKind.Sector, association.SourceKind);
+        Assert.Equal(source.Index, association.SourceIndex);
+        Assert.Equal(EventLineElementKind.Sector, association.TargetKind);
+        Assert.Equal(target.Index, association.TargetIndex);
+        Assert.Equal(7, association.Tag);
+        Assert.DoesNotContain(associations, a => a.TargetIndex == other.Index);
+    }
+
+    [Fact]
+    public void SectorFieldAssociationsHonorAbsoluteModifierAndDefaultSuppression()
+    {
+        var map = new MapSet();
+        Sector source = map.AddSector();
+        source.Fields["portal"] = -7;
+        Sector target = map.AddSector();
+        target.Fields["portal"] = 7;
+        Sector defaultSource = map.AddSector();
+        defaultSource.Fields["portal"] = 0;
+        Sector defaultTarget = map.AddSector();
+        defaultTarget.Fields["portal"] = 0;
+        GameConfiguration config = SectorFieldAssociationConfig(modify: "abs");
+
+        IReadOnlyList<EventLineAssociation> associations =
+            EventLineAssociationModel.ForElement(map, source, config);
+        IReadOnlyList<EventLineAssociation> defaultAssociations =
+            EventLineAssociationModel.ForElement(map, defaultSource, config);
+
+        EventLineAssociation association = Assert.Single(associations);
+        Assert.Equal(target.Index, association.TargetIndex);
+        Assert.Equal(7, association.Tag);
+        Assert.Empty(defaultAssociations);
+        Assert.DoesNotContain(associations, a => a.TargetIndex == defaultTarget.Index);
+    }
+
+    [Fact]
+    public void SectorFieldAssociationsSkipNeverShowEventLines()
+    {
+        var map = new MapSet();
+        Sector source = map.AddSector();
+        source.Fields["portal"] = 7;
+        Sector target = map.AddSector();
+        target.Fields["portal"] = 7;
+        GameConfiguration config = SectorFieldAssociationConfig(neverShowEventLines: true);
+
+        Assert.Empty(EventLineAssociationModel.ForElement(map, source, config));
+    }
+
+    [Fact]
     public void SectorAssociationsIncludeLinedefsAndThingsReferencingSectorTags()
     {
         var map = new MapSet();
@@ -424,6 +487,36 @@ public sealed class EventLineAssociationModelTests
                         arg2 { type = {{arg2Type}}; }
                     }
                     81 { title = "Other Event"; }
+                }
+            }
+            """);
+    }
+
+    private static GameConfiguration SectorFieldAssociationConfig(
+        string modify = "",
+        bool neverShowEventLines = false)
+    {
+        string neverShowEventLinesValue = neverShowEventLines ? "true" : "false";
+
+        return GameConfiguration.FromText($$"""
+            universalfields
+            {
+                sector
+                {
+                    portal
+                    {
+                        type = {{(int)UniversalType.Integer}};
+                        default = 0;
+                        associations
+                        {
+                            0
+                            {
+                                property = "portal";
+                                modify = "{{modify}}";
+                                nevershoweventlines = {{neverShowEventLinesValue}};
+                            }
+                        }
+                    }
                 }
             }
             """);

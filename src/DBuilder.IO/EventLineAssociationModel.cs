@@ -71,7 +71,8 @@ public static class EventLineAssociationModel
         if (config?.LineTagIndicatesSectors == true)
             return SectorToTaggedLinedefs(map, sector);
 
-        return ReverseActionArgAssociations(
+        var associations = new List<EventLineAssociation>();
+        associations.AddRange(ReverseActionArgAssociations(
             map,
             EventLineElementKind.Sector,
             sector.Index,
@@ -79,7 +80,9 @@ public static class EventLineAssociationModel
             PositiveTags(sector.Tags),
             config,
             sourceLine: null,
-            sourceThing: null);
+            sourceThing: null));
+        associations.AddRange(SectorFieldAssociations(map, sector, config));
+        return associations;
     }
 
     private static IReadOnlyList<EventLineAssociation> ThingAssociations(
@@ -266,6 +269,113 @@ public static class EventLineAssociationModel
         }
 
         return associations;
+    }
+
+    private static IReadOnlyList<EventLineAssociation> SectorFieldAssociations(
+        MapSet map,
+        Sector sector,
+        GameConfiguration? config)
+    {
+        if (config == null || !config.UniversalFields.TryGetValue("sector", out var fields))
+            return Array.Empty<EventLineAssociation>();
+
+        var associations = new List<EventLineAssociation>();
+        foreach (UniversalFieldInfo field in fields.Values)
+        {
+            if (field.Associations.Count == 0) continue;
+            if (!sector.Fields.TryGetValue(field.Name, out object? sourceValue)) continue;
+
+            foreach (UniversalFieldAssociationInfo association in field.Associations.Values)
+            {
+                if (association.NeverShowEventLines) continue;
+
+                foreach (Sector other in map.Sectors)
+                {
+                    if (ReferenceEquals(sector, other)) continue;
+                    if (!other.Fields.TryGetValue(association.Property, out object? targetValue)) continue;
+                    if (!FieldAssociationValuesMatch(targetValue, sourceValue, field, association)) continue;
+
+                    associations.Add(new EventLineAssociation(
+                        EventLineElementKind.Sector,
+                        sector.Index,
+                        EventLineElementKind.Sector,
+                        other.Index,
+                        FieldAssociationTag(field.Type, targetValue)));
+                }
+            }
+        }
+
+        return associations;
+    }
+
+    private static bool FieldAssociationValuesMatch(
+        object? targetValue,
+        object? sourceValue,
+        UniversalFieldInfo field,
+        UniversalFieldAssociationInfo association)
+    {
+        if (targetValue == null || sourceValue == null) return false;
+
+        return (UniversalType)field.Type switch
+        {
+            UniversalType.Float or UniversalType.AngleDegreesFloat or UniversalType.AngleRadians
+                => NumericFieldValuesMatch(
+                    Convert.ToDouble(targetValue),
+                    Convert.ToDouble(sourceValue),
+                    field.DefaultValue,
+                    association.Modify),
+            UniversalType.Integer or UniversalType.AngleDegrees or UniversalType.AngleByte or UniversalType.Color
+                or UniversalType.EnumBits or UniversalType.EnumOption or UniversalType.LinedefTag
+                or UniversalType.LinedefType or UniversalType.SectorEffect or UniversalType.SectorTag
+                or UniversalType.ThingTag or UniversalType.ThingType
+                => IntegerFieldValuesMatch(
+                    Convert.ToInt32(targetValue),
+                    Convert.ToInt32(sourceValue),
+                    field.DefaultValue,
+                    association.Modify),
+            UniversalType.Boolean => Convert.ToBoolean(targetValue) == Convert.ToBoolean(sourceValue),
+            UniversalType.Flat or UniversalType.String or UniversalType.Texture or UniversalType.EnumStrings
+                or UniversalType.ThingClass
+                => string.Equals(Convert.ToString(targetValue), Convert.ToString(sourceValue), StringComparison.Ordinal),
+            _ => false,
+        };
+    }
+
+    private static bool NumericFieldValuesMatch(double targetValue, double sourceValue, object? defaultValue, string modify)
+    {
+        if (string.Equals(modify, "abs", StringComparison.OrdinalIgnoreCase))
+        {
+            targetValue = Math.Abs(targetValue);
+            sourceValue = Math.Abs(sourceValue);
+        }
+
+        if (targetValue != sourceValue) return false;
+        return defaultValue == null || targetValue != Convert.ToDouble(defaultValue);
+    }
+
+    private static bool IntegerFieldValuesMatch(int targetValue, int sourceValue, object? defaultValue, string modify)
+    {
+        if (string.Equals(modify, "abs", StringComparison.OrdinalIgnoreCase))
+        {
+            targetValue = Math.Abs(targetValue);
+            sourceValue = Math.Abs(sourceValue);
+        }
+
+        if (targetValue != sourceValue) return false;
+        return defaultValue == null || targetValue != Convert.ToInt32(defaultValue);
+    }
+
+    private static int FieldAssociationTag(int fieldType, object? value)
+    {
+        return (UniversalType)fieldType switch
+        {
+            UniversalType.Float or UniversalType.AngleDegreesFloat or UniversalType.AngleRadians
+                => (int)Math.Round(Convert.ToDouble(value)),
+            UniversalType.Boolean => Convert.ToBoolean(value) ? 1 : 0,
+            UniversalType.Flat or UniversalType.String or UniversalType.Texture or UniversalType.EnumStrings
+                or UniversalType.ThingClass => 0,
+            _ => Convert.ToInt32(value),
+        };
     }
 
     private static int? FirstMatchingActionArg(
