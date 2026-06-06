@@ -71,6 +71,15 @@ public sealed record DBuilderPluginUiContributionPlan(
     IReadOnlyList<DBuilderPluginUiContribution> Toolbars,
     IReadOnlyList<string> Warnings);
 
+public sealed record DBuilderPluginResourceHandler(
+    string PluginName,
+    string Id,
+    string Title);
+
+public sealed record DBuilderPluginResourceHandlerPlan(
+    IReadOnlyList<DBuilderPluginResourceHandler> Handlers,
+    IReadOnlyList<string> Warnings);
+
 public static class DBuilderPluginHostModel
 {
     public static IReadOnlyList<DBuilderPluginDescriptor> NormalizeDescriptors(
@@ -175,6 +184,41 @@ public static class DBuilderPluginHostModel
         return new DBuilderPluginUiContributionPlan(
             SortUiContributions(menus),
             SortUiContributions(toolbars),
+            warnings);
+    }
+
+    public static DBuilderPluginResourceHandlerPlan PlanResourceHandlers(
+        IEnumerable<DBuilderPluginDescriptor> descriptors)
+    {
+        var handlers = new List<DBuilderPluginResourceHandler>();
+        var warnings = new List<string>();
+
+        foreach (DBuilderPluginDescriptor descriptor in NormalizeDescriptors(descriptors))
+        {
+            DBuilderPluginLifecyclePlan lifecycle = PlanLifecycle(descriptor, new DBuilderPluginLifecycleRequest());
+            if (lifecycle.Warnings.Count > 0)
+            {
+                warnings.AddRange(lifecycle.Warnings);
+                continue;
+            }
+
+            foreach (DBuilderPluginContribution contribution in lifecycle.Descriptor.Contributions ?? Array.Empty<DBuilderPluginContribution>())
+            {
+                if (contribution.Kind != DBuilderPluginContributionKind.ResourceHandler) continue;
+
+                handlers.Add(new DBuilderPluginResourceHandler(
+                    lifecycle.Descriptor.Name,
+                    contribution.Id,
+                    contribution.Title));
+            }
+        }
+
+        return new DBuilderPluginResourceHandlerPlan(
+            handlers
+                .OrderBy(handler => handler.PluginName, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(handler => handler.Title, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(handler => handler.Id, StringComparer.OrdinalIgnoreCase)
+                .ToArray(),
             warnings);
     }
 

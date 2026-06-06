@@ -354,6 +354,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port plugin settings persistence.
   - [x] Add plugin settings store normalization, default merge planning, and writeback helpers.
 - [ ] Port plugin resource handling.
+  - [x] Add plugin resource handler contribution planning with stable ordering and warning isolation.
 - [ ] Port plugin error isolation and reporting.
   - [x] Add plugin validation warnings that keep invalid or disabled descriptors out of lifecycle plans.
 - [ ] Add compatibility tests for plugin lifecycle behavior.

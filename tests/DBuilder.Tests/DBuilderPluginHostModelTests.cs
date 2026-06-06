@@ -228,6 +228,77 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void PlanResourceHandlersCollectsResourceContributionsInStableOrder()
+    {
+        var plan = DBuilderPluginHostModel.PlanResourceHandlers(new[]
+        {
+            new DBuilderPluginDescriptor(
+                "ZipResource",
+                "/plugins/zipresource.dll",
+                Contributions: new[]
+                {
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, "resource.zip", "Zip archives"),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, "resource.menu", "Resource menu")
+                }),
+            new DBuilderPluginDescriptor(
+                "DirectoryResource",
+                "/plugins/directoryresource.dll",
+                Contributions: new[]
+                {
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, "resource.directory", "Directory resources")
+                })
+        });
+
+        Assert.Empty(plan.Warnings);
+        Assert.Collection(
+            plan.Handlers,
+            handler =>
+            {
+                Assert.Equal("DirectoryResource", handler.PluginName);
+                Assert.Equal("resource.directory", handler.Id);
+                Assert.Equal("Directory resources", handler.Title);
+            },
+            handler =>
+            {
+                Assert.Equal("ZipResource", handler.PluginName);
+                Assert.Equal("resource.zip", handler.Id);
+                Assert.Equal("Zip archives", handler.Title);
+            });
+    }
+
+    [Fact]
+    public void PlanResourceHandlersUsesNormalizedRowsAndWarnings()
+    {
+        var plan = DBuilderPluginHostModel.PlanResourceHandlers(new[]
+        {
+            new DBuilderPluginDescriptor(
+                "  ZipResource  ",
+                " /plugins/zipresource.dll ",
+                Contributions: new[]
+                {
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, " resource.zip ", " Zip archives "),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, "resource.zip", "Duplicate"),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, "", "Missing Id"),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, "resource.empty", "")
+                }),
+            new DBuilderPluginDescriptor(
+                "DisabledResource",
+                "/plugins/disabled.dll",
+                Enabled: false,
+                Contributions: new[]
+                {
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, "resource.disabled", "Disabled")
+                })
+        });
+
+        DBuilderPluginResourceHandler handler = Assert.Single(plan.Handlers);
+        Assert.Equal("ZipResource", handler.PluginName);
+        Assert.Equal("resource.zip", handler.Id);
+        Assert.Equal("Zip archives", handler.Title);
+        Assert.Equal(new[] { "Plugin DisabledResource is disabled." }, plan.Warnings);
+    }
+
+    [Fact]
     public void NormalizeSettingsStoreTrimsPluginsAndSettingsWithoutDroppingUnknownValues()
     {
         var settings = DBuilderPluginHostModel.NormalizeSettingsStore(new Dictionary<string, Dictionary<string, object?>>
