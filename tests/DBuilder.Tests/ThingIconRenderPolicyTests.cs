@@ -188,6 +188,40 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
+    public void SpriteIconsCollapseBeforeTheyBecomeUnreadable()
+    {
+        Assert.False(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
+            mapRadius: 20,
+            viewScale: ThingIconRenderPolicy.CompactMarkerScaleThreshold,
+            fixedThingsScale: false));
+        Assert.False(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
+            mapRadius: 20,
+            viewScale: 2,
+            fixedThingsScale: false));
+        Assert.False(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
+            mapRadius: 20,
+            viewScale: 2,
+            fixedThingsScale: true));
+    }
+
+    [Fact]
+    public void SpriteIconsRenderOnlyWhenScreenFootprintStaysReadable()
+    {
+        Assert.False(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
+            mapRadius: 20,
+            viewScale: 1.2,
+            fixedThingsScale: false));
+        Assert.True(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
+            mapRadius: 20,
+            viewScale: 0.05,
+            fixedThingsScale: false));
+        Assert.True(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
+            mapRadius: 40,
+            viewScale: 0.1,
+            fixedThingsScale: false));
+    }
+
+    [Fact]
     public void OverviewCullingStartsWithCompactMarkers()
     {
         Assert.True(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(

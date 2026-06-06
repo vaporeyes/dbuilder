@@ -4951,7 +4951,13 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 }
 
                 ThingBillboardDisplay? display = ThingBillboardDisplayPlanner.Plan(thingInfo, _resources);
-                if (!compactThingMarkers && display != null && GetSpriteTexture(display.SpriteName) is { })
+                if (display != null
+                    && ThingIconRenderPolicy.ShouldRenderSpriteIcon(
+                        thingRadius,
+                        _zoom,
+                        _fixedThingsScale,
+                        fixedSize)
+                    && GetSpriteTexture(display.SpriteName) is { })
                 {
                     ImageData img = display.Image;
                     int sc = ThingBillboardTint(t, gldefs);

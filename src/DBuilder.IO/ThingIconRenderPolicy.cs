@@ -9,6 +9,7 @@ public static class ThingIconRenderPolicy
     public const double FixedThingScreenRadius = 48.0;
     public const double ThingSpriteShrink = 2.0;
     public const double MinimumThingScreenRadius = 1.5;
+    public const double MinimumSpriteScreenRadius = 18.0;
     public const double OverlapCullScaleThreshold = CompactMarkerScaleThreshold;
     public const double OverviewMarkerScaleThreshold = CompactMarkerScaleThreshold;
     public const double FarOverviewMarkerScaleThreshold = 3.0;
@@ -53,6 +54,14 @@ public static class ThingIconRenderPolicy
 
     public static bool ShouldRenderThing(double mapRadius, double viewScale, bool fixedThingsScale, bool fixedSize = false)
         => ProjectedThingScreenRadius(mapRadius, viewScale, fixedThingsScale, fixedSize) >= MinimumThingScreenRadius;
+
+    public static bool ShouldRenderSpriteIcon(
+        double mapRadius,
+        double viewScale,
+        bool fixedThingsScale,
+        bool fixedSize = false)
+        => viewScale < CompactMarkerScaleThreshold
+            && ProjectedThingScreenRadius(mapRadius, viewScale, fixedThingsScale, fixedSize) >= MinimumSpriteScreenRadius;
 
     public static double MarkerBaseSize(bool compactMarkers)
         => compactMarkers ? CompactMarkerBaseSize : RegularMarkerBaseSize;
