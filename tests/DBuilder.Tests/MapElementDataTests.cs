@@ -184,6 +184,18 @@ public class MapElementDataTests
     }
 
     [Fact]
+    public void SectorEffectAliasMatchesUdbSurface()
+    {
+        var sector = new Sector();
+
+        sector.Special = 9;
+        Assert.Equal(9, sector.Effect);
+
+        sector.Effect = 11;
+        Assert.Equal(11, sector.Special);
+    }
+
+    [Fact]
     public void NamedFlagHelpersMatchUdbSurface()
     {
         var line = new Linedef();

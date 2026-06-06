@@ -34,6 +34,7 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
     public string CeilTexture { get; set; } = "-";
     public int Brightness { get; set; } = 192;
     public int Special { get; set; }
+    public int Effect { get => Special; set => Special = value; }
 
     /// <summary>All tags (UDMF id + moreids). Authoritative; <see cref="Tag"/> is a convenience over the first entry.</summary>
     public List<int> Tags { get; } = new();
