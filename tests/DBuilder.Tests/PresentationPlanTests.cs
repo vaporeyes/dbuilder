@@ -277,6 +277,67 @@ public sealed class PresentationPlanTests
     }
 
     [Fact]
+    public void LifecyclePlanConstructsSurfaceManagerTargetsAndSuppressesFinalizeLikeUdb()
+    {
+        PresentationRenderTargetLifecyclePlan plan = PresentationRenderTargetPlan.BuildLifecyclePlan(
+            PresentationRenderTargetLifecycleOperation.Construct);
+
+        Assert.Equal(PresentationRenderTargetLifecycleOperation.Construct, plan.Operation);
+        Assert.True(plan.CreateSurfaceManager);
+        Assert.True(plan.CreateRenderTargets);
+        Assert.True(plan.SuppressFinalize);
+        Assert.False(plan.DestroyRenderTargets);
+        Assert.False(plan.DisposeSurfaceManager);
+    }
+
+    [Fact]
+    public void LifecyclePlanDisposesTargetsSurfaceManagerThingBufferAndGridCacheLikeUdb()
+    {
+        PresentationRenderTargetLifecyclePlan plan = PresentationRenderTargetPlan.BuildLifecyclePlan(
+            PresentationRenderTargetLifecycleOperation.Dispose);
+
+        Assert.Equal(PresentationRenderTargetLifecycleOperation.Dispose, plan.Operation);
+        Assert.True(plan.DestroyRenderTargets);
+        Assert.True(plan.DisposeSurfaceManager);
+        Assert.True(plan.DisposeThingBatchBuffer);
+        Assert.True(plan.ResetGridCache);
+        Assert.False(plan.CreateRenderTargets);
+    }
+
+    [Fact]
+    public void LifecyclePlanMatchesUdbUnloadReloadAndCreateDestroyResourcePaths()
+    {
+        PresentationRenderTargetLifecyclePlan unload = PresentationRenderTargetPlan.BuildLifecyclePlan(
+            PresentationRenderTargetLifecycleOperation.UnloadResource);
+        PresentationRenderTargetLifecyclePlan reload = PresentationRenderTargetPlan.BuildLifecyclePlan(
+            PresentationRenderTargetLifecycleOperation.ReloadResource);
+        PresentationRenderTargetLifecyclePlan destroy = PresentationRenderTargetPlan.BuildLifecyclePlan(
+            PresentationRenderTargetLifecycleOperation.DestroyRenderTargets);
+        PresentationRenderTargetLifecyclePlan create = PresentationRenderTargetPlan.BuildLifecyclePlan(
+            PresentationRenderTargetLifecycleOperation.CreateRenderTargets);
+
+        Assert.True(unload.DestroyRenderTargets);
+        Assert.False(unload.CreateRenderTargets);
+        Assert.True(unload.DisposeThingBatchBuffer);
+        Assert.True(unload.ResetGridCache);
+
+        Assert.False(reload.DestroyRenderTargets);
+        Assert.True(reload.CreateRenderTargets);
+        Assert.False(reload.DisposeThingBatchBuffer);
+        Assert.False(reload.ResetGridCache);
+
+        Assert.True(destroy.DestroyRenderTargets);
+        Assert.False(destroy.CreateRenderTargets);
+        Assert.True(destroy.DisposeThingBatchBuffer);
+        Assert.True(destroy.ResetGridCache);
+
+        Assert.True(create.DestroyRenderTargets);
+        Assert.True(create.CreateRenderTargets);
+        Assert.True(create.DisposeThingBatchBuffer);
+        Assert.True(create.ResetGridCache);
+    }
+
+    [Fact]
     public void RenderTargetPlanMatchesUdbThingVertexBufferCapacity()
     {
         PresentationRenderTargetPlan plan = PresentationRenderTargetPlan.Create(320, 200, PresentationPlan.Standard(0.4f, 0.25f));

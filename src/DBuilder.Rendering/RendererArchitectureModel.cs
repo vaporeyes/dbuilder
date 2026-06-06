@@ -31,6 +31,7 @@ public static class RendererArchitectureModel
             "2D presentation render-layer mask planning",
             "2D presentation set-presentation overlay lifecycle planning",
             "2D presentation render-target transform reset and redraw planning",
+            "2D presentation renderer lifecycle operation planning",
             "Render-device alpha-test compatibility state planning",
             "Render-device multisample antialias compatibility state planning",
             "Render-device sampler-filter overload planning",

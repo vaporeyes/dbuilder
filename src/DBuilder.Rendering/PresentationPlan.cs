@@ -164,6 +164,26 @@ public sealed record PresentationSetPlan(
     bool ClearAddedOverlayTexture,
     int OverlayTextureCountAfter);
 
+public enum PresentationRenderTargetLifecycleOperation
+{
+    Construct,
+    Dispose,
+    UnloadResource,
+    ReloadResource,
+    DestroyRenderTargets,
+    CreateRenderTargets,
+}
+
+public sealed record PresentationRenderTargetLifecyclePlan(
+    PresentationRenderTargetLifecycleOperation Operation,
+    bool CreateSurfaceManager,
+    bool DisposeSurfaceManager,
+    bool DestroyRenderTargets,
+    bool CreateRenderTargets,
+    bool SuppressFinalize,
+    bool DisposeThingBatchBuffer,
+    bool ResetGridCache);
+
 public sealed record PresentationDisplaySettings(
     PresentationRendererLayer Layer,
     string SourceTargetName,
@@ -219,6 +239,67 @@ public sealed record PresentationRenderTargetPlan(
     public const int ThingBufferSize = 100;
     public const int ThingVerticesPerBufferItem = 12;
     public const float FsaaFactor = 0.6f;
+
+    public static PresentationRenderTargetLifecyclePlan BuildLifecyclePlan(
+        PresentationRenderTargetLifecycleOperation operation)
+        => operation switch
+        {
+            PresentationRenderTargetLifecycleOperation.Construct => new(
+                operation,
+                CreateSurfaceManager: true,
+                DisposeSurfaceManager: false,
+                DestroyRenderTargets: false,
+                CreateRenderTargets: true,
+                SuppressFinalize: true,
+                DisposeThingBatchBuffer: false,
+                ResetGridCache: false),
+            PresentationRenderTargetLifecycleOperation.Dispose => new(
+                operation,
+                CreateSurfaceManager: false,
+                DisposeSurfaceManager: true,
+                DestroyRenderTargets: true,
+                CreateRenderTargets: false,
+                SuppressFinalize: false,
+                DisposeThingBatchBuffer: true,
+                ResetGridCache: true),
+            PresentationRenderTargetLifecycleOperation.UnloadResource => new(
+                operation,
+                CreateSurfaceManager: false,
+                DisposeSurfaceManager: false,
+                DestroyRenderTargets: true,
+                CreateRenderTargets: false,
+                SuppressFinalize: false,
+                DisposeThingBatchBuffer: true,
+                ResetGridCache: true),
+            PresentationRenderTargetLifecycleOperation.ReloadResource => new(
+                operation,
+                CreateSurfaceManager: false,
+                DisposeSurfaceManager: false,
+                DestroyRenderTargets: false,
+                CreateRenderTargets: true,
+                SuppressFinalize: false,
+                DisposeThingBatchBuffer: false,
+                ResetGridCache: false),
+            PresentationRenderTargetLifecycleOperation.DestroyRenderTargets => new(
+                operation,
+                CreateSurfaceManager: false,
+                DisposeSurfaceManager: false,
+                DestroyRenderTargets: true,
+                CreateRenderTargets: false,
+                SuppressFinalize: false,
+                DisposeThingBatchBuffer: true,
+                ResetGridCache: true),
+            PresentationRenderTargetLifecycleOperation.CreateRenderTargets => new(
+                operation,
+                CreateSurfaceManager: false,
+                DisposeSurfaceManager: false,
+                DestroyRenderTargets: true,
+                CreateRenderTargets: true,
+                SuppressFinalize: false,
+                DisposeThingBatchBuffer: true,
+                ResetGridCache: true),
+            _ => throw new ArgumentOutOfRangeException(nameof(operation), operation, null),
+        };
 
     public static PresentationSetPlan BuildSetPresentationPlan(
         PresentationPlan presentation,
