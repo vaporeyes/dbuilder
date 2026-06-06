@@ -19,6 +19,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Render-device disposed-state reporting", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation layer stack planning", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation draw-command planning", replacement.CoveredResponsibilities);
+        Assert.Contains("2D presentation blend-factor application planning", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation render-target lifecycle planning", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation plotter and texture target allocation planning", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation display shader settings planning", replacement.CoveredResponsibilities);

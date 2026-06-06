@@ -24,6 +24,7 @@ public static class RendererArchitectureModel
             "Render-device disposed-state reporting",
             "2D presentation layer stack planning",
             "2D presentation draw-command planning",
+            "2D presentation blend-factor application planning",
             "2D presentation render-target lifecycle planning",
             "2D presentation plotter and texture target allocation planning",
             "2D presentation display shader settings planning",

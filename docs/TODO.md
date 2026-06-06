@@ -1474,6 +1474,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port render passes and layers.
   - [x] Add UDB-style 2D presentation layer stack planning.
   - [x] Add UDB-style 2D presentation draw-command planning.
+  - [x] Add UDB-style 2D presentation blend-factor application planning.
   - [x] Add UDB-style 2D presentation render-target lifecycle planning.
   - [x] Add UDB-style 2D presentation plotter and texture target allocation planning.
   - [x] Add UDB-style 2D presentation display shader settings planning.

@@ -103,12 +103,16 @@ public sealed class PresentationPlanTests
 
         Assert.False(commands[0].AlphaBlendEnabled);
         Assert.False(commands[0].AlphaTestEnabled);
+        Assert.False(commands[0].BlendFactorsApplied);
         Assert.False(commands[1].AlphaBlendEnabled);
         Assert.True(commands[1].AlphaTestEnabled);
+        Assert.False(commands[1].BlendFactorsApplied);
         Assert.True(commands[2].AlphaBlendEnabled);
         Assert.False(commands[2].AlphaTestEnabled);
+        Assert.True(commands[2].BlendFactorsApplied);
         Assert.Equal(Blend.InverseSourceAlpha, commands[2].DestinationBlend);
         Assert.True(commands[3].AlphaBlendEnabled);
+        Assert.True(commands[3].BlendFactorsApplied);
         Assert.Equal(Blend.One, commands[3].DestinationBlend);
     }
 

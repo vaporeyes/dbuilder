@@ -109,6 +109,7 @@ public sealed record PresentationDrawCommand(
     PresentationBlendingMode Blending,
     bool AlphaBlendEnabled,
     bool AlphaTestEnabled,
+    bool BlendFactorsApplied,
     Blend SourceBlend,
     Blend DestinationBlend,
     string ShaderName,
@@ -132,6 +133,7 @@ public sealed record PresentationDrawCommand(
             layer.Blending,
             alphaBlend,
             alphaTest,
+            BlendFactorsApplied: layer.Blending is PresentationBlendingMode.Alpha or PresentationBlendingMode.Additive,
             SourceBlend: Blend.SourceAlpha,
             DestinationBlend: destinationBlend,
             ShaderName: layer.Antialiasing && qualityDisplay
