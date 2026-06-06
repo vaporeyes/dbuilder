@@ -1242,7 +1242,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style selected thing align-to-wall command.
   - [x] Add UDB-style classic thing align-to-wall action alias.
   - [x] Add UDB-style point selected thing to cursor command.
-- [ ] Port sector gradient tools.
+- [x] Port sector gradient tools.
   - [x] Add UDB-style selected-sector floor, ceiling, and brightness gradient commands.
   - [x] Add UDB-style UDMF sector floor/ceiling light and light/fade color gradient commands.
   - [x] Add UDB-style UDMF selected-linedef brightness gradient command.
@@ -2178,7 +2178,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port sector drawing options.
   - [x] Apply UDB-style map drawing overrides to newly drawn sectors.
   - [x] Cover UDB-style upper and lower texture overrides for two-sided drawn sectors.
-- [ ] Port sector gradient tools.
+- [x] Port sector gradient tools.
   - [x] Add UDB-style selected-sector floor, ceiling, and brightness gradient model and editor commands.
   - [x] Add UDB-style UDMF sector surface light and light/fade color gradient model and editor commands.
   - [x] Add UDB-style UDMF selected-linedef brightness gradient model and editor command.
