@@ -108,6 +108,18 @@ public class SelectionTests
     }
 
     [Fact]
+    public void SelectionTypeDefaultsToNoneAndCanBeSet()
+    {
+        var map = BuildMap();
+
+        Assert.Equal(SelectionType.None, map.SelectionType);
+
+        map.SelectionType = SelectionType.Sectors;
+
+        Assert.Equal(SelectionType.Sectors, map.SelectionType);
+    }
+
+    [Fact]
     public void ClearSelectedPerType()
     {
         var map = BuildMap();

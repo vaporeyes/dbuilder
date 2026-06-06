@@ -90,6 +90,7 @@ public class MapSet : IDisposable
 
     public bool IsDisposed { get; private set; }
     public bool IsSafeToAccess { get; set; } = true;
+    public SelectionType SelectionType { get; set; }
 
     private int addRemoveDepth;
 
