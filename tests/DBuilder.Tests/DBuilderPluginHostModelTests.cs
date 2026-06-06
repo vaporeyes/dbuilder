@@ -101,6 +101,83 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void BuildHostPlanAggregatesDescriptorsLifecycleAndContributionPlans()
+    {
+        DBuilderPluginHostPlan plan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor(
+                    "BuilderModes",
+                    "/plugins/buildermodes.dll",
+                    RequiresMap: true,
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "builder.draw.action", "Draw action"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, "builder.draw.menu", "Draw menu"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Toolbar, "builder.draw.toolbar", "Draw toolbar"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.EditMode, "builder.draw.mode", "Draw mode"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Docker, "builder.tags.docker", "Tags docker"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, "builder.resource", "Builder resources")
+                    }),
+                new DBuilderPluginDescriptor("Disabled", "/plugins/disabled.dll", Enabled: false),
+                new DBuilderPluginDescriptor("NoPath", "")
+            },
+            new DBuilderPluginLifecycleRequest(MapOpen: true, Engage: true, Shutdown: true));
+
+        DBuilderPluginDescriptor descriptor = Assert.Single(plan.DescriptorPlan.Descriptors);
+        Assert.Equal("BuilderModes", descriptor.Name);
+        Assert.Equal(2, plan.DescriptorPlan.Diagnostics.Count);
+        DBuilderPluginLifecyclePlan lifecycle = Assert.Single(plan.LifecyclePlans);
+        Assert.Equal(new[]
+        {
+            DBuilderPluginLifecycleHook.Load,
+            DBuilderPluginLifecycleHook.Initialize,
+            DBuilderPluginLifecycleHook.RegisterActions,
+            DBuilderPluginLifecycleHook.RegisterUi,
+            DBuilderPluginLifecycleHook.RegisterEditModes,
+            DBuilderPluginLifecycleHook.RegisterDockers,
+            DBuilderPluginLifecycleHook.RegisterResourceHandlers,
+            DBuilderPluginLifecycleHook.MapOpened,
+            DBuilderPluginLifecycleHook.Engage,
+            DBuilderPluginLifecycleHook.Dispose
+        }, lifecycle.Hooks);
+        Assert.Single(plan.UiContributions.Menus);
+        Assert.Single(plan.UiContributions.Toolbars);
+        Assert.Single(plan.ApiContributions.Actions);
+        Assert.Single(plan.ApiContributions.EditModes);
+        Assert.Single(plan.ApiContributions.Dockers);
+        Assert.Single(plan.ResourceHandlers.Handlers);
+        Assert.Empty(plan.UiContributions.Warnings);
+        Assert.Empty(plan.ApiContributions.Warnings);
+        Assert.Empty(plan.ResourceHandlers.Warnings);
+    }
+
+    [Fact]
+    public void BuildHostPlanUsesNormalizedDescriptorRowsAcrossAllSubplans()
+    {
+        DBuilderPluginHostPlan plan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor(
+                    "  CommentsPanel  ",
+                    " /plugins/comments.dll ",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, " comments.open ", " Open Comments "),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, "comments.open", "Duplicate"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, " comments.action ", " Open Comments Action ")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest());
+
+        Assert.Empty(plan.DescriptorPlan.Diagnostics);
+        Assert.Equal("CommentsPanel", plan.DescriptorPlan.Descriptors.Single().Name);
+        Assert.Equal("comments.open", plan.UiContributions.Menus.Single().Id);
+        Assert.Equal("comments.action", plan.ApiContributions.Actions.Single().Id);
+        Assert.Empty(plan.ResourceHandlers.Handlers);
+    }
+
+    [Fact]
     public void PlanLifecycleRegistersContributionHooksInStableOrder()
     {
         var descriptor = new DBuilderPluginDescriptor(

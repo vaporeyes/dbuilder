@@ -107,6 +107,13 @@ public sealed record DBuilderPluginApiContributionPlan(
     IReadOnlyList<DBuilderPluginApiContribution> Dockers,
     IReadOnlyList<string> Warnings);
 
+public sealed record DBuilderPluginHostPlan(
+    DBuilderPluginDescriptorPlan DescriptorPlan,
+    IReadOnlyList<DBuilderPluginLifecyclePlan> LifecyclePlans,
+    DBuilderPluginUiContributionPlan UiContributions,
+    DBuilderPluginApiContributionPlan ApiContributions,
+    DBuilderPluginResourceHandlerPlan ResourceHandlers);
+
 public static class DBuilderPluginHostModel
 {
     public static DBuilderPluginDescriptorPlan PlanDescriptors(
@@ -170,6 +177,23 @@ public static class DBuilderPluginHostModel
                 .OrderBy(plugin => plugin.Name, StringComparer.OrdinalIgnoreCase)
                 .ToArray(),
             diagnostics);
+    }
+
+    public static DBuilderPluginHostPlan BuildHostPlan(
+        IEnumerable<DBuilderPluginDescriptor> descriptors,
+        DBuilderPluginLifecycleRequest request)
+    {
+        DBuilderPluginDescriptorPlan descriptorPlan = PlanDescriptors(descriptors);
+        DBuilderPluginDescriptor[] normalizedDescriptors = descriptorPlan.Descriptors.ToArray();
+
+        return new DBuilderPluginHostPlan(
+            descriptorPlan,
+            normalizedDescriptors
+                .Select(descriptor => PlanLifecycle(descriptor, request))
+                .ToArray(),
+            PlanUiContributions(normalizedDescriptors),
+            PlanApiContributions(normalizedDescriptors),
+            PlanResourceHandlers(normalizedDescriptors));
     }
 
     public static IReadOnlyList<DBuilderPluginDescriptor> NormalizeDescriptors(
