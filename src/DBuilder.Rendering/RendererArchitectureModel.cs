@@ -31,6 +31,7 @@ public static class RendererArchitectureModel
             "Render-device alpha-test compatibility state planning",
             "Render-device multisample antialias compatibility state planning",
             "Render-device sampler-filter overload planning",
+            "Render-device setup settings planning",
             "Render-device target start-rendering planning",
             "Render-device inline vertex draw planning and overload",
             "Cull, depth, fill, blend, sampler, and texture state",

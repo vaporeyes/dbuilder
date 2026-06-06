@@ -37,7 +37,10 @@ public enum DrawOperationKind
 
 public enum RenderStateToggleKind
 {
+    AlphaBlend,
     AlphaTest,
+    Depth,
+    DepthWrite,
     MultisampleAntialias,
 }
 
@@ -58,6 +61,20 @@ public sealed record SamplerFilterPlan(
     MipmapFilter MipFilter,
     float MaxAnisotropy,
     int Unit);
+
+public sealed record RenderDeviceSetupSettingsPlan(
+    RenderStateTogglePlan AlphaBlend,
+    RenderStateTogglePlan AlphaTest,
+    Cull CullMode,
+    Blend DestinationBlend,
+    FillMode FillMode,
+    RenderStateTogglePlan MultisampleAntialias,
+    Blend SourceBlend,
+    RenderStateTogglePlan Depth,
+    RenderStateTogglePlan DepthWrite,
+    TextureAddress SamplerAddress,
+    SamplerFilterPlan SamplerFilter,
+    bool InitializePresentation);
 
 public sealed record RenderStartPlan(
     bool Clear,
@@ -363,6 +380,33 @@ public sealed class RenderDevice : IDisposable
 
     public static RenderStateTogglePlan BuildMultisampleAntialiasPlan(bool enabled)
         => new(RenderStateToggleKind.MultisampleAntialias, enabled);
+
+    public static RenderDeviceSetupSettingsPlan BuildSetupSettingsPlan(
+        bool visualBilinear,
+        bool antialiasingEnabled,
+        float filterAnisotropy)
+    {
+        TextureFilter magMinFilter = visualBilinear ? TextureFilter.Linear : TextureFilter.Nearest;
+        MipmapFilter mipFilter = visualBilinear ? MipmapFilter.Linear : MipmapFilter.Nearest;
+
+        return new(
+            AlphaBlend: new(RenderStateToggleKind.AlphaBlend, Enabled: false),
+            AlphaTest: BuildAlphaTestPlan(enabled: false),
+            CullMode: Cull.None,
+            DestinationBlend: Blend.InverseSourceAlpha,
+            FillMode: FillMode.Solid,
+            MultisampleAntialias: BuildMultisampleAntialiasPlan(antialiasingEnabled),
+            SourceBlend: Blend.SourceAlpha,
+            Depth: new(RenderStateToggleKind.Depth, Enabled: false),
+            DepthWrite: new(RenderStateToggleKind.DepthWrite, Enabled: false),
+            SamplerAddress: TextureAddress.Wrap,
+            SamplerFilter: BuildSamplerFilterPlan(
+                magMinFilter,
+                magMinFilter,
+                mipFilter,
+                filterAnisotropy),
+            InitializePresentation: true);
+    }
 
     public static SamplerFilterPlan BuildSamplerFilterPlan(TextureFilter filter, int unit = 0)
         => BuildSamplerFilterPlan(filter, filter, MipmapFilter.None, 0.0f, unit);

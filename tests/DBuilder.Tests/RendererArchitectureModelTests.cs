@@ -25,6 +25,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Render-device alpha-test compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device multisample antialias compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device sampler-filter overload planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device setup settings planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device target start-rendering planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device inline vertex draw planning and overload", replacement.CoveredResponsibilities);
         Assert.Contains("Index-buffer binding and primitive draw dispatch", replacement.CoveredResponsibilities);
@@ -186,6 +187,55 @@ public class RendererArchitectureModelTests
         Assert.Equal(MipmapFilter.Nearest, detailed.MipFilter);
         Assert.Equal(4.0f, detailed.MaxAnisotropy);
         Assert.Equal(3, detailed.Unit);
+    }
+
+    [Fact]
+    public void RenderDeviceBuildsUdbSetupSettingsPlan()
+    {
+        RenderDeviceSetupSettingsPlan plan = RenderDevice.BuildSetupSettingsPlan(
+            visualBilinear: true,
+            antialiasingEnabled: true,
+            filterAnisotropy: 8.0f);
+
+        Assert.Equal(RenderStateToggleKind.AlphaBlend, plan.AlphaBlend.Kind);
+        Assert.False(plan.AlphaBlend.Enabled);
+        Assert.Equal(RenderStateToggleKind.AlphaTest, plan.AlphaTest.Kind);
+        Assert.False(plan.AlphaTest.Enabled);
+        Assert.Equal(Cull.None, plan.CullMode);
+        Assert.Equal(Blend.InverseSourceAlpha, plan.DestinationBlend);
+        Assert.Equal(FillMode.Solid, plan.FillMode);
+        Assert.Equal(RenderStateToggleKind.MultisampleAntialias, plan.MultisampleAntialias.Kind);
+        Assert.True(plan.MultisampleAntialias.Enabled);
+        Assert.Equal(Blend.SourceAlpha, plan.SourceBlend);
+        Assert.Equal(RenderStateToggleKind.Depth, plan.Depth.Kind);
+        Assert.False(plan.Depth.Enabled);
+        Assert.Equal(RenderStateToggleKind.DepthWrite, plan.DepthWrite.Kind);
+        Assert.False(plan.DepthWrite.Enabled);
+        Assert.Equal(TextureAddress.Wrap, plan.SamplerAddress);
+        Assert.True(plan.InitializePresentation);
+    }
+
+    [Fact]
+    public void RenderDeviceSetupSettingsPlanUsesUdbVisualBilinearFilters()
+    {
+        RenderDeviceSetupSettingsPlan nearest = RenderDevice.BuildSetupSettingsPlan(
+            visualBilinear: false,
+            antialiasingEnabled: false,
+            filterAnisotropy: 2.0f);
+        RenderDeviceSetupSettingsPlan linear = RenderDevice.BuildSetupSettingsPlan(
+            visualBilinear: true,
+            antialiasingEnabled: false,
+            filterAnisotropy: 4.0f);
+
+        Assert.Equal(TextureFilter.Nearest, nearest.SamplerFilter.MinFilter);
+        Assert.Equal(TextureFilter.Nearest, nearest.SamplerFilter.MagFilter);
+        Assert.Equal(MipmapFilter.Nearest, nearest.SamplerFilter.MipFilter);
+        Assert.Equal(2.0f, nearest.SamplerFilter.MaxAnisotropy);
+        Assert.False(nearest.MultisampleAntialias.Enabled);
+        Assert.Equal(TextureFilter.Linear, linear.SamplerFilter.MinFilter);
+        Assert.Equal(TextureFilter.Linear, linear.SamplerFilter.MagFilter);
+        Assert.Equal(MipmapFilter.Linear, linear.SamplerFilter.MipFilter);
+        Assert.Equal(4.0f, linear.SamplerFilter.MaxAnisotropy);
     }
 
     [Fact]
