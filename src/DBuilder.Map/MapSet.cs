@@ -1405,6 +1405,9 @@ public class MapSet : IDisposable
         return removed;
     }
 
+    public int RemoveUnusedSectors(bool reportWarnings)
+        => RemoveUnusedSectors();
+
     /// <summary>Removes unneeded textures from sidedefs. Returns the number of sidedefs changed.</summary>
     public int RemoveUnneededSidedefTextures(bool autoClearSidedefTextures)
     {

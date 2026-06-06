@@ -271,6 +271,19 @@ public class GeometryCleanupTests
     }
 
     [Fact]
+    public void RemoveUnusedSectorsReportWarningsOverloadMatchesUdbSurface()
+    {
+        var map = new MapSet();
+        var unused = map.AddSector();
+
+        int removed = map.RemoveUnusedSectors(reportWarnings: true);
+
+        Assert.Equal(1, removed);
+        Assert.Empty(map.Sectors);
+        Assert.True(unused.IsDisposed);
+    }
+
+    [Fact]
     public void RemoveUnneededSidedefTexturesCleansTwoSidedOptionalParts()
     {
         var map = new MapSet();
