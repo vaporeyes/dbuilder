@@ -765,6 +765,16 @@ public static class DBuilderPluginHostModel
             .Select(instance => instance.Instance.GetType().Assembly)
             .ToArray();
 
+    public static string ResolveReflectionPluginDisplayName(DBuilderPluginRuntimeInstance runtimeInstance)
+    {
+        string? displayName = ReadPluginStringProperty(
+            runtimeInstance.Instance.GetType(),
+            runtimeInstance.Instance,
+            "Name")?.Trim();
+
+        return string.IsNullOrEmpty(displayName) ? runtimeInstance.PluginName : displayName;
+    }
+
     public static DBuilderPluginShutdownPlan PlanShutdownAttempts(
         DBuilderPluginActivationPlan activationPlan,
         Func<DBuilderPluginActivationAttempt, string?> disposePlugin)
@@ -1438,6 +1448,13 @@ public static class DBuilderPluginHostModel
         PropertyInfo? property = pluginType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
         if (property == null || property.PropertyType != typeof(bool)) return null;
         return (bool?)property.GetValue(instance);
+    }
+
+    private static string? ReadPluginStringProperty(Type pluginType, object instance, string propertyName)
+    {
+        PropertyInfo? property = pluginType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+        if (property == null || property.PropertyType != typeof(string)) return null;
+        return (string?)property.GetValue(instance);
     }
 
     private static DBuilderPluginDescriptor[] ApplyLoadOrder(

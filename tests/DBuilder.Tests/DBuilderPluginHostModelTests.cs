@@ -959,6 +959,32 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void ResolveReflectionPluginDisplayNameReadsUdbNameProperty()
+    {
+        DBuilderPluginRuntimeInstance instance = RuntimeInstance(
+            new ReflectionNamedPlugin(),
+            "PluginFile",
+            0);
+
+        string displayName = DBuilderPluginHostModel.ResolveReflectionPluginDisplayName(instance);
+
+        Assert.Equal("Friendly Plugin", displayName);
+    }
+
+    [Fact]
+    public void ResolveReflectionPluginDisplayNameFallsBackToRuntimePluginName()
+    {
+        Assert.Equal(
+            "PluginFile",
+            DBuilderPluginHostModel.ResolveReflectionPluginDisplayName(
+                RuntimeInstance(new ReflectionPluginHostTestPlugin(), "PluginFile", 0)));
+        Assert.Equal(
+            "PluginFile",
+            DBuilderPluginHostModel.ResolveReflectionPluginDisplayName(
+                RuntimeInstance(new ReflectionEmptyNamePlugin(), "PluginFile", 0)));
+    }
+
+    [Fact]
     public void BuildReflectionRuntimePlanKeepsActivatedInstancesInReadyHost()
     {
         string assemblyPath = typeof(ReflectionPluginHostTestPlugin).Assembly.Location;
@@ -2577,6 +2603,16 @@ public sealed class ReflectionStrictRevisionPlugin : IDBuilderPlugin
     public int MinimumRevision => 42;
 
     public bool StrictRevisionMatching => true;
+}
+
+public sealed class ReflectionNamedPlugin : IDBuilderPlugin
+{
+    public string Name => "Friendly Plugin";
+}
+
+public sealed class ReflectionEmptyNamePlugin : IDBuilderPlugin
+{
+    public string Name => " ";
 }
 
 public sealed class ReflectionNonPluginHostTestType
