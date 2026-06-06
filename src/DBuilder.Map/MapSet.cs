@@ -144,12 +144,18 @@ public class MapSet : IDisposable
         return v;
     }
 
+    public Vertex CreateVertex(Vector2D position)
+        => AddVertex(position);
+
     public Linedef AddLinedef(Vertex start, Vertex end)
     {
         var l = new Linedef(start, end) { Index = Linedefs.Count };
         Linedefs.Add(l);
         return l;
     }
+
+    public Linedef CreateLinedef(Vertex start, Vertex end)
+        => AddLinedef(start, end);
 
     public Sidedef AddSidedef(Linedef line, bool isFront, Sector? sector)
     {
@@ -159,6 +165,9 @@ public class MapSet : IDisposable
         return sd;
     }
 
+    public Sidedef CreateSidedef(Linedef line, bool front, Sector? sector)
+        => AddSidedef(line, front, sector);
+
     public Sector AddSector()
     {
         var s = new Sector { Index = Sectors.Count };
@@ -166,12 +175,18 @@ public class MapSet : IDisposable
         return s;
     }
 
+    public Sector CreateSector()
+        => AddSector();
+
     public Thing AddThing(Vector2D position, int type)
     {
         var t = new Thing(position, type) { Index = Things.Count };
         Things.Add(t);
         return t;
     }
+
+    public Thing CreateThing()
+        => AddThing(new Vector2D(), type: 0);
 
     public Thing PlaceUniqueThing(int type, Vector2D position)
     {

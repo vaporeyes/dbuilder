@@ -47,6 +47,38 @@ public class MapSetAndUdmfLoaderTests
     }
 
     [Fact]
+    public void CreateElementAliasesMatchUdbCreationSurface()
+    {
+        var map = new MapSet();
+
+        Vertex start = map.CreateVertex(new Vector2D(0, 0));
+        Vertex end = map.CreateVertex(new Vector2D(64, 0));
+        Linedef line = map.CreateLinedef(start, end);
+        Sector sector = map.CreateSector();
+        Sidedef side = map.CreateSidedef(line, front: true, sector);
+        Thing thing = map.CreateThing();
+
+        Assert.Same(start, map.Vertices[0]);
+        Assert.Same(end, map.Vertices[1]);
+        Assert.Same(line, map.Linedefs[0]);
+        Assert.Same(sector, map.Sectors[0]);
+        Assert.Same(side, map.Sidedefs[0]);
+        Assert.Same(thing, map.Things[0]);
+        Assert.Equal(0, start.Index);
+        Assert.Equal(1, end.Index);
+        Assert.Equal(0, line.Index);
+        Assert.Equal(0, sector.Index);
+        Assert.Equal(0, side.Index);
+        Assert.Equal(0, thing.Index);
+        Assert.Same(start, line.Start);
+        Assert.Same(end, line.End);
+        Assert.Same(side, line.Front);
+        Assert.Same(sector, side.Sector);
+        Assert.Equal(new Vector2D(), thing.Position);
+        Assert.Equal(0, thing.Type);
+    }
+
+    [Fact]
     public void VertexPositionsRoundTrip()
     {
         var map = UdmfMapLoader.Load(SimpleUdmfRoom, out _)!;
