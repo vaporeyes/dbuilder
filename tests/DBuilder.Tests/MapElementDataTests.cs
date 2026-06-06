@@ -143,11 +143,17 @@ public class MapElementDataTests
     public void ArgumentHelpersReadSetAndClearLinedefArgs()
     {
         var line = new Linedef();
+
+        Assert.Equal(5, Linedef.NUM_ARGS);
+        Assert.Equal(Linedef.NUM_ARGS, line.Args.Length);
+        Assert.Equal(0.01, Linedef.SIDE_POINT_DISTANCE);
+        Assert.Equal(Linedef.SIDE_POINT_DISTANCE, Linedef.SidePointDistance);
+
         line.SetArg(0, 7);
-        line.SetArg(4, 99);
+        line.SetArg(Linedef.NUM_ARGS - 1, 99);
 
         Assert.Equal(7, line.GetArg(0));
-        Assert.Equal(99, line.GetArg(4));
+        Assert.Equal(99, line.GetArg(Linedef.NUM_ARGS - 1));
 
         line.ClearArgs();
 

@@ -8,7 +8,9 @@ using DBuilder.Geometry;
 
 public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, IHasArguments, IMultiTaggedMapElement
 {
-    public const double SidePointDistance = 0.01;
+    public const double SIDE_POINT_DISTANCE = 0.01;
+    public const double SidePointDistance = SIDE_POINT_DISTANCE;
+    public const int NUM_ARGS = 5;
     public const int BlockingFlagBit = 1;
     public const int TwoSidedFlagBit = 4;
 
@@ -70,7 +72,7 @@ public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
     }
 
     // Hexen/UDMF action parameters (5 bytes in Hexen binary, ints in UDMF).
-    public int[] Args { get; } = new int[5];
+    public int[] Args { get; } = new int[NUM_ARGS];
 
     // UDMF-specific named flags collected as a string set so we don't lose data on round-trip.
     // Real UDB resolves these against the game config (blocking, dontdraw, etc.).
