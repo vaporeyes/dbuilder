@@ -642,9 +642,12 @@ public class ToolsTraceTests
         source.CeilHeight = 96;
         source.Brightness = 144;
         source.SetFloorTexture("SRCFLAT");
+        source.LongFloorTexture = 101;
         source.SetCeilTexture("SRCCEIL");
+        source.LongCeilTexture = 102;
         Sidedef sourceSide = map.AddSidedef(lines[0], true, source);
         sourceSide.SetTextureMid("SRCWALL");
+        sourceSide.LongMiddleTexture = 201;
         map.BuildIndexes();
 
         Sector? sector = Tools.MakeSector(map, lines.Select(line => new LinedefSide(line, true)).ToList());
@@ -656,9 +659,12 @@ public class ToolsTraceTests
         Assert.Equal(96, sector.CeilHeight);
         Assert.Equal(144, sector.Brightness);
         Assert.Equal("SRCFLAT", sector.FloorTexture);
+        Assert.Equal(101, sector.LongFloorTexture);
         Assert.Equal("SRCCEIL", sector.CeilTexture);
+        Assert.Equal(102, sector.LongCeilTexture);
         Assert.All(lines, line => Assert.Same(sector, line.Front!.Sector));
         Assert.All(lines, line => Assert.Equal("SRCWALL", line.Front!.MidTexture));
+        Assert.All(lines, line => Assert.Equal(201, line.Front!.LongMiddleTexture));
     }
 
     [Fact]
@@ -708,13 +714,16 @@ public class ToolsTraceTests
         nearby.CeilHeight = 136;
         nearby.Brightness = 176;
         nearby.SetFloorTexture("NEARFLAT");
+        nearby.LongFloorTexture = 301;
         nearby.SetCeilTexture("NEARCEIL");
+        nearby.LongCeilTexture = 302;
 
         Vertex a = map.AddVertex(new Vector2D(96, 0));
         Vertex b = map.AddVertex(new Vector2D(96, 64));
         Linedef nearbyLine = map.AddLinedef(a, b);
         Sidedef opposite = map.AddSidedef(nearbyLine, isFront: false, nearby);
         opposite.SetTextureMid("NEARWALL");
+        opposite.LongMiddleTexture = 401;
         map.BuildIndexes();
 
         Sector? sector = Tools.MakeSector(
@@ -728,8 +737,11 @@ public class ToolsTraceTests
         Assert.Equal(136, sector.CeilHeight);
         Assert.Equal(176, sector.Brightness);
         Assert.Equal("NEARFLAT", sector.FloorTexture);
+        Assert.Equal(301, sector.LongFloorTexture);
         Assert.Equal("NEARCEIL", sector.CeilTexture);
+        Assert.Equal(302, sector.LongCeilTexture);
         Assert.All(lines, line => Assert.Equal("NEARWALL", line.Front!.MidTexture));
+        Assert.All(lines, line => Assert.Equal(401, line.Front!.LongMiddleTexture));
     }
 
     [Fact]

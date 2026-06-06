@@ -273,7 +273,7 @@ public static class Tools
         options ??= new SectorCreationOptions();
         Sector? sourceSector = null;
         Sector? nearestSector = null;
-        SidedefTextureDefaults sourceSide = new(null, null, null);
+        SidedefTextureDefaults sourceSide = new(null, null, null, null, null, null);
         bool foundSideDefaults = false;
 
         foreach (LinedefSide lineSide in allLines)
@@ -334,7 +334,9 @@ public static class Tools
         else if (nearestSector != null)
         {
             newSector.SetFloorTexture(nearestSector.FloorTexture);
+            if (newSector.FloorTexture != "-") newSector.LongFloorTexture = nearestSector.LongFloorTexture;
             newSector.SetCeilTexture(nearestSector.CeilTexture);
+            if (newSector.CeilTexture != "-") newSector.LongCeilTexture = nearestSector.LongCeilTexture;
             newSector.FloorHeight = nearestSector.FloorHeight;
             newSector.CeilHeight = nearestSector.CeilHeight;
             newSector.Brightness = nearestSector.Brightness;
@@ -581,26 +583,41 @@ public static class Tools
         return flipped;
     }
 
-    private readonly record struct SidedefTextureDefaults(string? High, string? Middle, string? Low)
+    private readonly record struct SidedefTextureDefaults(
+        string? High,
+        string? Middle,
+        string? Low,
+        long? LongHigh,
+        long? LongMiddle,
+        long? LongLow)
     {
         public static SidedefTextureDefaults From(Sidedef side, string defaultHigh, string defaultMiddle, string defaultLow)
             => new(
                 IsBlankTexture(side.HighTexture) ? defaultHigh : side.HighTexture,
                 IsBlankTexture(side.MidTexture) ? defaultMiddle : side.MidTexture,
-                IsBlankTexture(side.LowTexture) ? defaultLow : side.LowTexture);
+                IsBlankTexture(side.LowTexture) ? defaultLow : side.LowTexture,
+                IsBlankTexture(side.HighTexture) ? null : side.LongHighTexture,
+                IsBlankTexture(side.MidTexture) ? null : side.LongMiddleTexture,
+                IsBlankTexture(side.LowTexture) ? null : side.LongLowTexture);
     }
 
     private static SidedefTextureDefaults TakeSidedefDefaults(SidedefTextureDefaults settings, SectorCreationOptions options)
         => new(
             settings.High ?? options.DefaultHighTexture,
             settings.Middle ?? options.DefaultMiddleTexture,
-            settings.Low ?? options.DefaultLowTexture);
+            settings.Low ?? options.DefaultLowTexture,
+            settings.LongHigh,
+            settings.LongMiddle,
+            settings.LongLow);
 
     private static SidedefTextureDefaults TakeSidedefSettings(SidedefTextureDefaults settings, Sidedef side)
         => new(
             settings.High ?? (IsBlankTexture(side.HighTexture) ? null : side.HighTexture),
             settings.Middle ?? (IsBlankTexture(side.MidTexture) ? null : side.MidTexture),
-            settings.Low ?? (IsBlankTexture(side.LowTexture) ? null : side.LowTexture));
+            settings.Low ?? (IsBlankTexture(side.LowTexture) ? null : side.LowTexture),
+            settings.LongHigh ?? (IsBlankTexture(side.HighTexture) ? null : side.LongHighTexture),
+            settings.LongMiddle ?? (IsBlankTexture(side.MidTexture) ? null : side.LongMiddleTexture),
+            settings.LongLow ?? (IsBlankTexture(side.LowTexture) ? null : side.LongLowTexture));
 
     private static void LinkOppositeSidedef(Sidedef side)
     {
@@ -611,9 +628,21 @@ public static class Tools
 
     private static void ApplyDefaultsToSidedef(Sidedef side, SidedefTextureDefaults defaults)
     {
-        if (side.HighRequired() && IsBlankTexture(side.HighTexture)) side.SetTextureHigh(defaults.High);
-        if (side.MiddleRequired() && IsBlankTexture(side.MidTexture)) side.SetTextureMid(defaults.Middle);
-        if (side.LowRequired() && IsBlankTexture(side.LowTexture)) side.SetTextureLow(defaults.Low);
+        if (side.HighRequired() && IsBlankTexture(side.HighTexture))
+        {
+            side.SetTextureHigh(defaults.High);
+            if (defaults.LongHigh.HasValue && side.HighTexture != "-") side.LongHighTexture = defaults.LongHigh.Value;
+        }
+        if (side.MiddleRequired() && IsBlankTexture(side.MidTexture))
+        {
+            side.SetTextureMid(defaults.Middle);
+            if (defaults.LongMiddle.HasValue && side.MidTexture != "-") side.LongMiddleTexture = defaults.LongMiddle.Value;
+        }
+        if (side.LowRequired() && IsBlankTexture(side.LowTexture))
+        {
+            side.SetTextureLow(defaults.Low);
+            if (defaults.LongLow.HasValue && side.LowTexture != "-") side.LongLowTexture = defaults.LongLow.Value;
+        }
     }
 
     private static bool IsBlankTexture(string? texture)
