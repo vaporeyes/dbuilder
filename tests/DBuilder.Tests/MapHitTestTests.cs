@@ -300,6 +300,29 @@ public class MapHitTestTests
     }
 
     [Fact]
+    public void GetSectorByCoordinatesUsesSectorIntersectOrder()
+    {
+        var map = new MapSet();
+        Sector outer = AddSquareSector(map, 0, 0, 100, 100);
+        AddSquareSector(map, 10, 10, 30, 30);
+        map.BuildIndexes();
+
+        Assert.Same(outer, map.GetSectorByCoordinates(new Vector2D(19, 20)));
+        Assert.NotSame(outer, map.GetSectorAt(new Vector2D(19, 20)));
+        Assert.Null(map.GetSectorByCoordinates(new Vector2D(150, 150)));
+    }
+
+    [Fact]
+    public void GetSectorByCoordinatesWithBlockMapDelegatesToBlockMapLookup()
+    {
+        var (map, _) = BuildSquare(100);
+        var blockMap = new BlockMap(map, 64);
+        var point = new Vector2D(50, 20);
+
+        Assert.Same(blockMap.GetSectorAt(point), map.GetSectorByCoordinates(point, blockMap));
+    }
+
+    [Fact]
     public void NearestSidedefPicksFacingSide()
     {
         // Two sectors sharing a vertical two-sided divider at x=50.
@@ -584,5 +607,26 @@ public class MapHitTestTests
 
         Assert.Same(sector, blockMap.GetSectorContaining(line));
         Assert.Same(map.GetSectorContaining(line), blockMap.GetSectorContaining(line));
+    }
+
+    private static Sector AddSquareSector(MapSet map, double minX, double minY, double maxX, double maxY)
+    {
+        var sector = map.AddSector();
+        var southwest = map.AddVertex(new Vector2D(minX, minY));
+        var southeast = map.AddVertex(new Vector2D(maxX, minY));
+        var northeast = map.AddVertex(new Vector2D(maxX, maxY));
+        var northwest = map.AddVertex(new Vector2D(minX, maxY));
+
+        void Edge(Vertex start, Vertex end)
+        {
+            var line = map.AddLinedef(start, end);
+            map.AddSidedef(line, isFront: true, sector);
+        }
+
+        Edge(southeast, southwest);
+        Edge(southwest, northwest);
+        Edge(northwest, northeast);
+        Edge(northeast, southeast);
+        return sector;
     }
 }

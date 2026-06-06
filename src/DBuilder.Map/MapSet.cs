@@ -2544,6 +2544,20 @@ public class MapSet : IDisposable
         return GetSectorAt(pos, ignoredLine: null);
     }
 
+    /// <summary>Returns the first sector whose polygon contains <paramref name="pos"/>, matching UDB MapSet.</summary>
+    public Sector? GetSectorByCoordinates(Vector2D pos)
+    {
+        foreach (var sector in Sectors)
+        {
+            if (sector.Intersect(pos)) return sector;
+        }
+        return null;
+    }
+
+    /// <summary>Returns the sector containing <paramref name="pos"/> using an accelerated blockmap lookup.</summary>
+    public Sector? GetSectorByCoordinates(Vector2D pos, BlockMap blockMap)
+        => blockMap.GetSectorAt(pos);
+
     private Sector? GetSectorAt(Vector2D pos, Linedef? ignoredLine)
     {
         var line = NearestLinedef(pos, double.MaxValue, ignoredLine);
