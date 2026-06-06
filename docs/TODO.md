@@ -1480,6 +1480,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style index-buffer disposed-state reporting and allocation failure guard.
 - [ ] Port texture handling and lifecycle.
   - [x] Add UDB-style texture disposed-state reporting and allocation failure guard.
+  - [x] Add UDB-style texture format metadata and 2D/cube allocation planning.
 - [ ] Port surface manager behavior.
   - [x] Add UDB-style surface vertex chunk and buffer allocation planning.
   - [x] Add UDB-style surface update entry application behavior.

@@ -21,6 +21,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Flat and world vertex-buffer subdata updates", replacement.CoveredResponsibilities);
         Assert.Contains("Vertex and index buffer disposed-state reporting", replacement.CoveredResponsibilities);
         Assert.Contains("Texture disposed-state reporting", replacement.CoveredResponsibilities);
+        Assert.Contains("Texture format metadata and 2D/cube allocation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface-entry chunk metadata and bounds model", replacement.CoveredResponsibilities);
         Assert.Contains("Surface manager vertex chunk and buffer allocation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface buffer hole allocation and free-entry planning", replacement.CoveredResponsibilities);
