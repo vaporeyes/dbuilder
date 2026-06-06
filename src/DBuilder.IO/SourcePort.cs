@@ -1,6 +1,7 @@
 // ABOUTME: Builds a source-port command line for Test Map from DBuilder or UDB argument templates.
 // ABOUTME: Splits templates honoring double quotes, substitutes map/file tokens, and drops empty optional args.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -71,6 +72,27 @@ public static class SourcePort
         return startInfo;
     }
 
+    public static SourcePortLaunchResult Launch(
+        string executable,
+        IEnumerable<string> arguments,
+        Func<ProcessStartInfo, bool>? start = null)
+    {
+        ProcessStartInfo startInfo = CreateStartInfo(executable, arguments);
+        try
+        {
+            bool launched = start is null
+                ? Process.Start(startInfo) is not null
+                : start(startInfo);
+            return launched
+                ? SourcePortLaunchResult.Ok(startInfo)
+                : SourcePortLaunchResult.Fail(startInfo, "Source port launch failed: process did not start.");
+        }
+        catch (Exception ex)
+        {
+            return SourcePortLaunchResult.Fail(startInfo, "Source port launch failed: " + ex.Message);
+        }
+    }
+
     private static string BuildAdditionalFiles(IEnumerable<string>? additionalFiles)
     {
         if (additionalFiles is null) return "";
@@ -126,4 +148,13 @@ public static class SourcePort
             : "";
         return (map, l1, l2);
     }
+}
+
+public sealed record SourcePortLaunchResult(bool Success, string Message, ProcessStartInfo StartInfo)
+{
+    public static SourcePortLaunchResult Ok(ProcessStartInfo startInfo)
+        => new(true, "Source port launched.", startInfo);
+
+    public static SourcePortLaunchResult Fail(ProcessStartInfo startInfo, string message)
+        => new(false, message, startInfo);
 }

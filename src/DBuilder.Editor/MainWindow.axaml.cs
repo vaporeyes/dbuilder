@@ -5210,7 +5210,12 @@ public partial class MainWindow : Window
                 skill: _settings.NormalizedTestSkill,
                 additionalParameters: _settings.TestAdditionalParameters);
 
-            System.Diagnostics.Process.Start(SourcePort.CreateStartInfo(port!, args));
+            SourcePortLaunchResult launch = SourcePort.Launch(port!, args);
+            if (!launch.Success)
+            {
+                SetStatus(launch.Message, StatusHistoryKind.Warning);
+                return;
+            }
             if (_mapOptions?.TestPostCommand is { } postCommand)
             {
                 var postResult = ExternalCommand.Run(postCommand, "After test map", temp);

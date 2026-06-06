@@ -2,6 +2,7 @@
 // ABOUTME: Ensures quoted paths with spaces stay single tokens and tokens substitute correctly.
 
 using DBuilder.IO;
+using System.Diagnostics;
 
 namespace DBuilder.Tests;
 
@@ -154,5 +155,51 @@ public class SourcePortTests
 
         Assert.Equal("gzdoom", startInfo.FileName);
         Assert.Equal("", startInfo.WorkingDirectory);
+    }
+
+    [Fact]
+    public void LaunchUsesMockedProcessExecution()
+    {
+        ProcessStartInfo? captured = null;
+
+        SourcePortLaunchResult result = SourcePort.Launch(
+            "/ports/gzdoom",
+            new[] { "-iwad", "doom2.wad", "-file", "edit.wad" },
+            startInfo =>
+            {
+                captured = startInfo;
+                return true;
+            });
+
+        Assert.True(result.Success, result.Message);
+        Assert.Equal("Source port launched.", result.Message);
+        Assert.NotNull(captured);
+        Assert.Equal("/ports/gzdoom", captured.FileName);
+        Assert.Equal(new[] { "-iwad", "doom2.wad", "-file", "edit.wad" }, captured.ArgumentList);
+        Assert.Same(captured, result.StartInfo);
+    }
+
+    [Fact]
+    public void LaunchReportsFailedMockedProcessStart()
+    {
+        SourcePortLaunchResult result = SourcePort.Launch(
+            "/ports/gzdoom",
+            new[] { "-iwad", "doom2.wad" },
+            _ => false);
+
+        Assert.False(result.Success);
+        Assert.Equal("Source port launch failed: process did not start.", result.Message);
+    }
+
+    [Fact]
+    public void LaunchReportsMockedProcessException()
+    {
+        SourcePortLaunchResult result = SourcePort.Launch(
+            "/ports/gzdoom",
+            new[] { "-iwad", "doom2.wad" },
+            _ => throw new InvalidOperationException("blocked"));
+
+        Assert.False(result.Success);
+        Assert.Equal("Source port launch failed: blocked", result.Message);
     }
 }

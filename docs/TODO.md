@@ -2674,7 +2674,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Add UI smoke tests for opening, editing, saving, and reopening maps.
 - [ ] Add rendering smoke tests for 2D and 3D views.
 - [ ] Add plugin lifecycle tests.
-- [ ] Add source-port launch tests with mocked process execution.
+- [x] Add source-port launch tests with mocked process execution.
 - [ ] Add performance tests for large maps and large resource stacks.
 - [ ] Add compatibility tests against selected UDB behavior where exact parity matters.
 
