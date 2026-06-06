@@ -1608,7 +1608,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("_recentCommandPaletteCommands", code, StringComparison.Ordinal);
         Assert.Contains("RunCommandFromPalette", code, StringComparison.Ordinal);
         Assert.Contains("CommandPaletteModel.BuildGroups", palette, StringComparison.Ordinal);
-        Assert.Contains("Watermark = \"Search commands\"", palette, StringComparison.Ordinal);
+        Assert.Contains("Watermark = \"Search commands, IDs, shortcuts\"", palette, StringComparison.Ordinal);
         Assert.Contains("Text = \"No results found\"", palette, StringComparison.Ordinal);
         Assert.Contains("Key.Enter", palette, StringComparison.Ordinal);
         Assert.Contains("Key.Down", palette, StringComparison.Ordinal);

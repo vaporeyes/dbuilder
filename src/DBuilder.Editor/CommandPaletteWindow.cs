@@ -25,7 +25,7 @@ public sealed class CommandPaletteWindow : Window
     private readonly TextBlock _matchSummary = new() { Foreground = MutedBrush, VerticalAlignment = VerticalAlignment.Center };
     private readonly TextBox _search = new()
     {
-        Watermark = "Search commands",
+        Watermark = "Search commands, IDs, shortcuts",
         MinHeight = 34,
     };
 
