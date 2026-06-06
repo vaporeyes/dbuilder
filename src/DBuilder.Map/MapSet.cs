@@ -2416,6 +2416,20 @@ public class MapSet : IDisposable
     public Linedef? NearestLinedef(Vector2D pos, double maxRange = double.MaxValue)
         => NearestLinedef(pos, maxRange, ignoredLine: null);
 
+    /// <summary>Nearest linedef to <paramref name="pos"/> excluding the supplied linedefs, matching UDB MapSet.</summary>
+    public Linedef? NearestLinedef(Vector2D pos, HashSet<Linedef> linesToExclude)
+    {
+        Linedef? closest = null;
+        double bestSq = double.MaxValue;
+        foreach (var line in Linedefs)
+        {
+            if (linesToExclude.Contains(line)) continue;
+            double d = line.SafeDistanceToSq(pos, bounded: true);
+            if (d < bestSq) { bestSq = d; closest = line; }
+        }
+        return closest;
+    }
+
     /// <summary>Nearest linedef to <paramref name="pos"/> from the supplied selection, or null when the selection is empty.</summary>
     public static Linedef? NearestLinedef(ICollection<Linedef> selection, Vector2D pos)
     {

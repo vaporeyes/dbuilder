@@ -216,6 +216,30 @@ public class MapHitTestTests
     }
 
     [Fact]
+    public void NearestLinedefWithExclusionsSkipsExcludedLines()
+    {
+        var map = new MapSet();
+        var near = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(10, 0)));
+        var far = map.AddLinedef(map.AddVertex(new Vector2D(0, 8)), map.AddVertex(new Vector2D(10, 8)));
+
+        var nearest = map.NearestLinedef(new Vector2D(5, 0), new HashSet<Linedef> { near });
+
+        Assert.Same(far, nearest);
+    }
+
+    [Fact]
+    public void NearestLinedefWithExclusionsReturnsNullWhenAllLinesExcluded()
+    {
+        var map = new MapSet();
+        var first = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(10, 0)));
+        var second = map.AddLinedef(map.AddVertex(new Vector2D(0, 8)), map.AddVertex(new Vector2D(10, 8)));
+
+        var nearest = map.NearestLinedef(new Vector2D(5, 0), new HashSet<Linedef> { first, second });
+
+        Assert.Null(nearest);
+    }
+
+    [Fact]
     public void NearestUnselectedUnreferencedLinedefSkipsLinesConnectedToVertex()
     {
         var map = new MapSet();
