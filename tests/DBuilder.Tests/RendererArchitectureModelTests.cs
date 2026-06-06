@@ -2,6 +2,7 @@
 // ABOUTME: Covers the Silk.NET device path, runtime shader compiler strategy, and remaining gaps.
 
 using DBuilder.Rendering;
+using System.Reflection;
 
 namespace DBuilder.Tests;
 
@@ -43,6 +44,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Render-device 2D texture clear and pixel upload application", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device unsafe plotter pixel upload surface", replacement.CoveredResponsibilities);
         Assert.Contains("Cube texture resource and render-device cube operation surface", replacement.CoveredResponsibilities);
+        Assert.Contains("Mesh disposal and finalizer lifecycle", replacement.CoveredResponsibilities);
         Assert.Contains("Surface-entry chunk metadata and bounds model", replacement.CoveredResponsibilities);
         Assert.Contains("Surface manager vertex chunk and buffer allocation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface buffer hole allocation and free-entry planning", replacement.CoveredResponsibilities);
@@ -126,6 +128,9 @@ public class RendererArchitectureModelTests
         Assert.NotNull(typeof(Mesh).GetMethod(nameof(Mesh.Draw), new[] { typeof(RenderDevice) }));
         Assert.NotNull(typeof(Mesh).GetProperty(nameof(Mesh.PrimitivesCount)));
         Assert.Contains(typeof(IDisposable), typeof(Mesh).GetInterfaces());
+        MethodInfo? finalizer = typeof(Mesh).GetMethod("Finalize", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(finalizer);
+        Assert.Equal(typeof(Mesh), finalizer.DeclaringType);
     }
 
     [Fact]

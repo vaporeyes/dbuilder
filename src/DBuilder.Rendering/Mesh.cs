@@ -5,6 +5,8 @@ namespace DBuilder.Rendering;
 
 public sealed class Mesh : IDisposable
 {
+    private bool _disposed;
+
     public Mesh(RenderDevice graphics, WorldVertex[] vertexData, int[] indexData)
     {
         Vertices = new VertexBuffer(graphics.GL);
@@ -19,6 +21,11 @@ public sealed class Mesh : IDisposable
     internal VertexBuffer Vertices { get; private set; }
     internal IndexBuffer Indices { get; private set; }
 
+    ~Mesh()
+    {
+        Dispose();
+    }
+
     public void Draw(RenderDevice device)
     {
         device.SetVertexBuffer(Vertices);
@@ -30,8 +37,11 @@ public sealed class Mesh : IDisposable
 
     public void Dispose()
     {
+        if (_disposed) return;
+
         Vertices.Dispose();
         Indices.Dispose();
+        _disposed = true;
         GC.SuppressFinalize(this);
     }
 }
