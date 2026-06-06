@@ -57,6 +57,7 @@ public static class RendererArchitectureModel
             "Surface buffer hole allocation and free-entry planning",
             "Surface update entry application and chunk reuse planning",
             "Surface render pass visibility filtering and texture grouping",
+            "Surface render texture fallback resolution planning",
             "Surface render draw-command and vertex-buffer binding planning",
             "Surface buffer resource reload upload planning",
             "Surface buffer reset invalidation planning",

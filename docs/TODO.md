@@ -1507,6 +1507,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style surface update entry application behavior.
   - [x] Add UDB-style surface buffer hole allocation planning.
   - [x] Add UDB-style surface render pass visibility filtering and texture grouping.
+  - [x] Add UDB-style surface render texture fallback resolution planning.
   - [x] Add UDB-style surface render draw-command and vertex-buffer binding planning.
   - [x] Add UDB-style surface buffer resource reload upload planning.
   - [x] Add UDB-style surface buffer reset invalidation planning.

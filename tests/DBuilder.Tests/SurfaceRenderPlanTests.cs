@@ -2,6 +2,7 @@
 // ABOUTME: Covers texture grouping, viewport culling, hidden filtering, and buffer order.
 
 using DBuilder.Rendering;
+using DBuilder.IO;
 
 namespace DBuilder.Tests;
 
@@ -58,6 +59,112 @@ public sealed class SurfaceRenderPlanTests
 
         Assert.Equal(SurfaceRenderPlan.BrightnessTexture, batch.Texture);
         Assert.Equal(set.Entries, batch.Entries);
+    }
+
+    [Fact]
+    public void ResolveTextureUsesWhiteTokenForBrightnessTexture()
+    {
+        SurfaceTextureResolution resolution = SurfaceRenderPlan.ResolveTexture(
+            SurfaceRenderPlan.BrightnessTexture,
+            Lump.MakeLongName("-", useLongNames: false),
+            imageExists: true,
+            isUnknownImage: false,
+            isImageLoaded: true,
+            loadFailed: false);
+
+        Assert.Equal(new SurfaceTextureResolution(
+            SurfaceRenderPlan.WhiteTextureToken,
+            SurfaceTextureFallback.White), resolution);
+    }
+
+    [Fact]
+    public void ResolveTextureUsesMissingTokenForEmptyTextureName()
+    {
+        long emptyTextureName = Lump.MakeLongName("-", useLongNames: false);
+
+        SurfaceTextureResolution resolution = SurfaceRenderPlan.ResolveTexture(
+            emptyTextureName,
+            emptyTextureName,
+            imageExists: true,
+            isUnknownImage: false,
+            isImageLoaded: true,
+            loadFailed: false);
+
+        Assert.Equal(new SurfaceTextureResolution(
+            SurfaceRenderPlan.MissingTextureToken,
+            SurfaceTextureFallback.Missing), resolution);
+    }
+
+    [Fact]
+    public void ResolveTextureUsesUnknownTokenForMissingOrUnknownImage()
+    {
+        long emptyTextureName = Lump.MakeLongName("-", useLongNames: false);
+
+        SurfaceTextureResolution missing = SurfaceRenderPlan.ResolveTexture(
+            23,
+            emptyTextureName,
+            imageExists: false,
+            isUnknownImage: false,
+            isImageLoaded: true,
+            loadFailed: false);
+        SurfaceTextureResolution unknown = SurfaceRenderPlan.ResolveTexture(
+            24,
+            emptyTextureName,
+            imageExists: true,
+            isUnknownImage: true,
+            isImageLoaded: true,
+            loadFailed: false);
+
+        Assert.Equal(new SurfaceTextureResolution(
+            SurfaceRenderPlan.UnknownTextureToken,
+            SurfaceTextureFallback.Unknown), missing);
+        Assert.Equal(new SurfaceTextureResolution(
+            SurfaceRenderPlan.UnknownTextureToken,
+            SurfaceTextureFallback.Unknown), unknown);
+    }
+
+    [Fact]
+    public void ResolveTextureUsesWhiteTokenForUnloadedOrFailedImages()
+    {
+        long emptyTextureName = Lump.MakeLongName("-", useLongNames: false);
+
+        SurfaceTextureResolution unloaded = SurfaceRenderPlan.ResolveTexture(
+            31,
+            emptyTextureName,
+            imageExists: true,
+            isUnknownImage: false,
+            isImageLoaded: false,
+            loadFailed: false);
+        SurfaceTextureResolution failed = SurfaceRenderPlan.ResolveTexture(
+            32,
+            emptyTextureName,
+            imageExists: true,
+            isUnknownImage: false,
+            isImageLoaded: true,
+            loadFailed: true);
+
+        Assert.Equal(new SurfaceTextureResolution(
+            SurfaceRenderPlan.WhiteTextureToken,
+            SurfaceTextureFallback.White), unloaded);
+        Assert.Equal(new SurfaceTextureResolution(
+            SurfaceRenderPlan.WhiteTextureToken,
+            SurfaceTextureFallback.White), failed);
+    }
+
+    [Fact]
+    public void ResolveTextureKeepsLoadedKnownTexture()
+    {
+        long texture = 41;
+
+        SurfaceTextureResolution resolution = SurfaceRenderPlan.ResolveTexture(
+            texture,
+            Lump.MakeLongName("-", useLongNames: false),
+            imageExists: true,
+            isUnknownImage: false,
+            isImageLoaded: true,
+            loadFailed: false);
+
+        Assert.Equal(new SurfaceTextureResolution(texture, SurfaceTextureFallback.Source), resolution);
     }
 
     [Fact]

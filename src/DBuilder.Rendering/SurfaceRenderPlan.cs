@@ -21,9 +21,22 @@ public sealed record SurfaceRenderCommand(
 
 public sealed record SurfaceBufferBinding(int CommandIndex, int BufferIndex);
 
+public enum SurfaceTextureFallback
+{
+    Source,
+    White,
+    Missing,
+    Unknown,
+}
+
+public sealed record SurfaceTextureResolution(long Texture, SurfaceTextureFallback Fallback);
+
 public static class SurfaceRenderPlan
 {
     public const long BrightnessTexture = 0;
+    public const long WhiteTextureToken = 0;
+    public const long MissingTextureToken = -1;
+    public const long UnknownTextureToken = -2;
 
     public static IReadOnlyList<SurfaceRenderBatch> Build(
         IEnumerable<SurfaceBufferSetState> sets,
@@ -59,6 +72,26 @@ public static class SurfaceRenderPlan
         return batches
             .Select(batch => new SurfaceRenderBatch(batch.Key, batch.Value))
             .ToArray();
+    }
+
+    public static SurfaceTextureResolution ResolveTexture(
+        long longTextureName,
+        long emptyTextureName,
+        bool imageExists,
+        bool isUnknownImage,
+        bool isImageLoaded,
+        bool loadFailed)
+    {
+        if (longTextureName == BrightnessTexture)
+            return new SurfaceTextureResolution(WhiteTextureToken, SurfaceTextureFallback.White);
+        if (longTextureName == emptyTextureName)
+            return new SurfaceTextureResolution(MissingTextureToken, SurfaceTextureFallback.Missing);
+        if (!imageExists || isUnknownImage)
+            return new SurfaceTextureResolution(UnknownTextureToken, SurfaceTextureFallback.Unknown);
+        if (!isImageLoaded || loadFailed)
+            return new SurfaceTextureResolution(WhiteTextureToken, SurfaceTextureFallback.White);
+
+        return new SurfaceTextureResolution(longTextureName, SurfaceTextureFallback.Source);
     }
 
     public static bool IsVisible(SurfaceEntry entry, SurfaceBounds viewport, bool skipHidden)
