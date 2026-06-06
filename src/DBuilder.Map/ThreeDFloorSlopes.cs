@@ -396,12 +396,18 @@ public static class ThreeDFloorSlopes
         IReadOnlyList<Vector2D> points,
         IReadOnlyList<Sector> selectedSectors,
         ThreeDFloorSlopeDrawingMode mode,
-        Sector? slopeDataSector = null)
+        Sector? slopeDataSector = null,
+        bool flipHeights = false)
     {
         if (points.Count <= 1) return new ThreeDFloorSlopeDrawResult(Array.Empty<ThreeDFloorSlopeVertexGroup>());
 
         (List<ThreeDFloorSlopeVertex> floorVertices, List<ThreeDFloorSlopeVertex> ceilingVertices) =
             CreateSlopeVertices(map, points, selectedSectors);
+        if (flipHeights)
+        {
+            FlipVertexHeights(floorVertices);
+            FlipVertexHeights(ceilingVertices);
+        }
 
         var created = new List<ThreeDFloorSlopeVertexGroup>();
         if (mode == ThreeDFloorSlopeDrawingMode.Floor || mode == ThreeDFloorSlopeDrawingMode.FloorAndCeiling)
@@ -432,6 +438,12 @@ public static class ThreeDFloorSlopes
 
         if (slopeDataSector != null) StoreGroupsInSector(slopeDataSector, groups);
         return new ThreeDFloorSlopeDrawResult(created);
+    }
+
+    public static void FlipVertexHeights(IReadOnlyList<ThreeDFloorSlopeVertex> vertices)
+    {
+        for (int i = 0, j = vertices.Count - 1; i < j; i++, j--)
+            (vertices[i].Z, vertices[j].Z) = (vertices[j].Z, vertices[i].Z);
     }
 
     public static int ApplyGroups(MapSet map, IEnumerable<ThreeDFloorSlopeVertexGroup> groups)

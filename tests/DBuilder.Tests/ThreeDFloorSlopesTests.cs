@@ -394,6 +394,26 @@ public class ThreeDFloorSlopesTests
         Assert.Equal(1, sector.Fields[ThreeDFloorSlopes.CeilingPlaneIdField]);
     }
 
+    [Fact]
+    public void FlipVertexHeightsReversesZValuesWithoutMovingDrawPoints()
+    {
+        var vertices = new[]
+        {
+            new ThreeDFloorSlopeVertex(new Vector2D(0, 0), 0),
+            new ThreeDFloorSlopeVertex(new Vector2D(64, 0), 32),
+            new ThreeDFloorSlopeVertex(new Vector2D(128, 0), 64),
+        };
+
+        ThreeDFloorSlopes.FlipVertexHeights(vertices);
+
+        Assert.Equal(new Vector2D(0, 0), vertices[0].Position);
+        Assert.Equal(new Vector2D(64, 0), vertices[1].Position);
+        Assert.Equal(new Vector2D(128, 0), vertices[2].Position);
+        Assert.Equal(64, vertices[0].Z);
+        Assert.Equal(32, vertices[1].Z);
+        Assert.Equal(0, vertices[2].Z);
+    }
+
     private static Sector AddSquareSector(MapSet map, double left, double top, double size)
     {
         var vertices = new[]

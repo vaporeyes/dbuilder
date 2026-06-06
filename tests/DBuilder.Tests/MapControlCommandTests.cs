@@ -672,6 +672,11 @@ public sealed class MapControlCommandTests
         Assert.Contains("case \"map2d.3dfloor.finish-slope-draw\":", body, StringComparison.Ordinal);
         Assert.Contains("case \"map2d.finishslopedraw\":", body, StringComparison.Ordinal);
         Assert.Contains("FinishThreeDFloorSlopeDraw(_threeDFloorSlopeDrawingMode);", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.3dfloor.flip-slope\":", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map2d.threedflipslope\":", body, StringComparison.Ordinal);
+        Assert.Contains("FlipThreeDFloorSlopeDraw();", body, StringComparison.Ordinal);
+        Assert.Contains("private bool _threeDFloorSlopeFlipped;", body, StringComparison.Ordinal);
+        Assert.Contains("_threeDFloorSlopeFlipped);", body, StringComparison.Ordinal);
         Assert.Contains("ThreeDFloorSlopes.FinishDraw(", body, StringComparison.Ordinal);
         Assert.Contains("if (_threeDFloorEditMode == ThreeDFloorEditMode.DrawSlopes) ClearThreeDFloorSlopeDraw();", body, StringComparison.Ordinal);
     }

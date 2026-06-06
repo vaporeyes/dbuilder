@@ -656,6 +656,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _drawClosed;    // set when the user closes the polyline by clicking the first point
     private readonly System.Collections.Generic.List<Vec2D> _drawPoints = new();
     private ThreeDFloorSlopeDrawingMode _threeDFloorSlopeDrawingMode = ThreeDFloorSlopeDrawingMode.FloorAndCeiling;
+    private bool _threeDFloorSlopeFlipped;
     private Vec2D _drawCursor;
     private Vec2D _cursorWorld; // last known cursor position in world space (for cursor-targeted actions)
     private AutomapHighlightResult? _automapHighlight;
@@ -6232,6 +6233,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map2d.finishslopedraw":
                 FinishThreeDFloorSlopeDraw(_threeDFloorSlopeDrawingMode);
                 return true;
+            case "map2d.3dfloor.flip-slope":
+            case "map2d.threedflipslope":
+                FlipThreeDFloorSlopeDraw();
+                return true;
             case "map2d.select":
             case "map2d.classicselect":
                 SelectAtCursor(modifiers);
@@ -7692,6 +7697,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _shapeKind = ShapeKind.None;
         _drawPoints.Clear();
         _drawClosed = false;
+        _threeDFloorSlopeFlipped = false;
         _drawDirty = true;
         _drawLineCount = 0;
         DrawModeChanged?.Invoke();
@@ -7707,6 +7713,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _drawDirty = true;
         Picked?.Invoke("Added 3D slope draw point.");
         RequestNextFrameRendering();
+    }
+
+    private string FlipThreeDFloorSlopeDraw()
+    {
+        if (_threeDFloorEditMode != ThreeDFloorEditMode.DrawSlopes)
+            SetThreeDFloorEditMode(ThreeDFloorEditMode.DrawSlopes);
+
+        _threeDFloorSlopeFlipped = !_threeDFloorSlopeFlipped;
+        string status = _threeDFloorSlopeFlipped ? "3D slope draw is flipped." : "3D slope draw is not flipped.";
+        Picked?.Invoke(status);
+        return status;
     }
 
     private string FinishThreeDFloorSlopeDraw(ThreeDFloorSlopeDrawingMode mode)
@@ -7746,7 +7763,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             MaterializedDrawPoints(includeCursor: false),
             sectors,
             mode,
-            slopeDataSector);
+            slopeDataSector,
+            _threeDFloorSlopeFlipped);
 
         ClearThreeDFloorSlopeDraw();
         if (result.CreatedGroups.Count == 0)
