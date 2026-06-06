@@ -298,6 +298,20 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
+    public void FarOverviewCullCellsGrowAsZoomMovesOut()
+    {
+        Assert.Equal(96.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
+            ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
+            thingArrows: false));
+        Assert.Equal(192.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
+            ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold * 4,
+            thingArrows: false));
+        Assert.Equal(ThingIconRenderPolicy.MaxFarOverviewCullCellPixels, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
+            ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold * 16,
+            thingArrows: false));
+    }
+
+    [Fact]
     public void OverviewCellsGroupNearbyScreenThings()
     {
         Assert.Equal(0, ThingIconRenderPolicy.OverviewCullCell(

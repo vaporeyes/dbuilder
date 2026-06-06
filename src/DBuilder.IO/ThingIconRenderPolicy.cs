@@ -19,6 +19,7 @@ public static class ThingIconRenderPolicy
     public const double OverviewMarkerBaseSize = 0.75;
     public const double OverviewCullCellPixels = 48.0;
     public const double FarOverviewCullCellPixels = 96.0;
+    public const double MaxFarOverviewCullCellPixels = 240.0;
     public const double CompactMarkerBaseSize = 4.0;
     public const double RegularMarkerBaseSize = 10.0;
     public const double CompactDirectionTickBaseSize = 7.0;
@@ -46,7 +47,12 @@ public static class ThingIconRenderPolicy
         => (int)Math.Floor(screenCoordinate / OverviewCullCellPixelsFor(viewScale, thingArrows));
 
     public static double OverviewCullCellPixelsFor(double viewScale, bool thingArrows)
-        => UseFarOverviewMarkers(viewScale, thingArrows) ? FarOverviewCullCellPixels : OverviewCullCellPixels;
+    {
+        if (!UseFarOverviewMarkers(viewScale, thingArrows)) return OverviewCullCellPixels;
+
+        double scale = Math.Max(1.0, viewScale / FarOverviewMarkerScaleThreshold);
+        return Math.Min(MaxFarOverviewCullCellPixels, FarOverviewCullCellPixels * Math.Sqrt(scale));
+    }
 
     public static bool ShouldRenderOverviewCellThing(bool thingSelected, bool cellHasSelectedThing, bool cellAlreadyRendered)
     {
