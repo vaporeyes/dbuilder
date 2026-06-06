@@ -669,7 +669,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Honor PK3 root texture and root flat resource options.
   - [x] Honor WAD strict patch resource option for classic texture composition.
   - [x] Handle absent required-archive metadata on data locations like UDB.
-- [ ] Port resource priority and override behavior completely.
+- [x] Port resource priority and override behavior completely.
   - [x] Let later GLDEFS resources override actor light associations.
   - [x] Let nested WAD flat and texture resources take priority over folder resources within a PK3 like UDB.
   - [x] Let nested WAD sprite and voxel resources take priority over folder resources within a PK3 like UDB.
@@ -681,7 +681,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Model UDB's map-resource warning for editing without resources.
   - [x] Use shared UDB-style test-exclusion defaults when adding map resources.
 - [ ] Port lazy and threaded resource loading.
-- [ ] Port palette and colormap behavior fully.
+- [x] Port palette and colormap behavior fully.
   - [x] Add UDB-style default gray PLAYPAL fallback palette model.
   - [x] Use UDB-style default gray PLAYPAL fallback when resources define no palette.
   - [x] Resolve the active main `COLORMAP` through the resource stack.
@@ -693,19 +693,19 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Let nested WAD named colormaps override PK3 `colormaps/` folder entries like UDB.
   - [x] Resolve and prioritize WAD named colormaps from configured colormap ranges.
   - [x] Restrict strict WAD named colormap lookup to configured colormap ranges like UDB.
-- [ ] Port patch name behavior fully.
+- [x] Port patch name behavior fully.
   - [x] Load root PK3 `PNAMES` for classic `TEXTURE1` and `TEXTURE2` definitions.
   - [x] Reuse nested-WAD `PNAMES` for folder-resource classic texture definitions.
   - [x] Resolve WAD patches from configured patch ranges before broad fallback.
   - [x] Prefer WAD patch fallback outside configured flat ranges before flat-range fallback.
   - [x] Prefer WAD patch fallback outside built-in flat ranges before flat-range fallback.
-- [ ] Port wall texture composition fully.
+- [x] Port wall texture composition fully.
   - [x] Compose root PK3 classic `TEXTURE1` and `TEXTURE2` wall textures from patch resources.
   - [x] Resolve root PK3 classic texture patches from mixed texture and flat folders when namespaces are mixed.
   - [x] Skip the reserved first WAD `TEXTURE1` entry like UDB.
   - [x] Resolve simple WAD wall textures from configured texture ranges.
   - [x] Apply UDB classic texture patch offset compatibility flags during composition.
-- [ ] Port flat, sprite, patch, graphic, hires, and texture namespace behavior fully.
+- [x] Port flat, sprite, patch, graphic, hires, and texture namespace behavior fully.
   - [x] Keep root PK3 flat and texture images opt-in through UDB resource options.
   - [x] Resolve extension-bearing VOXELDEF file names from the PK3 root like UDB.
   - [x] Require exact file extensions for path-qualified PK3 and directory image lookups like UDB.
@@ -724,12 +724,12 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Include opt-in root PK3 and directory texture and flat images in resource name enumeration.
   - [x] Enumerate WAD flat, sprite, and voxel names from resolved marker pairs like UDB.
 - [x] Enumerate sprite frame names from WAD, PK3, directory, and TEXTURES resources.
-- [ ] Port TEXTURES lump composite definitions fully.
+- [x] Port TEXTURES lump composite definitions fully.
   - [x] Resolve composite patches through mixed wall/flat base namespaces.
   - [x] Honor namespace mixing when resolving PK3 composite patch folders.
   - [x] Require exact file lookup for extension-bearing TEXTURES patch paths like UDB.
   - [x] Apply TEXTURES patch flip transforms before rotation like UDB.
-- [ ] Port sprite offsets, rotations, and fallback behavior fully.
+- [x] Port sprite offsets, rotations, and fallback behavior fully.
   - [x] Skip placeholder actor state sprites when choosing editor sprites.
   - [x] Reject invalid classic sprite rotation digits during fallback.
   - [x] Reject invalid classic sprite frame characters during fallback.
