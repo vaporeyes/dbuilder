@@ -55,6 +55,18 @@ public class CompilerConfigurationTests
                     compiler = "zdbsp";
                     parameters = "%FI";
                 }
+
+                zdbsp_lowercase_output
+                {
+                    compiler = "zdbsp";
+                    parameters = "-o%fo %FI";
+                }
+
+                zdbsp_unknown_prefix
+                {
+                    compiler = "zdbsp";
+                    parameters = "%FOLDER %FI";
+                }
             }
             """;
 
@@ -71,6 +83,12 @@ public class CompilerConfigurationTests
         var inplace = parsed.Nodebuilders["zdbsp_inplace"];
         Assert.Equal("<untitled configuration>", inplace.Title);
         Assert.False(inplace.HasSpecialOutputFile);
+
+        var lowercaseOutput = parsed.Nodebuilders["zdbsp_lowercase_output"];
+        Assert.True(lowercaseOutput.HasSpecialOutputFile);
+
+        var unknownPrefix = parsed.Nodebuilders["zdbsp_unknown_prefix"];
+        Assert.False(unknownPrefix.HasSpecialOutputFile);
     }
 
     [Fact]

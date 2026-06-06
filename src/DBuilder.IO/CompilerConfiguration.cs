@@ -631,7 +631,8 @@ public sealed record NodebuilderInfo(
     string CompilerName,
     string Parameters)
 {
-    public bool HasSpecialOutputFile => Parameters.Contains("%FO", StringComparison.Ordinal);
+    public bool HasSpecialOutputFile
+        => Regex.IsMatch(Parameters, "%FO(?![A-Za-z0-9_])", RegexOptions.IgnoreCase);
 
     public NodebuilderConfig ToConfig(string executable)
         => new(executable, Parameters);
