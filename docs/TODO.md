@@ -512,7 +512,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 ## Map IO And Formats
 
-- [ ] Complete Doom-format map loader parity.
+- [x] Complete Doom-format map loader parity.
   - [x] Skip invalid and zero-length Doom-format linedefs during load.
   - [x] Materialize Doom-format sidedefs from valid linedef references instead of as standalone orphans.
   - [x] Cap oversized Doom-format binary map element loads to UDB format limits.
@@ -520,26 +520,26 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Preserve unsigned Doom-format binary ids and references above signed-short range.
   - [x] Preserve unsigned Doom-format thing flags above signed-short range.
   - [x] Keep scanning Doom-format map blocks through zero-length nodebuilder lumps.
-- [ ] Complete Doom-format map writer parity.
+- [x] Complete Doom-format map writer parity.
   - [x] Emit empty REJECT and BLOCKMAP lumps for Doom-format map writes.
   - [x] Write unsigned Doom-format binary ids and references above signed-short range.
   - [x] Reject incomplete required vertex and sector references during Doom-format writes.
   - [x] Round Doom-format binary vertex coordinates during writes like UDB.
   - [x] Write and validate Doom-format thing coordinates against UDB binary truncation.
-- [ ] Complete Hexen-format map loader parity.
+- [x] Complete Hexen-format map loader parity.
   - [x] Skip invalid and zero-length Hexen-format linedefs during load.
   - [x] Materialize Hexen-format sidedefs from valid linedef references instead of as standalone orphans.
   - [x] Cap oversized Hexen-format binary map element loads to UDB format limits.
   - [x] Load Hexen-format thing counts past the vertex format limit like UDB.
   - [x] Keep scanning Hexen-format map blocks through zero-length nodebuilder lumps.
-- [ ] Complete Hexen-format map writer parity.
+- [x] Complete Hexen-format map writer parity.
   - [x] Emit empty REJECT and BLOCKMAP lumps for Hexen-format map writes.
   - [x] Write unsigned Hexen-format binary ids, flags, args, and references above signed-short range.
   - [x] Reject incomplete required vertex references during Hexen-format writes.
   - [x] Reject incomplete sidedef sector references during Hexen-format writes.
   - [x] Round Hexen-format binary vertex coordinates during writes like UDB.
   - [x] Write and validate Hexen-format thing coordinates and heights against UDB binary truncation.
-- [ ] Complete UDMF map loader parity.
+- [x] Complete UDMF map loader parity.
   - [x] Skip invalid, zero-length, and near-zero UDMF linedefs during load.
   - [x] Skip UDMF sidedefs with invalid sector references while preserving original sidedef indices.
   - [x] Normalize UDMF `moreids` tags by skipping zero and duplicate ids.
@@ -548,7 +548,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Preserve unknown top-level UDMF collections through load, clone, undo, and write.
   - [x] Preserve UDMF custom and map fields larger than signed 32-bit integers.
   - [x] Preserve UDMF custom, map, and unknown unsigned integer fields as numeric values.
-- [ ] Complete UDMF map writer parity.
+- [x] Complete UDMF map writer parity.
   - [x] Emit UDMF element blocks in UDB order.
   - [x] Emit UDMF fields inside element blocks in UDB order.
   - [x] Escape UDMF string control characters during writes.
@@ -562,11 +562,11 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Format UDMF double values like UDB's universal parser.
   - [x] Format UDMF float values like UDB's universal parser.
   - [x] Preserve zero and duplicate UDMF `moreids` tags during writes like UDB.
-- [ ] Port universal map stream reader behavior.
+- [x] Port universal map stream reader behavior.
   - [x] Add stream-level UDMF reader facade with parser diagnostics.
-- [ ] Port universal map stream writer behavior.
+- [x] Port universal map stream writer behavior.
   - [x] Add stream-level UDMF writer facade with optional namespace emission.
-- [ ] Port map format conversion behavior.
+- [x] Port map format conversion behavior.
   - [x] Translate Doom thing flags through UDMF when converting to Hexen format.
   - [x] Clear action arguments when converting to Doom format.
   - [x] Convert Hexen `Line_SetIdentification` specials to UDMF line ids and flags.
@@ -574,14 +574,14 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Convert UDMF line ids back to Hexen args for supported hardcoded specials.
   - [x] Keep UDMF `Sector_3DFloor` line ids out of Hexen `arg4` when the target tag is negative like UDB.
   - [x] Clear UDMF-only element data when converting to binary formats.
-- [ ] Port clipboard stream behavior to match UDB exactly.
+- [x] Port clipboard stream behavior to match UDB exactly.
   - [x] Skip invalid and zero-length clipboard linedefs and remove unreferenced pasted sidedefs.
   - [x] Encode clipboard custom fields with UDB-style declared and primitive type metadata.
   - [x] Encode clipboard strings with UDB-style character-count lengths.
   - [x] Omit DBuilder selection group masks from clipboard streams like UDB.
-- [ ] Port lump ordering rules.
+- [x] Port lump ordering rules.
   - [x] Order saved map blocks by configured `maplumpnames` when a game configuration is supplied.
-- [ ] Port map lump metadata and node-build lump handling.
+- [x] Port map lump metadata and node-build lump handling.
   - [x] Parse UDB `scriptbuild` map lump metadata.
   - [x] Resolve UDB map lump script configurations through the script configuration catalog.
   - [x] Expose UDB-style script-lump detection for game configurations.
@@ -590,14 +590,14 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style temporary-map cleanup for nodebuilder-generated lumps.
   - [x] Add UDB-style typed map-lump copying for required, blind-copy, nodebuilder, and script lumps.
   - [x] Treat GL nodebuilder lumps as built-in map sub-lumps during WAD scans.
-- [ ] Port WAD map discovery behavior.
+- [x] Port WAD map discovery behavior.
   - [x] Add config-aware discovery with required and forbidden map lump checks.
   - [x] Avoid non-map marker-name collisions when reading map sub-lumps.
   - [x] Filter config-aware discovery by configured map name format.
   - [x] Sort Open Map picker entries like UDB.
   - [x] De-duplicate discovered map names like UDB.
   - [x] De-duplicate config-aware discovered map names like UDB.
-- [ ] Port save behavior for replacing, inserting, and renaming maps.
+- [x] Port save behavior for replacing, inserting, and renaming maps.
   - [x] Avoid replacing non-map lumps that share the target map name.
   - [x] Remove duplicate target map blocks before writing replacements.
   - [x] Create missing required config map lumps during save.
