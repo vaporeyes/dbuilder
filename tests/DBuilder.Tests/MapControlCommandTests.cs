@@ -749,11 +749,17 @@ public sealed class MapControlCommandTests
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
         int panIndex = body.IndexOf("private void PanViewByPointerDelta(Point pos)", StringComparison.Ordinal);
         int scrollIndex = body.IndexOf("private void ScrollView(double screenDx, double screenDy)", StringComparison.Ordinal);
+        int fitIndex = body.IndexOf("public void FitToMap()", StringComparison.Ordinal);
+        int restoreIndex = body.IndexOf("public void RestoreView(Vec2D center, double scale)", StringComparison.Ordinal);
 
         Assert.True(panIndex >= 0);
         Assert.True(scrollIndex >= 0);
+        Assert.True(fitIndex >= 0);
+        Assert.True(restoreIndex >= 0);
         Assert.True(body.IndexOf("_geometryDirty = true;", panIndex, StringComparison.Ordinal) > panIndex);
         Assert.True(body.IndexOf("_geometryDirty = true;", scrollIndex, StringComparison.Ordinal) > scrollIndex);
+        Assert.True(body.IndexOf("_geometryDirty = true;", fitIndex, StringComparison.Ordinal) > fitIndex);
+        Assert.True(body.IndexOf("_geometryDirty = true;", restoreIndex, StringComparison.Ordinal) > restoreIndex);
     }
 
     [Theory]

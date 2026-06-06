@@ -1698,6 +1698,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         double availH = Math.Max(1, Bounds.Height);
         _zoom = Math.Max(w / availW, h / availH) * 1.15;
         if (_zoom <= 0) _zoom = 1;
+        _geometryDirty = true;
         _soundLeakDirty = true;
         _wadAuthorDirty = true;
     }
@@ -1728,6 +1729,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
 
         if (restored) _needsFit = false;
+        if (restored) _geometryDirty = true;
         RequestNextFrameRendering();
     }
 
