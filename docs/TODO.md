@@ -218,7 +218,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Normalize configurable shortcut aliases for the Ins key.
   - [x] Normalize configurable shortcut aliases for the Bksp key.
   - [x] Normalize configurable shortcut aliases for word-form numpad operator keys.
-- [ ] Port command hints and contextual help.
+- [x] Port command hints and contextual help.
   - [x] Generate status and info-panel command hints from effective command bindings.
   - [x] Show thing placement command hints when entering Things mode.
   - [x] Expand UDB-style `<k>action</k>` hint tokens from effective command bindings.
@@ -228,7 +228,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Show command scope labels in the Help shortcut reference.
   - [x] Add UDB-style Reference Manual and About This Editing Mode Help menu actions.
   - [x] Add raw UDB window action aliases to shortcut help metadata.
-- [ ] Port toolbar/menu command synchronization.
+- [x] Port toolbar/menu command synchronization.
   - [x] Synchronize menu and toolbar enabled state for undo, redo, save and delete commands.
   - [x] Synchronize menu and toolbar enabled state for map, archive, selection and sector-selection commands.
   - [x] Reflect active mode and draw state in toolbar buttons.
@@ -245,7 +245,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Show effective shortcut bindings in Help menu item tooltips.
   - [x] Show effective shortcut bindings in Save As and lightfog menu item tooltips.
   - [x] Hide redundant menu separators after command availability updates like UDB.
-- [ ] Port repeatable actions and action state updates.
+- [x] Port repeatable actions and action state updates.
   - [x] Reflect active view and draw toggle state in menu checkmarks.
   - [x] Reflect Info Panel visibility in its menu checkmark.
   - [x] Suppress repeated keydown dispatch for non-repeatable commands.
