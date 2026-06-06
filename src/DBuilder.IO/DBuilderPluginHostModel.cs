@@ -212,7 +212,8 @@ public sealed record DBuilderPluginUiContributionPlan(
 public sealed record DBuilderPluginResourceHandler(
     string PluginName,
     string Id,
-    string Title);
+    string Title,
+    string? MethodName = null);
 
 public sealed record DBuilderPluginResourceHandlerPlan(
     IReadOnlyList<DBuilderPluginResourceHandler> Handlers,
@@ -265,6 +266,11 @@ public sealed record DBuilderPluginEditModeExecutionResult(
 public sealed record DBuilderPluginDockerExecutionResult(
     bool Completed,
     DBuilderPluginApiContribution? Docker,
+    IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
+
+public sealed record DBuilderPluginResourceHandlerExecutionResult(
+    bool Completed,
+    DBuilderPluginResourceHandler? Handler,
     IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
 
 public sealed record DBuilderPluginUiExecutionResult(
@@ -1671,7 +1677,8 @@ public static class DBuilderPluginHostModel
                 handlers.Add(new DBuilderPluginResourceHandler(
                     lifecycle.Descriptor.Name,
                     contribution.Id,
-                    contribution.Title));
+                    contribution.Title,
+                    contribution.MethodName));
             }
         }
 
@@ -1979,6 +1986,29 @@ public static class DBuilderPluginHostModel
             diagnostics,
             "docker");
         return new DBuilderPluginDockerExecutionResult(result.Completed, result.Action, result.Diagnostics);
+    }
+
+    public static DBuilderPluginResourceHandlerExecutionResult ExecuteReflectionResourceHandlerCommand(
+        DBuilderPluginRuntimeInstancePlan instancePlan,
+        DBuilderPluginHostPlan hostPlan,
+        string handlerId)
+    {
+        DBuilderPluginResourceHandlerCommandPlan command = PlanResourceHandlerCommand(hostPlan, handlerId);
+        var diagnostics = new List<DBuilderPluginDiagnostic>(instancePlan.Diagnostics);
+        diagnostics.AddRange(command.Diagnostics);
+        if (command.Handler == null) return new DBuilderPluginResourceHandlerExecutionResult(false, null, diagnostics);
+
+        DBuilderPluginActionExecutionResult result = ExecuteReflectionApiContribution(
+            instancePlan,
+            new DBuilderPluginApiContribution(
+                command.Handler.PluginName,
+                DBuilderPluginContributionKind.ResourceHandler,
+                command.Handler.Id,
+                command.Handler.Title,
+                command.Handler.MethodName),
+            diagnostics,
+            "resource handler");
+        return new DBuilderPluginResourceHandlerExecutionResult(result.Completed, command.Handler, result.Diagnostics);
     }
 
     public static DBuilderPluginUiExecutionResult ExecuteReflectionUiCommand(

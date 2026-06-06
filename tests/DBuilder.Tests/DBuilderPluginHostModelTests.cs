@@ -3227,7 +3227,7 @@ public sealed class DBuilderPluginHostModelTests
                 " /plugins/zipresource.dll ",
                 Contributions: new[]
                 {
-                    new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, " resource.zip ", " Zip archives "),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, " resource.zip ", " Zip archives ", " OpenZipResource "),
                     new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, "resource.zip", "Duplicate"),
                     new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, "", "Missing Id"),
                     new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, "resource.empty", "")
@@ -3246,6 +3246,7 @@ public sealed class DBuilderPluginHostModelTests
         Assert.Equal("ZipResource", handler.PluginName);
         Assert.Equal("resource.zip", handler.Id);
         Assert.Equal("Zip archives", handler.Title);
+        Assert.Equal("OpenZipResource", handler.MethodName);
         Assert.Equal(new[] { "Plugin DisabledResource is disabled." }, plan.Warnings);
     }
 
@@ -3260,7 +3261,7 @@ public sealed class DBuilderPluginHostModelTests
                     "/plugins/zipresource.dll",
                     Contributions: new[]
                     {
-                        new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, "resource.zip", "Zip archives")
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, "resource.zip", "Zip archives", "OpenZipResource")
                     }),
                 new DBuilderPluginDescriptor(
                     "DirectoryResource",
@@ -3281,6 +3282,7 @@ public sealed class DBuilderPluginHostModelTests
         Assert.Equal("ZipResource", command.Handler.PluginName);
         Assert.Equal("resource.zip", command.Handler.Id);
         Assert.Equal("Zip archives", command.Handler.Title);
+        Assert.Equal("OpenZipResource", command.Handler.MethodName);
     }
 
     [Fact]
@@ -3775,6 +3777,92 @@ public sealed class DBuilderPluginHostModelTests
         Assert.Equal("Plugin docker docker.missing method MissingDocker was not found.", Assert.Single(missing.Diagnostics).Message);
         Assert.False(throwing.Completed);
         Assert.Equal("docker failed", Assert.Single(throwing.Diagnostics).Message);
+    }
+
+    [Fact]
+    public void ExecuteReflectionResourceHandlerCommandInvokesConfiguredMethod()
+    {
+        ReflectionResourceHandlerCommandPlugin.Calls.Clear();
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor(
+                    "ResourcePlugin",
+                    "/plugins/resourceplugin.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(
+                            DBuilderPluginContributionKind.ResourceHandler,
+                            "resource.zip",
+                            "Zip Resource",
+                            "OpenZipResource")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest());
+        DBuilderPluginRuntimeInstancePlan instancePlan = RuntimeInstancePlan(
+            new ReflectionResourceHandlerCommandPlugin("ResourcePlugin"),
+            "ResourcePlugin");
+
+        DBuilderPluginResourceHandlerExecutionResult result = DBuilderPluginHostModel.ExecuteReflectionResourceHandlerCommand(
+            instancePlan,
+            hostPlan,
+            "resource.zip");
+
+        Assert.True(result.Completed);
+        Assert.Empty(result.Diagnostics);
+        Assert.NotNull(result.Handler);
+        Assert.Equal("resource.zip", result.Handler.Id);
+        Assert.Equal("OpenZipResource", result.Handler.MethodName);
+        Assert.Equal(new[] { "ResourcePlugin:OpenZipResource" }, ReflectionResourceHandlerCommandPlugin.Calls);
+    }
+
+    [Fact]
+    public void ExecuteReflectionResourceHandlerCommandReportsMethodFailures()
+    {
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor(
+                    "ResourcePlugin",
+                    "/plugins/resourceplugin.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, "resource.no-method", "No Method"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, "resource.missing", "Missing", "MissingResource"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, "resource.bad", "Bad", "BadResource"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.ResourceHandler, "resource.throw", "Throw", "ThrowResource")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest());
+        DBuilderPluginRuntimeInstancePlan instancePlan = RuntimeInstancePlan(
+            new ReflectionResourceHandlerCommandPlugin("ResourcePlugin"),
+            "ResourcePlugin");
+
+        DBuilderPluginResourceHandlerExecutionResult noMethod = DBuilderPluginHostModel.ExecuteReflectionResourceHandlerCommand(
+            instancePlan,
+            hostPlan,
+            "resource.no-method");
+        DBuilderPluginResourceHandlerExecutionResult missing = DBuilderPluginHostModel.ExecuteReflectionResourceHandlerCommand(
+            instancePlan,
+            hostPlan,
+            "resource.missing");
+        DBuilderPluginResourceHandlerExecutionResult bad = DBuilderPluginHostModel.ExecuteReflectionResourceHandlerCommand(
+            instancePlan,
+            hostPlan,
+            "resource.bad");
+        DBuilderPluginResourceHandlerExecutionResult throwing = DBuilderPluginHostModel.ExecuteReflectionResourceHandlerCommand(
+            instancePlan,
+            hostPlan,
+            "resource.throw");
+
+        Assert.False(noMethod.Completed);
+        Assert.Equal("Plugin resource handler resource.no-method does not specify a method name.", Assert.Single(noMethod.Diagnostics).Message);
+        Assert.False(missing.Completed);
+        Assert.Equal("Plugin resource handler resource.missing method MissingResource was not found.", Assert.Single(missing.Diagnostics).Message);
+        Assert.False(bad.Completed);
+        Assert.Equal("Plugin resource handler resource.bad method BadResource must be public void with no parameters.", Assert.Single(bad.Diagnostics).Message);
+        Assert.False(throwing.Completed);
+        Assert.Equal("resource failed", Assert.Single(throwing.Diagnostics).Message);
     }
 
     [Fact]
@@ -4275,6 +4363,30 @@ public sealed class ReflectionApiCommandPlugin : IDBuilderPlugin
     public void ThrowDocker()
     {
         throw new InvalidOperationException("docker failed");
+    }
+}
+
+public sealed class ReflectionResourceHandlerCommandPlugin : IDBuilderPlugin
+{
+    public static List<string> Calls { get; } = new();
+
+    private readonly string _name;
+
+    public ReflectionResourceHandlerCommandPlugin(string name)
+    {
+        _name = name;
+    }
+
+    public void OpenZipResource()
+    {
+        Calls.Add(_name + ":OpenZipResource");
+    }
+
+    public bool BadResource() => true;
+
+    public void ThrowResource()
+    {
+        throw new InvalidOperationException("resource failed");
     }
 }
 
