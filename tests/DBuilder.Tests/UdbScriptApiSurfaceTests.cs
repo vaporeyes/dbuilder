@@ -36,6 +36,9 @@ public sealed class UdbScriptApiSurfaceTests
             "getLinedefs", "getThings", "getSectors", "getVertices");
         Add(data, typeof(UdbScriptBlockMapWrapper),
             "getBlockAt", "getLineBlocks", "getRectangleBlocks");
+        Add(data, typeof(UdbScriptDataWrapper),
+            "getTextureNames", "textureExists", "getTextureInfo",
+            "getFlatNames", "flatExists", "getFlatInfo");
         Add(data, typeof(UdbScriptLine2DWrapper),
             "getCoordinatesAt", "getLength", "getAngleRad", "getAngle", "getPerpendicular",
             "isIntersecting", "getIntersectionPoint", "getSideOfLine");
@@ -44,6 +47,26 @@ public sealed class UdbScriptApiSurfaceTests
             "getSidePoint", "getCenterPoint", "applySidedFlags", "nearestOnLine",
             "safeDistanceToSq", "safeDistanceTo", "distanceToSq", "distanceTo",
             "sideOfLine", "split", "delete", "getTags", "addTag", "removeTag");
+        Add(data, typeof(UdbScriptMapWrapper),
+            "snappedToGrid", "getThings", "getSectors", "getSidedefs", "getLinedefs",
+            "getVertices", "stitchGeometry", "snapAllToAccuracy", "getNewTag",
+            "getMultipleNewTags", "nearestLinedef", "nearestThing", "nearestVertex",
+            "nearestSidedef", "drawLines", "clearAllMarks", "clearMarkedVertices",
+            "clearMarkedThings", "clearMarkedLinedefs", "clearMarkedSidedefs",
+            "clearMarkedSectors", "clearMarkeLinedefs", "clearMarkeSidedefs",
+            "clearMarkeSectors", "invertAllMarks", "invertMarkedVertices",
+            "invertMarkedThings", "invertMarkedLinedefs", "invertMarkedSidedefs",
+            "invertMarkedSectors", "getMarkedVertices", "getMarkedThings",
+            "getMarkedLinedefs", "getMarkedSidedefs", "getMarkedSectors",
+            "markSelectedVertices", "markSelectedLinedefs", "markSelectedSectors",
+            "markSelectedThings", "getSelectedVertices", "getHighlightedVertex",
+            "getSelectedOrHighlightedVertices", "getSelectedThings", "getHighlightedThing",
+            "getSelectedOrHighlightedThings", "getSelectedSectors", "getHighlightedSector",
+            "getSelectedOrHighlightedSectors", "getSelectedLinedefs", "getHighlightedLinedef",
+            "getSelectedOrHighlightedLinedefs", "getSidedefsFromSelectedLinedefs",
+            "getSidedefsFromSelectedOrHighlightedLinedefs", "clearAllSelected",
+            "clearSelectedVertices", "clearSelectedThings", "clearSelectedSectors",
+            "createVertex", "createThing", "joinSectors", "mergeSectors");
         Add(data, typeof(UdbScriptPlaneWrapper),
             "getIntersection", "distance", "closestOnPlane", "getZ");
         Add(data, typeof(UdbScriptSectorWrapper),
