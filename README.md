@@ -12,6 +12,7 @@ The authoritative trackers are:
 
 - [docs/TODO.md](docs/TODO.md): remaining work and completed parity slices.
 - [docs/PARITY_MATRIX.md](docs/PARITY_MATRIX.md): current DBuilder coverage by UDB source area.
+- [docs/FEATURE_SUPPORT.md](docs/FEATURE_SUPPORT.md): current supported and unsupported feature summary.
 - [docs/PHASED_PLAN.md](docs/PHASED_PLAN.md): sequencing plan for the port.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): project map and verification policy.
 - [docs/RENDERING.md](docs/RENDERING.md): current renderer and shader compiler replacement baseline.
