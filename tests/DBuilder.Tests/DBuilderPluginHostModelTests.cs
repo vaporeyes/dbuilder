@@ -100,6 +100,40 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void UdbCallbackCatalogDeclaresKnownCallbackParameters()
+    {
+        var parameters = DBuilderPluginHostModel.UdbCallbackDescriptors
+            .Where(callback => callback.Parameters?.Count > 0)
+            .ToDictionary(
+                callback => callback.Name,
+                callback => callback.Parameters!.ToArray(),
+                StringComparer.Ordinal);
+
+        Assert.Equal(
+            new[] { DBuilderPluginCallbackParameterKind.SavePurpose },
+            parameters["OnMapSaveBegin"]);
+        Assert.Equal(
+            new[] { DBuilderPluginCallbackParameterKind.SavePurpose },
+            parameters["OnMapSaveEnd"]);
+        Assert.Equal(
+            new[] { DBuilderPluginCallbackParameterKind.CurrentResult },
+            parameters["OnCopyBegin"]);
+        Assert.Equal(
+            new[] { DBuilderPluginCallbackParameterKind.PasteOptions, DBuilderPluginCallbackParameterKind.CurrentResult },
+            parameters["OnPasteBegin"]);
+        Assert.Equal(
+            new[] { DBuilderPluginCallbackParameterKind.PasteOptions },
+            parameters["OnPasteEnd"]);
+        Assert.Equal(
+            new[] { DBuilderPluginCallbackParameterKind.CurrentResult },
+            parameters["OnUndoBegin"]);
+        Assert.Equal(
+            new[] { DBuilderPluginCallbackParameterKind.CurrentResult },
+            parameters["OnRedoBegin"]);
+        Assert.Equal(7, parameters.Count);
+    }
+
+    [Fact]
     public void UdbCallbackCatalogGroupsCallbacksByArea()
     {
         var categories = DBuilderPluginHostModel.UdbCallbackDescriptors
@@ -2017,6 +2051,33 @@ public sealed class DBuilderPluginHostModelTests
         Assert.Equal(DBuilderPluginDiagnosticSeverity.Error, diagnostic.Severity);
         Assert.Equal("BadSignature", diagnostic.PluginName);
         Assert.Equal("Plugin BadSignature callback OnInitialize has unsupported parameters.", diagnostic.Message);
+    }
+
+    [Fact]
+    public void ExecuteReflectionCallbackRejectsUnexpectedArgumentsForNoArgumentCallbacks()
+    {
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            new[]
+            {
+                new DBuilderPluginRuntimeInstance(
+                    "Callback",
+                    "/plugins/callback.dll",
+                    typeof(ReflectionCallbackPlugin).FullName!,
+                    0,
+                    new ReflectionCallbackPlugin("Callback"))
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginCallbackExecutionResult result = DBuilderPluginHostModel.ExecuteReflectionCallback(
+            plan,
+            "OnInitialize",
+            new object[] { SavePurpose.Normal });
+
+        Assert.False(result.Completed);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(result.Diagnostics);
+        Assert.Equal(DBuilderPluginDiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.Equal("Callback", diagnostic.PluginName);
+        Assert.Equal("Plugin Callback callback OnInitialize has unsupported parameters.", diagnostic.Message);
     }
 
     [Fact]

@@ -234,10 +234,18 @@ public sealed record DBuilderPluginHostApiPlan(
     IReadOnlyList<DBuilderPluginHostApiService> Services,
     IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
 
+public enum DBuilderPluginCallbackParameterKind
+{
+    CurrentResult,
+    PasteOptions,
+    SavePurpose
+}
+
 public sealed record DBuilderPluginCallbackDescriptor(
     string Name,
     string Category,
-    bool CanAbort = false);
+    bool CanAbort = false,
+    IReadOnlyList<DBuilderPluginCallbackParameterKind>? Parameters = null);
 
 public sealed record DBuilderPluginCallbackInvocation(
     string PluginName,
@@ -274,8 +282,8 @@ public static class DBuilderPluginHostModel
         new DBuilderPluginCallbackDescriptor("OnMapNewEnd", "Map"),
         new DBuilderPluginCallbackDescriptor("OnMapCloseBegin", "Map"),
         new DBuilderPluginCallbackDescriptor("OnMapCloseEnd", "Map"),
-        new DBuilderPluginCallbackDescriptor("OnMapSaveBegin", "Map"),
-        new DBuilderPluginCallbackDescriptor("OnMapSaveEnd", "Map"),
+        new DBuilderPluginCallbackDescriptor("OnMapSaveBegin", "Map", Parameters: new[] { DBuilderPluginCallbackParameterKind.SavePurpose }),
+        new DBuilderPluginCallbackDescriptor("OnMapSaveEnd", "Map", Parameters: new[] { DBuilderPluginCallbackParameterKind.SavePurpose }),
         new DBuilderPluginCallbackDescriptor("OnMapSetChangeBegin", "Map"),
         new DBuilderPluginCallbackDescriptor("OnMapSetChangeEnd", "Map"),
         new DBuilderPluginCallbackDescriptor("OnMapReconfigure", "Configuration"),
@@ -287,13 +295,13 @@ public static class DBuilderPluginHostModel
         new DBuilderPluginCallbackDescriptor("OnEditDisengage", "EditMode"),
         new DBuilderPluginCallbackDescriptor("OnEditCancel", "EditMode"),
         new DBuilderPluginCallbackDescriptor("OnEditAccept", "EditMode"),
-        new DBuilderPluginCallbackDescriptor("OnCopyBegin", "EditOperation", CanAbort: true),
+        new DBuilderPluginCallbackDescriptor("OnCopyBegin", "EditOperation", CanAbort: true, Parameters: new[] { DBuilderPluginCallbackParameterKind.CurrentResult }),
         new DBuilderPluginCallbackDescriptor("OnCopyEnd", "EditOperation"),
-        new DBuilderPluginCallbackDescriptor("OnPasteBegin", "EditOperation", CanAbort: true),
-        new DBuilderPluginCallbackDescriptor("OnPasteEnd", "EditOperation"),
-        new DBuilderPluginCallbackDescriptor("OnUndoBegin", "EditOperation", CanAbort: true),
+        new DBuilderPluginCallbackDescriptor("OnPasteBegin", "EditOperation", CanAbort: true, Parameters: new[] { DBuilderPluginCallbackParameterKind.PasteOptions, DBuilderPluginCallbackParameterKind.CurrentResult }),
+        new DBuilderPluginCallbackDescriptor("OnPasteEnd", "EditOperation", Parameters: new[] { DBuilderPluginCallbackParameterKind.PasteOptions }),
+        new DBuilderPluginCallbackDescriptor("OnUndoBegin", "EditOperation", CanAbort: true, Parameters: new[] { DBuilderPluginCallbackParameterKind.CurrentResult }),
         new DBuilderPluginCallbackDescriptor("OnUndoEnd", "EditOperation"),
-        new DBuilderPluginCallbackDescriptor("OnRedoBegin", "EditOperation", CanAbort: true),
+        new DBuilderPluginCallbackDescriptor("OnRedoBegin", "EditOperation", CanAbort: true, Parameters: new[] { DBuilderPluginCallbackParameterKind.CurrentResult }),
         new DBuilderPluginCallbackDescriptor("OnRedoEnd", "EditOperation"),
         new DBuilderPluginCallbackDescriptor("OnUndoCreated", "EditOperation"),
         new DBuilderPluginCallbackDescriptor("OnUndoWithdrawn", "EditOperation"),
@@ -1055,7 +1063,7 @@ public static class DBuilderPluginHostModel
             if (!TryBuildReflectionCallbackArguments(
                     parameters,
                     callbackArguments,
-                    callback.CanAbort,
+                    callback,
                     abortableResult,
                     out object[] arguments))
             {
@@ -1110,18 +1118,25 @@ public static class DBuilderPluginHostModel
     private static bool TryBuildReflectionCallbackArguments(
         IReadOnlyList<ParameterInfo> parameters,
         IReadOnlyList<object> callbackArguments,
-        bool canAbort,
+        DBuilderPluginCallbackDescriptor callback,
         bool abortableResult,
         out object[] arguments)
     {
         arguments = Array.Empty<object>();
         var values = new List<object>();
         int nextArgument = 0;
+        IReadOnlyList<DBuilderPluginCallbackParameterKind> expectedParameters =
+            callback.Parameters ?? Array.Empty<DBuilderPluginCallbackParameterKind>();
+        int nextExpectedParameter = 0;
 
         foreach (ParameterInfo parameter in parameters)
         {
-            if (canAbort && parameter.ParameterType == typeof(bool))
+            if (nextExpectedParameter >= expectedParameters.Count) return false;
+
+            DBuilderPluginCallbackParameterKind expectedParameter = expectedParameters[nextExpectedParameter++];
+            if (expectedParameter == DBuilderPluginCallbackParameterKind.CurrentResult)
             {
+                if (!callback.CanAbort || parameter.ParameterType != typeof(bool)) return false;
                 values.Add(abortableResult);
                 continue;
             }
@@ -1129,15 +1144,27 @@ public static class DBuilderPluginHostModel
             if (nextArgument >= callbackArguments.Count) return false;
 
             object argument = callbackArguments[nextArgument];
+            if (!MatchesReflectionCallbackParameter(expectedParameter, parameter.ParameterType)) return false;
             if (!parameter.ParameterType.IsInstanceOfType(argument)) return false;
             values.Add(CopyReflectionCallbackArgument(argument));
             nextArgument++;
         }
 
+        if (nextExpectedParameter != expectedParameters.Count) return false;
         if (nextArgument != callbackArguments.Count) return false;
         arguments = values.ToArray();
         return true;
     }
+
+    private static bool MatchesReflectionCallbackParameter(
+        DBuilderPluginCallbackParameterKind expectedParameter,
+        Type parameterType)
+        => expectedParameter switch
+        {
+            DBuilderPluginCallbackParameterKind.PasteOptions => parameterType == typeof(PasteOptions),
+            DBuilderPluginCallbackParameterKind.SavePurpose => parameterType == typeof(SavePurpose),
+            _ => false
+        };
 
     private static object CopyReflectionCallbackArgument(object argument)
         => argument is PasteOptions pasteOptions ? pasteOptions.Copy() : argument;
