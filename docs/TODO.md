@@ -1461,6 +1461,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style render-device disposed-state reporting.
   - [x] Add shader replacement disposed-state reporting.
   - [x] Add UDB-style render-device alpha-test compatibility state planning.
+  - [x] Add UDB-style render-device multisample antialias compatibility state planning.
 - [ ] Port renderer 2D parity.
 - [ ] Port renderer 3D parity.
 - [ ] Port render passes and layers.

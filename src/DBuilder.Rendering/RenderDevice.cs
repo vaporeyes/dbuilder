@@ -31,6 +31,7 @@ public enum TextureOperationKind
 public enum RenderStateToggleKind
 {
     AlphaTest,
+    MultisampleAntialias,
 }
 
 public sealed record TextureOperationPlan(
@@ -54,6 +55,7 @@ public sealed class RenderDevice : IDisposable
     private int _viewportW;
     private int _viewportH;
     private bool _alphaTestEnabled;
+    private bool _multisampleAntialiasEnabled;
 
     public RenderDevice(GL gl)
     {
@@ -64,6 +66,7 @@ public sealed class RenderDevice : IDisposable
     public GL GL => _gl;
     public bool Disposed => _streamVao == 0;
     public bool AlphaTestEnabled => _alphaTestEnabled;
+    public bool MultisampleAntialiasEnabled => _multisampleAntialiasEnabled;
 
     public void SetViewport(int width, int height)
     {
@@ -102,6 +105,12 @@ public sealed class RenderDevice : IDisposable
     public void SetAlphaTestEnable(bool value)
     {
         _alphaTestEnabled = value;
+    }
+
+    public void SetMultisampleAntialias(bool value)
+    {
+        _multisampleAntialiasEnabled = value;
+        if (value) _gl.Enable(EnableCap.Multisample); else _gl.Disable(EnableCap.Multisample);
     }
 
     public void SetZEnable(bool value)
@@ -324,6 +333,9 @@ public sealed class RenderDevice : IDisposable
 
     public static RenderStateTogglePlan BuildAlphaTestPlan(bool enabled)
         => new(RenderStateToggleKind.AlphaTest, enabled);
+
+    public static RenderStateTogglePlan BuildMultisampleAntialiasPlan(bool enabled)
+        => new(RenderStateToggleKind.MultisampleAntialias, enabled);
 
     public void SetSamplerFilter(TextureFilter min, TextureFilter mag, MipmapFilter mip, int unit = 0)
     {
