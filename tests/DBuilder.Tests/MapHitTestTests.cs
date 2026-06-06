@@ -551,6 +551,35 @@ public class MapHitTestTests
     }
 
     [Fact]
+    public void ThingFlagHelpersExposeCopiesAndClearEnabledFlags()
+    {
+        var thing = new Thing(new Vector2D(1, 2), 3001);
+        thing.SetFlag("skill1", true);
+        thing.SetFlag("ambush", true);
+        thing.SetFlag("ambush", false);
+
+        Dictionary<string, bool> flags = thing.GetFlags();
+        HashSet<string> enabled = thing.GetEnabledFlags();
+
+        Assert.True(flags["skill1"]);
+        Assert.DoesNotContain("ambush", flags.Keys);
+        Assert.Single(enabled);
+        Assert.Contains("skill1", enabled);
+
+        flags["skill2"] = true;
+        enabled.Add("skill3");
+
+        Assert.False(thing.IsFlagSet("skill2"));
+        Assert.False(thing.IsFlagSet("skill3"));
+
+        thing.ClearFlags();
+
+        Assert.Empty(thing.UdmfFlags);
+        Assert.Empty(thing.GetFlags());
+        Assert.Empty(thing.GetEnabledFlags());
+    }
+
+    [Fact]
     public void SnapAllToAccuracySnapsVerticesAndThings()
     {
         var map = new MapSet();
