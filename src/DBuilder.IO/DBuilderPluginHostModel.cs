@@ -1006,6 +1006,10 @@ public static class DBuilderPluginHostModel
         DBuilderPluginRuntimeInstancePlan instancePlan)
         => ExecuteReflectionCallback(instancePlan, "OnReloadResources");
 
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionMapNodesRebuilt(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnMapNodesRebuilt");
+
     public static DBuilderPluginCallbackExecutionResult ExecuteReflectionProgramReconfigure(
         DBuilderPluginRuntimeInstancePlan instancePlan)
         => ExecuteReflectionCallback(instancePlan, "OnProgramReconfigure");
@@ -1045,6 +1049,18 @@ public static class DBuilderPluginHostModel
     public static DBuilderPluginCallbackExecutionResult ExecuteReflectionMapSetChangeEnd(
         DBuilderPluginRuntimeInstancePlan instancePlan)
         => ExecuteReflectionCallback(instancePlan, "OnMapSetChangeEnd");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionModeChange(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnModeChange");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionEditEngage(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnEditEngage");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionEditDisengage(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnEditDisengage");
 
     public static DBuilderPluginCallbackExecutionResult ExecuteReflectionCopyBegin(
         DBuilderPluginRuntimeInstancePlan instancePlan)

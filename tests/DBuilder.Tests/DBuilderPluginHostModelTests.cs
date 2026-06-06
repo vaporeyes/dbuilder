@@ -1864,6 +1864,7 @@ public sealed class DBuilderPluginHostModelTests
         DBuilderPluginCallbackExecutionResult programReconfigure = DBuilderPluginHostModel.ExecuteReflectionProgramReconfigure(plan);
         DBuilderPluginCallbackExecutionResult mapReconfigure = DBuilderPluginHostModel.ExecuteReflectionMapReconfigure(plan);
         DBuilderPluginCallbackExecutionResult reloadResources = DBuilderPluginHostModel.ExecuteReflectionReloadResources(plan);
+        DBuilderPluginCallbackExecutionResult mapNodesRebuilt = DBuilderPluginHostModel.ExecuteReflectionMapNodesRebuilt(plan);
 
         Assert.All(
             new[]
@@ -1878,7 +1879,8 @@ public sealed class DBuilderPluginHostModelTests
                 mapSetEnd,
                 programReconfigure,
                 mapReconfigure,
-                reloadResources
+                reloadResources,
+                mapNodesRebuilt
             },
             result =>
             {
@@ -1909,8 +1911,54 @@ public sealed class DBuilderPluginHostModelTests
             "First:OnMapReconfigure",
             "Second:OnMapReconfigure",
             "First:OnReloadResources",
-            "Second:OnReloadResources"
+            "Second:OnReloadResources",
+            "First:OnMapNodesRebuilt",
+            "Second:OnMapNodesRebuilt"
         }, ReflectionMapLifecycleCallbackPlugin.Calls);
+    }
+
+    [Fact]
+    public void ExecuteReflectionEditModeHelpersDispatchCallbacksInOrder()
+    {
+        ReflectionEditModeCallbackPlugin.Calls.Clear();
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            new[]
+            {
+                new DBuilderPluginRuntimeInstance(
+                    "Second",
+                    "/plugins/second.dll",
+                    typeof(ReflectionEditModeCallbackPlugin).FullName!,
+                    1,
+                    new ReflectionEditModeCallbackPlugin("Second", continueResult: true)),
+                new DBuilderPluginRuntimeInstance(
+                    "First",
+                    "/plugins/first.dll",
+                    typeof(ReflectionEditModeCallbackPlugin).FullName!,
+                    0,
+                    new ReflectionEditModeCallbackPlugin("First", continueResult: false))
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginCallbackExecutionResult modeChange = DBuilderPluginHostModel.ExecuteReflectionModeChange(plan);
+        DBuilderPluginCallbackExecutionResult editEngage = DBuilderPluginHostModel.ExecuteReflectionEditEngage(plan);
+        DBuilderPluginCallbackExecutionResult editDisengage = DBuilderPluginHostModel.ExecuteReflectionEditDisengage(plan);
+
+        Assert.True(modeChange.Completed);
+        Assert.True(modeChange.Aborted);
+        Assert.False(editEngage.Aborted);
+        Assert.False(editDisengage.Aborted);
+        Assert.Empty(modeChange.Diagnostics);
+        Assert.Empty(editEngage.Diagnostics);
+        Assert.Empty(editDisengage.Diagnostics);
+        Assert.Equal(new[]
+        {
+            "First:ModeChange",
+            "Second:ModeChange",
+            "First:EditEngage",
+            "Second:EditEngage",
+            "First:EditDisengage",
+            "Second:EditDisengage"
+        }, ReflectionEditModeCallbackPlugin.Calls);
     }
 
     [Fact]
@@ -3118,6 +3166,38 @@ public sealed class ReflectionMapLifecycleCallbackPlugin : IDBuilderPlugin
     public void OnMapReconfigure() => Calls.Add(_name + ":OnMapReconfigure");
 
     public void OnReloadResources() => Calls.Add(_name + ":OnReloadResources");
+
+    public void OnMapNodesRebuilt() => Calls.Add(_name + ":OnMapNodesRebuilt");
+}
+
+public sealed class ReflectionEditModeCallbackPlugin : IDBuilderPlugin
+{
+    public static List<string> Calls { get; } = new();
+
+    private readonly string _name;
+    private readonly bool _continueResult;
+
+    public ReflectionEditModeCallbackPlugin(string name, bool continueResult)
+    {
+        _name = name;
+        _continueResult = continueResult;
+    }
+
+    public bool OnModeChange()
+    {
+        Calls.Add(_name + ":ModeChange");
+        return _continueResult;
+    }
+
+    public void OnEditEngage()
+    {
+        Calls.Add(_name + ":EditEngage");
+    }
+
+    public void OnEditDisengage()
+    {
+        Calls.Add(_name + ":EditDisengage");
+    }
 }
 
 public sealed class ReflectionAbortCallbackPlugin : IDBuilderPlugin
