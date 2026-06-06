@@ -1545,6 +1545,7 @@ public class MapSet : IDisposable
     }
 
     public int SelectedVerticesCount => Count(Vertices);
+    public int SelectedVerticessCount => SelectedVerticesCount;
     public int SelectedLinedefsCount => Count(Linedefs);
     public int SelectedSidedefsCount => Count(Sidedefs);
     public int SelectedSectorsCount => Count(Sectors);

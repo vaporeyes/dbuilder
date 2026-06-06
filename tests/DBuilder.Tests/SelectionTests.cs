@@ -102,6 +102,7 @@ public class SelectionTests
         map.Vertices[0].Selected = true;
         map.Things[0].Selected = true;
         Assert.Equal(1, map.SelectedVerticesCount);
+        Assert.Equal(1, map.SelectedVerticessCount);
         Assert.Equal(0, map.SelectedLinedefsCount);
         Assert.Equal(1, map.SelectedThingsCount);
     }
