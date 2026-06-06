@@ -351,7 +351,7 @@ public sealed class UdbScriptHostWrapper
 
     public void showMessage(object? message)
     {
-        UdbScriptMessageResult result = messageCallback?.Invoke(message?.ToString() ?? "") ?? UdbScriptMessageResult.Ok;
+        UdbScriptMessageResult result = messageCallback?.Invoke(UdbScriptRunnerModel.NormalizeMessageText(message)) ?? UdbScriptMessageResult.Ok;
 
         if (result == UdbScriptMessageResult.Abort)
             throw new UdbScriptUserAbortException();
@@ -359,7 +359,7 @@ public sealed class UdbScriptHostWrapper
 
     public bool showMessageYesNo(object? message)
     {
-        UdbScriptMessageResult result = yesNoMessageCallback?.Invoke(message?.ToString() ?? "") ?? UdbScriptMessageResult.No;
+        UdbScriptMessageResult result = yesNoMessageCallback?.Invoke(UdbScriptRunnerModel.NormalizeMessageText(message)) ?? UdbScriptMessageResult.No;
 
         if (result == UdbScriptMessageResult.Abort)
             throw new UdbScriptUserAbortException();
@@ -757,7 +757,7 @@ public static class UdbScriptRunnerModel
             MessageDialogAbortButtonText,
             MessageDialogAbortConfirmationTitle,
             MessageDialogAbortConfirmationMessage,
-            NormalizeMessageDialogText(message),
+            NormalizeMessageText(message),
             MessageReadOnly: true,
             MessageDialogScrollBars,
             StopStopwatchBeforeDialog: true,
@@ -768,7 +768,7 @@ public static class UdbScriptRunnerModel
             result == UdbScriptMessageResult.Abort,
             result is UdbScriptMessageResult.Ok or UdbScriptMessageResult.Yes);
 
-    private static string NormalizeMessageDialogText(object? message)
+    public static string NormalizeMessageText(object? message)
         => (message?.ToString() ?? "")
             .Replace("\r\n", "\n", StringComparison.Ordinal)
             .Replace("\r", "\n", StringComparison.Ordinal)

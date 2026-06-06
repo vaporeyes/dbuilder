@@ -475,7 +475,7 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
-    public void HostWrapperShowsMessagesAndNormalizesNull()
+    public void HostWrapperShowsMessagesAndNormalizesText()
     {
         List<string> messages = [];
         UdbScriptHostWrapper host = new(
@@ -491,13 +491,14 @@ public class UdbScriptRunnerModelTests
             });
 
         host.showMessage(null);
-        bool yes = host.showMessageYesNo("continue");
+        host.showMessage("first\r\nsecond");
+        bool yes = host.showMessageYesNo("continue\rnow");
         bool no = new UdbScriptHostWrapper(yesNoMessageCallback: _ => UdbScriptMessageResult.No)
             .showMessageYesNo("continue");
 
         Assert.True(yes);
         Assert.False(no);
-        Assert.Equal(["", "continue"], messages);
+        Assert.Equal(["", "first" + Environment.NewLine + "second", "continue" + Environment.NewLine + "now"], messages);
     }
 
     [Fact]
@@ -546,6 +547,9 @@ public class UdbScriptRunnerModelTests
     {
         string expected = "first" + Environment.NewLine + "second";
 
+        Assert.Equal(expected, UdbScriptRunnerModel.NormalizeMessageText("first\nsecond"));
+        Assert.Equal(expected, UdbScriptRunnerModel.NormalizeMessageText("first\r\nsecond"));
+        Assert.Equal(expected, UdbScriptRunnerModel.NormalizeMessageText("first\rsecond"));
         Assert.Equal(expected, UdbScriptRunnerModel.MessageDialogPlan("first\nsecond", yesNo: false).Message);
         Assert.Equal(expected, UdbScriptRunnerModel.MessageDialogPlan("first\r\nsecond", yesNo: false).Message);
         Assert.Equal(expected, UdbScriptRunnerModel.MessageDialogPlan("first\rsecond", yesNo: false).Message);
