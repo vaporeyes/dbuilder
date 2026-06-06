@@ -57,6 +57,36 @@ public class MapEditingTests
     }
 
     [Fact]
+    public void BeginAddRemoveSetCapacityAndEndAddRemoveMatchUdbSurface()
+    {
+        var map = new MapSet();
+
+        InvalidOperationException error = Assert.Throws<InvalidOperationException>(
+            () => map.SetCapacity(2, 3, 4, 5, 6));
+        Assert.Equal("You must call BeginAddRemove before setting the reserved capacity.", error.Message);
+
+        map.BeginAddRemove();
+        map.SetCapacity(2, 3, 4, 5, 6);
+
+        Assert.True(map.Vertices.Capacity >= 2);
+        Assert.True(map.Linedefs.Capacity >= 3);
+        Assert.True(map.Sidedefs.Capacity >= 4);
+        Assert.True(map.Sectors.Capacity >= 5);
+        Assert.True(map.Things.Capacity >= 6);
+
+        map.BeginAddRemove();
+        map.EndAddRemove();
+        Assert.True(map.Vertices.Capacity >= 2);
+
+        map.EndAddRemove();
+        Assert.Equal(0, map.Vertices.Capacity);
+        Assert.Equal(0, map.Linedefs.Capacity);
+        Assert.Equal(0, map.Sidedefs.Capacity);
+        Assert.Equal(0, map.Sectors.Capacity);
+        Assert.Equal(0, map.Things.Capacity);
+    }
+
+    [Fact]
     public void RemoveLinedefAlsoRemovesItsSidedefs()
     {
         var map = BuildTwoRooms();

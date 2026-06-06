@@ -88,6 +88,8 @@ public class MapSet : IDisposable
 
     public bool IsDisposed { get; private set; }
 
+    private int addRemoveDepth;
+
     // UDMF namespace (e.g. "ZDoomTranslated", "Doom").
     public string Namespace { get; set; } = "";
 
@@ -136,6 +138,41 @@ public class MapSet : IDisposable
     // Derived state (Vertex.Linedefs, Sector.Sidedefs, Sidedef.Other) is NOT updated incrementally - call
     // BuildIndexes() once after a batch of edits before triangulating or rendering. Removals scan the primary
     // lists rather than the derived back-references so they stay correct even when indexes are stale.
+
+    public void BeginAddRemove()
+        => addRemoveDepth++;
+
+    public void SetCapacity(int vertices, int linedefs, int sidedefs, int sectors, int things)
+    {
+        if (addRemoveDepth == 0)
+            throw new InvalidOperationException("You must call BeginAddRemove before setting the reserved capacity.");
+
+        ReserveCapacity(Vertices, vertices);
+        ReserveCapacity(Linedefs, linedefs);
+        ReserveCapacity(Sidedefs, sidedefs);
+        ReserveCapacity(Sectors, sectors);
+        ReserveCapacity(Things, things);
+    }
+
+    public void EndAddRemove()
+    {
+        if (addRemoveDepth <= 0) return;
+
+        addRemoveDepth--;
+        if (addRemoveDepth > 0) return;
+
+        Vertices.TrimExcess();
+        Linedefs.TrimExcess();
+        Sidedefs.TrimExcess();
+        Sectors.TrimExcess();
+        Things.TrimExcess();
+    }
+
+    private static void ReserveCapacity<T>(List<T> elements, int capacity)
+    {
+        if (capacity > elements.Capacity)
+            elements.Capacity = capacity;
+    }
 
     public Vertex AddVertex(Vector2D position)
     {
