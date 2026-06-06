@@ -11,16 +11,18 @@ public sealed class VertexBuffer : IDisposable
     internal uint Handle { get; private set; }
     public VertexFormat Format { get; internal set; } = VertexFormat.Flat;
     public int VertexCount { get; internal set; }
+    public bool Disposed => Handle == 0;
 
     public VertexBuffer(GL gl)
     {
         _gl = gl;
         Handle = _gl.GenBuffer();
+        if (Handle == 0) throw new InvalidOperationException("VertexBuffer allocation failed.");
     }
 
     public void Dispose()
     {
-        if (Handle != 0)
+        if (!Disposed)
         {
             _gl.DeleteBuffer(Handle);
             Handle = 0;

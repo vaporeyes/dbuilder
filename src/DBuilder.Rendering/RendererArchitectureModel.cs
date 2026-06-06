@@ -25,6 +25,7 @@ public static class RendererArchitectureModel
             "Flat and world vertex-buffer attribute binding",
             "Length-based vertex-buffer allocation",
             "Flat and world vertex-buffer subdata updates",
+            "Vertex and index buffer disposed-state reporting",
             "Index-buffer binding and primitive draw dispatch",
             "Owned indexed-triangle mesh wrapper",
             "Runtime shader compile, link, disposal, and uniform lookup caching",

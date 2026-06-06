@@ -10,16 +10,18 @@ public sealed class IndexBuffer : IDisposable
     private readonly GL _gl;
     internal uint Handle { get; private set; }
     public int IndexCount { get; internal set; }
+    public bool Disposed => Handle == 0;
 
     public IndexBuffer(GL gl)
     {
         _gl = gl;
         Handle = _gl.GenBuffer();
+        if (Handle == 0) throw new InvalidOperationException("IndexBuffer allocation failed.");
     }
 
     public void Dispose()
     {
-        if (Handle != 0)
+        if (!Disposed)
         {
             _gl.DeleteBuffer(Handle);
             Handle = 0;
