@@ -19,8 +19,9 @@ public enum DBuilderPluginContributionKind
 public enum DBuilderPluginLifecycleHook
 {
     Load,
-    Initialize,
     RegisterActions,
+    RegisterHints,
+    Initialize,
     RegisterUi,
     RegisterEditModes,
     RegisterDockers,
@@ -1209,11 +1210,10 @@ public static class DBuilderPluginHostModel
         var hooks = new List<DBuilderPluginLifecycleHook>
         {
             DBuilderPluginLifecycleHook.Load,
+            DBuilderPluginLifecycleHook.RegisterActions,
+            DBuilderPluginLifecycleHook.RegisterHints,
             DBuilderPluginLifecycleHook.Initialize
         };
-
-        if (contributions.Any(contribution => contribution.Kind == DBuilderPluginContributionKind.Action))
-            hooks.Add(DBuilderPluginLifecycleHook.RegisterActions);
 
         if (contributions.Any(contribution =>
                 contribution.Kind is DBuilderPluginContributionKind.Menu or DBuilderPluginContributionKind.Toolbar))

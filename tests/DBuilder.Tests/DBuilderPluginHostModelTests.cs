@@ -1432,8 +1432,9 @@ public sealed class DBuilderPluginHostModelTests
         Assert.Equal(new[]
         {
             DBuilderPluginLifecycleHook.Load,
-            DBuilderPluginLifecycleHook.Initialize,
             DBuilderPluginLifecycleHook.RegisterActions,
+            DBuilderPluginLifecycleHook.RegisterHints,
+            DBuilderPluginLifecycleHook.Initialize,
             DBuilderPluginLifecycleHook.RegisterUi,
             DBuilderPluginLifecycleHook.RegisterEditModes,
             DBuilderPluginLifecycleHook.RegisterDockers,
@@ -2109,8 +2110,9 @@ public sealed class DBuilderPluginHostModelTests
         Assert.Equal(new[]
         {
             DBuilderPluginLifecycleHook.Load,
-            DBuilderPluginLifecycleHook.Initialize,
             DBuilderPluginLifecycleHook.RegisterActions,
+            DBuilderPluginLifecycleHook.RegisterHints,
+            DBuilderPluginLifecycleHook.Initialize,
             DBuilderPluginLifecycleHook.RegisterUi,
             DBuilderPluginLifecycleHook.RegisterEditModes,
             DBuilderPluginLifecycleHook.RegisterDockers,
@@ -2165,6 +2167,8 @@ public sealed class DBuilderPluginHostModelTests
         Assert.Equal(new[]
         {
             DBuilderPluginLifecycleHook.Load,
+            DBuilderPluginLifecycleHook.RegisterActions,
+            DBuilderPluginLifecycleHook.RegisterHints,
             DBuilderPluginLifecycleHook.Initialize,
             DBuilderPluginLifecycleHook.RegisterUi
         }, plan.Hooks);
