@@ -390,6 +390,8 @@ public class MapSet : IDisposable
                 CeilHeight = sector.CeilHeight,
                 FloorTexture = sector.FloorTexture,
                 CeilTexture = sector.CeilTexture,
+                LongFloorTexture = sector.LongFloorTexture,
+                LongCeilTexture = sector.LongCeilTexture,
                 Brightness = sector.Brightness,
                 Special = sector.Special,
                 FloorSlope = sector.FloorSlope,
@@ -437,6 +439,9 @@ public class MapSet : IDisposable
                 HighTexture = side.HighTexture,
                 MidTexture = side.MidTexture,
                 LowTexture = side.LowTexture,
+                LongHighTexture = side.LongHighTexture,
+                LongMiddleTexture = side.LongMiddleTexture,
+                LongLowTexture = side.LongLowTexture,
             };
             foreach (var flag in side.UdmfFlags) copy.UdmfFlags.Add(flag);
             CopyFields(side, copy);
@@ -1531,6 +1536,9 @@ public class MapSet : IDisposable
         dst.HighTexture = src.HighTexture;
         dst.MidTexture = src.MidTexture;
         dst.LowTexture = src.LowTexture;
+        dst.LongHighTexture = src.LongHighTexture;
+        dst.LongMiddleTexture = src.LongMiddleTexture;
+        dst.LongLowTexture = src.LongLowTexture;
         CopyFields(src, dst);
     }
 
