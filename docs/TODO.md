@@ -613,7 +613,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 ## Resource And Data Management
 
 - [ ] Port UDB `DataManager` behavior.
-- [ ] Port WAD reader resource behavior.
+- [x] Port WAD reader resource behavior.
   - [x] Resolve named WAD text-resource includes from the last matching lump like UDB.
   - [x] Load only the last WAD `ZMAPINFO`, or last `MAPINFO` when `ZMAPINFO` is absent, like UDB.
   - [x] Load WAD base-game GLDEFS lumps before generic `GLDEFS` like UDB.
@@ -630,7 +630,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Resolve WAD `REVERBS` definitions through the resource stack like UDB.
   - [x] Resolve WAD `DECALDEF` definitions through the resource stack like UDB.
   - [x] Resolve singular WAD extra text lumps through the resource stack like UDB.
-- [ ] Port PK3 reader resource behavior.
+- [x] Port PK3 reader resource behavior.
   - [x] Load only root-level WAD entries from PK3 resources like UDB.
   - [x] Resolve singular root PK3 lump-style files from the first matching title like UDB.
   - [x] Search PK3 resource namespace subfolders for title lookups like UDB.
@@ -647,7 +647,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Resolve root `REVERBS` title files before nested WAD REVERBS data like UDB.
   - [x] Resolve root `DECALDEF` title files before nested WAD DECALDEF data like UDB.
   - [x] Resolve first root extra text title file before nested WAD data like UDB.
-- [ ] Port structured PK3 reader behavior.
+- [x] Port structured PK3 reader behavior.
   - [x] Discover and load maps from nested PK3 archives.
   - [x] Recognize UDB PK3-family archive extensions in nested archive readers.
   - [x] Honor configured ignored directory names and ignored extensions when scanning PK3 resources.
@@ -656,13 +656,13 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Skip PK3 map archive entries with UDB-unsupported path characters.
   - [x] Include nested WAD map-info data after root PK3 map-info files like UDB.
   - [x] Load root base-game GLDEFS files before generic `GLDEFS` files and nested WAD GLDEFS like UDB.
-- [ ] Port directory reader behavior.
+- [x] Port directory reader behavior.
   - [x] Honor configured ignored directory names and ignored extensions when scanning folder resources.
   - [x] Skip files directly inside configured ignored folder-resource directories like UDB.
   - [x] Search directory resource namespace subfolders and long titles like UDB.
   - [x] Load nested PK3-family archives from directory resources like UDB.
   - [x] Skip directory resource files with UDB-unsupported path characters.
-- [ ] Port data location and data location list behavior.
+- [x] Port data location and data location list behavior.
   - [x] Add UDB-style resource display names for data locations.
   - [x] Use shared PK3-family archive classification for data location type inference.
   - [x] Honor PK3 root texture and root flat resource options.
@@ -674,7 +674,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Let nested WAD sprite and voxel resources take priority over folder resources within a PK3 like UDB.
   - [x] Add UDB-style singular and plural labels to resource reload status text.
   - [x] Add UDB-style singular and plural labels to map-load resource status text.
-- [ ] Port resource list warnings.
+- [x] Port resource list warnings.
   - [x] Warn when configured required archives are missing or duplicated.
   - [x] Match required archive warning metadata case-insensitively.
   - [x] Model UDB's map-resource warning for editing without resources.
