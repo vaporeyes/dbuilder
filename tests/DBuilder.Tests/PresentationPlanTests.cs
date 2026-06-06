@@ -46,6 +46,28 @@ public sealed class PresentationPlanTests
     }
 
     [Fact]
+    public void RenderLayerMasksMatchUdbNumericValues()
+    {
+        Assert.Equal(0, (int)PresentationRenderLayerMask.None);
+        Assert.Equal(1, (int)PresentationRenderLayerMask.Background);
+        Assert.Equal(2, (int)PresentationRenderLayerMask.Plotter);
+        Assert.Equal(3, (int)PresentationRenderLayerMask.Things);
+        Assert.Equal(4, (int)PresentationRenderLayerMask.Overlay);
+        Assert.Equal(5, (int)PresentationRenderLayerMask.Surface);
+    }
+
+    [Fact]
+    public void RenderLayerMaskForMapsGridAndGeometryToUdbPlotterLayer()
+    {
+        Assert.Equal(PresentationRenderLayerMask.Background, PresentationPlan.RenderLayerMaskFor(PresentationRendererLayer.Background));
+        Assert.Equal(PresentationRenderLayerMask.Surface, PresentationPlan.RenderLayerMaskFor(PresentationRendererLayer.Surface));
+        Assert.Equal(PresentationRenderLayerMask.Things, PresentationPlan.RenderLayerMaskFor(PresentationRendererLayer.Things));
+        Assert.Equal(PresentationRenderLayerMask.Plotter, PresentationPlan.RenderLayerMaskFor(PresentationRendererLayer.Grid));
+        Assert.Equal(PresentationRenderLayerMask.Plotter, PresentationPlan.RenderLayerMaskFor(PresentationRendererLayer.Geometry));
+        Assert.Equal(PresentationRenderLayerMask.Overlay, PresentationPlan.RenderLayerMaskFor(PresentationRendererLayer.Overlay));
+    }
+
+    [Fact]
     public void CustomPresentationAddsLayersWithoutMutatingOriginal()
     {
         PresentationPlan standard = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);

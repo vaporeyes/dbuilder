@@ -13,6 +13,16 @@ public enum PresentationRendererLayer
     Surface,
 }
 
+public enum PresentationRenderLayerMask
+{
+    None = 0,
+    Background = 1,
+    Plotter = 2,
+    Things = 3,
+    Overlay = 4,
+    Surface = 5,
+}
+
 public enum PresentationBlendingMode
 {
     None,
@@ -65,6 +75,18 @@ public sealed record PresentationPlan(
 
     public PresentationPlan WithSkipHiddenSectors(bool skipHiddenSectors)
         => this with { SkipHiddenSectors = skipHiddenSectors };
+
+    public static PresentationRenderLayerMask RenderLayerMaskFor(PresentationRendererLayer layer)
+        => layer switch
+        {
+            PresentationRendererLayer.Background => PresentationRenderLayerMask.Background,
+            PresentationRendererLayer.Grid => PresentationRenderLayerMask.Plotter,
+            PresentationRendererLayer.Geometry => PresentationRenderLayerMask.Plotter,
+            PresentationRendererLayer.Things => PresentationRenderLayerMask.Things,
+            PresentationRendererLayer.Overlay => PresentationRenderLayerMask.Overlay,
+            PresentationRendererLayer.Surface => PresentationRenderLayerMask.Surface,
+            _ => throw new ArgumentOutOfRangeException(nameof(layer), layer, null),
+        };
 
     public IReadOnlyList<PresentationDrawCommand> BuildDrawCommands(bool qualityDisplay)
     {

@@ -1478,6 +1478,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style 2D presentation plotter and texture target allocation planning.
   - [x] Add UDB-style 2D presentation display shader settings planning.
   - [x] Add UDB-style 2D presentation frame operation sequence planning.
+  - [x] Add UDB-style 2D presentation render-layer mask planning.
 - [x] Port render modes and view modes.
   - [x] Add UDB-style classic 2D view mode action ids and renderer switching for wireframe, brightness, floor textures, and ceiling textures.
   - [x] Add raw UDB classic view mode and highlight action aliases.
