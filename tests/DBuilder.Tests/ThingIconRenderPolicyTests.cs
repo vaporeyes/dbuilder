@@ -354,6 +354,41 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
+    public void OverviewCellsChooseSelectedRepresentativeBeforeRadius()
+    {
+        Assert.True(ThingIconRenderPolicy.ShouldReplaceOverviewCellThing(
+            existingSelected: false,
+            existingMapRadius: 64,
+            candidateSelected: true,
+            candidateMapRadius: 8));
+        Assert.False(ThingIconRenderPolicy.ShouldReplaceOverviewCellThing(
+            existingSelected: true,
+            existingMapRadius: 8,
+            candidateSelected: false,
+            candidateMapRadius: 64));
+    }
+
+    [Fact]
+    public void OverviewCellsChooseLargestRepresentativeWhenSelectionMatches()
+    {
+        Assert.True(ThingIconRenderPolicy.ShouldReplaceOverviewCellThing(
+            existingSelected: false,
+            existingMapRadius: 16,
+            candidateSelected: false,
+            candidateMapRadius: 32));
+        Assert.False(ThingIconRenderPolicy.ShouldReplaceOverviewCellThing(
+            existingSelected: false,
+            existingMapRadius: 32,
+            candidateSelected: false,
+            candidateMapRadius: 16));
+        Assert.True(ThingIconRenderPolicy.ShouldReplaceOverviewCellThing(
+            existingSelected: true,
+            existingMapRadius: 16,
+            candidateSelected: true,
+            candidateMapRadius: 32));
+    }
+
+    [Fact]
     public void SkipsThingsWhoseProjectedRadiusIsTooSmall()
     {
         Assert.False(ThingIconRenderPolicy.ShouldRenderThing(

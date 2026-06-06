@@ -4910,16 +4910,32 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                     farOverviewThingMarkers),
                 compactThingMarkers);
             Gldefs? gldefs = _resources?.GetGldefs();
-            System.Collections.Generic.HashSet<(int X, int Y)>? selectedOverviewCells = null;
-            System.Collections.Generic.HashSet<(int X, int Y)>? renderedOverviewCells = null;
+            System.Collections.Generic.Dictionary<(int X, int Y), Thing>? overviewRepresentatives = null;
             if (ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(_zoom, _thingArrows))
             {
-                selectedOverviewCells = new System.Collections.Generic.HashSet<(int X, int Y)>();
-                renderedOverviewCells = new System.Collections.Generic.HashSet<(int X, int Y)>();
-                foreach (var selected in _map.Things)
+                overviewRepresentatives = new System.Collections.Generic.Dictionary<(int X, int Y), Thing>();
+                foreach (var candidate in _map.Things)
                 {
-                    if (!selected.Selected || ThingHidden2D(selected)) continue;
-                    selectedOverviewCells.Add(ThingOverviewCell(selected.Position));
+                    if (ThingHidden2D(candidate)) continue;
+                    ThingTypeInfo? candidateInfo = _gameConfig?.GetThing(candidate.Type);
+                    double candidateRadius = ThingVisualRadius(candidate, candidateInfo);
+                    bool candidateFixedSize = candidate.FixedSize || candidateInfo?.FixedSize == true;
+                    if (!candidate.Selected && !ThingIconRenderPolicy.ShouldRenderThing(
+                        candidateRadius,
+                        _zoom,
+                        _fixedThingsScale,
+                        candidateFixedSize)) continue;
+
+                    var cell = ThingOverviewCell(candidate.Position);
+                    if (!overviewRepresentatives.TryGetValue(cell, out Thing? existing)
+                        || ThingIconRenderPolicy.ShouldReplaceOverviewCellThing(
+                            existing.Selected,
+                            ThingVisualRadius(existing, _gameConfig?.GetThing(existing.Type)),
+                            candidate.Selected,
+                            candidateRadius))
+                    {
+                        overviewRepresentatives[cell] = candidate;
+                    }
                 }
             }
 
@@ -4927,21 +4943,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             {
                 if (ThingHidden2D(t)) continue;
                 ThingTypeInfo? thingInfo = _gameConfig?.GetThing(t.Type);
-                double thingRadius = t.Size > 0 ? t.Size : thingInfo?.RenderRadius ?? thingInfo?.Width ?? 10.0;
+                double thingRadius = ThingVisualRadius(t, thingInfo);
                 bool fixedSize = t.FixedSize || thingInfo?.FixedSize == true;
                 if (!t.Selected && !ThingIconRenderPolicy.ShouldRenderThing(
                     thingRadius,
                     _zoom,
                     _fixedThingsScale,
                     fixedSize)) continue;
-                if (renderedOverviewCells != null && selectedOverviewCells != null)
+                if (overviewRepresentatives != null)
                 {
                     var cell = ThingOverviewCell(t.Position);
-                    if (!ThingIconRenderPolicy.ShouldRenderOverviewCellThing(
-                        t.Selected,
-                        selectedOverviewCells.Contains(cell),
-                        renderedOverviewCells.Contains(cell))) continue;
-                    renderedOverviewCells.Add(cell);
+                    if (!overviewRepresentatives.TryGetValue(cell, out Thing? representative)
+                        || !ReferenceEquals(t, representative)) continue;
                 }
                 // Arrow mode: Doom-Builder-style colored disc + direction arrow (no sprites).
                 if (_thingArrows)
@@ -5228,6 +5241,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private double ThingMarkerSize(double baseSize, bool compactMarkers = false)
         => ThingIconRenderPolicy.MarkerWorldSize(baseSize, _zoom, _fixedThingsScale, compactMarkers);
+
+    private static double ThingVisualRadius(Thing thing, ThingTypeInfo? thingInfo)
+        => thing.Size > 0 ? thing.Size : thingInfo?.RenderRadius ?? thingInfo?.Width ?? 10.0;
 
     private (int X, int Y) ThingOverviewCell(Vec2D position)
     {

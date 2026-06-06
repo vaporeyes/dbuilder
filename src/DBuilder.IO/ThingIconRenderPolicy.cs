@@ -60,6 +60,16 @@ public static class ThingIconRenderPolicy
         return !cellHasSelectedThing || thingSelected;
     }
 
+    public static bool ShouldReplaceOverviewCellThing(
+        bool existingSelected,
+        double existingMapRadius,
+        bool candidateSelected,
+        double candidateMapRadius)
+    {
+        if (candidateSelected != existingSelected) return candidateSelected;
+        return candidateMapRadius > existingMapRadius;
+    }
+
     public static bool ShouldRenderThing(double mapRadius, double viewScale, bool fixedThingsScale, bool fixedSize = false)
         => ProjectedThingScreenRadius(mapRadius, viewScale, fixedThingsScale, fixedSize)
             >= MinimumThingScreenRadiusFor(viewScale);
