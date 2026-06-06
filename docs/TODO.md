@@ -2051,7 +2051,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 ## BuilderModes Detail
 
-- [ ] Port find and replace infrastructure.
+- [x] Port find and replace infrastructure.
   - [x] Add UDB-style within-current-selection scoping for find and replace.
   - [x] Add UDB-style replace availability rules for index, UDMF, and mixed texture/flat categories.
   - [x] Add testable find and replace result message formatting and editor wiring.
@@ -2060,7 +2060,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match Find and Replace category labels to UDB `FindReplace` display names.
   - [x] Expose UDB Find and Replace browse-button metadata per category.
   - [x] Add UDB-style singular and plural labels to Find and Replace result messages.
-- [ ] Port all find and replace object types.
+- [x] Port all find and replace object types.
   - [x] Add UDB-style index, sector scalar, sidedef texture slot, sector flat slot, and thing angle categories.
   - [x] Add UDB-style wildcard UDMF field find categories for any, vertex, linedef, sidedef, sector, and thing fields.
   - [x] Add UDB-style linedef and sidedef flag find categories.
@@ -2077,7 +2077,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style named script `arg0str` matching for action-with-arguments find categories.
   - [x] Add UDB-style generalized linedef action bit matching for action find categories.
   - [x] Add UDB-style generalized sector effect matching for sector-effect find categories.
-- [ ] Port map error checker infrastructure.
+- [x] Port map error checker infrastructure.
   - [x] Expose UDB error checker display names, defaults, costs, and issue-kind mappings.
   - [x] Expose UDB error checker class names and persisted settings keys.
   - [x] Add testable UDB-style default checker selection filtering.
