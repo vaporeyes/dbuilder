@@ -108,6 +108,18 @@ public sealed record DBuilderPluginActivationPlan(
     IReadOnlyList<DBuilderPluginActivationAttempt> Attempts,
     IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
 
+public sealed record DBuilderPluginShutdownAttempt(
+    string PluginName,
+    string AssemblyPath,
+    string PluginTypeName,
+    int Order,
+    bool Disposed,
+    string? Error = null);
+
+public sealed record DBuilderPluginShutdownPlan(
+    IReadOnlyList<DBuilderPluginShutdownAttempt> Attempts,
+    IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
+
 public sealed record DBuilderPluginRuntimePlan(
     DBuilderPluginHostPlan HostPlan,
     DBuilderPluginAssemblyLoadPlan AssemblyLoadPlan,
@@ -456,6 +468,39 @@ public static class DBuilderPluginHostModel
         }
 
         return new DBuilderPluginActivationPlan(attempts, diagnostics);
+    }
+
+    public static DBuilderPluginShutdownPlan PlanShutdownAttempts(
+        DBuilderPluginActivationPlan activationPlan,
+        Func<DBuilderPluginActivationAttempt, string?> disposePlugin)
+    {
+        var attempts = new List<DBuilderPluginShutdownAttempt>();
+        var diagnostics = new List<DBuilderPluginDiagnostic>(activationPlan.Diagnostics);
+
+        foreach (DBuilderPluginActivationAttempt activation in activationPlan.Attempts
+                     .Where(attempt => attempt.Activated)
+                     .OrderByDescending(attempt => attempt.Order))
+        {
+            string error = disposePlugin(activation)?.Trim() ?? "";
+            bool disposed = error.Length == 0;
+            attempts.Add(new DBuilderPluginShutdownAttempt(
+                activation.PluginName,
+                activation.AssemblyPath,
+                activation.PluginTypeName,
+                activation.Order,
+                disposed,
+                disposed ? null : error));
+
+            if (!disposed)
+            {
+                diagnostics.Add(new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Error,
+                    activation.PluginName,
+                    error));
+            }
+        }
+
+        return new DBuilderPluginShutdownPlan(attempts, diagnostics);
     }
 
     public static DBuilderPluginRuntimePlan BuildRuntimePlan(
