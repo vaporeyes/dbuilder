@@ -1458,6 +1458,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 - [x] Port renderer device behavior or document an equivalent renderer architecture.
   - [x] Document and test the Silk.NET OpenGL renderer replacement contract.
+  - [x] Add UDB-style render-device disposed-state reporting.
 - [ ] Port renderer 2D parity.
 - [ ] Port renderer 3D parity.
 - [ ] Port render passes and layers.

@@ -10,7 +10,7 @@ namespace DBuilder.Rendering;
 public sealed class RenderDevice : IDisposable
 {
     private readonly GL _gl;
-    private readonly uint _streamVao;
+    private uint _streamVao;
     private VertexBuffer? _boundVb;
     private IndexBuffer? _boundIb;
     private Shader? _boundShader;
@@ -24,6 +24,7 @@ public sealed class RenderDevice : IDisposable
     }
 
     public GL GL => _gl;
+    public bool Disposed => _streamVao == 0;
 
     public void SetViewport(int width, int height)
     {
@@ -338,7 +339,11 @@ public sealed class RenderDevice : IDisposable
 
     public void Dispose()
     {
-        _gl.DeleteVertexArray(_streamVao);
+        if (!Disposed)
+        {
+            _gl.DeleteVertexArray(_streamVao);
+            _streamVao = 0;
+        }
         GC.SuppressFinalize(this);
     }
 }

@@ -21,6 +21,7 @@ public static class RendererArchitectureModel
         CoveredResponsibilities: new[]
         {
             "Viewport and clear state",
+            "Render-device disposed-state reporting",
             "Cull, depth, fill, blend, sampler, and texture state",
             "Flat and world vertex-buffer attribute binding",
             "Length-based vertex-buffer allocation",
