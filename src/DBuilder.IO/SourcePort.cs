@@ -63,6 +63,9 @@ public static class SourcePort
     public static ProcessStartInfo CreateStartInfo(string executable, IEnumerable<string> arguments)
     {
         var startInfo = new ProcessStartInfo(executable) { UseShellExecute = false };
+        string? workingDirectory = Path.GetDirectoryName(executable);
+        if (!string.IsNullOrWhiteSpace(workingDirectory))
+            startInfo.WorkingDirectory = workingDirectory;
         foreach (string argument in arguments)
             startInfo.ArgumentList.Add(argument);
         return startInfo;

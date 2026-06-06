@@ -125,6 +125,16 @@ public class SourcePortTests
 
         Assert.Equal("/ports/gzdoom", startInfo.FileName);
         Assert.False(startInfo.UseShellExecute);
+        Assert.Equal("/ports", startInfo.WorkingDirectory);
         Assert.Equal(new[] { "-iwad", "doom2.wad", "-file", "edit.wad" }, startInfo.ArgumentList);
+    }
+
+    [Fact]
+    public void CreateStartInfoLeavesWorkingDirectoryEmptyForPathlessExecutable()
+    {
+        var startInfo = SourcePort.CreateStartInfo("gzdoom", new[] { "-iwad", "doom2.wad" });
+
+        Assert.Equal("gzdoom", startInfo.FileName);
+        Assert.Equal("", startInfo.WorkingDirectory);
     }
 }
