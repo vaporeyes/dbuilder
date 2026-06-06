@@ -536,6 +536,16 @@ public class UdbScriptRunnerModelTests
     }
 
     [Fact]
+    public void MessageDialogNormalizesScriptLineBreaksOnce()
+    {
+        string expected = "first" + Environment.NewLine + "second";
+
+        Assert.Equal(expected, UdbScriptRunnerModel.MessageDialogPlan("first\nsecond", yesNo: false).Message);
+        Assert.Equal(expected, UdbScriptRunnerModel.MessageDialogPlan("first\r\nsecond", yesNo: false).Message);
+        Assert.Equal(expected, UdbScriptRunnerModel.MessageDialogPlan("first\rsecond", yesNo: false).Message);
+    }
+
+    [Fact]
     public void HostWrapperExitAndDieThrowTypedExceptions()
     {
         UdbScriptHostWrapper host = new();

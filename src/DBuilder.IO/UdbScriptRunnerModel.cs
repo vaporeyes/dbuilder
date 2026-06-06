@@ -766,7 +766,10 @@ public static class UdbScriptRunnerModel
             result is UdbScriptMessageResult.Ok or UdbScriptMessageResult.Yes);
 
     private static string NormalizeMessageDialogText(object? message)
-        => (message?.ToString() ?? "").Replace("\n", Environment.NewLine);
+        => (message?.ToString() ?? "")
+            .Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace("\r", "\n", StringComparison.Ordinal)
+            .Replace("\n", Environment.NewLine, StringComparison.Ordinal);
 
     public static UdbScriptRunSourcePlan BuildSourcePlan(string appPath, string scriptFile)
     {
