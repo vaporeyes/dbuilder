@@ -342,6 +342,89 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void PlanTypeDiscoveryRecordsDiscoveredPluginTypesInLoadOrder()
+    {
+        DBuilderPluginAssemblyLoadPlan assemblyLoadPlan = DBuilderPluginHostModel.PlanAssemblyLoadAttempts(
+            DBuilderPluginHostModel.PlanLoadCandidates(
+                DBuilderPluginHostModel.PlanDescriptors(new[]
+                {
+                    new DBuilderPluginDescriptor("TagRange", "/plugins/tagrange.dll"),
+                    new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll")
+                })),
+            _ => true);
+
+        DBuilderPluginTypeDiscoveryPlan plan = DBuilderPluginHostModel.PlanTypeDiscovery(
+            assemblyLoadPlan,
+            attempt => attempt.PluginName == "BuilderModes"
+                ? " BuilderModes.BuilderModesPlugin "
+                : "TagRange.TagRangePlugin");
+
+        Assert.Empty(plan.Diagnostics);
+        Assert.Collection(
+            plan.Discoveries,
+            discovery =>
+            {
+                Assert.Equal("BuilderModes", discovery.PluginName);
+                Assert.Equal("/plugins/buildermodes.dll", discovery.AssemblyPath);
+                Assert.Equal(0, discovery.Order);
+                Assert.Equal("BuilderModes.BuilderModesPlugin", discovery.PluginTypeName);
+            },
+            discovery =>
+            {
+                Assert.Equal("TagRange", discovery.PluginName);
+                Assert.Equal("TagRange.TagRangePlugin", discovery.PluginTypeName);
+                Assert.Equal(1, discovery.Order);
+            });
+    }
+
+    [Fact]
+    public void PlanTypeDiscoveryReportsFoundAssembliesWithoutPluginTypes()
+    {
+        DBuilderPluginAssemblyLoadPlan assemblyLoadPlan = DBuilderPluginHostModel.PlanAssemblyLoadAttempts(
+            DBuilderPluginHostModel.PlanLoadCandidates(
+                DBuilderPluginHostModel.PlanDescriptors(new[]
+                {
+                    new DBuilderPluginDescriptor("TagRange", "/plugins/tagrange.dll"),
+                    new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll")
+                })),
+            _ => true);
+
+        DBuilderPluginTypeDiscoveryPlan plan = DBuilderPluginHostModel.PlanTypeDiscovery(
+            assemblyLoadPlan,
+            attempt => attempt.PluginName == "BuilderModes" ? "BuilderModes.BuilderModesPlugin" : "");
+
+        DBuilderPluginTypeDiscovery discovery = Assert.Single(plan.Discoveries);
+        Assert.Equal("BuilderModes", discovery.PluginName);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.Diagnostics);
+        Assert.Equal(DBuilderPluginDiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.Equal("TagRange", diagnostic.PluginName);
+        Assert.Equal("Plugin TagRange assembly does not expose a plugin type.", diagnostic.Message);
+    }
+
+    [Fact]
+    public void PlanTypeDiscoverySkipsMissingAssembliesAndPreservesDiagnostics()
+    {
+        DBuilderPluginAssemblyLoadPlan assemblyLoadPlan = DBuilderPluginHostModel.PlanAssemblyLoadAttempts(
+            DBuilderPluginHostModel.PlanLoadCandidates(
+                DBuilderPluginHostModel.PlanDescriptors(new[]
+                {
+                    new DBuilderPluginDescriptor("TagRange", "/plugins/tagrange.dll"),
+                    new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll")
+                })),
+            path => path.EndsWith("buildermodes.dll", StringComparison.OrdinalIgnoreCase));
+
+        DBuilderPluginTypeDiscoveryPlan plan = DBuilderPluginHostModel.PlanTypeDiscovery(
+            assemblyLoadPlan,
+            _ => "BuilderModes.BuilderModesPlugin");
+
+        DBuilderPluginTypeDiscovery discovery = Assert.Single(plan.Discoveries);
+        Assert.Equal("BuilderModes", discovery.PluginName);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.Diagnostics);
+        Assert.Equal("TagRange", diagnostic.PluginName);
+        Assert.Equal("Plugin TagRange assembly was not found at /plugins/tagrange.dll.", diagnostic.Message);
+    }
+
+    [Fact]
     public void BuildRuntimePlanKeepsMissingAssembliesOutOfReadyHost()
     {
         DBuilderPluginRuntimePlan plan = DBuilderPluginHostModel.BuildRuntimePlan(

@@ -86,6 +86,16 @@ public sealed record DBuilderPluginAssemblyLoadPlan(
     IReadOnlyList<DBuilderPluginAssemblyLoadAttempt> Attempts,
     IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
 
+public sealed record DBuilderPluginTypeDiscovery(
+    string PluginName,
+    string AssemblyPath,
+    int Order,
+    string PluginTypeName);
+
+public sealed record DBuilderPluginTypeDiscoveryPlan(
+    IReadOnlyList<DBuilderPluginTypeDiscovery> Discoveries,
+    IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
+
 public sealed record DBuilderPluginRuntimePlan(
     DBuilderPluginHostPlan HostPlan,
     DBuilderPluginAssemblyLoadPlan AssemblyLoadPlan,
@@ -370,6 +380,37 @@ public static class DBuilderPluginHostModel
         }
 
         return new DBuilderPluginAssemblyLoadPlan(attempts, diagnostics);
+    }
+
+    public static DBuilderPluginTypeDiscoveryPlan PlanTypeDiscovery(
+        DBuilderPluginAssemblyLoadPlan assemblyLoadPlan,
+        Func<DBuilderPluginAssemblyLoadAttempt, string?> discoverPluginTypeName)
+    {
+        var discoveries = new List<DBuilderPluginTypeDiscovery>();
+        var diagnostics = new List<DBuilderPluginDiagnostic>(assemblyLoadPlan.Diagnostics);
+
+        foreach (DBuilderPluginAssemblyLoadAttempt attempt in assemblyLoadPlan.Attempts)
+        {
+            if (!attempt.AssemblyFound) continue;
+
+            string typeName = discoverPluginTypeName(attempt)?.Trim() ?? "";
+            if (typeName.Length == 0)
+            {
+                diagnostics.Add(new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Error,
+                    attempt.PluginName,
+                    $"Plugin {attempt.PluginName} assembly does not expose a plugin type."));
+                continue;
+            }
+
+            discoveries.Add(new DBuilderPluginTypeDiscovery(
+                attempt.PluginName,
+                attempt.AssemblyPath,
+                attempt.Order,
+                typeName));
+        }
+
+        return new DBuilderPluginTypeDiscoveryPlan(discoveries, diagnostics);
     }
 
     public static DBuilderPluginRuntimePlan BuildRuntimePlan(
