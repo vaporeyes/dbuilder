@@ -195,6 +195,29 @@ model Zombie
     }
 
     [Fact]
+    public void ModelTextureImageLookupFallsBackToBasenameSpriteLikeUdb()
+    {
+        byte[] texture = TestArtifacts.Png(8, 9, TestArtifacts.SolidRgba(8, 9, 140, 150, 160, 255));
+        string pk3 = TestArtifacts.BuildPk3(("sprites/POSSA0.png", texture));
+
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+
+            ImageData? image = resources.GetModelTextureImage("models/monsters/POSSA0.png");
+
+            Assert.NotNull(image);
+            Assert.Equal(8, image!.Width);
+            Assert.Equal(9, image.Height);
+        }
+        finally
+        {
+            File.Delete(pk3);
+        }
+    }
+
+    [Fact]
     public void DiscoversMultipleRootModeldefFiles()
     {
         string pk3 = TestArtifacts.BuildPk3(

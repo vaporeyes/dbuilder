@@ -635,7 +635,8 @@ public sealed class ResourceManager : IDisposable
         if (!string.IsNullOrEmpty(basename) && GetWallTexture(basename) is { } basenameTexture)
             return basenameTexture;
 
-        return GetSprite(stem);
+        if (GetSprite(stem) is { } stemSprite) return stemSprite;
+        return string.IsNullOrEmpty(basename) ? null : GetSprite(basename);
     }
 
     public static string CombineModelPath(string path, string file)
