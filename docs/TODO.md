@@ -1249,7 +1249,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style UDMF selected-linedef brightness gradient command.
   - [x] Add UDB-style gradient interpolation mode selection for sector and linedef gradients.
   - [x] Dispatch UDB gradientbrightness action by active edit mode.
-- [ ] Port texture alignment tools.
+- [x] Port texture alignment tools.
   - [x] Add UDB-style sidedef unused texture cleanup behavior.
   - [x] Add UDB-style auto-clear sidedef textures command and menu toggle.
   - [x] Add menu commands for selected wall texture auto-alignment.
@@ -2209,11 +2209,11 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style managed Sidedef field matching to Select Similar options.
   - [x] Add UDB-style managed Sector field matching to Select Similar options.
   - [x] Filter Select Similar options by current map format like UDB.
-- [ ] Port texture fitting behavior.
+- [x] Port texture fitting behavior.
   - [x] Add UDB-style UDMF sidedef texture fit scale and offset field helper.
   - [x] Add UDB-style connected-surface UDMF sidedef texture fit calculations.
   - [x] Add editor command to fit selected wall texture fields from resource dimensions.
-- [ ] Port flat alignment behavior.
+- [x] Port flat alignment behavior.
   - [x] Add UDB-style UDMF floor and ceiling alignment to selected linedef front/back sides.
   - [x] Add UDB-style Apply lightfog flag action for selected linedefs.
 - [ ] Port bridge mode.
