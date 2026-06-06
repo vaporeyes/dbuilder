@@ -35,6 +35,9 @@ public class Sidedef : IMapElement, ISelectable, IMarkable, IFielded
     public string MidTexture { get; set; } = "-";
     public string MiddleTexture { get => MidTexture; set => MidTexture = value; }
     public string LowTexture { get; set; } = "-";
+    public long LongHighTexture { get; set; } = MapSet.EmptyLongName;
+    public long LongMiddleTexture { get; set; } = MapSet.EmptyLongName;
+    public long LongLowTexture { get; set; } = MapSet.EmptyLongName;
 
     // UDMF-specific named flags collected as a string set so sidedef options survive clone and clipboard round-trips.
     public HashSet<string> UdmfFlags { get; } = new(StringComparer.OrdinalIgnoreCase);
@@ -80,6 +83,9 @@ public class Sidedef : IMapElement, ISelectable, IMarkable, IFielded
         sidedef.HighTexture = HighTexture;
         sidedef.MidTexture = MidTexture;
         sidedef.LowTexture = LowTexture;
+        sidedef.LongHighTexture = LongHighTexture;
+        sidedef.LongMiddleTexture = LongMiddleTexture;
+        sidedef.LongLowTexture = LongLowTexture;
 
         sidedef.UdmfFlags.Clear();
         foreach (var flag in UdmfFlags) sidedef.UdmfFlags.Add(flag);

@@ -185,6 +185,28 @@ public class MapElementDataTests
     }
 
     [Fact]
+    public void SidedefLongTextureNamesMatchUdbSurfaceAndCopy()
+    {
+        var source = new Sidedef
+        {
+            LongHighTexture = 11,
+            LongMiddleTexture = 22,
+            LongLowTexture = 33,
+        };
+        var target = new Sidedef();
+
+        Assert.Equal(MapSet.EmptyLongName, target.LongHighTexture);
+        Assert.Equal(MapSet.EmptyLongName, target.LongMiddleTexture);
+        Assert.Equal(MapSet.EmptyLongName, target.LongLowTexture);
+
+        source.CopyPropertiesTo(target);
+
+        Assert.Equal(11, target.LongHighTexture);
+        Assert.Equal(22, target.LongMiddleTexture);
+        Assert.Equal(33, target.LongLowTexture);
+    }
+
+    [Fact]
     public void SectorEffectAliasMatchesUdbSurface()
     {
         var sector = new Sector();
