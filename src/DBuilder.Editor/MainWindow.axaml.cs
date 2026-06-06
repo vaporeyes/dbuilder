@@ -5205,7 +5205,7 @@ public partial class MainWindow : Window
                 iwad!,
                 temp,
                 _mapMarker,
-                TestResourcePaths(),
+                TestResourcePaths(iwad),
                 testMonsters: _settings.TestMonsters,
                 skill: _settings.NormalizedTestSkill,
                 additionalParameters: _settings.TestAdditionalParameters,
@@ -5239,14 +5239,11 @@ public partial class MainWindow : Window
         return SourcePort.DefaultArgsTemplate;
     }
 
-    private IEnumerable<string> TestResourcePaths()
-    {
-        if (_mapOptions is null) yield break;
-        foreach (var location in _mapOptions.GetResources())
-        {
-            if (!location.NotForTesting && location.IsValid()) yield return location.Location;
-        }
-    }
+    private IReadOnlyList<string> TestResourcePaths(string iwad)
+        => SourcePort.BuildAdditionalResourcePaths(
+            CurrentConfigurationResources(),
+            _mapOptions?.GetResources() ?? new DataLocationList(),
+            iwad);
 
     private FindReplaceWindow? _findWindow;
 

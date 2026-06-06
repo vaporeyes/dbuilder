@@ -196,6 +196,51 @@ public class SourcePortTests
     }
 
     [Fact]
+    public void BuildAdditionalResourcePathsCombinesConfigAndMapResourcesLikeUdb()
+    {
+        using var dir = new TempDir();
+        string iwad = dir.File("doom2.wad");
+        string configResource = dir.File("config.pk3");
+        string mapResource = dir.File("map.wad");
+        string skippedResource = dir.File("skip.pk3");
+        File.WriteAllText(iwad, "");
+        File.WriteAllText(configResource, "");
+        File.WriteAllText(mapResource, "");
+        File.WriteAllText(skippedResource, "");
+
+        var resources = SourcePort.BuildAdditionalResourcePaths(
+            new[]
+            {
+                new DataLocation(DataLocationType.Wad, iwad),
+                new DataLocation(DataLocationType.Pk3, configResource),
+                new DataLocation(DataLocationType.Pk3, skippedResource, notForTesting: true),
+            },
+            new[]
+            {
+                new DataLocation(DataLocationType.Wad, mapResource),
+                new DataLocation(DataLocationType.Pk3, dir.File("missing.pk3")),
+            },
+            iwad);
+
+        Assert.Equal(new[] { configResource, mapResource }, resources);
+    }
+
+    [Fact]
+    public void BuildAdditionalResourcePathsLetsMapResourcesOverrideConfigResources()
+    {
+        using var dir = new TempDir();
+        string shared = dir.File("shared.pk3");
+        File.WriteAllText(shared, "");
+
+        var resources = SourcePort.BuildAdditionalResourcePaths(
+            new[] { new DataLocation(DataLocationType.Pk3, shared, notForTesting: true) },
+            new[] { new DataLocation(DataLocationType.Pk3, shared) },
+            iwad: dir.File("doom2.wad"));
+
+        Assert.Equal(new[] { shared }, resources);
+    }
+
+    [Fact]
     public void CreateStartInfoUsesDBuilderLaunchDefaults()
     {
         var startInfo = SourcePort.CreateStartInfo("/ports/gzdoom", new[] { "-iwad", "doom2.wad", "-file", "edit.wad" });
@@ -259,5 +304,24 @@ public class SourcePortTests
 
         Assert.False(result.Success);
         Assert.Equal("Source port launch failed: blocked", result.Message);
+    }
+
+    private sealed class TempDir : IDisposable
+    {
+        private readonly string path = Path.Combine(Path.GetTempPath(), "dbuilder-sourceport-" + Guid.NewGuid().ToString("N"));
+
+        public TempDir()
+        {
+            Directory.CreateDirectory(path);
+        }
+
+        public string File(string name)
+            => Path.Combine(path, name);
+
+        public void Dispose()
+        {
+            try { Directory.Delete(path, recursive: true); }
+            catch { }
+        }
     }
 }

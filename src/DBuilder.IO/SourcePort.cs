@@ -77,6 +77,24 @@ public static class SourcePort
         return startInfo;
     }
 
+    public static IReadOnlyList<string> BuildAdditionalResourcePaths(
+        IEnumerable<DataLocation> configurationResources,
+        IEnumerable<DataLocation> mapResources,
+        string iwad)
+    {
+        var resources = DataLocationList.Combined(
+            new DataLocationList(configurationResources),
+            new DataLocationList(mapResources));
+        var result = new List<string>();
+        foreach (DataLocation location in resources)
+        {
+            if (location.NotForTesting || !location.IsValid()) continue;
+            if (string.Equals(location.Location, iwad, StringComparison.OrdinalIgnoreCase)) continue;
+            result.Add(location.Location);
+        }
+        return result;
+    }
+
     public static SourcePortLaunchResult Launch(
         string executable,
         IEnumerable<string> arguments,
