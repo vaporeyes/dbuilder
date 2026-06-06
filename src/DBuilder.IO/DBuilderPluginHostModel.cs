@@ -114,6 +114,17 @@ public sealed record DBuilderPluginActivationPlan(
     IReadOnlyList<DBuilderPluginActivationAttempt> Attempts,
     IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
 
+public sealed record DBuilderPluginRuntimeInstance(
+    string PluginName,
+    string AssemblyPath,
+    string PluginTypeName,
+    int Order,
+    IDBuilderPlugin Instance);
+
+public sealed record DBuilderPluginRuntimeInstancePlan(
+    IReadOnlyList<DBuilderPluginRuntimeInstance> Instances,
+    IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
+
 public sealed record DBuilderPluginShutdownAttempt(
     string PluginName,
     string AssemblyPath,
@@ -540,6 +551,64 @@ public static class DBuilderPluginHostModel
         }
 
         return new DBuilderPluginActivationPlan(attempts, diagnostics);
+    }
+
+    public static DBuilderPluginRuntimeInstancePlan ActivateReflectionPlugins(
+        DBuilderPluginTypeDiscoveryPlan typeDiscoveryPlan)
+    {
+        var instances = new List<DBuilderPluginRuntimeInstance>();
+        var diagnostics = new List<DBuilderPluginDiagnostic>(typeDiscoveryPlan.Diagnostics);
+
+        foreach (DBuilderPluginTypeDiscovery discovery in typeDiscoveryPlan.Discoveries)
+        {
+            try
+            {
+                Assembly assembly = Assembly.LoadFrom(discovery.AssemblyPath);
+                Type? pluginType = assembly.GetType(discovery.PluginTypeName, throwOnError: false);
+                if (pluginType == null)
+                {
+                    diagnostics.Add(new DBuilderPluginDiagnostic(
+                        DBuilderPluginDiagnosticSeverity.Error,
+                        discovery.PluginName,
+                        $"Plugin {discovery.PluginName} type {discovery.PluginTypeName} was not found."));
+                    continue;
+                }
+
+                if (!typeof(IDBuilderPlugin).IsAssignableFrom(pluginType))
+                {
+                    diagnostics.Add(new DBuilderPluginDiagnostic(
+                        DBuilderPluginDiagnosticSeverity.Error,
+                        discovery.PluginName,
+                        $"Plugin {discovery.PluginName} type {discovery.PluginTypeName} does not implement {typeof(IDBuilderPlugin).FullName}."));
+                    continue;
+                }
+
+                if (Activator.CreateInstance(pluginType) is not IDBuilderPlugin instance)
+                {
+                    diagnostics.Add(new DBuilderPluginDiagnostic(
+                        DBuilderPluginDiagnosticSeverity.Error,
+                        discovery.PluginName,
+                        $"Plugin {discovery.PluginName} type {discovery.PluginTypeName} could not be activated."));
+                    continue;
+                }
+
+                instances.Add(new DBuilderPluginRuntimeInstance(
+                    discovery.PluginName,
+                    discovery.AssemblyPath,
+                    discovery.PluginTypeName,
+                    discovery.Order,
+                    instance));
+            }
+            catch (Exception ex)
+            {
+                diagnostics.Add(new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Error,
+                    discovery.PluginName,
+                    $"Plugin {discovery.PluginName} type {discovery.PluginTypeName} could not be activated: {ex.Message}"));
+            }
+        }
+
+        return new DBuilderPluginRuntimeInstancePlan(instances, diagnostics);
     }
 
     public static DBuilderPluginShutdownPlan PlanShutdownAttempts(

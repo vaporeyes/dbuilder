@@ -429,7 +429,7 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
-    public void PlanReflectionTypeDiscoveryFindsDBuilderPluginContractTypes()
+    public void PlanReflectionTypeDiscoveryFindsDBuilderPluginContractTypesDeterministically()
     {
         string assemblyPath = typeof(ReflectionPluginHostTestPlugin).Assembly.Location;
         DBuilderPluginAssemblyLoadPlan assemblyLoadPlan = DBuilderPluginHostModel.PlanAssemblyLoadAttempts(
@@ -442,12 +442,17 @@ public sealed class DBuilderPluginHostModelTests
 
         DBuilderPluginTypeDiscoveryPlan plan = DBuilderPluginHostModel.PlanReflectionTypeDiscovery(assemblyLoadPlan);
 
-        Assert.Empty(plan.Diagnostics);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.Diagnostics);
+        Assert.Equal(DBuilderPluginDiagnosticSeverity.Warning, diagnostic.Severity);
+        Assert.Equal("ReflectionTest", diagnostic.PluginName);
+        Assert.Equal(
+            $"Plugin ReflectionTest assembly exposes multiple {typeof(IDBuilderPlugin).FullName} types; using {typeof(ReflectionBrokenPluginHostTestPlugin).FullName}.",
+            diagnostic.Message);
         DBuilderPluginTypeDiscovery discovery = Assert.Single(plan.Discoveries);
         Assert.Equal("ReflectionTest", discovery.PluginName);
         Assert.Equal(assemblyPath, discovery.AssemblyPath);
         Assert.Equal(0, discovery.Order);
-        Assert.Equal(typeof(ReflectionPluginHostTestPlugin).FullName, discovery.PluginTypeName);
+        Assert.Equal(typeof(ReflectionBrokenPluginHostTestPlugin).FullName, discovery.PluginTypeName);
     }
 
     [Fact]
@@ -591,6 +596,131 @@ public sealed class DBuilderPluginHostModelTests
         DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.Diagnostics);
         Assert.Equal("TagRange", diagnostic.PluginName);
         Assert.Equal("Plugin TagRange assembly does not expose a plugin type.", diagnostic.Message);
+    }
+
+    [Fact]
+    public void ActivateReflectionPluginsCreatesPluginInstances()
+    {
+        string assemblyPath = typeof(ReflectionPluginHostTestPlugin).Assembly.Location;
+        var typeDiscoveryPlan = new DBuilderPluginTypeDiscoveryPlan(
+            new[]
+            {
+                new DBuilderPluginTypeDiscovery(
+                    "ReflectionTest",
+                    assemblyPath,
+                    0,
+                    typeof(ReflectionPluginHostTestPlugin).FullName!)
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginRuntimeInstancePlan plan = DBuilderPluginHostModel.ActivateReflectionPlugins(typeDiscoveryPlan);
+
+        Assert.Empty(plan.Diagnostics);
+        DBuilderPluginRuntimeInstance instance = Assert.Single(plan.Instances);
+        Assert.Equal("ReflectionTest", instance.PluginName);
+        Assert.Equal(assemblyPath, instance.AssemblyPath);
+        Assert.Equal(typeof(ReflectionPluginHostTestPlugin).FullName, instance.PluginTypeName);
+        Assert.Equal(0, instance.Order);
+        Assert.IsType<ReflectionPluginHostTestPlugin>(instance.Instance);
+    }
+
+    [Fact]
+    public void ActivateReflectionPluginsPreservesTypeDiscoveryDiagnostics()
+    {
+        var typeDiscoveryPlan = new DBuilderPluginTypeDiscoveryPlan(
+            Array.Empty<DBuilderPluginTypeDiscovery>(),
+            new[]
+            {
+                new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Error,
+                    "NoContract",
+                    "Plugin NoContract assembly does not expose a plugin type.")
+            });
+
+        DBuilderPluginRuntimeInstancePlan plan = DBuilderPluginHostModel.ActivateReflectionPlugins(typeDiscoveryPlan);
+
+        Assert.Empty(plan.Instances);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.Diagnostics);
+        Assert.Equal("NoContract", diagnostic.PluginName);
+        Assert.Equal("Plugin NoContract assembly does not expose a plugin type.", diagnostic.Message);
+    }
+
+    [Fact]
+    public void ActivateReflectionPluginsReportsMissingRuntimeTypes()
+    {
+        string assemblyPath = typeof(ReflectionPluginHostTestPlugin).Assembly.Location;
+        var typeDiscoveryPlan = new DBuilderPluginTypeDiscoveryPlan(
+            new[]
+            {
+                new DBuilderPluginTypeDiscovery("Missing", assemblyPath, 0, "DBuilder.Tests.MissingPlugin")
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginRuntimeInstancePlan plan = DBuilderPluginHostModel.ActivateReflectionPlugins(typeDiscoveryPlan);
+
+        Assert.Empty(plan.Instances);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.Diagnostics);
+        Assert.Equal(DBuilderPluginDiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.Equal("Missing", diagnostic.PluginName);
+        Assert.Equal("Plugin Missing type DBuilder.Tests.MissingPlugin was not found.", diagnostic.Message);
+    }
+
+    [Fact]
+    public void ActivateReflectionPluginsReportsTypesWithoutPluginContract()
+    {
+        string assemblyPath = typeof(ReflectionNonPluginHostTestType).Assembly.Location;
+        var typeDiscoveryPlan = new DBuilderPluginTypeDiscoveryPlan(
+            new[]
+            {
+                new DBuilderPluginTypeDiscovery(
+                    "NonPlugin",
+                    assemblyPath,
+                    0,
+                    typeof(ReflectionNonPluginHostTestType).FullName!)
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginRuntimeInstancePlan plan = DBuilderPluginHostModel.ActivateReflectionPlugins(typeDiscoveryPlan);
+
+        Assert.Empty(plan.Instances);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.Diagnostics);
+        Assert.Equal(DBuilderPluginDiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.Equal("NonPlugin", diagnostic.PluginName);
+        Assert.Equal(
+            $"Plugin NonPlugin type {typeof(ReflectionNonPluginHostTestType).FullName} does not implement {typeof(IDBuilderPlugin).FullName}.",
+            diagnostic.Message);
+    }
+
+    [Fact]
+    public void ActivateReflectionPluginsReportsConstructorErrorsWithoutDroppingOtherPlugins()
+    {
+        string assemblyPath = typeof(ReflectionPluginHostTestPlugin).Assembly.Location;
+        var typeDiscoveryPlan = new DBuilderPluginTypeDiscoveryPlan(
+            new[]
+            {
+                new DBuilderPluginTypeDiscovery(
+                    "Broken",
+                    assemblyPath,
+                    0,
+                    typeof(ReflectionBrokenPluginHostTestPlugin).FullName!),
+                new DBuilderPluginTypeDiscovery(
+                    "ReflectionTest",
+                    assemblyPath,
+                    1,
+                    typeof(ReflectionPluginHostTestPlugin).FullName!)
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginRuntimeInstancePlan plan = DBuilderPluginHostModel.ActivateReflectionPlugins(typeDiscoveryPlan);
+
+        DBuilderPluginRuntimeInstance instance = Assert.Single(plan.Instances);
+        Assert.Equal("ReflectionTest", instance.PluginName);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.Diagnostics);
+        Assert.Equal(DBuilderPluginDiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.Equal("Broken", diagnostic.PluginName);
+        Assert.StartsWith(
+            $"Plugin Broken type {typeof(ReflectionBrokenPluginHostTestPlugin).FullName} could not be activated:",
+            diagnostic.Message);
     }
 
     [Fact]
@@ -1649,5 +1779,17 @@ public sealed class DBuilderPluginHostModelTests
 }
 
 public sealed class ReflectionPluginHostTestPlugin : IDBuilderPlugin
+{
+}
+
+public sealed class ReflectionBrokenPluginHostTestPlugin : IDBuilderPlugin
+{
+    public ReflectionBrokenPluginHostTestPlugin()
+    {
+        throw new InvalidOperationException("constructor failed");
+    }
+}
+
+public sealed class ReflectionNonPluginHostTestType
 {
 }
