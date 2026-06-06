@@ -241,6 +241,9 @@ public sealed record PresentationLayerDrawPlan(
     bool Draws,
     string? SkipReason,
     string VertexSourceName,
+    PrimitiveType PrimitiveType,
+    int StartVertex,
+    int PrimitiveCount,
     bool RestoreScreenVertexBufferAfterDraw,
     int? OverlayIndex);
 
@@ -584,6 +587,9 @@ public sealed record PresentationRenderTargetPlan(
                 Draws: !skipBackground,
                 SkipReason: skipBackground ? "Missing background vertices or texture" : null,
                 VertexSourceName: setting.Layer == PresentationRendererLayer.Background ? "backimageverts" : "screenverts",
+                PrimitiveType: PrimitiveType.TriangleStrip,
+                StartVertex: 0,
+                PrimitiveCount: 2,
                 RestoreScreenVertexBufferAfterDraw: setting.Layer == PresentationRendererLayer.Background && !skipBackground,
                 setting.OverlayIndex));
         }

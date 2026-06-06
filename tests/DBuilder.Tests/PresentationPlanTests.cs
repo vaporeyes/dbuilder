@@ -701,6 +701,44 @@ public sealed class PresentationPlanTests
     }
 
     [Fact]
+    public void LayerDrawPlansUseUdbTriangleStripDrawArgumentsForEveryLayer()
+    {
+        PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);
+        PresentationRenderTargetPlan targets = PresentationRenderTargetPlan.Create(320, 200, presentation);
+
+        IReadOnlyList<PresentationLayerDrawPlan> plans = targets.BuildLayerDrawPlans(
+            presentation,
+            qualityDisplay: false,
+            hasBackgroundVertices: true,
+            hasBackgroundTexture: true);
+
+        Assert.All(plans, plan =>
+        {
+            Assert.Equal(PrimitiveType.TriangleStrip, plan.PrimitiveType);
+            Assert.Equal(0, plan.StartVertex);
+            Assert.Equal(2, plan.PrimitiveCount);
+        });
+    }
+
+    [Fact]
+    public void LayerDrawPlansKeepUdbDrawArgumentsWhenBackgroundDrawIsSkipped()
+    {
+        PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);
+        PresentationRenderTargetPlan targets = PresentationRenderTargetPlan.Create(320, 200, presentation);
+
+        IReadOnlyList<PresentationLayerDrawPlan> plans = targets.BuildLayerDrawPlans(
+            presentation,
+            qualityDisplay: false,
+            hasBackgroundVertices: false,
+            hasBackgroundTexture: true);
+
+        Assert.False(plans[0].Draws);
+        Assert.Equal(PrimitiveType.TriangleStrip, plans[0].PrimitiveType);
+        Assert.Equal(0, plans[0].StartVertex);
+        Assert.Equal(2, plans[0].PrimitiveCount);
+    }
+
+    [Fact]
     public void FramePlanMatchesUdbPresentOperationEnvelope()
     {
         PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);
