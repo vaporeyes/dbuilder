@@ -419,6 +419,23 @@ public sealed class RenderDevice : IDisposable
     public void SetPixels(Texture texture, int width, int height, byte[] rgba, bool generateMipmaps = true)
         => texture.SetPixelsRgba8(width, height, rgba, generateMipmaps);
 
+    public void CopyTexture(CubeTexture destination, CubeMapFace face)
+    {
+        _gl.BindTexture(TextureTarget.TextureCubeMap, destination.Handle);
+        _gl.CopyTexSubImage2D(
+            MapCubeFace(face),
+            0,
+            0,
+            0,
+            0,
+            0,
+            (uint)destination.Size,
+            (uint)destination.Size);
+    }
+
+    public void SetPixels(CubeTexture texture, CubeMapFace face, byte[] rgba, bool generateMipmaps = true)
+        => texture.SetPixelsRgba8(face, rgba, generateMipmaps);
+
     public static TextureOperationPlan BuildSetTexturePlan(Texture? texture, int unit = 0)
         => new(TextureOperationKind.Bind, unit, texture != null);
 
@@ -620,6 +637,18 @@ public sealed class RenderDevice : IDisposable
         PrimitiveType.TriangleStrip => Silk.NET.OpenGL.PrimitiveType.TriangleStrip,
         _ => throw new ArgumentOutOfRangeException(nameof(type))
     };
+
+    private static TextureTarget MapCubeFace(CubeMapFace face)
+        => face switch
+        {
+            CubeMapFace.PositiveX => TextureTarget.TextureCubeMapPositiveX,
+            CubeMapFace.PositiveY => TextureTarget.TextureCubeMapPositiveY,
+            CubeMapFace.PositiveZ => TextureTarget.TextureCubeMapPositiveZ,
+            CubeMapFace.NegativeX => TextureTarget.TextureCubeMapNegativeX,
+            CubeMapFace.NegativeY => TextureTarget.TextureCubeMapNegativeY,
+            CubeMapFace.NegativeZ => TextureTarget.TextureCubeMapNegativeZ,
+            _ => throw new ArgumentOutOfRangeException(nameof(face)),
+        };
 
     private static int PrimToVerts(PrimitiveType type, int primCount) => type switch
     {

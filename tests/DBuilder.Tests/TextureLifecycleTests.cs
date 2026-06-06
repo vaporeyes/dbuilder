@@ -51,4 +51,16 @@ public sealed class TextureLifecycleTests
         Assert.NotNull(typeof(Texture).GetProperty(nameof(Texture.Tag)));
         Assert.NotNull(typeof(Texture).GetProperty(nameof(Texture.UserData)));
     }
+
+    [Fact]
+    public void CubeTextureExposesUdbMetadataProperties()
+    {
+        Assert.NotNull(typeof(CubeTexture).GetConstructor(new[] { typeof(Silk.NET.OpenGL.GL), typeof(int) }));
+        Assert.NotNull(typeof(CubeTexture).GetProperty(nameof(CubeTexture.Size)));
+        Assert.NotNull(typeof(CubeTexture).GetProperty(nameof(CubeTexture.Format)));
+        Assert.NotNull(typeof(CubeTexture).GetProperty(nameof(CubeTexture.Tag)));
+        Assert.NotNull(typeof(CubeTexture).GetProperty(nameof(CubeTexture.UserData)));
+        Assert.NotNull(typeof(CubeTexture).GetProperty(nameof(CubeTexture.Disposed)));
+        Assert.Contains(typeof(IDisposable), typeof(CubeTexture).GetInterfaces());
+    }
 }
