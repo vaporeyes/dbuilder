@@ -1,5 +1,5 @@
-// ABOUTME: Managed 2D texture wrapper over a GL texture object.
-// ABOUTME: Tracks UDB-style texture format metadata, RGBA8 upload, mipmap generation, and disposal.
+// ABOUTME: Managed texture wrappers over GL texture objects.
+// ABOUTME: Tracks UDB-style base, 2D, and cube texture metadata, allocation, upload, and disposal.
 
 using Silk.NET.OpenGL;
 
@@ -31,22 +31,41 @@ public sealed record TextureAllocationPlan(
     int Height,
     TextureFormat Format);
 
-public sealed class Texture : IDisposable
+public abstract class BaseTexture : IDisposable
 {
-    private readonly GL _gl;
+    protected readonly GL Gl;
     internal uint Handle { get; private set; }
-    public int Width { get; private set; }
-    public int Height { get; private set; }
-    public TextureFormat Format { get; private set; }
     public object? Tag { get; set; }
     public int UserData { get; set; }
     public bool Disposed => Handle == 0;
 
-    public Texture(GL gl)
+    protected BaseTexture(GL gl)
     {
-        _gl = gl;
-        Handle = _gl.GenTexture();
+        Gl = gl;
+        Handle = Gl.GenTexture();
         if (Handle == 0) throw new InvalidOperationException("Texture allocation failed.");
+    }
+
+    public void Dispose()
+    {
+        if (!Disposed)
+        {
+            Gl.DeleteTexture(Handle);
+            Handle = 0;
+        }
+        GC.SuppressFinalize(this);
+    }
+}
+
+public sealed class Texture : BaseTexture
+{
+    public int Width { get; private set; }
+    public int Height { get; private set; }
+    public TextureFormat Format { get; private set; }
+
+    public Texture(GL gl)
+        : base(gl)
+    {
     }
 
     public Texture(GL gl, int width, int height, TextureFormat format)
@@ -71,8 +90,8 @@ public sealed class Texture : IDisposable
         Height = height;
         Format = format;
 
-        _gl.BindTexture(TextureTarget.Texture2D, Handle);
-        _gl.TexImage2D(
+        Gl.BindTexture(TextureTarget.Texture2D, Handle);
+        Gl.TexImage2D(
             TextureTarget.Texture2D,
             0,
             internalFormat,
@@ -93,27 +112,17 @@ public sealed class Texture : IDisposable
         Height = height;
         Format = TextureFormat.Rgba8;
 
-        _gl.BindTexture(TextureTarget.Texture2D, Handle);
+        Gl.BindTexture(TextureTarget.Texture2D, Handle);
         fixed (byte* p = rgba)
         {
-            _gl.TexImage2D(
+            Gl.TexImage2D(
                 TextureTarget.Texture2D, 0,
                 InternalFormat.Rgba8,
                 (uint)width, (uint)height, 0,
                 PixelFormat.Rgba, PixelType.UnsignedByte, p);
         }
         if (generateMipmaps)
-            _gl.GenerateMipmap(TextureTarget.Texture2D);
-    }
-
-    public void Dispose()
-    {
-        if (!Disposed)
-        {
-            _gl.DeleteTexture(Handle);
-            Handle = 0;
-        }
-        GC.SuppressFinalize(this);
+            Gl.GenerateMipmap(TextureTarget.Texture2D);
     }
 
     private static (InternalFormat InternalFormat, PixelFormat PixelFormat, PixelType PixelType) MapFormat(TextureFormat format)
@@ -133,30 +142,22 @@ public sealed class Texture : IDisposable
         };
 }
 
-public sealed class CubeTexture : IDisposable
+public sealed class CubeTexture : BaseTexture
 {
-    private readonly GL _gl;
-    internal uint Handle { get; private set; }
     public int Size { get; private set; }
     public TextureFormat Format { get; private set; }
-    public object? Tag { get; set; }
-    public int UserData { get; set; }
-    public bool Disposed => Handle == 0;
 
     public unsafe CubeTexture(GL gl, int size)
+        : base(gl)
     {
         if (size <= 0) throw new ArgumentOutOfRangeException(nameof(size));
 
-        _gl = gl;
-        Handle = _gl.GenTexture();
-        if (Handle == 0) throw new InvalidOperationException("Texture allocation failed.");
-
         Size = size;
         Format = TextureFormat.Bgra8;
-        _gl.BindTexture(TextureTarget.TextureCubeMap, Handle);
+        Gl.BindTexture(TextureTarget.TextureCubeMap, Handle);
         for (int i = 0; i < 6; i++)
         {
-            _gl.TexImage2D(
+            Gl.TexImage2D(
                 TextureTarget.TextureCubeMapPositiveX + i,
                 0,
                 InternalFormat.Rgba8,
@@ -174,10 +175,10 @@ public sealed class CubeTexture : IDisposable
         if (rgba.Length < Size * Size * 4)
             throw new ArgumentException("Pixel buffer too small for declared dimensions", nameof(rgba));
 
-        _gl.BindTexture(TextureTarget.TextureCubeMap, Handle);
+        Gl.BindTexture(TextureTarget.TextureCubeMap, Handle);
         fixed (byte* p = rgba)
         {
-            _gl.TexImage2D(
+            Gl.TexImage2D(
                 MapFace(face),
                 0,
                 InternalFormat.Rgba8,
@@ -189,7 +190,7 @@ public sealed class CubeTexture : IDisposable
                 p);
         }
         if (generateMipmaps)
-            _gl.GenerateMipmap(TextureTarget.TextureCubeMap);
+            Gl.GenerateMipmap(TextureTarget.TextureCubeMap);
     }
 
     private static TextureTarget MapFace(CubeMapFace face)
@@ -204,13 +205,4 @@ public sealed class CubeTexture : IDisposable
             _ => throw new ArgumentOutOfRangeException(nameof(face)),
         };
 
-    public void Dispose()
-    {
-        if (!Disposed)
-        {
-            _gl.DeleteTexture(Handle);
-            Handle = 0;
-        }
-        GC.SuppressFinalize(this);
-    }
 }

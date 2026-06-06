@@ -386,12 +386,19 @@ public sealed class RenderDevice : IDisposable
     }
 
     public void SetTexture(int unit, Texture? texture)
+        => SetTexture(unit, (BaseTexture?)texture);
+
+    public void SetTexture(int unit, BaseTexture? texture)
     {
         _gl.ActiveTexture(TextureUnit.Texture0 + unit);
-        _gl.BindTexture(TextureTarget.Texture2D, texture?.Handle ?? 0);
+        TextureTarget target = texture is CubeTexture ? TextureTarget.TextureCubeMap : TextureTarget.Texture2D;
+        _gl.BindTexture(target, texture?.Handle ?? 0);
     }
 
     public void SetTexture(Texture? texture, int unit = 0)
+        => SetTexture(unit, texture);
+
+    public void SetTexture(BaseTexture? texture, int unit = 0)
         => SetTexture(unit, texture);
 
     public void ClearTexture(uint colorArgb, Texture texture)

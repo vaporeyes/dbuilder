@@ -23,6 +23,18 @@ public sealed class TextureLifecycleTests
     }
 
     [Fact]
+    public void BaseTextureExposesUdbLifecycleProperties()
+    {
+        Assert.True(typeof(BaseTexture).IsAbstract);
+        Assert.NotNull(typeof(BaseTexture).GetProperty(nameof(BaseTexture.Disposed)));
+        Assert.NotNull(typeof(BaseTexture).GetProperty(nameof(BaseTexture.Tag)));
+        Assert.NotNull(typeof(BaseTexture).GetProperty(nameof(BaseTexture.UserData)));
+        Assert.Contains(typeof(IDisposable), typeof(BaseTexture).GetInterfaces());
+        Assert.True(typeof(Texture).IsSubclassOf(typeof(BaseTexture)));
+        Assert.True(typeof(CubeTexture).IsSubclassOf(typeof(BaseTexture)));
+    }
+
+    [Fact]
     public void Build2DAllocationPlanStoresDimensionsAndFormat()
     {
         TextureAllocationPlan plan = Texture.Build2DAllocationPlan(320, 200, TextureFormat.Bgra8);
@@ -63,6 +75,5 @@ public sealed class TextureLifecycleTests
         Assert.NotNull(typeof(CubeTexture).GetProperty(nameof(CubeTexture.Tag)));
         Assert.NotNull(typeof(CubeTexture).GetProperty(nameof(CubeTexture.UserData)));
         Assert.NotNull(typeof(CubeTexture).GetProperty(nameof(CubeTexture.Disposed)));
-        Assert.Contains(typeof(IDisposable), typeof(CubeTexture).GetInterfaces());
     }
 }

@@ -43,6 +43,7 @@ public static class RendererArchitectureModel
             "Vertex and index buffer disposed-state reporting",
             "Index-buffer binding and primitive draw dispatch",
             "Texture disposed-state reporting",
+            "Base texture lifecycle and render-device binding surface",
             "Texture format metadata and 2D/cube allocation planning",
             "Texture 2D format allocation application",
             "Render-device texture operation planning",
