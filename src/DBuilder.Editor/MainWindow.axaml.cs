@@ -6901,7 +6901,7 @@ public partial class MainWindow : Window
             Transparency: false,
             Tiles: false,
             ScaleIndex: 0,
-            ImageFormatIndex: 0,
+            ImageFormatIndex: ImageExportSettings.FormatIndexFromPath(filePath),
             PixelFormatIndex: 0);
 
     private string DefaultImageExportFileName()

@@ -135,6 +135,10 @@ public sealed class ImageExportModelTests
     [Fact]
     public void FormatSelectionChangesFileExtensionLikeUdbBrowseHandler()
     {
+        Assert.Equal(0, ImageExportSettings.FormatIndexFromPath(Path.Combine("tmp", "map.png")));
+        Assert.Equal(1, ImageExportSettings.FormatIndexFromPath(Path.Combine("tmp", "map.jpg")));
+        Assert.Equal(1, ImageExportSettings.FormatIndexFromPath(Path.Combine("tmp", "map.JPEG")));
+        Assert.Equal(0, ImageExportSettings.FormatIndexFromPath(Path.Combine("tmp", "map.bmp")));
         Assert.Equal(Path.Combine("tmp", "map.jpg"), ImageExportSettings.ChangeExtensionForFormat(Path.Combine("tmp", "map.png"), 1));
         Assert.Equal(Path.Combine("tmp", "map.png"), ImageExportSettings.ChangeExtensionForFormat(Path.Combine("tmp", "map.jpg"), 0));
     }

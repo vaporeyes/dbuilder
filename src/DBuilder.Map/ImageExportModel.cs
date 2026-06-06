@@ -175,6 +175,15 @@ public sealed record ImageExportSettings(
     public static string ExtensionForFormatIndex(int selectedIndex)
         => selectedIndex == 1 ? ".jpg" : ".png";
 
+    public static int FormatIndexFromPath(string filePath)
+    {
+        string extension = Path.GetExtension(filePath.Trim());
+        return extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase)
+            || extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase)
+            ? 1
+            : 0;
+    }
+
     public static string ChangeExtensionForFormat(string filePath, int selectedIndex)
         => Path.ChangeExtension(filePath, ExtensionForFormatIndex(selectedIndex));
 
