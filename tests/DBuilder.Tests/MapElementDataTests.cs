@@ -238,6 +238,24 @@ public class MapElementDataTests
     }
 
     [Fact]
+    public void SectorEmptyTextureSettersClearLongTextureNamesLikeUdb()
+    {
+        var sector = new Sector
+        {
+            LongFloorTexture = 44,
+            LongCeilTexture = 55,
+        };
+
+        sector.SetFloorTexture(null);
+        sector.SetCeilTexture("");
+
+        Assert.Equal("-", sector.FloorTexture);
+        Assert.Equal("-", sector.CeilTexture);
+        Assert.Equal(MapSet.EmptyLongName, sector.LongFloorTexture);
+        Assert.Equal(MapSet.EmptyLongName, sector.LongCeilTexture);
+    }
+
+    [Fact]
     public void SectorUpdateNeededSetterMatchesUdbStickyBehavior()
     {
         var sector = new Sector();

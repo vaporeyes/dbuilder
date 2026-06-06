@@ -235,10 +235,16 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
     }
 
     public void SetFloorTexture(string? name)
-        => FloorTexture = NormalizeTextureName(name);
+    {
+        FloorTexture = NormalizeTextureName(name);
+        if (FloorTexture == "-") LongFloorTexture = MapSet.EmptyLongName;
+    }
 
     public void SetCeilTexture(string? name)
-        => CeilTexture = NormalizeTextureName(name);
+    {
+        CeilTexture = NormalizeTextureName(name);
+        if (CeilTexture == "-") LongCeilTexture = MapSet.EmptyLongName;
+    }
 
     public bool Intersect(Vector2D point)
         => Intersect(point, countOnTopAsTrue: true);
