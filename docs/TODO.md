@@ -1477,6 +1477,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port index buffer behavior.
   - [x] Add UDB-style index-buffer disposed-state reporting and allocation failure guard.
 - [ ] Port texture handling and lifecycle.
+  - [x] Add UDB-style texture disposed-state reporting and allocation failure guard.
 - [ ] Port surface manager behavior.
 - [ ] Port surface entries and updates.
 - [ ] Port mesh behavior.

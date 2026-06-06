@@ -11,11 +11,13 @@ public sealed class Texture : IDisposable
     internal uint Handle { get; private set; }
     public int Width { get; private set; }
     public int Height { get; private set; }
+    public bool Disposed => Handle == 0;
 
     public Texture(GL gl)
     {
         _gl = gl;
         Handle = _gl.GenTexture();
+        if (Handle == 0) throw new InvalidOperationException("Texture allocation failed.");
     }
 
     public unsafe void SetPixelsRgba8(int width, int height, ReadOnlySpan<byte> rgba, bool generateMipmaps = true)
@@ -41,7 +43,7 @@ public sealed class Texture : IDisposable
 
     public void Dispose()
     {
-        if (Handle != 0)
+        if (!Disposed)
         {
             _gl.DeleteTexture(Handle);
             Handle = 0;

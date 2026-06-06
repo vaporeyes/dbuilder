@@ -19,6 +19,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Length-based vertex-buffer allocation", replacement.CoveredResponsibilities);
         Assert.Contains("Flat and world vertex-buffer subdata updates", replacement.CoveredResponsibilities);
         Assert.Contains("Vertex and index buffer disposed-state reporting", replacement.CoveredResponsibilities);
+        Assert.Contains("Texture disposed-state reporting", replacement.CoveredResponsibilities);
     }
 
     [Fact]
@@ -88,5 +89,11 @@ public class RendererArchitectureModelTests
     {
         Assert.NotNull(typeof(VertexBuffer).GetProperty(nameof(VertexBuffer.Disposed)));
         Assert.NotNull(typeof(IndexBuffer).GetProperty(nameof(IndexBuffer.Disposed)));
+    }
+
+    [Fact]
+    public void TextureWrapperExposesUdbDisposedState()
+    {
+        Assert.NotNull(typeof(Texture).GetProperty(nameof(Texture.Disposed)));
     }
 }
