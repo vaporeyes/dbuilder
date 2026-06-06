@@ -5243,7 +5243,8 @@ public partial class MainWindow : Window
         => SourcePort.BuildAdditionalResourcePaths(
             CurrentConfigurationResources(),
             _mapOptions?.GetResources() ?? new DataLocationList(),
-            iwad);
+            iwad,
+            _wadPath ?? _pk3Path);
 
     private FindReplaceWindow? _findWindow;
 

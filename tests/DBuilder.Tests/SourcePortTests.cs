@@ -241,6 +241,42 @@ public class SourcePortTests
     }
 
     [Fact]
+    public void BuildAdditionalResourcePathsAddsCurrentMapArchiveLastLikeUdb()
+    {
+        using var dir = new TempDir();
+        string configResource = dir.File("config.pk3");
+        string mapResource = dir.File("map.wad");
+        string currentMap = dir.File("current.wad");
+        File.WriteAllText(configResource, "");
+        File.WriteAllText(mapResource, "");
+        File.WriteAllText(currentMap, "");
+
+        var resources = SourcePort.BuildAdditionalResourcePaths(
+            new[] { new DataLocation(DataLocationType.Pk3, configResource) },
+            new[] { new DataLocation(DataLocationType.Wad, mapResource) },
+            iwad: dir.File("doom2.wad"),
+            currentMapPath: currentMap);
+
+        Assert.Equal(new[] { configResource, mapResource, currentMap }, resources);
+    }
+
+    [Fact]
+    public void BuildAdditionalResourcePathsCurrentMapArchiveReplacesDuplicateResource()
+    {
+        using var dir = new TempDir();
+        string currentMap = dir.File("current.wad");
+        File.WriteAllText(currentMap, "");
+
+        var resources = SourcePort.BuildAdditionalResourcePaths(
+            Array.Empty<DataLocation>(),
+            new[] { new DataLocation(DataLocationType.Wad, currentMap, notForTesting: true) },
+            iwad: dir.File("doom2.wad"),
+            currentMapPath: currentMap);
+
+        Assert.Equal(new[] { currentMap }, resources);
+    }
+
+    [Fact]
     public void CreateStartInfoUsesDBuilderLaunchDefaults()
     {
         var startInfo = SourcePort.CreateStartInfo("/ports/gzdoom", new[] { "-iwad", "doom2.wad", "-file", "edit.wad" });

@@ -80,11 +80,19 @@ public static class SourcePort
     public static IReadOnlyList<string> BuildAdditionalResourcePaths(
         IEnumerable<DataLocation> configurationResources,
         IEnumerable<DataLocation> mapResources,
-        string iwad)
+        string iwad,
+        string? currentMapPath = null)
     {
         var resources = DataLocationList.Combined(
             new DataLocationList(configurationResources),
             new DataLocationList(mapResources));
+        if (!string.IsNullOrWhiteSpace(currentMapPath))
+        {
+            var mapLocation = new DataLocation(DataLocation.InferType(currentMapPath), currentMapPath);
+            resources.Remove(mapLocation);
+            resources.Add(mapLocation);
+        }
+
         var result = new List<string>();
         foreach (DataLocation location in resources)
         {
