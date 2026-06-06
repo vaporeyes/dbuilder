@@ -7,6 +7,8 @@ using DBuilder.Geometry;
 
 public class Thing : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, IHasArguments, ITaggedMapElement
 {
+    public const int NUM_ARGS = 5;
+
     public int Index { get; set; }
     public Vector2D Position { get; set; }
 
@@ -55,7 +57,7 @@ public class Thing : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, 
     public int Action { get; set; }
 
     // Hexen/UDMF action parameters (5 bytes in Hexen binary, ints in UDMF).
-    public int[] Args { get; } = new int[5];
+    public int[] Args { get; } = new int[NUM_ARGS];
 
     // UDMF-specific named flags.
     public HashSet<string> UdmfFlags { get; } = new(StringComparer.OrdinalIgnoreCase);

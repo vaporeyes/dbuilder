@@ -159,8 +159,10 @@ public class MapElementDataTests
     {
         var thing = new Thing(new Vector2D(0, 0), 3001);
 
+        Assert.Equal(5, Thing.NUM_ARGS);
+        Assert.Equal(Thing.NUM_ARGS, thing.Args.Length);
         Assert.Throws<ArgumentOutOfRangeException>(() => thing.GetArg(-1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => thing.SetArg(5, 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => thing.SetArg(Thing.NUM_ARGS, 1));
     }
 
     [Fact]
