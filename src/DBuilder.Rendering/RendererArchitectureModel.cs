@@ -23,6 +23,7 @@ public static class RendererArchitectureModel
             "Viewport and clear state",
             "Render-device disposed-state reporting",
             "2D presentation layer stack planning",
+            "2D presentation draw-command planning",
             "Cull, depth, fill, blend, sampler, and texture state",
             "Flat and world vertex-buffer attribute binding",
             "Length-based vertex-buffer allocation",
