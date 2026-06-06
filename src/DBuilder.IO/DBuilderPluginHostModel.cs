@@ -1013,6 +1013,7 @@ public static class DBuilderPluginHostModel
 
         var diagnostics = new List<DBuilderPluginDiagnostic>(instancePlan.Diagnostics);
         var outcomes = new List<DBuilderPluginCallbackOutcome>();
+        bool abortableResult = true;
         foreach (DBuilderPluginRuntimeInstance runtimeInstance in instancePlan.Instances.OrderBy(instance => instance.Order))
         {
             MethodInfo? method = runtimeInstance.Instance.GetType().GetMethod(
@@ -1024,7 +1025,17 @@ public static class DBuilderPluginHostModel
                 continue;
             }
 
-            if (method.GetParameters().Length != 0)
+            ParameterInfo[] parameters = method.GetParameters();
+            object[] arguments;
+            if (parameters.Length == 0)
+            {
+                arguments = Array.Empty<object>();
+            }
+            else if (callback.CanAbort && parameters.Length == 1 && parameters[0].ParameterType == typeof(bool))
+            {
+                arguments = new object[] { abortableResult };
+            }
+            else
             {
                 string error = $"Plugin {runtimeInstance.PluginName} callback {callback.Name} must not declare parameters.";
                 diagnostics.Add(new DBuilderPluginDiagnostic(
@@ -1037,8 +1048,14 @@ public static class DBuilderPluginHostModel
 
             try
             {
-                object? result = method.Invoke(runtimeInstance.Instance, Array.Empty<object>());
-                bool aborted = callback.CanAbort && result is bool abort && abort;
+                object? result = method.Invoke(runtimeInstance.Instance, arguments);
+                bool aborted = false;
+                if (callback.CanAbort && result is bool callbackResult)
+                {
+                    abortableResult &= callbackResult;
+                    aborted = !callbackResult;
+                }
+
                 outcomes.Add(new DBuilderPluginCallbackOutcome(runtimeInstance.PluginName, Aborted: aborted));
             }
             catch (TargetInvocationException ex) when (ex.InnerException != null)
@@ -1063,7 +1080,7 @@ public static class DBuilderPluginHostModel
 
         return new DBuilderPluginCallbackExecutionResult(
             outcomes.All(outcome => outcome.Completed),
-            outcomes.Any(outcome => outcome.Aborted),
+            callback.CanAbort ? !abortableResult : outcomes.Any(outcome => outcome.Aborted),
             outcomes,
             diagnostics);
     }

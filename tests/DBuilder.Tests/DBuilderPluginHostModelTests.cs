@@ -1123,13 +1123,13 @@ public sealed class DBuilderPluginHostModelTests
 
         DBuilderPluginCallbackExecutionResult result = DBuilderPluginHostModel.ExecuteReflectionCallback(
             plan.InstancePlan,
-            "OnPasteBegin");
+            "OnCopyBegin");
 
         Assert.True(result.Completed);
-        Assert.True(result.Aborted);
+        Assert.False(result.Aborted);
         DBuilderPluginCallbackOutcome outcome = Assert.Single(result.Outcomes);
         Assert.Equal("Callback", outcome.PluginName);
-        Assert.True(outcome.Aborted);
+        Assert.False(outcome.Aborted);
     }
 
     [Fact]
@@ -1782,6 +1782,7 @@ public sealed class DBuilderPluginHostModelTests
     [Fact]
     public void ExecuteReflectionCallbackPreservesAbortableCallbackAbort()
     {
+        ReflectionAbortCallbackPlugin.Calls.Clear();
         var plan = new DBuilderPluginRuntimeInstancePlan(
             new[]
             {
@@ -1790,17 +1791,54 @@ public sealed class DBuilderPluginHostModelTests
                     "/plugins/aborter.dll",
                     typeof(ReflectionAbortCallbackPlugin).FullName!,
                     0,
-                    new ReflectionAbortCallbackPlugin())
+                    new ReflectionAbortCallbackPlugin(continueResult: false, name: "Aborter"))
             },
             Array.Empty<DBuilderPluginDiagnostic>());
 
         DBuilderPluginCallbackExecutionResult result = DBuilderPluginHostModel.ExecuteReflectionCallback(
             plan,
-            "OnPasteBegin");
+            "OnCopyBegin");
 
         Assert.True(result.Completed);
         Assert.True(result.Aborted);
         Assert.True(result.Outcomes.Single().Aborted);
+        Assert.Equal(new[] { "Aborter:True" }, ReflectionAbortCallbackPlugin.Calls);
+        Assert.Empty(result.Diagnostics);
+    }
+
+    [Fact]
+    public void ExecuteReflectionCallbackPassesCurrentAbortResultThroughUdbChain()
+    {
+        ReflectionAbortCallbackPlugin.Calls.Clear();
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            new[]
+            {
+                new DBuilderPluginRuntimeInstance(
+                    "First",
+                    "/plugins/first.dll",
+                    typeof(ReflectionAbortCallbackPlugin).FullName!,
+                    0,
+                    new ReflectionAbortCallbackPlugin(continueResult: false, name: "First")),
+                new DBuilderPluginRuntimeInstance(
+                    "Second",
+                    "/plugins/second.dll",
+                    typeof(ReflectionAbortCallbackPlugin).FullName!,
+                    1,
+                    new ReflectionAbortCallbackPlugin(continueResult: true, name: "Second"))
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginCallbackExecutionResult result = DBuilderPluginHostModel.ExecuteReflectionCallback(
+            plan,
+            "OnUndoBegin");
+
+        Assert.True(result.Completed);
+        Assert.True(result.Aborted);
+        Assert.Collection(
+            result.Outcomes,
+            outcome => Assert.True(outcome.Aborted),
+            outcome => Assert.False(outcome.Aborted));
+        Assert.Equal(new[] { "First:True", "Second:False" }, ReflectionAbortCallbackPlugin.Calls);
         Assert.Empty(result.Diagnostics);
     }
 
@@ -2642,9 +2680,35 @@ public sealed class ReflectionCallbackPlugin : IDBuilderPlugin
 
 public sealed class ReflectionAbortCallbackPlugin : IDBuilderPlugin
 {
+    public static List<string> Calls { get; } = new();
+
+    private readonly bool _continueResult;
+    private readonly string _name;
+
+    public ReflectionAbortCallbackPlugin()
+        : this(continueResult: true, name: "Aborter")
+    {
+    }
+
+    public ReflectionAbortCallbackPlugin(bool continueResult, string name)
+    {
+        _continueResult = continueResult;
+        _name = name;
+    }
+
     public int MinimumRevision => 42;
 
-    public bool OnPasteBegin() => true;
+    public bool OnCopyBegin(bool result)
+    {
+        Calls.Add(_name + ":" + result);
+        return _continueResult;
+    }
+
+    public bool OnUndoBegin(bool result)
+    {
+        Calls.Add(_name + ":" + result);
+        return _continueResult;
+    }
 }
 
 public sealed class ReflectionBadSignatureCallbackPlugin : IDBuilderPlugin
