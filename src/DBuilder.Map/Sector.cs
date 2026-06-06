@@ -9,6 +9,7 @@ using DBuilder.Geometry;
 public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded, IMultiTaggedMapElement
 {
     private RectangleF bbox;
+    private int brightness = 192;
     private bool updateNeeded;
 
     public int Index { get; set; }
@@ -34,7 +35,7 @@ public class Sector : IMapElement, ISelectable, IMarkable, IGroupable, IFielded,
     public int CeilHeight { get; set; } = 128;
     public string FloorTexture { get; set; } = "-";
     public string CeilTexture { get; set; } = "-";
-    public int Brightness { get; set; } = 192;
+    public int Brightness { get => brightness; set { brightness = value; updateNeeded = true; } }
     public int Special { get; set; }
     public int Effect { get => Special; set => Special = value; }
 

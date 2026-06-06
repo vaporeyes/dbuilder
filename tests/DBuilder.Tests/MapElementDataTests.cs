@@ -212,6 +212,20 @@ public class MapElementDataTests
     }
 
     [Fact]
+    public void SectorBrightnessSetterMarksUpdateNeededLikeUdb()
+    {
+        var sector = new Sector();
+
+        Assert.Equal(192, sector.Brightness);
+        Assert.False(sector.UpdateNeeded);
+
+        sector.Brightness = 128;
+
+        Assert.Equal(128, sector.Brightness);
+        Assert.True(sector.UpdateNeeded);
+    }
+
+    [Fact]
     public void RawFlagsExposeUdbUnsignedBinaryFlagSurface()
     {
         var line = new Linedef { Flags = 0x12345 };
