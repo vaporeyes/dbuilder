@@ -49,10 +49,10 @@ public static class ThingIconRenderPolicy
 
     public static double OverviewCullCellPixelsFor(double viewScale, bool thingArrows)
     {
-        if (!UseFarOverviewMarkers(viewScale, thingArrows)) return OverviewCullCellPixels;
+        if (!UseOverviewMarkers(viewScale, thingArrows)) return OverviewCullCellPixels;
 
-        double scale = Math.Max(1.0, viewScale / FarOverviewMarkerScaleThreshold);
-        return Math.Min(MaxFarOverviewCullCellPixels, FarOverviewCullCellPixels * Math.Sqrt(scale));
+        double scale = Math.Max(1.0, viewScale / OverviewMarkerScaleThreshold);
+        return Math.Min(MaxFarOverviewCullCellPixels, OverviewCullCellPixels * Math.Sqrt(scale));
     }
 
     public static bool ShouldRenderOverviewCellThing(bool thingSelected, bool cellHasSelectedThing, bool cellAlreadyRendered)
