@@ -10,6 +10,92 @@ namespace DBuilder.Tests;
 public sealed class EventLineAssociationModelTests
 {
     [Fact]
+    public void SectorAssociationsIncludeLinedefsAndThingsReferencingSectorTags()
+    {
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        sector.Tags.AddRange(new[] { 0, 7 });
+        Linedef line = AddLine(map, 0);
+        line.Action = 80;
+        line.Args[0] = 7;
+        Thing thing = map.AddThing(new Vector2D(32, 32), 3001);
+        thing.Action = 80;
+        thing.Args[0] = 7;
+        GameConfiguration config = Config(actionArgTargets: true);
+
+        IReadOnlyList<EventLineAssociation> associations =
+            EventLineAssociationModel.ForElement(map, sector, config);
+
+        Assert.Contains(associations, a =>
+            a.SourceKind == EventLineElementKind.Sector &&
+            a.SourceIndex == sector.Index &&
+            a.TargetKind == EventLineElementKind.Linedef &&
+            a.TargetIndex == line.Index &&
+            a.Tag == 7);
+        Assert.Contains(associations, a =>
+            a.TargetKind == EventLineElementKind.Thing &&
+            a.TargetIndex == thing.Index &&
+            a.Tag == 7);
+    }
+
+    [Fact]
+    public void LinedefAssociationsIncludeLinedefsAndThingsReferencingLinedefTags()
+    {
+        var map = new MapSet();
+        Linedef source = AddLine(map, 19);
+        Linedef line = AddLine(map, 0);
+        line.Action = 80;
+        line.Args[2] = 19;
+        Thing thing = map.AddThing(new Vector2D(32, 32), 3001);
+        thing.Action = 80;
+        thing.Args[2] = 19;
+        GameConfiguration config = Config(actionArgTargets: true);
+
+        IReadOnlyList<EventLineAssociation> associations =
+            EventLineAssociationModel.ForElement(map, source, config);
+
+        Assert.Contains(associations, a =>
+            a.SourceKind == EventLineElementKind.Linedef &&
+            a.SourceIndex == source.Index &&
+            a.TargetKind == EventLineElementKind.Linedef &&
+            a.TargetIndex == line.Index &&
+            a.Tag == 19);
+        Assert.Contains(associations, a =>
+            a.TargetKind == EventLineElementKind.Thing &&
+            a.TargetIndex == thing.Index &&
+            a.Tag == 19);
+    }
+
+    [Fact]
+    public void ThingAssociationsIncludeLinedefsAndThingsReferencingThingTag()
+    {
+        var map = new MapSet();
+        Thing source = map.AddThing(new Vector2D(0, 0), 3001);
+        source.Tag = 9;
+        Linedef line = AddLine(map, 0);
+        line.Action = 80;
+        line.Args[1] = 9;
+        Thing thing = map.AddThing(new Vector2D(32, 32), 3002);
+        thing.Action = 80;
+        thing.Args[1] = 9;
+        GameConfiguration config = Config(actionArgTargets: true);
+
+        IReadOnlyList<EventLineAssociation> associations =
+            EventLineAssociationModel.ForElement(map, source, config);
+
+        Assert.Contains(associations, a =>
+            a.SourceKind == EventLineElementKind.Thing &&
+            a.SourceIndex == source.Index &&
+            a.TargetKind == EventLineElementKind.Linedef &&
+            a.TargetIndex == line.Index &&
+            a.Tag == 9);
+        Assert.Contains(associations, a =>
+            a.TargetKind == EventLineElementKind.Thing &&
+            a.TargetIndex == thing.Index &&
+            a.Tag == 9);
+    }
+
+    [Fact]
     public void LinedefActionArgsLinkToTaggedSectorsLinedefsAndThings()
     {
         var map = new MapSet();

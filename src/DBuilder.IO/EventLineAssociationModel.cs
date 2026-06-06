@@ -29,12 +29,10 @@ public static class EventLineAssociationModel
         return element switch
         {
             Linedef line => LinedefAssociations(map, line, config),
-            Sector sector => config?.LineTagIndicatesSectors == true
-                ? SectorToTaggedLinedefs(map, sector)
-                : Array.Empty<EventLineAssociation>(),
+            Sector sector => SectorAssociations(map, sector, config),
             Thing thing => config?.LineTagIndicatesSectors == true
                 ? Array.Empty<EventLineAssociation>()
-                : ActionArgAssociations(map, thing, config),
+                : ThingAssociations(map, thing, config),
             _ => Array.Empty<EventLineAssociation>(),
         };
     }
@@ -53,6 +51,55 @@ public static class EventLineAssociationModel
         }
 
         associations.AddRange(ActionArgAssociations(map, line, config));
+        associations.AddRange(ReverseActionArgAssociations(
+            map,
+            EventLineElementKind.Linedef,
+            line.Index,
+            UniversalType.LinedefTag,
+            PositiveTags(line.Tags),
+            config,
+            sourceLine: line,
+            sourceThing: null));
+        return associations;
+    }
+
+    private static IReadOnlyList<EventLineAssociation> SectorAssociations(
+        MapSet map,
+        Sector sector,
+        GameConfiguration? config)
+    {
+        if (config?.LineTagIndicatesSectors == true)
+            return SectorToTaggedLinedefs(map, sector);
+
+        return ReverseActionArgAssociations(
+            map,
+            EventLineElementKind.Sector,
+            sector.Index,
+            UniversalType.SectorTag,
+            PositiveTags(sector.Tags),
+            config,
+            sourceLine: null,
+            sourceThing: null);
+    }
+
+    private static IReadOnlyList<EventLineAssociation> ThingAssociations(
+        MapSet map,
+        Thing thing,
+        GameConfiguration? config)
+    {
+        var associations = new List<EventLineAssociation>();
+        associations.AddRange(ActionArgAssociations(map, thing, config));
+
+        HashSet<int> tags = thing.Tag > 0 ? new HashSet<int> { thing.Tag } : new HashSet<int>();
+        associations.AddRange(ReverseActionArgAssociations(
+            map,
+            EventLineElementKind.Thing,
+            thing.Index,
+            UniversalType.ThingTag,
+            tags,
+            config,
+            sourceLine: null,
+            sourceThing: thing));
         return associations;
     }
 
@@ -189,6 +236,58 @@ public static class EventLineAssociationModel
         }
 
         return tagsByType;
+    }
+
+    private static IReadOnlyList<EventLineAssociation> ReverseActionArgAssociations(
+        MapSet map,
+        EventLineElementKind sourceKind,
+        int sourceIndex,
+        UniversalType sourceTagType,
+        HashSet<int> sourceTags,
+        GameConfiguration? config,
+        Linedef? sourceLine,
+        Thing? sourceThing)
+    {
+        if (sourceTags.Count == 0) return Array.Empty<EventLineAssociation>();
+
+        var associations = new List<EventLineAssociation>();
+        foreach (Linedef line in map.Linedefs)
+        {
+            if (sourceLine != null && ReferenceEquals(sourceLine, line)) continue;
+            if (FirstMatchingActionArg(line.Action, line.Args, sourceTagType, sourceTags, config) is not { } tag) continue;
+            associations.Add(new EventLineAssociation(sourceKind, sourceIndex, EventLineElementKind.Linedef, line.Index, tag));
+        }
+
+        foreach (Thing thing in map.Things)
+        {
+            if (sourceThing != null && ReferenceEquals(sourceThing, thing)) continue;
+            if (FirstMatchingActionArg(thing.Action, thing.Args, sourceTagType, sourceTags, config) is not { } tag) continue;
+            associations.Add(new EventLineAssociation(sourceKind, sourceIndex, EventLineElementKind.Thing, thing.Index, tag));
+        }
+
+        return associations;
+    }
+
+    private static int? FirstMatchingActionArg(
+        int action,
+        int[] actionArgs,
+        UniversalType tagType,
+        HashSet<int> sourceTags,
+        GameConfiguration? config)
+    {
+        if (action <= 0 || config?.GetLinedefAction(action)?.Args is not { Length: > 0 } args)
+            return null;
+
+        int count = Math.Min(Math.Min(actionArgs.Length, args.Length), 5);
+        for (int i = 0; i < count; i++)
+        {
+            int value = actionArgs[i];
+            if (value <= 0) continue;
+            if ((UniversalType)args[i].Type != tagType) continue;
+            if (sourceTags.Contains(value)) return value;
+        }
+
+        return null;
     }
 
     private static void AddTaggedSectors(
