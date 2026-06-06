@@ -28,6 +28,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Surface render pass visibility filtering and texture grouping", replacement.CoveredResponsibilities);
         Assert.Contains("Surface render draw-command and vertex-buffer binding planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface buffer resource reload upload planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Surface buffer reset invalidation planning", replacement.CoveredResponsibilities);
     }
 
     [Fact]

@@ -123,6 +123,24 @@ public sealed class SurfaceBufferSetState
 
         return plans;
     }
+
+    public void Reset()
+    {
+        foreach (SurfaceEntry entry in Entries)
+            Invalidate(entry);
+        foreach (SurfaceEntry hole in Holes)
+            Invalidate(hole);
+
+        BufferSizes.Clear();
+        Entries.Clear();
+        Holes.Clear();
+    }
+
+    private static void Invalidate(SurfaceEntry entry)
+    {
+        entry.NumVertices = -1;
+        entry.BufferIndex = -1;
+    }
 }
 
 public static class SurfaceManagerPlan

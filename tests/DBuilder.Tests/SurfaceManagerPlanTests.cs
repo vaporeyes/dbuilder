@@ -170,6 +170,40 @@ public sealed class SurfaceManagerPlanTests
         Assert.Empty(plans[1].Uploads);
     }
 
+    [Fact]
+    public void ResetInvalidatesEntriesAndHolesThenClearsBufferState()
+    {
+        var set = new SurfaceBufferSetState(verticesPerEntry: 3);
+        SurfaceEntry entry = set.AllocateEntry();
+        set.EnsureFreeEntries(1);
+        SurfaceEntry hole = Assert.Single(set.Holes);
+
+        set.Reset();
+
+        Assert.Equal(-1, entry.NumVertices);
+        Assert.Equal(-1, entry.BufferIndex);
+        Assert.Equal(-1, hole.NumVertices);
+        Assert.Equal(-1, hole.BufferIndex);
+        Assert.Empty(set.BufferSizes);
+        Assert.Empty(set.Entries);
+        Assert.Empty(set.Holes);
+    }
+
+    [Fact]
+    public void ResetAllowsFreshBufferAllocation()
+    {
+        var set = new SurfaceBufferSetState(verticesPerEntry: 3);
+        set.AllocateEntry();
+        set.Reset();
+
+        SurfaceEntry entry = set.AllocateEntry();
+
+        Assert.Equal(new[] { 6 }, set.BufferSizes);
+        Assert.Equal(3, entry.NumVertices);
+        Assert.Equal(0, entry.BufferIndex);
+        Assert.Equal(0, entry.VertexOffset);
+    }
+
     private static FlatVertex[] Vertices(int count)
         => Enumerable.Range(0, count)
             .Select(i => new FlatVertex { x = i, y = i })

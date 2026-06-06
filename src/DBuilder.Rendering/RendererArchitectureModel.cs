@@ -37,6 +37,7 @@ public static class RendererArchitectureModel
             "Surface render pass visibility filtering and texture grouping",
             "Surface render draw-command and vertex-buffer binding planning",
             "Surface buffer resource reload upload planning",
+            "Surface buffer reset invalidation planning",
             "Runtime shader compile, link, disposal, and uniform lookup caching",
             "Shader disposed-state reporting",
         },
