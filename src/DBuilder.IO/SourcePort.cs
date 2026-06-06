@@ -103,23 +103,11 @@ public static class SourcePort
     }
 
     private static string NormalizeUdbTokens(string template)
-        => template.Replace("%f", "%F")
-            .Replace("%wp", "%WP")
-            .Replace("%wf", "%WF")
-            .Replace("%wP", "%WP")
-            .Replace("%wF", "%WF")
-            .Replace("%Wp", "%WP")
-            .Replace("%Wf", "%WF")
-            .Replace("%l1", "%L1")
-            .Replace("%l2", "%L2")
-            .Replace("%l", "%L")
-            .Replace("%ap", "%AP")
-            .Replace("%aP", "%AP")
-            .Replace("%Ap", "%AP")
-            .Replace("%s", "%S")
-            .Replace("%nM", "%NM")
-            .Replace("%Nm", "%NM")
-            .Replace("%nm", "%NM");
+        => Regex.Replace(
+            template,
+            "%(IWAD|MAP|FO|WP|WF|L1|L2|AP|NM|F|L|S)(?![A-Za-z0-9_])",
+            match => "%" + match.Groups[1].Value.ToUpperInvariant(),
+            RegexOptions.IgnoreCase);
 
     private static (string L, string L1, string L2) WarpTokens(string map)
     {

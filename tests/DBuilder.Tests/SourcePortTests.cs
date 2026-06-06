@@ -59,6 +59,24 @@ public class SourcePortTests
     }
 
     [Fact]
+    public void DBuilderTemplateTokenCaseVariantsNormalizeBeforeSubstitution()
+    {
+        var args = SourcePort.BuildArgs("-iwad %iwad -file %Fo +map %mAp",
+            "/games/doom2.wad", "edit.wad", "MAP07");
+
+        Assert.Equal(new[] { "-iwad", "/games/doom2.wad", "-file", "edit.wad", "+map", "MAP07" }, args);
+    }
+
+    [Fact]
+    public void TokenCaseNormalizationKeepsUnknownPlaceholderPrefixes()
+    {
+        var args = SourcePort.BuildArgs("-file %foobar %mapextra",
+            "doom2.wad", "edit.wad", "MAP07");
+
+        Assert.Equal(new[] { "-file", "%foobar", "%mapextra" }, args);
+    }
+
+    [Fact]
     public void UdbNoMonstersTokenExpandsWhenTestingWithoutMonsters()
     {
         var args = SourcePort.BuildArgs("-file \"%F\" +map %L %nm",
