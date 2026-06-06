@@ -1002,6 +1002,50 @@ public static class DBuilderPluginHostModel
         string callbackName)
         => ExecuteReflectionCallback(instancePlan, callbackName, Array.Empty<object>());
 
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionReloadResources(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnReloadResources");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionProgramReconfigure(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnProgramReconfigure");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionMapReconfigure(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnMapReconfigure");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionMapOpenBegin(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnMapOpenBegin");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionMapOpenEnd(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnMapOpenEnd");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionMapNewBegin(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnMapNewBegin");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionMapNewEnd(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnMapNewEnd");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionMapCloseBegin(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnMapCloseBegin");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionMapCloseEnd(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnMapCloseEnd");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionMapSetChangeBegin(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnMapSetChangeBegin");
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionMapSetChangeEnd(
+        DBuilderPluginRuntimeInstancePlan instancePlan)
+        => ExecuteReflectionCallback(instancePlan, "OnMapSetChangeEnd");
+
     public static DBuilderPluginCallbackExecutionResult ExecuteReflectionCopyBegin(
         DBuilderPluginRuntimeInstancePlan instancePlan)
         => ExecuteReflectionCallback(instancePlan, "OnCopyBegin");

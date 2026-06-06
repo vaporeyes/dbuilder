@@ -1832,6 +1832,88 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void ExecuteReflectionMapConfigurationAndResourceHelpersDispatchCallbacksInOrder()
+    {
+        ReflectionMapLifecycleCallbackPlugin.Calls.Clear();
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            new[]
+            {
+                new DBuilderPluginRuntimeInstance(
+                    "Second",
+                    "/plugins/second.dll",
+                    typeof(ReflectionMapLifecycleCallbackPlugin).FullName!,
+                    1,
+                    new ReflectionMapLifecycleCallbackPlugin("Second")),
+                new DBuilderPluginRuntimeInstance(
+                    "First",
+                    "/plugins/first.dll",
+                    typeof(ReflectionMapLifecycleCallbackPlugin).FullName!,
+                    0,
+                    new ReflectionMapLifecycleCallbackPlugin("First"))
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginCallbackExecutionResult openBegin = DBuilderPluginHostModel.ExecuteReflectionMapOpenBegin(plan);
+        DBuilderPluginCallbackExecutionResult openEnd = DBuilderPluginHostModel.ExecuteReflectionMapOpenEnd(plan);
+        DBuilderPluginCallbackExecutionResult newBegin = DBuilderPluginHostModel.ExecuteReflectionMapNewBegin(plan);
+        DBuilderPluginCallbackExecutionResult newEnd = DBuilderPluginHostModel.ExecuteReflectionMapNewEnd(plan);
+        DBuilderPluginCallbackExecutionResult closeBegin = DBuilderPluginHostModel.ExecuteReflectionMapCloseBegin(plan);
+        DBuilderPluginCallbackExecutionResult closeEnd = DBuilderPluginHostModel.ExecuteReflectionMapCloseEnd(plan);
+        DBuilderPluginCallbackExecutionResult mapSetBegin = DBuilderPluginHostModel.ExecuteReflectionMapSetChangeBegin(plan);
+        DBuilderPluginCallbackExecutionResult mapSetEnd = DBuilderPluginHostModel.ExecuteReflectionMapSetChangeEnd(plan);
+        DBuilderPluginCallbackExecutionResult programReconfigure = DBuilderPluginHostModel.ExecuteReflectionProgramReconfigure(plan);
+        DBuilderPluginCallbackExecutionResult mapReconfigure = DBuilderPluginHostModel.ExecuteReflectionMapReconfigure(plan);
+        DBuilderPluginCallbackExecutionResult reloadResources = DBuilderPluginHostModel.ExecuteReflectionReloadResources(plan);
+
+        Assert.All(
+            new[]
+            {
+                openBegin,
+                openEnd,
+                newBegin,
+                newEnd,
+                closeBegin,
+                closeEnd,
+                mapSetBegin,
+                mapSetEnd,
+                programReconfigure,
+                mapReconfigure,
+                reloadResources
+            },
+            result =>
+            {
+                Assert.True(result.Completed);
+                Assert.False(result.Aborted);
+                Assert.Empty(result.Diagnostics);
+            });
+        Assert.Equal(new[]
+        {
+            "First:OnMapOpenBegin",
+            "Second:OnMapOpenBegin",
+            "First:OnMapOpenEnd",
+            "Second:OnMapOpenEnd",
+            "First:OnMapNewBegin",
+            "Second:OnMapNewBegin",
+            "First:OnMapNewEnd",
+            "Second:OnMapNewEnd",
+            "First:OnMapCloseBegin",
+            "Second:OnMapCloseBegin",
+            "First:OnMapCloseEnd",
+            "Second:OnMapCloseEnd",
+            "First:OnMapSetChangeBegin",
+            "Second:OnMapSetChangeBegin",
+            "First:OnMapSetChangeEnd",
+            "Second:OnMapSetChangeEnd",
+            "First:OnProgramReconfigure",
+            "Second:OnProgramReconfigure",
+            "First:OnMapReconfigure",
+            "Second:OnMapReconfigure",
+            "First:OnReloadResources",
+            "Second:OnReloadResources"
+        }, ReflectionMapLifecycleCallbackPlugin.Calls);
+    }
+
+    [Fact]
     public void ExecuteReflectionCallbackPreservesAbortableCallbackAbort()
     {
         ReflectionAbortCallbackPlugin.Calls.Clear();
@@ -2934,6 +3016,40 @@ public sealed class ReflectionCallbackPlugin : IDBuilderPlugin
     {
         Calls.Add(_name + ":OnInitialize");
     }
+}
+
+public sealed class ReflectionMapLifecycleCallbackPlugin : IDBuilderPlugin
+{
+    public static List<string> Calls { get; } = new();
+
+    private readonly string _name;
+
+    public ReflectionMapLifecycleCallbackPlugin(string name)
+    {
+        _name = name;
+    }
+
+    public void OnMapOpenBegin() => Calls.Add(_name + ":OnMapOpenBegin");
+
+    public void OnMapOpenEnd() => Calls.Add(_name + ":OnMapOpenEnd");
+
+    public void OnMapNewBegin() => Calls.Add(_name + ":OnMapNewBegin");
+
+    public void OnMapNewEnd() => Calls.Add(_name + ":OnMapNewEnd");
+
+    public void OnMapCloseBegin() => Calls.Add(_name + ":OnMapCloseBegin");
+
+    public void OnMapCloseEnd() => Calls.Add(_name + ":OnMapCloseEnd");
+
+    public void OnMapSetChangeBegin() => Calls.Add(_name + ":OnMapSetChangeBegin");
+
+    public void OnMapSetChangeEnd() => Calls.Add(_name + ":OnMapSetChangeEnd");
+
+    public void OnProgramReconfigure() => Calls.Add(_name + ":OnProgramReconfigure");
+
+    public void OnMapReconfigure() => Calls.Add(_name + ":OnMapReconfigure");
+
+    public void OnReloadResources() => Calls.Add(_name + ":OnReloadResources");
 }
 
 public sealed class ReflectionAbortCallbackPlugin : IDBuilderPlugin
