@@ -2680,13 +2680,13 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 ## Packaging And Distribution
 
-- [ ] Define supported operating systems.
+- [x] Define supported operating systems.
 - [ ] Create app packaging for macOS.
 - [ ] Create app packaging for Windows.
 - [ ] Create app packaging for Linux.
 - [ ] Bundle or locate default configuration assets.
 - [ ] Bundle icons and app metadata.
-- [ ] Define external dependency discovery for source ports, node builders, and compilers.
+- [x] Define external dependency discovery for source ports, node builders, and compilers.
 - [ ] Add release build scripts.
 - [ ] Add smoke tests for packaged builds.
 - [ ] Add migration documentation for UDB users.

@@ -16,6 +16,7 @@ The authoritative trackers are:
 - [docs/PHASED_PLAN.md](docs/PHASED_PLAN.md): sequencing plan for the port.
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): project map and verification policy.
 - [docs/RENDERING.md](docs/RENDERING.md): current renderer and shader compiler replacement baseline.
+- [docs/PLATFORMS_AND_TOOLS.md](docs/PLATFORMS_AND_TOOLS.md): supported OS targets and external tool discovery rules.
 - [docs/UPDATE_POLICY.md](docs/UPDATE_POLICY.md): update behavior for development builds.
 
 When visible editor behavior changes, replace the screenshots in `assets` and update this README alongside `docs/TODO.md` so the repo baseline stays current.
