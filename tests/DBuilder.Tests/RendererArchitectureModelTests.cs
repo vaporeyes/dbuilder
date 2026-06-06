@@ -25,6 +25,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Render-device alpha-test compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device multisample antialias compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device sampler-filter overload planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device target start-rendering planning", replacement.CoveredResponsibilities);
         Assert.Contains("Index-buffer binding and primitive draw dispatch", replacement.CoveredResponsibilities);
         Assert.Contains("Length-based vertex-buffer allocation", replacement.CoveredResponsibilities);
         Assert.Contains("Flat and world vertex-buffer subdata updates", replacement.CoveredResponsibilities);
@@ -184,6 +185,22 @@ public class RendererArchitectureModelTests
         Assert.Equal(MipmapFilter.Nearest, detailed.MipFilter);
         Assert.Equal(4.0f, detailed.MaxAnisotropy);
         Assert.Equal(3, detailed.Unit);
+    }
+
+    [Fact]
+    public void RenderDeviceBuildsUdbStartRenderingPlans()
+    {
+        RenderStartPlan backbuffer = RenderDevice.BuildStartRenderingPlan(clear: true, clearColorArgb: 0xff112233);
+        RenderStartPlan target = RenderDevice.BuildStartRenderingPlan(clear: false, clearColorArgb: 0xff445566, target: null, useDepthBuffer: false);
+
+        Assert.True(backbuffer.Clear);
+        Assert.Equal(0xff112233u, backbuffer.ClearColorArgb);
+        Assert.False(backbuffer.HasTarget);
+        Assert.True(backbuffer.UseDepthBuffer);
+        Assert.False(target.Clear);
+        Assert.Equal(0xff445566u, target.ClearColorArgb);
+        Assert.False(target.HasTarget);
+        Assert.False(target.UseDepthBuffer);
     }
 
     [Fact]

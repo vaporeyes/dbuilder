@@ -52,6 +52,12 @@ public sealed record SamplerFilterPlan(
     float MaxAnisotropy,
     int Unit);
 
+public sealed record RenderStartPlan(
+    bool Clear,
+    uint ClearColorArgb,
+    bool HasTarget,
+    bool UseDepthBuffer);
+
 public sealed class RenderDevice : IDisposable
 {
     private readonly GL _gl;
@@ -346,6 +352,12 @@ public sealed class RenderDevice : IDisposable
 
     public static SamplerFilterPlan BuildSamplerFilterPlan(TextureFilter filter, int unit = 0)
         => BuildSamplerFilterPlan(filter, filter, MipmapFilter.None, 0.0f, unit);
+
+    public static RenderStartPlan BuildStartRenderingPlan(bool clear, uint clearColorArgb)
+        => new(clear, clearColorArgb, HasTarget: false, UseDepthBuffer: true);
+
+    public static RenderStartPlan BuildStartRenderingPlan(bool clear, uint clearColorArgb, Texture? target, bool useDepthBuffer)
+        => new(clear, clearColorArgb, target is not null, useDepthBuffer);
 
     public static SamplerFilterPlan BuildSamplerFilterPlan(
         TextureFilter min,
