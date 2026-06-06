@@ -5,6 +5,16 @@ namespace DBuilder.Rendering;
 
 public sealed record SurfaceChunkPlan(int VerticesPerEntry, int EntryCount);
 
+public enum SurfaceBufferUploadPlane
+{
+    Floor,
+    Ceiling,
+}
+
+public sealed record SurfaceBufferUpload(int VertexOffset, SurfaceBufferUploadPlane Plane, int VertexCount);
+
+public sealed record SurfaceBufferReloadPlan(int BufferIndex, int BufferSize, IReadOnlyList<SurfaceBufferUpload> Uploads);
+
 public sealed class SurfaceBufferSetState
 {
     public SurfaceBufferSetState(int verticesPerEntry)
@@ -86,6 +96,32 @@ public sealed class SurfaceBufferSetState
 
         entry.NumVertices = -1;
         entry.BufferIndex = -1;
+    }
+
+    public IReadOnlyList<SurfaceBufferReloadPlan> PlanReload()
+    {
+        var plans = new List<SurfaceBufferReloadPlan>();
+        for (int bufferIndex = 0; bufferIndex < BufferSizes.Count; bufferIndex++)
+        {
+            var uploads = new List<SurfaceBufferUpload>();
+            foreach (SurfaceEntry entry in Entries)
+            {
+                if (entry.BufferIndex != bufferIndex) continue;
+
+                uploads.Add(new SurfaceBufferUpload(
+                    entry.VertexOffset,
+                    SurfaceBufferUploadPlane.Floor,
+                    entry.FloorVertices.Length));
+                uploads.Add(new SurfaceBufferUpload(
+                    entry.VertexOffset + entry.FloorVertices.Length,
+                    SurfaceBufferUploadPlane.Ceiling,
+                    entry.CeilingVertices.Length));
+            }
+
+            plans.Add(new SurfaceBufferReloadPlan(bufferIndex, BufferSizes[bufferIndex], uploads));
+        }
+
+        return plans;
     }
 }
 

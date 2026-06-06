@@ -119,4 +119,59 @@ public sealed class SurfaceManagerPlanTests
         Assert.Equal(-1, entry.NumVertices);
         Assert.Equal(-1, entry.BufferIndex);
     }
+
+    [Fact]
+    public void ReloadPlanUploadsFloorAndCeilingVerticesForEachBufferEntry()
+    {
+        var set = new SurfaceBufferSetState(verticesPerEntry: 3);
+        SurfaceEntry entry = set.AllocateEntry();
+        entry.FloorVertices = Vertices(3);
+        entry.CeilingVertices = Vertices(3);
+        entry.VertexOffset = 12;
+
+        SurfaceBufferReloadPlan plan = Assert.Single(set.PlanReload());
+
+        Assert.Equal(0, plan.BufferIndex);
+        Assert.Equal(6, plan.BufferSize);
+        Assert.Equal(
+            new[]
+            {
+                new SurfaceBufferUpload(12, SurfaceBufferUploadPlane.Floor, 3),
+                new SurfaceBufferUpload(15, SurfaceBufferUploadPlane.Ceiling, 3),
+            },
+            plan.Uploads);
+    }
+
+    [Fact]
+    public void ReloadPlanKeepsUploadsWithTheirBufferAndIgnoresHoles()
+    {
+        var set = new SurfaceBufferSetState(verticesPerEntry: 6000);
+        SurfaceEntry first = set.AllocateEntry();
+        SurfaceEntry second = set.AllocateEntry();
+        first.FloorVertices = Vertices(6000);
+        first.CeilingVertices = Vertices(6000);
+        second.FloorVertices = Vertices(6000);
+        second.CeilingVertices = Vertices(6000);
+        set.EnsureFreeEntries(1);
+
+        IReadOnlyList<SurfaceBufferReloadPlan> plans = set.PlanReload();
+
+        Assert.Equal(new[] { 0, 1 }, plans.Select(plan => plan.BufferIndex).ToArray());
+        Assert.Equal(new[] { 24000, 12000 }, plans.Select(plan => plan.BufferSize).ToArray());
+        Assert.Equal(
+            new[]
+            {
+                new SurfaceBufferUpload(0, SurfaceBufferUploadPlane.Floor, 6000),
+                new SurfaceBufferUpload(6000, SurfaceBufferUploadPlane.Ceiling, 6000),
+                new SurfaceBufferUpload(12000, SurfaceBufferUploadPlane.Floor, 6000),
+                new SurfaceBufferUpload(18000, SurfaceBufferUploadPlane.Ceiling, 6000),
+            },
+            plans[0].Uploads);
+        Assert.Empty(plans[1].Uploads);
+    }
+
+    private static FlatVertex[] Vertices(int count)
+        => Enumerable.Range(0, count)
+            .Select(i => new FlatVertex { x = i, y = i })
+            .ToArray();
 }
