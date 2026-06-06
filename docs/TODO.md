@@ -1685,7 +1685,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 ## Built-In Plugin Ports
 
 - [ ] Port `BuilderModes`.
-- [ ] Port `BuilderEffects`.
+- [x] Port `BuilderEffects`.
   - [x] Add UDB-style jitter transform helpers for vertices, sector heights, and things.
   - [x] Add UDB-style directional shading calculations for sectors and sidedefs.
   - [x] Add UDB-style Wavefront OBJ terrain parser and triangular sector geometry builder.
@@ -1710,9 +1710,9 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Expose UDB-style Randomize triangular sector floor and ceiling vertex-height jitter.
   - [x] Expose UDB-style Randomize sector upper and lower unpegged flag controls.
   - [x] Expose UDB-style Randomize sector upper and lower texture fill controls.
-- [ ] Port `3DFloorMode`.
+- [x] Port `3DFloorMode`.
   - [x] Add UDB-style multi-tag 3D floor resolution, managed UDMF control-sector filtering, selected-sector floor queries, and shared-only filtering.
-- [ ] Port `AutomapMode`.
+- [x] Port `AutomapMode`.
   - [x] Add UDB-style automap line visibility, color classification, secret-sector detection, lock-color resolution, and flag toggle model.
   - [x] Add UDB-style format-aware automap linedef flag handling for UDMF names and classic raw bits.
   - [x] Add editor commands for toggling selected automap line and sector visibility flags.
@@ -1722,12 +1722,12 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor Automap Mode rendering that uses UDB-style valid-line colors and textured-sector visibility.
   - [x] Add editor Automap Mode hover highlighting and click toggles for highlighted line and sector automap flags.
   - [x] Add editor Automap Mode toolbar options with persisted show-hidden-lines, show-secret-sectors, show-locks, show-textures, and color-preset settings.
-- [ ] Port `BlockmapExplorer`.
+- [x] Port `BlockmapExplorer`.
   - [x] Add UDB-style BLOCKMAP lump parser, shared block-list model, and malformed lump diagnostics.
   - [x] Add UDB-style Blockmap Explorer edit-mode metadata.
   - [x] Add editor Blockmap Explorer window for totals, diagnostics, questionable offsets, and block navigation.
   - [x] Render parsed BLOCKMAP highlighted-block, shared-block-list, and questionable-offset overlays.
-- [ ] Port `ColorPicker`.
+- [x] Port `ColorPicker`.
   - [x] Add UDB-style RGB/HSV conversion, display formatting, and sector color field model.
   - [x] Add UDB-style HEX and float typed color input parsing.
   - [x] Add editor command and dialog for selected-sector lightcolor and fadecolor fields.
@@ -1738,7 +1738,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Color Picker toggle routing and warning metadata.
   - [x] Route editor Color Picker toggle through UDB-style mode and selection decisions.
   - [x] Add a Tools menu action for the Color Picker toggle.
-- [ ] Port `CommentsPanel`.
+- [x] Port `CommentsPanel`.
   - [x] Add UDB-style comment grouping over vertex, linedef, sidedef, sector, and thing UDMF fields.
   - [x] Add UDB-style comment selection targets and view-area calculation.
   - [x] Add UDB-style comment edit targets, including sidedef-to-linedef conversion.
@@ -1752,7 +1752,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Wire Comments panel live mode, group, and current selection refresh from editor changes.
   - [x] Add Comments panel search filtering for comment text and object group.
   - [x] Add UDB-style Comments panel edit-object menu and remove-undo labels.
-- [ ] Port `NodesViewer`.
+- [x] Port `NodesViewer`.
   - [x] Add UDB-style classic NODES, SEGS, VERTEXES, and SSECTORS data parser.
   - [x] Add UDB-style Nodes Viewer edit-mode metadata.
   - [x] Add UDB-style Nodes Viewer action metadata and window command dispatch.
@@ -1763,7 +1763,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style singular and plural labels to Nodes Viewer and overlay status text.
   - [x] Add UDB-style Nodes Viewer tree depth and balance stats.
   - [x] Add UDB-style Nodes Viewer engage checks for empty maps, rebuilt nodes, and missing node lumps.
-- [ ] Port `RejectExplorer`.
+- [x] Port `RejectExplorer`.
   - [x] Add UDB-style REJECT lump validation and visibility relation model.
   - [x] Add UDB-style default overlay colors and relation color mapping.
   - [x] Add UDB-style color configuration action, labels, reset metadata, and plugin setting keys.
@@ -1776,7 +1776,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style singular and plural labels to highlighted-sector REJECT status text.
   - [x] Add UDB-style Reject Explorer engage, cancel, and warning outcomes for REJECT validation.
   - [x] Read Reject Explorer REJECT data through the current map lump abstraction like UDB.
-- [ ] Port `SoundPropagationMode`.
+- [x] Port `SoundPropagationMode`.
   - [x] Add UDB-style sound propagation domain grouping, adjacent-domain expansion, block-line tracking, and hunting thing filtering.
   - [x] Add UDB-style leak path search model for rendering source-to-destination sound paths.
   - [x] Add UDB-style default overlay colors and rotating domain color palette.
@@ -1791,7 +1791,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Sound Environment mode command metadata and non-modal environment list window.
   - [x] Add testable Sound Propagation reachability status summary model.
   - [x] Add UDB-style Sound Propagation plugin lifecycle reset metadata.
-- [ ] Port `StairSectorBuilder`.
+- [x] Port `StairSectorBuilder`.
   - [x] Add UDB-style stair option application for one-based height steps, distinct base heights, flats, wall textures, and unpegged flags.
   - [x] Add UDB-style straight stair geometry planning from selected linedefs, including front/back side and spacing.
   - [x] Add UDB-style straight stair sector materialization from planned preview loops.
@@ -1807,7 +1807,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style distinct-sector post-line planning and materialization for connected straight stairs.
   - [x] Add editor Stair Builder prefab save, load, delete, set-default, and previous-prefab persistence.
   - [x] Add UDB-style Stair Builder form placement metadata.
-- [ ] Port `TagExplorer`.
+- [x] Port `TagExplorer`.
   - [x] Add UDB-style tag explorer entry filtering and sorting model.
   - [x] Add UDB-style Tag Explorer docker command metadata and window command dispatch.
   - [x] Add non-modal editor Tag Explorer for tags, actions, comments, polyobjects, sorting, filtering, and navigation.
@@ -1820,7 +1820,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Wire editor Tag Explorer persisted options and live refresh from map and tag-label changes.
   - [x] Add UDB-style Tag Explorer delayed refresh lifecycle metadata.
   - [x] Add UDB-style Tag Explorer rebuild selection and export state.
-- [ ] Port `TagRange`.
+- [x] Port `TagRange`.
   - [x] Add UDB-style Tag Range action metadata and window command dispatch.
   - [x] Add UDB-style absolute and relative tag range calculation model.
   - [x] Add editor Tag Range form and toolbar/menu command for selected sectors, linedefs, and things.
@@ -2004,7 +2004,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript top-level host MessageForm UI metadata model.
   - [x] Add UDBScript top-level host message dialog and runner prompt hook.
   - [x] Add UDBScript top-level host API property surface metadata.
-- [ ] Port `USDF`.
+- [x] Port `USDF`.
   - [x] Add UDB-style DIALOGUE map-lump availability check and USDF conversation parser.
   - [x] Trim configured DIALOGUE map-lump names when checking USDF availability like UDB.
   - [x] Add editor USDF conversation window for parsed DIALOGUE lumps.
@@ -2015,7 +2015,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style singular and plural labels to USDF viewer summaries.
   - [x] Add UDB-style singular and plural labels to USDF editor status text.
   - [x] Add UDB-style USDF Dialog Editor plugin lifecycle plan.
-- [ ] Port `VisplaneExplorer`.
+- [x] Port `VisplaneExplorer`.
   - [x] Add UDB-style VisplaneExplorer plugin name and minimum revision metadata.
   - [x] Add UDB-style VisplaneExplorer tile sampling and packed point-stat model.
   - [x] Add UDB-style heatmap byte interpolation from configured visplane static limits.
@@ -2031,7 +2031,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Persist selected Visplane Explorer statistic in plugin settings.
   - [x] Wire Visplane Explorer mode command to editor NODES preflight and tile queue setup.
   - [x] Add editor overlay rendering support for completed Visplane Explorer point data.
-- [ ] Port `WadAuthorMode`.
+- [x] Port `WadAuthorMode`.
   - [x] Add UDB-style hover highlight priority model for vertices, things, linedefs, and sectors.
   - [x] Add UDB-style linedef popup command order model.
   - [x] Add UDB-style WadAuthor mode selection conversion and cleanup model.
@@ -2042,7 +2042,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style WadAuthor tool form and linedef popup metadata.
   - [x] Add UDB-style WadAuthor highlight transition planning.
   - [x] Add UDB-style WadAuthor constructor, dispose, cancel, engage, and disengage lifecycle planning.
-- [ ] Port `ImageDrawingExample`.
+- [x] Port `ImageDrawingExample`.
   - [x] Add editor Image Example mode that renders a screen-space image overlay without the normal map presentation.
   - [x] Add UDB-style Image Example mode action metadata and 2D command dispatch.
   - [x] Add UDB-style Image Example plugin name, embedded resource, mode, and overlay presentation metadata.
@@ -2475,7 +2475,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 
 ## Specialized Plugin Detail
 
-- [ ] Port 3D floor control-sector editing.
+- [x] Port 3D floor control-sector editing.
   - [x] Add selected-sector 3D floor discovery and shared 3D floor filtering model.
   - [x] Resolve 3D floor control sectors from back-only action linedefs.
   - [x] Add UDB-style control-sector edit snapshots, geometry mutation, and orphan action-line cleanup.
@@ -2487,12 +2487,12 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor command dispatch for relocating managed 3D floor control sectors.
   - [x] Use persisted 3D floor control-sector area settings for relocation.
   - [x] Add UDB-style duplicate selected geometry with resolved 3D floor controls.
-- [ ] Port 3D floor slope editing.
+- [x] Port 3D floor slope editing.
   - [x] Add UDB-style deprecated slope and draw-slope mode/action metadata.
   - [x] Add UDB-style slope vertex group persistence, data-sector fields, and floor/ceiling plane application.
   - [x] Add UDB-style selected slope vertex edit and sector plane binding helpers.
   - [x] Add UDB-style draw-slope acceptance, group allocation, selected-sector binding, and data-sector persistence.
-- [ ] Port automap mode rendering and editing behavior.
+- [x] Port automap mode rendering and editing behavior.
   - [x] Add UDB-style automap model for line display rules, color presets, line/sector automap flags, and lock/secret overlays.
   - [x] Add UDB-style format-aware automap linedef flag handling for UDMF names and classic raw bits.
   - [x] Add selected linedef and sector automap flag toggle commands.
@@ -2503,7 +2503,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor Automap Mode rendering that uses UDB-style valid-line colors and textured-sector visibility.
   - [x] Add editor Automap Mode hover highlighting and click toggles for highlighted line and sector automap flags.
   - [x] Add editor Automap Mode toolbar options with persisted show-hidden-lines, show-secret-sectors, show-locks, show-textures, and color-preset settings.
-- [ ] Port blockmap explorer UI and data model.
+- [x] Port blockmap explorer UI and data model.
   - [x] Add UDB-style Blockmap Explorer edit-mode metadata.
   - [x] Add UDB-style Blockmap Explorer action metadata and window command dispatch.
   - [x] Add UDB-style BLOCKMAP lump parser, shared block-list model, questionable offset helpers, and line coverage counts.
@@ -2512,7 +2512,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add testable Blockmap Explorer summary, header, diagnostic, and row formatting.
   - [x] Add blockmap explorer boundary hit testing for map positions.
   - [x] Add UDB-style Blockmap Explorer engage checks for missing, rebuilt, and malformed BLOCKMAP data.
-- [ ] Port comments panel data model and docker.
+- [x] Port comments panel data model and docker.
   - [x] Add UDB-style comment grouping, current-mode filtering, and set/remove helpers.
   - [x] Add UDB-style comment selection targets and padded square view-area calculation.
   - [x] Add UDB-style comment edit targets, including sidedef-to-linedef conversion.
@@ -2527,7 +2527,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style singular and plural labels to Comments panel summaries.
   - [x] Add UDB-style singular and plural labels to Comments panel edit status text.
   - [x] Add UDB-style Comments panel edit-object menu and remove-undo labels.
-- [ ] Port nodes viewer visualization.
+- [x] Port nodes viewer visualization.
   - [x] Add classic NodesViewer data model for nodes, segs, vertices, subsectors, and seg-to-subsector links.
   - [x] Add UDB-style Nodes Viewer edit-mode metadata.
   - [x] Add UDB-style Nodes Viewer action metadata and window command dispatch.
@@ -2540,7 +2540,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Surface ZNODES payload status in the Nodes Viewer window.
   - [x] Add UDB-style Nodes Viewer tree depth and balance stats.
   - [x] Add UDB-style Nodes Viewer engage checks for empty maps, rebuilt nodes, and missing node lumps.
-- [ ] Port reject explorer visualization.
+- [x] Port reject explorer visualization.
   - [x] Add UDB-style REJECT lump validation and highlighted-sector visibility relation model.
   - [x] Add UDB-style default overlay colors and relation color mapping.
   - [x] Add UDB-style color configuration action, labels, reset metadata, and plugin setting keys.
@@ -2553,7 +2553,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style singular and plural labels to Reject Explorer validation summaries.
   - [x] Add UDB-style Reject Explorer engage, cancel, and warning outcomes for REJECT validation.
   - [x] Read Reject Explorer REJECT data through the current map lump abstraction like UDB.
-- [ ] Port sound propagation mode behavior.
+- [x] Port sound propagation mode behavior.
   - [x] Add UDB-style propagation domains, adjacent sectors across one sound-blocking boundary, and non-ambush hunting thing lists.
   - [x] Add UDB-style highlighted-domain overlay colors for direct, adjacent, unreachable, and source sectors.
   - [x] Add UDB-style Sound Propagation and Sound Environment edit-mode metadata.
@@ -2569,7 +2569,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style singular and plural labels to Sound Environment summaries.
   - [x] Refresh active Sound Environment overlays after color configuration changes.
   - [x] Add UDB-style Sound Propagation plugin lifecycle reset metadata.
-- [ ] Port stair sector builder mode and form behavior.
+- [x] Port stair sector builder mode and form behavior.
   - [x] Add UDB-style accept-path option application for generated or selected stair sectors.
   - [x] Add UDB-style numeric prefab settings load ordering.
   - [x] Add UDB-style prefab name suggestion, reserved-name, overwrite, and insert-position behavior.
@@ -2580,7 +2580,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style loaded-prefab preview planning for straight, curved, and spline stair tabs.
   - [x] Add UDB-style singular and plural labels to Stair Builder apply status text.
   - [x] Add UDB-style Stair Builder form placement metadata.
-- [ ] Port tag explorer tree behavior.
+- [x] Port tag explorer tree behavior.
   - [x] Add UDB-style tag, action, comment, and polyobject entry filtering and sorting model.
   - [x] Add UDB-style Tag Explorer docker command metadata and window command dispatch.
   - [x] Add UDB-style thing category grouping in index view.
@@ -2592,7 +2592,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style singular and plural labels to Tag Explorer activation status text.
   - [x] Add UDB-style Tag Explorer delayed refresh lifecycle metadata.
   - [x] Add UDB-style Tag Explorer rebuild selection and export state.
-- [ ] Port tag range tools.
+- [x] Port tag range tools.
   - [x] Add UDB-style Tag Range action metadata and window command dispatch.
   - [x] Add UDB-style absolute and relative tag range calculation, duplicate detection, skip-used handling, and selected element assignment model.
   - [x] Add Tag Range editor form for target selection, start/step values, relative ranges, skip-used behavior, and selected-element assignment.
@@ -2602,7 +2602,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Gate editor Tag Range command availability by selected sectors, linedefs, and things.
   - [x] Wire Tag Range end-tag preview and duplicate/out-of-range warnings into the editor dialog.
   - [x] Add UDB-style Tag Range toolbar update lifecycle plan.
-- [ ] Port USDF tools.
+- [x] Port USDF tools.
   - [x] Add typed USDF model for includes, conversations, pages, inventory conditions, choices, costs, specials, and navigation fields.
   - [x] Read DIALOGUE map lumps from direct WAD maps and PK3-embedded WAD maps.
   - [x] Add UDB-style dialog editor action, toolbar/menu item, and window-state setting metadata.
@@ -2613,7 +2613,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Apply UDB Dialog Editor window-state model to the editor window.
   - [x] Persist UDB Dialog Editor window-state settings through editor settings.
   - [x] Add UDB-style USDF Dialog Editor plugin lifecycle plan.
-- [ ] Port visplane explorer analysis.
+- [x] Port visplane explorer analysis.
   - [x] Add UDB-style 64x64 tile model, progressive sampling order, result sentinels, and compressed stat storage.
   - [x] Add UDB-style heatmap byte interpolation from configured visplane static limits.
   - [x] Add UDB-style point hover value lookup and `value / limit` label formatting.
@@ -2628,7 +2628,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Wire Visplane Explorer mode command to report queued analysis progress status.
   - [x] Wire Visplane Explorer mode command to report persisted toolbar settings in ready status.
   - [x] Combine Visplane Explorer ready settings and queued progress in editor mode status.
-- [ ] Port WadAuthor mode behavior.
+- [x] Port WadAuthor mode behavior.
   - [x] Add WadAuthorMode hit-test model with UDB highlight ranges, renderer scale handling, and side-based sector selection.
   - [x] Add UDB-style linedef popup command order model.
   - [x] Add UDB-style mode enter and leave selection lifecycle helpers.
@@ -2642,7 +2642,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Route editor WadAuthor properties popup selection and status through the testable model.
   - [x] Add testable WadAuthor highlight transition planning.
   - [x] Add testable WadAuthor mode lifecycle planning.
-- [ ] Port color picker controls and dialogs.
+- [x] Port color picker controls and dialogs.
   - [x] Add UDB-style RGB/HSV conversion, display formatting, and sector light/fade color field behavior.
   - [x] Add UDB-style HEX and float typed color input parsing.
   - [x] Add selected-sector color command for lightcolor and fadecolor editing.
