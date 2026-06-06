@@ -1850,15 +1850,15 @@ public class EditorCommandCatalogTests
     }
 
     [Fact]
-    public void EveryUdbScriptSlotCommandAppearsInEditorCatalog()
+    public void EveryUdbScriptActionCommandAppearsInEditorCatalog()
     {
-        foreach (UdbScriptActionDescriptor slot in UdbScriptActions.Slots)
+        foreach (UdbScriptActionDescriptor action in UdbScriptActions.All)
         {
-            var command = EditorCommandCatalog.Find($"window.{slot.Id}");
+            var command = EditorCommandCatalog.Find($"window.{action.Id}");
 
             Assert.NotNull(command);
-            Assert.Equal(slot.Title, command.Title);
-            Assert.Equal(slot.Description, command.Description);
+            Assert.Equal(action.Title, command.Title);
+            Assert.Equal(action.Description, command.Description);
             Assert.Equal(UdbScriptActions.CategoryTitle, command.CategoryTitle);
         }
     }
