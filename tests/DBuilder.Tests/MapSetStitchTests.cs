@@ -202,6 +202,40 @@ public class MapSetStitchTests
     }
 
     [Fact]
+    public void StitchGeometryUsesMarkedVerticesLikeUdb()
+    {
+        var map = new MapSet();
+        var fixedVertex = map.AddVertex(new Vector2D(0, 0));
+        var movingVertex = map.AddVertex(new Vector2D(0.002, 0));
+        movingVertex.Marked = true;
+
+        bool succeeded = map.StitchGeometry();
+
+        Assert.True(succeeded);
+        Assert.Equal(new Vector2D(0, 0), movingVertex.Position);
+        Assert.Contains(movingVertex, map.Vertices);
+        Assert.DoesNotContain(fixedVertex, map.Vertices);
+    }
+
+    [Fact]
+    public void StitchGeometryRestoresExistingSelection()
+    {
+        var map = new MapSet();
+        var selectedVertex = map.AddVertex(new Vector2D(128, 0));
+        var fixedVertex = map.AddVertex(new Vector2D(0, 0));
+        var movingVertex = map.AddVertex(new Vector2D(0.002, 0));
+        selectedVertex.Selected = true;
+        movingVertex.Marked = true;
+
+        map.StitchGeometry(MergeGeometryMode.Classic);
+
+        Assert.True(selectedVertex.Selected);
+        Assert.False(movingVertex.Selected);
+        Assert.Contains(movingVertex, map.Vertices);
+        Assert.DoesNotContain(fixedVertex, map.Vertices);
+    }
+
+    [Fact]
     public void StitchSelectedGeometrySplitsSelectedLinesAgainstFixedLines()
     {
         var map = new MapSet();

@@ -1085,6 +1085,28 @@ public class MapSet : IDisposable
     public GeometryStitchResult StitchSelectedGeometry(double stitchDistance = 1.0)
         => StitchSelectedGeometry(MergeGeometryMode.Classic, stitchDistance);
 
+    public bool StitchGeometry()
+        => StitchGeometry(MergeGeometryMode.Classic);
+
+    public bool StitchGeometry(MergeGeometryMode mergeMode)
+    {
+        List<(ISelectable Element, bool Selected)> selection = SaveSelection();
+        try
+        {
+            ClearAllSelected();
+            foreach (Vertex vertex in GetMarkedVertices(marked: true))
+                vertex.Selected = true;
+
+            StitchSelectedGeometry(mergeMode, 0.005);
+            BuildIndexes();
+            return true;
+        }
+        finally
+        {
+            RestoreSelection(selection);
+        }
+    }
+
     /// <summary>
     /// Stitches selected geometry against unselected geometry using the requested UDB merge-geometry mode.
     /// Non-classic modes also try to restore missing outer sidedefs for changed lines inside existing sectors.
@@ -2292,6 +2314,30 @@ public class MapSet : IDisposable
             if (Vertices[i].Selected) { RemoveVertex(Vertices[i]); removed++; }
 
         return removed;
+    }
+
+    private List<(ISelectable Element, bool Selected)> SaveSelection()
+    {
+        var selection = new List<(ISelectable Element, bool Selected)>(
+            Vertices.Count + Linedefs.Count + Sidedefs.Count + Sectors.Count + Things.Count);
+        AddSelection(Vertices);
+        AddSelection(Linedefs);
+        AddSelection(Sidedefs);
+        AddSelection(Sectors);
+        AddSelection(Things);
+        return selection;
+
+        void AddSelection<T>(List<T> elements) where T : ISelectable
+        {
+            foreach (T element in elements)
+                selection.Add((element, element.Selected));
+        }
+    }
+
+    private static void RestoreSelection(List<(ISelectable Element, bool Selected)> selection)
+    {
+        foreach (var item in selection)
+            item.Element.Selected = item.Selected;
     }
 
     private static List<T> Filter<T>(List<T> items) where T : ISelectable
