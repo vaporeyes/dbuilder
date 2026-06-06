@@ -60,6 +60,13 @@ public static class EventLineAssociationModel
             config,
             sourceLine: line,
             sourceThing: null));
+        associations.AddRange(SectorFieldAssociations(
+            map,
+            EventLineElementKind.Linedef,
+            line.Index,
+            line.Fields,
+            config,
+            sourceSector: null));
         return associations;
     }
 
@@ -81,7 +88,13 @@ public static class EventLineAssociationModel
             config,
             sourceLine: null,
             sourceThing: null));
-        associations.AddRange(SectorFieldAssociations(map, sector, config));
+        associations.AddRange(SectorFieldAssociations(
+            map,
+            EventLineElementKind.Sector,
+            sector.Index,
+            sector.Fields,
+            config,
+            sourceSector: sector));
         return associations;
     }
 
@@ -103,6 +116,13 @@ public static class EventLineAssociationModel
             config,
             sourceLine: null,
             sourceThing: thing));
+        associations.AddRange(SectorFieldAssociations(
+            map,
+            EventLineElementKind.Thing,
+            thing.Index,
+            thing.Fields,
+            config,
+            sourceSector: null));
         return associations;
     }
 
@@ -273,8 +293,11 @@ public static class EventLineAssociationModel
 
     private static IReadOnlyList<EventLineAssociation> SectorFieldAssociations(
         MapSet map,
-        Sector sector,
-        GameConfiguration? config)
+        EventLineElementKind sourceKind,
+        int sourceIndex,
+        IReadOnlyDictionary<string, object> sourceFields,
+        GameConfiguration? config,
+        Sector? sourceSector)
     {
         if (config == null || !config.UniversalFields.TryGetValue("sector", out var fields))
             return Array.Empty<EventLineAssociation>();
@@ -283,7 +306,7 @@ public static class EventLineAssociationModel
         foreach (UniversalFieldInfo field in fields.Values)
         {
             if (field.Associations.Count == 0) continue;
-            if (!sector.Fields.TryGetValue(field.Name, out object? sourceValue)) continue;
+            if (!sourceFields.TryGetValue(field.Name, out object? sourceValue)) continue;
 
             foreach (UniversalFieldAssociationInfo association in field.Associations.Values)
             {
@@ -291,13 +314,13 @@ public static class EventLineAssociationModel
 
                 foreach (Sector other in map.Sectors)
                 {
-                    if (ReferenceEquals(sector, other)) continue;
+                    if (sourceSector != null && ReferenceEquals(sourceSector, other)) continue;
                     if (!other.Fields.TryGetValue(association.Property, out object? targetValue)) continue;
                     if (!FieldAssociationValuesMatch(targetValue, sourceValue, field, association)) continue;
 
                     associations.Add(new EventLineAssociation(
-                        EventLineElementKind.Sector,
-                        sector.Index,
+                        sourceKind,
+                        sourceIndex,
                         EventLineElementKind.Sector,
                         other.Index,
                         FieldAssociationTag(field.Type, targetValue)));

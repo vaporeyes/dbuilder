@@ -73,6 +73,54 @@ public sealed class EventLineAssociationModelTests
     }
 
     [Fact]
+    public void LinedefFieldAssociationsLinkToMatchingSectors()
+    {
+        var map = new MapSet();
+        Linedef source = AddLine(map, 0);
+        source.Fields["portal"] = 7;
+        Sector target = map.AddSector();
+        target.Fields["portal"] = 7;
+        Sector other = map.AddSector();
+        other.Fields["portal"] = 8;
+        GameConfiguration config = SectorFieldAssociationConfig();
+
+        IReadOnlyList<EventLineAssociation> associations =
+            EventLineAssociationModel.ForElement(map, source, config);
+
+        EventLineAssociation association = Assert.Single(associations);
+        Assert.Equal(EventLineElementKind.Linedef, association.SourceKind);
+        Assert.Equal(source.Index, association.SourceIndex);
+        Assert.Equal(EventLineElementKind.Sector, association.TargetKind);
+        Assert.Equal(target.Index, association.TargetIndex);
+        Assert.Equal(7, association.Tag);
+        Assert.DoesNotContain(associations, a => a.TargetIndex == other.Index);
+    }
+
+    [Fact]
+    public void ThingFieldAssociationsLinkToMatchingSectors()
+    {
+        var map = new MapSet();
+        Thing source = map.AddThing(new Vector2D(0, 0), 3001);
+        source.Fields["portal"] = 7;
+        Sector target = map.AddSector();
+        target.Fields["portal"] = 7;
+        Sector other = map.AddSector();
+        other.Fields["portal"] = 8;
+        GameConfiguration config = SectorFieldAssociationConfig();
+
+        IReadOnlyList<EventLineAssociation> associations =
+            EventLineAssociationModel.ForElement(map, source, config);
+
+        EventLineAssociation association = Assert.Single(associations);
+        Assert.Equal(EventLineElementKind.Thing, association.SourceKind);
+        Assert.Equal(source.Index, association.SourceIndex);
+        Assert.Equal(EventLineElementKind.Sector, association.TargetKind);
+        Assert.Equal(target.Index, association.TargetIndex);
+        Assert.Equal(7, association.Tag);
+        Assert.DoesNotContain(associations, a => a.TargetIndex == other.Index);
+    }
+
+    [Fact]
     public void SectorAssociationsIncludeLinedefsAndThingsReferencingSectorTags()
     {
         var map = new MapSet();
