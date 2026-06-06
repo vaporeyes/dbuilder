@@ -1870,10 +1870,9 @@ public sealed class DBuilderPluginHostModelTests
             },
             Array.Empty<DBuilderPluginDiagnostic>());
 
-        DBuilderPluginCallbackExecutionResult result = DBuilderPluginHostModel.ExecuteReflectionCallback(
+        DBuilderPluginCallbackExecutionResult result = DBuilderPluginHostModel.ExecuteReflectionPasteBegin(
             plan,
-            "OnPasteBegin",
-            new object[] { options });
+            options);
 
         Assert.True(result.Completed);
         Assert.True(result.Aborted);
@@ -1885,6 +1884,47 @@ public sealed class DBuilderPluginHostModelTests
         {
             "First:Renumber:True:True:copy",
             "Second:Renumber:True:False:copy"
+        }, ReflectionPasteCallbackPlugin.Calls);
+        Assert.Empty(result.Diagnostics);
+    }
+
+    [Fact]
+    public void ExecuteReflectionPasteEndPassesCopiedPasteOptionsToEachPlugin()
+    {
+        ReflectionPasteCallbackPlugin.Calls.Clear();
+        var options = new PasteOptions
+        {
+            ChangeTags = PasteTagMode.Remove
+        };
+        ReflectionPasteCallbackPlugin.OriginalOptions = options;
+        var plan = new DBuilderPluginRuntimeInstancePlan(
+            new[]
+            {
+                new DBuilderPluginRuntimeInstance(
+                    "First",
+                    "/plugins/first.dll",
+                    typeof(ReflectionPasteCallbackPlugin).FullName!,
+                    0,
+                    new ReflectionPasteCallbackPlugin("First", continueResult: true)),
+                new DBuilderPluginRuntimeInstance(
+                    "Second",
+                    "/plugins/second.dll",
+                    typeof(ReflectionPasteCallbackPlugin).FullName!,
+                    1,
+                    new ReflectionPasteCallbackPlugin("Second", continueResult: true))
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
+
+        DBuilderPluginCallbackExecutionResult result = DBuilderPluginHostModel.ExecuteReflectionPasteEnd(
+            plan,
+            options);
+
+        Assert.True(result.Completed);
+        Assert.False(result.Aborted);
+        Assert.Equal(new[]
+        {
+            "First:End:Remove:False:copy",
+            "Second:End:Remove:False:copy"
         }, ReflectionPasteCallbackPlugin.Calls);
         Assert.Empty(result.Diagnostics);
     }
@@ -2780,6 +2820,14 @@ public sealed class ReflectionPasteCallbackPlugin : IDBuilderPlugin
             : "copy";
         Calls.Add(_name + ":" + options.ChangeTags + ":" + options.RemoveActions + ":" + result + ":" + copied);
         return _continueResult;
+    }
+
+    public void OnPasteEnd(PasteOptions options)
+    {
+        string copied = ReferenceEquals(options, OriginalOptions)
+            ? "original"
+            : "copy";
+        Calls.Add(_name + ":End:" + options.ChangeTags + ":" + options.RemoveActions + ":" + copied);
     }
 }
 

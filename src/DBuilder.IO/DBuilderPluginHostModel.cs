@@ -994,6 +994,16 @@ public static class DBuilderPluginHostModel
         string callbackName)
         => ExecuteReflectionCallback(instancePlan, callbackName, Array.Empty<object>());
 
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionPasteBegin(
+        DBuilderPluginRuntimeInstancePlan instancePlan,
+        PasteOptions options)
+        => ExecuteReflectionCallback(instancePlan, "OnPasteBegin", new object[] { options });
+
+    public static DBuilderPluginCallbackExecutionResult ExecuteReflectionPasteEnd(
+        DBuilderPluginRuntimeInstancePlan instancePlan,
+        PasteOptions options)
+        => ExecuteReflectionCallback(instancePlan, "OnPasteEnd", new object[] { options });
+
     public static DBuilderPluginCallbackExecutionResult ExecuteReflectionCallback(
         DBuilderPluginRuntimeInstancePlan instancePlan,
         string callbackName,
