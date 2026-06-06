@@ -15,16 +15,20 @@ public class SectorDrawingDefaultsTests
         var map = new MapSet();
         Sector sector = CreateSquareSector(map);
         var config = GameConfiguration.FromText("""
+            longtexturenames = true;
             defaultwalltexture = "WALLCFG";
-            defaultfloortexture = "FLOORCFG";
-            defaultceilingtexture = "CEILCFG";
+            defaultfloortexture = "FLOORCONFIG";
+            defaultceilingtexture = "CEILCONFIG";
             """);
 
         SectorDrawingDefaults.Apply(map, sector, null, config);
 
-        Assert.Equal("FLOORCFG", sector.FloorTexture);
-        Assert.Equal("CEILCFG", sector.CeilTexture);
+        Assert.Equal("FLOORCONFIG", sector.FloorTexture);
+        Assert.Equal("CEILCONFIG", sector.CeilTexture);
+        Assert.Equal(Lump.MakeLongName("FLOORCONFIG", useLongNames: true), sector.LongFloorTexture);
+        Assert.Equal(Lump.MakeLongName("CEILCONFIG", useLongNames: true), sector.LongCeilTexture);
         Assert.All(sector.Sidedefs, side => Assert.Equal("WALLCFG", side.MidTexture));
+        Assert.All(sector.Sidedefs, side => Assert.Equal(Lump.MakeLongName("WALLCFG", useLongNames: true), side.LongMiddleTexture));
     }
 
     [Fact]
@@ -40,17 +44,18 @@ public class SectorDrawingDefaultsTests
         var options = new MapOptions
         {
             OverrideFloorTexture = true,
-            DefaultFloorTexture = "FLOOROPT",
+            DefaultFloorTexture = "FLOOROPTION",
             OverrideCeilingTexture = true,
-            DefaultCeilingTexture = "CEILOPT",
+            DefaultCeilingTexture = "CEILOPTION",
             OverrideMiddleTexture = true,
-            DefaultWallTexture = "MIDOPT",
+            DefaultWallTexture = "MIDOPTION",
             OverrideFloorHeight = true,
             CustomFloorHeight = -24,
             OverrideCeilingHeight = true,
             CustomCeilingHeight = 192,
             OverrideBrightness = true,
             CustomBrightness = 208,
+            UseLongTextureNames = true,
         };
 
         SectorDrawingDefaults.Apply(map, sector, options, config);
@@ -58,9 +63,12 @@ public class SectorDrawingDefaultsTests
         Assert.Equal(-24, sector.FloorHeight);
         Assert.Equal(192, sector.CeilHeight);
         Assert.Equal(208, sector.Brightness);
-        Assert.Equal("FLOOROPT", sector.FloorTexture);
-        Assert.Equal("CEILOPT", sector.CeilTexture);
-        Assert.All(sector.Sidedefs, side => Assert.Equal("MIDOPT", side.MidTexture));
+        Assert.Equal("FLOOROPTION", sector.FloorTexture);
+        Assert.Equal("CEILOPTION", sector.CeilTexture);
+        Assert.Equal(Lump.MakeLongName("FLOOROPTION", useLongNames: true), sector.LongFloorTexture);
+        Assert.Equal(Lump.MakeLongName("CEILOPTION", useLongNames: true), sector.LongCeilTexture);
+        Assert.All(sector.Sidedefs, side => Assert.Equal("MIDOPTION", side.MidTexture));
+        Assert.All(sector.Sidedefs, side => Assert.Equal(Lump.MakeLongName("MIDOPTION", useLongNames: true), side.LongMiddleTexture));
     }
 
     [Fact]
@@ -82,11 +90,12 @@ public class SectorDrawingDefaultsTests
         var options = new MapOptions
         {
             OverrideTopTexture = true,
-            DefaultTopTexture = "UPPEROPT",
+            DefaultTopTexture = "UPPEROPTION",
             OverrideBottomTexture = true,
-            DefaultBottomTexture = "LOWEROPT",
+            DefaultBottomTexture = "LOWEROPTION",
             OverrideMiddleTexture = true,
             DefaultWallTexture = "MIDOPT",
+            UseLongTextureNames = true,
         };
 
         SectorDrawingDefaults.Apply(map, target, options, null);
@@ -94,8 +103,10 @@ public class SectorDrawingDefaultsTests
         Assert.True(front.HighRequired());
         Assert.True(front.LowRequired());
         Assert.False(front.MiddleRequired());
-        Assert.Equal("UPPEROPT", front.HighTexture);
-        Assert.Equal("LOWEROPT", front.LowTexture);
+        Assert.Equal("UPPEROPTION", front.HighTexture);
+        Assert.Equal("LOWEROPTION", front.LowTexture);
+        Assert.Equal(Lump.MakeLongName("UPPEROPTION", useLongNames: true), front.LongHighTexture);
+        Assert.Equal(Lump.MakeLongName("LOWEROPTION", useLongNames: true), front.LongLowTexture);
         Assert.Equal("-", front.MidTexture);
     }
 
