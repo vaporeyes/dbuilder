@@ -35,9 +35,12 @@ public class InterpolationToolsTests
     }
 
     [Fact]
-    public void InterpolateFallsBackToLinearForUnknownModes()
+    public void InterpolateThrowsForUnknownModes()
     {
-        Assert.Equal(5.0, InterpolationTools.Interpolate(0.0, 10.0, 0.5, (InterpolationTools.Mode)999), Epsilon);
+        var ex = Assert.Throws<NotImplementedException>(
+            () => InterpolationTools.Interpolate(0.0, 10.0, 0.5, (InterpolationTools.Mode)999));
+
+        Assert.Equal("InterpolationTools.Interpolate: \"999\" mode is not supported!", ex.Message);
     }
 
     [Fact]
@@ -56,10 +59,9 @@ public class InterpolationToolsTests
     }
 
     [Fact]
-    public void InterpolateColorFallsBackToLinearForUnknownModes()
+    public void InterpolateColorThrowsForUnknownModes()
     {
-        uint mid = InterpolationTools.InterpolateColor(0xff000000u, 0xffffffffu, 0.5, (InterpolationTools.Mode)999);
-
-        Assert.Equal(0xff808080u, mid);
+        Assert.Throws<NotImplementedException>(
+            () => InterpolationTools.InterpolateColor(0xff000000u, 0xffffffffu, 0.5, (InterpolationTools.Mode)999));
     }
 }
