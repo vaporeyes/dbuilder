@@ -65,11 +65,12 @@ public static class NodeBuilder
         return (config.RequiredFiles ?? Array.Empty<string>())
             .Select(file =>
             {
-                string source = Path.Combine(config.RequiredFilesDirectory, file);
+                string normalized = NormalizeRequiredFileName(file);
+                string source = Path.Combine(config.RequiredFilesDirectory, normalized);
                 return new NodebuilderRequiredFileCopy(
-                    file,
+                    normalized,
                     source,
-                    Path.Combine(workingDirectory, file),
+                    Path.Combine(workingDirectory, normalized),
                     File.Exists(source));
             })
             .ToArray();
@@ -224,6 +225,9 @@ public static class NodeBuilder
 
     private static string CleanProcessOutput(string value)
         => value.Trim().Replace("\b", "", StringComparison.Ordinal);
+
+    private static string NormalizeRequiredFileName(string value)
+        => value.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
 
     private static string MissingRequiredFilesMessage(IReadOnlyList<NodebuilderRequiredFileCopy> missingFiles)
         => "Node builder required file not found: " + string.Join(", ", missingFiles.Select(file => file.Name));

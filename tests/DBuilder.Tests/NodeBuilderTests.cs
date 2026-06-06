@@ -92,14 +92,16 @@ maplumpnames
         string root = Path.Combine(Path.GetTempPath(), "dbuilder_nodebuilder_files_" + Guid.NewGuid().ToString("N"));
         string working = Path.Combine(root, "work");
         Directory.CreateDirectory(root);
+        Directory.CreateDirectory(Path.Combine(root, "cfg"));
         try
         {
             File.WriteAllText(Path.Combine(root, "zdbsp.cfg"), "support");
+            File.WriteAllText(Path.Combine(root, "cfg", "zdbsp.ini"), "nested support");
             var config = new NodebuilderConfig(
                 "/tools/zdbsp",
                 "%FI",
                 root,
-                new[] { "zdbsp.cfg", "missing.dat" });
+                new[] { "zdbsp.cfg", "cfg\\zdbsp.ini", "missing.dat" });
 
             var plan = NodeBuilder.BuildRequiredFileCopyPlan(config, working);
 
@@ -110,6 +112,13 @@ maplumpnames
                     Assert.Equal("zdbsp.cfg", copy.Name);
                     Assert.Equal(Path.Combine(root, "zdbsp.cfg"), copy.SourcePath);
                     Assert.Equal(Path.Combine(working, "zdbsp.cfg"), copy.TargetPath);
+                    Assert.True(copy.SourceExists);
+                },
+                copy =>
+                {
+                    Assert.Equal(Path.Combine("cfg", "zdbsp.ini"), copy.Name);
+                    Assert.Equal(Path.Combine(root, "cfg", "zdbsp.ini"), copy.SourcePath);
+                    Assert.Equal(Path.Combine(working, "cfg", "zdbsp.ini"), copy.TargetPath);
                     Assert.True(copy.SourceExists);
                 },
                 copy =>
