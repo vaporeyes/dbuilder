@@ -51,6 +51,15 @@ public sealed record DBuilderPluginLifecyclePlan(
     IReadOnlyList<DBuilderPluginLifecycleHook> Hooks,
     IReadOnlyList<string> Warnings);
 
+public sealed record DBuilderPluginSettingDescriptor(
+    string Key,
+    object? DefaultValue = null);
+
+public sealed record DBuilderPluginSettingsSnapshot(
+    string PluginName,
+    IReadOnlyDictionary<string, object?> Values,
+    IReadOnlyList<string> Warnings);
+
 public static class DBuilderPluginHostModel
 {
     public static IReadOnlyList<DBuilderPluginDescriptor> NormalizeDescriptors(
@@ -123,6 +132,95 @@ public static class DBuilderPluginHostModel
             warnings);
     }
 
+    public static Dictionary<string, Dictionary<string, object?>> NormalizeSettingsStore(
+        IDictionary<string, Dictionary<string, object?>>? settings)
+    {
+        var result = new Dictionary<string, Dictionary<string, object?>>(StringComparer.Ordinal);
+        if (settings == null || settings.Count == 0) return result;
+
+        var pluginNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var plugin in settings)
+        {
+            string pluginName = plugin.Key.Trim();
+            if (pluginName.Length == 0 || !pluginNames.Add(pluginName)) continue;
+
+            result.Add(pluginName, NormalizeSettings(plugin.Value));
+        }
+
+        return result
+            .OrderBy(entry => entry.Key, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(
+                entry => entry.Key,
+                entry => entry.Value,
+                StringComparer.Ordinal);
+    }
+
+    public static DBuilderPluginSettingsSnapshot PlanSettings(
+        DBuilderPluginDescriptor descriptor,
+        IDictionary<string, Dictionary<string, object?>>? settings,
+        IEnumerable<DBuilderPluginSettingDescriptor> settingDescriptors)
+    {
+        var warnings = new List<string>();
+        string pluginName = descriptor.Name.Trim();
+        if (pluginName.Length == 0) warnings.Add("Plugin name is missing.");
+        if (!descriptor.Enabled && pluginName.Length > 0) warnings.Add($"Plugin {pluginName} is disabled.");
+        if (warnings.Count > 0)
+        {
+            return new DBuilderPluginSettingsSnapshot(
+                pluginName,
+                new Dictionary<string, object?>(StringComparer.Ordinal),
+                warnings);
+        }
+
+        Dictionary<string, Dictionary<string, object?>> normalizedStore = NormalizeSettingsStore(settings);
+        string? persistedKey = normalizedStore.Keys.FirstOrDefault(
+            key => string.Equals(key, pluginName, StringComparison.OrdinalIgnoreCase));
+        Dictionary<string, object?> persisted = persistedKey != null
+            && normalizedStore.TryGetValue(persistedKey, out var storedSettings)
+            ? storedSettings
+            : new Dictionary<string, object?>(StringComparer.Ordinal);
+
+        var values = new Dictionary<string, object?>(StringComparer.Ordinal);
+        var keys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (DBuilderPluginSettingDescriptor setting in settingDescriptors)
+        {
+            string key = setting.Key.Trim();
+            if (key.Length == 0 || !keys.Add(key)) continue;
+            values[key] = persisted.TryGetValue(key, out object? persistedValue)
+                ? persistedValue
+                : setting.DefaultValue;
+        }
+
+        foreach (var setting in persisted)
+        {
+            if (keys.Add(setting.Key)) values[setting.Key] = setting.Value;
+        }
+
+        return new DBuilderPluginSettingsSnapshot(
+            pluginName,
+            values
+                .OrderBy(entry => entry.Key, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(
+                    entry => entry.Key,
+                    entry => entry.Value,
+                    StringComparer.Ordinal),
+            warnings);
+    }
+
+    public static void WriteSettings(
+        IDictionary<string, Dictionary<string, object?>> settings,
+        DBuilderPluginSettingsSnapshot snapshot)
+    {
+        string pluginName = snapshot.PluginName.Trim();
+        if (pluginName.Length == 0 || snapshot.Warnings.Count > 0) return;
+
+        string? existingKey = settings.Keys.FirstOrDefault(
+            key => string.Equals(key, pluginName, StringComparison.OrdinalIgnoreCase));
+        if (existingKey != null) settings.Remove(existingKey);
+
+        settings[pluginName] = NormalizeSettings(snapshot.Values);
+    }
+
     private static IReadOnlyList<DBuilderPluginContribution> NormalizeContributions(
         IReadOnlyList<DBuilderPluginContribution>? contributions)
     {
@@ -144,5 +242,27 @@ public static class DBuilderPluginHostModel
             .OrderBy(contribution => contribution.Kind)
             .ThenBy(contribution => contribution.Title, StringComparer.OrdinalIgnoreCase)
             .ToArray();
+    }
+
+    private static Dictionary<string, object?> NormalizeSettings(
+        IEnumerable<KeyValuePair<string, object?>>? settings)
+    {
+        var result = new Dictionary<string, object?>(StringComparer.Ordinal);
+        if (settings == null) return result;
+
+        var keys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var setting in settings)
+        {
+            string key = setting.Key.Trim();
+            if (key.Length == 0 || !keys.Add(key)) continue;
+            result[key] = setting.Value;
+        }
+
+        return result
+            .OrderBy(entry => entry.Key, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(
+                entry => entry.Key,
+                entry => entry.Value,
+                StringComparer.Ordinal);
     }
 }

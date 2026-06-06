@@ -116,4 +116,118 @@ public sealed class DBuilderPluginHostModelTests
             DBuilderPluginLifecycleHook.RegisterUi
         }, plan.Hooks);
     }
+
+    [Fact]
+    public void NormalizeSettingsStoreTrimsPluginsAndSettingsWithoutDroppingUnknownValues()
+    {
+        var settings = DBuilderPluginHostModel.NormalizeSettingsStore(new Dictionary<string, Dictionary<string, object?>>
+        {
+            ["  TagRange  "] = new()
+            {
+                [" enabled "] = true,
+                ["Enabled"] = false,
+                [""] = "ignored"
+            },
+            ["tagrange"] = new()
+            {
+                ["duplicate"] = true
+            },
+            [""] = new()
+            {
+                ["ignored"] = true
+            },
+            ["CommentsPanel"] = new()
+            {
+                ["dock"] = "left"
+            }
+        });
+
+        Assert.Equal(new[] { "CommentsPanel", "TagRange" }, settings.Keys.ToArray());
+        Assert.Equal("left", settings["CommentsPanel"]["dock"]);
+        Assert.Single(settings["TagRange"]);
+        Assert.Equal(true, settings["TagRange"]["enabled"]);
+    }
+
+    [Fact]
+    public void PlanSettingsMergesDescriptorDefaultsWithPersistedAndUnknownValues()
+    {
+        var descriptor = new DBuilderPluginDescriptor("TagRange", "/plugins/tagrange.dll");
+        var settings = new Dictionary<string, Dictionary<string, object?>>
+        {
+            ["tagrange"] = new()
+            {
+                ["tagrange.step"] = 16,
+                ["tagrange.extra"] = "preserved"
+            }
+        };
+
+        DBuilderPluginSettingsSnapshot snapshot = DBuilderPluginHostModel.PlanSettings(
+            descriptor,
+            settings,
+            new[]
+            {
+                new DBuilderPluginSettingDescriptor("tagrange.step", 8),
+                new DBuilderPluginSettingDescriptor("tagrange.enabled", true),
+                new DBuilderPluginSettingDescriptor("tagrange.step", 32),
+                new DBuilderPluginSettingDescriptor("", "ignored")
+            });
+
+        Assert.Equal("TagRange", snapshot.PluginName);
+        Assert.Empty(snapshot.Warnings);
+        Assert.Equal(3, snapshot.Values.Count);
+        Assert.Equal(true, snapshot.Values["tagrange.enabled"]);
+        Assert.Equal(16, snapshot.Values["tagrange.step"]);
+        Assert.Equal("preserved", snapshot.Values["tagrange.extra"]);
+    }
+
+    [Fact]
+    public void PlanSettingsKeepsInvalidOrDisabledPluginsOutOfSettings()
+    {
+        DBuilderPluginSettingsSnapshot invalid = DBuilderPluginHostModel.PlanSettings(
+            new DBuilderPluginDescriptor("", "/plugins/missing.dll"),
+            null,
+            new[] { new DBuilderPluginSettingDescriptor("setting", true) });
+
+        Assert.Empty(invalid.Values);
+        Assert.Equal(new[] { "Plugin name is missing." }, invalid.Warnings);
+
+        DBuilderPluginSettingsSnapshot disabled = DBuilderPluginHostModel.PlanSettings(
+            new DBuilderPluginDescriptor("TagRange", "/plugins/tagrange.dll", Enabled: false),
+            null,
+            new[] { new DBuilderPluginSettingDescriptor("setting", true) });
+
+        Assert.Empty(disabled.Values);
+        Assert.Equal(new[] { "Plugin TagRange is disabled." }, disabled.Warnings);
+    }
+
+    [Fact]
+    public void WriteSettingsReplacesPluginSettingsCaseInsensitively()
+    {
+        var settings = new Dictionary<string, Dictionary<string, object?>>
+        {
+            ["tagrange"] = new()
+            {
+                ["tagrange.step"] = 8
+            },
+            ["CommentsPanel"] = new()
+            {
+                ["dock"] = "left"
+            }
+        };
+        var snapshot = new DBuilderPluginSettingsSnapshot(
+            " TagRange ",
+            new Dictionary<string, object?>
+            {
+                [" tagrange.enabled "] = true,
+                ["tagrange.step"] = 16
+            },
+            Array.Empty<string>());
+
+        DBuilderPluginHostModel.WriteSettings(settings, snapshot);
+
+        Assert.False(settings.ContainsKey("tagrange"));
+        Assert.Equal("left", settings["CommentsPanel"]["dock"]);
+        Assert.Equal(true, settings["TagRange"]["tagrange.enabled"]);
+        Assert.Equal(16, settings["TagRange"]["tagrange.step"]);
+    }
 }

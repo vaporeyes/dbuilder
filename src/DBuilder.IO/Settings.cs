@@ -37,6 +37,7 @@ public sealed class Settings
     public string? UdbScriptExternalEditor { get; set; }
     public Dictionary<string, object?> UdbScriptSettings { get; set; } = new(StringComparer.Ordinal);
     public Dictionary<string, object?> UsdfDialogEditorSettings { get; set; } = new(StringComparer.Ordinal);
+    public Dictionary<string, Dictionary<string, object?>> PluginSettings { get; set; } = new(StringComparer.Ordinal);
     public int? MaxRecentFiles { get; set; }
     public bool AutoClearSidedefTextures { get; set; } = true;
     public bool AutoMerge { get; set; } = true;
@@ -358,6 +359,7 @@ public sealed class Settings
             settings.ConfigurationResources ??= new(StringComparer.OrdinalIgnoreCase);
             settings.UdbScriptSettings ??= new(StringComparer.Ordinal);
             settings.UsdfDialogEditorSettings ??= new(StringComparer.Ordinal);
+            settings.PluginSettings = DBuilderPluginHostModel.NormalizeSettingsStore(settings.PluginSettings);
             NormalizeConfigurationResources(settings.ConfigurationResources);
             settings.PasteOptions ??= new();
             settings.DrawLineSettings ??= new();
