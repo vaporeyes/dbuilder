@@ -41,10 +41,10 @@ public sealed class UdbScriptApiSurfaceTests
             "getFlatNames", "flatExists", "getFlatInfo");
         Add(data, typeof(UdbScriptLine2DWrapper),
             "getCoordinatesAt", "getLength", "getAngleRad", "getAngle", "getPerpendicular",
-            "isIntersecting", "getIntersectionPoint", "getSideOfLine");
+            "isIntersecting", "getIntersectionPoint", "getSideOfLine", "getNearestPointOnLine");
         Add(data, typeof(UdbScriptLinedefWrapper),
             "copyPropertiesTo", "clearFlags", "flipVertices", "flipSidedefs", "flip",
-            "getSidePoint", "getCenterPoint", "applySidedFlags", "nearestOnLine",
+            "getSidePoint", "getCenterPoint", "getCoordinatesAt", "applySidedFlags", "nearestOnLine",
             "safeDistanceToSq", "safeDistanceTo", "distanceToSq", "distanceTo",
             "sideOfLine", "split", "delete", "getTags", "addTag", "removeTag");
         Add(data, typeof(UdbScriptMapWrapper),
@@ -70,9 +70,12 @@ public sealed class UdbScriptApiSurfaceTests
         Add(data, typeof(UdbScriptPlaneWrapper),
             "getIntersection", "distance", "closestOnPlane", "getZ");
         Add(data, typeof(UdbScriptSectorWrapper),
-            "getSidedefs", "clearFlags", "copyPropertiesTo", "intersect", "join", "delete",
+            "getSidedefs", "clearFlags", "copyPropertiesTo", "intersect", "getFloorZ",
+            "getCeilingZ", "join", "delete",
             "getTriangles", "getFloorSlope", "setFloorSlope", "getCeilingSlope",
             "setCeilingSlope", "getLabelPositions", "getTags", "addTag", "removeTag");
+        Add(data, typeof(UdbScriptSidedefWrapper),
+            "copyPropertiesTo", "getCenterPoint", "getSidePoint", "getCoordinatesAt");
         Add(data, typeof(UdbScriptThingWrapper),
             "copyPropertiesTo", "clearFlags", "snapToGrid", "snapToAccuracy",
             "distanceToSq", "distanceTo", "delete", "getSector");
@@ -101,7 +104,7 @@ public sealed class UdbScriptApiSurfaceTests
         Add(data, typeof(UdbScriptLine2DWrapper),
             "areIntersecting", "getIntersectionPoint", "getSideOfLine",
             "getDistanceToLine", "getDistanceToLineSq", "getNearestOnLine",
-            "getCoordinatesAt");
+            "getNearestPointOnLine", "getCoordinatesAt");
         Add(data, typeof(UdbScriptVector2DWrapper),
             "dotProduct", "crossProduct", "reflect", "reversed", "fromAngleRad",
             "fromAngle", "getAngleRad", "getAngle", "getDistanceSq", "getDistance");
