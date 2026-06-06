@@ -2447,6 +2447,26 @@ public class MapSet : IDisposable
     public Linedef? NearestLinedefRange(Vector2D pos, double maxRange)
         => NearestLinedefRange(Linedefs, pos, maxRange);
 
+    /// <summary>Nearest linedef within range that is not connected to <paramref name="vertex"/>, matching UDB MapSet.</summary>
+    public Linedef? NearestUnselectedUnreferencedLinedef(Vector2D pos, double maxRange, Vertex vertex, out double distance)
+    {
+        Linedef? closest = null;
+        distance = double.MaxValue;
+        double maxRangeSq = maxRange * maxRange;
+
+        foreach (var line in Linedefs)
+        {
+            double d = line.SafeDistanceToSq(pos, bounded: true);
+            if (d <= maxRangeSq && d < distance && line.Start != vertex && line.End != vertex)
+            {
+                closest = line;
+                distance = d;
+            }
+        }
+
+        return closest;
+    }
+
     private Linedef? NearestLinedef(Vector2D pos, double maxRange, Linedef? ignoredLine)
     {
         Linedef? closest = null;

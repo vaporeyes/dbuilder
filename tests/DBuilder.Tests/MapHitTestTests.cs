@@ -216,6 +216,50 @@ public class MapHitTestTests
     }
 
     [Fact]
+    public void NearestUnselectedUnreferencedLinedefSkipsLinesConnectedToVertex()
+    {
+        var map = new MapSet();
+        var vertex = map.AddVertex(new Vector2D(0, 0));
+        var connected = map.AddLinedef(vertex, map.AddVertex(new Vector2D(10, 0)));
+        var unconnected = map.AddLinedef(map.AddVertex(new Vector2D(0, 2)), map.AddVertex(new Vector2D(10, 2)));
+
+        var nearest = map.NearestUnselectedUnreferencedLinedef(new Vector2D(5, 0), maxRange: 8, vertex, out double distance);
+
+        Assert.Same(unconnected, nearest);
+        Assert.Equal(4, distance);
+        Assert.True(connected.SafeDistanceToSq(new Vector2D(5, 0), bounded: true) < distance);
+    }
+
+    [Fact]
+    public void NearestUnselectedUnreferencedLinedefPreservesUdbSelectedLineBehavior()
+    {
+        var map = new MapSet();
+        var vertex = map.AddVertex(new Vector2D(0, 0));
+        map.AddLinedef(vertex, map.AddVertex(new Vector2D(10, 0)));
+        var selected = map.AddLinedef(map.AddVertex(new Vector2D(0, 2)), map.AddVertex(new Vector2D(10, 2)));
+        selected.Selected = true;
+
+        var nearest = map.NearestUnselectedUnreferencedLinedef(new Vector2D(5, 2), maxRange: 2, vertex, out double distance);
+
+        Assert.Same(selected, nearest);
+        Assert.Equal(0, distance);
+    }
+
+    [Fact]
+    public void NearestUnselectedUnreferencedLinedefReturnsNullWhenOnlyConnectedLinesAreInRange()
+    {
+        var map = new MapSet();
+        var vertex = map.AddVertex(new Vector2D(0, 0));
+        map.AddLinedef(vertex, map.AddVertex(new Vector2D(10, 0)));
+        map.AddLinedef(map.AddVertex(new Vector2D(100, 0)), map.AddVertex(new Vector2D(110, 0)));
+
+        var nearest = map.NearestUnselectedUnreferencedLinedef(new Vector2D(5, 0), maxRange: 8, vertex, out double distance);
+
+        Assert.Null(nearest);
+        Assert.Equal(double.MaxValue, distance);
+    }
+
+    [Fact]
     public void GetSectorAtReturnsSectorForInteriorPoint()
     {
         var (map, sector) = BuildSquare(100);
