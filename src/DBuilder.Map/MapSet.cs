@@ -78,6 +78,7 @@ public enum MapTagKind
 
 public class MapSet : IDisposable
 {
+    public const long EmptyLongName = 3655919633L;
     public const string VirtualSectorField = "!virtual_sector";
     public const string VIRTUAL_SECTOR_FIELD = VirtualSectorField;
     public const int VirtualSectorValue = 0;

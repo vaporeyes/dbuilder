@@ -52,6 +52,8 @@ public class MapSetAndUdmfLoaderTests
     {
         var map = new MapSet();
 
+        Assert.Equal(MapSet.EmptyLongName, Lump.MakeLongName("-", useLongNames: false));
+
         Vertex start = map.CreateVertex(new Vector2D(0, 0));
         Vertex end = map.CreateVertex(new Vector2D(64, 0));
         Linedef line = map.CreateLinedef(start, end);
