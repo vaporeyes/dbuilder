@@ -126,6 +126,21 @@ public sealed record DBuilderPluginRuntimeInstancePlan(
     IReadOnlyList<DBuilderPluginRuntimeInstance> Instances,
     IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
 
+public sealed record DBuilderPluginCompatibilityCheck(
+    string PluginName,
+    string AssemblyPath,
+    string PluginTypeName,
+    int Order,
+    int MinimumRevision,
+    bool StrictRevisionMatching,
+    bool Compatible,
+    string? Error = null);
+
+public sealed record DBuilderPluginCompatibilityPlan(
+    IReadOnlyList<DBuilderPluginCompatibilityCheck> Checks,
+    IReadOnlyList<DBuilderPluginRuntimeInstance> Instances,
+    IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
+
 public sealed record DBuilderPluginShutdownAttempt(
     string PluginName,
     string AssemblyPath,
@@ -150,6 +165,7 @@ public sealed record DBuilderPluginReflectionRuntimePlan(
     DBuilderPluginAssemblyLoadPlan AssemblyLoadPlan,
     DBuilderPluginTypeDiscoveryPlan TypeDiscoveryPlan,
     DBuilderPluginRuntimeInstancePlan InstancePlan,
+    DBuilderPluginCompatibilityPlan CompatibilityPlan,
     DBuilderPluginHostPlan ReadyHostPlan);
 
 public sealed record DBuilderPluginSettingDescriptor(
@@ -675,6 +691,61 @@ public static class DBuilderPluginHostModel
         return new DBuilderPluginRuntimeInstancePlan(instances, diagnostics);
     }
 
+    public static DBuilderPluginCompatibilityPlan PlanReflectionPluginCompatibility(
+        DBuilderPluginRuntimeInstancePlan instancePlan,
+        int hostRevision)
+    {
+        var checks = new List<DBuilderPluginCompatibilityCheck>();
+        var instances = new List<DBuilderPluginRuntimeInstance>();
+        var diagnostics = new List<DBuilderPluginDiagnostic>(instancePlan.Diagnostics);
+
+        foreach (DBuilderPluginRuntimeInstance runtimeInstance in instancePlan.Instances)
+        {
+            Type pluginType = runtimeInstance.Instance.GetType();
+            int minimumRevision = ReadPluginIntProperty(pluginType, runtimeInstance.Instance, "MinimumRevision") ?? 0;
+            bool strictRevisionMatching = ReadPluginBoolProperty(
+                pluginType,
+                runtimeInstance.Instance,
+                "StrictRevisionMatching") ?? false;
+            string? error = null;
+
+            if (strictRevisionMatching && minimumRevision != hostRevision)
+            {
+                error = $"Plugin {runtimeInstance.PluginName} revision {minimumRevision} must match host revision {hostRevision}.";
+            }
+            else if (hostRevision != 0 && minimumRevision > hostRevision)
+            {
+                error = $"Plugin {runtimeInstance.PluginName} requires host revision {minimumRevision} or newer; host revision is {hostRevision}.";
+            }
+
+            bool compatible = error == null;
+            checks.Add(new DBuilderPluginCompatibilityCheck(
+                runtimeInstance.PluginName,
+                runtimeInstance.AssemblyPath,
+                runtimeInstance.PluginTypeName,
+                runtimeInstance.Order,
+                minimumRevision,
+                strictRevisionMatching,
+                compatible,
+                error));
+
+            if (compatible)
+            {
+                instances.Add(runtimeInstance);
+            }
+            else
+            {
+                string compatibilityError = error ?? "Plugin compatibility check failed.";
+                diagnostics.Add(new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Error,
+                    runtimeInstance.PluginName,
+                    compatibilityError));
+            }
+        }
+
+        return new DBuilderPluginCompatibilityPlan(checks, instances, diagnostics);
+    }
+
     public static DBuilderPluginShutdownPlan PlanShutdownAttempts(
         DBuilderPluginActivationPlan activationPlan,
         Func<DBuilderPluginActivationAttempt, string?> disposePlugin)
@@ -768,12 +839,19 @@ public static class DBuilderPluginHostModel
     public static DBuilderPluginReflectionRuntimePlan BuildReflectionRuntimePlan(
         IEnumerable<DBuilderPluginDescriptor> descriptors,
         DBuilderPluginLifecycleRequest request)
-        => BuildReflectionRuntimePlan(descriptors, request, File.Exists);
+        => BuildReflectionRuntimePlan(descriptors, request, File.Exists, hostRevision: 0);
 
     public static DBuilderPluginReflectionRuntimePlan BuildReflectionRuntimePlan(
         IEnumerable<DBuilderPluginDescriptor> descriptors,
         DBuilderPluginLifecycleRequest request,
         Func<string, bool> assemblyExists)
+        => BuildReflectionRuntimePlan(descriptors, request, assemblyExists, hostRevision: 0);
+
+    public static DBuilderPluginReflectionRuntimePlan BuildReflectionRuntimePlan(
+        IEnumerable<DBuilderPluginDescriptor> descriptors,
+        DBuilderPluginLifecycleRequest request,
+        Func<string, bool> assemblyExists,
+        int hostRevision)
     {
         DBuilderPluginDescriptor[] descriptorRows = descriptors.ToArray();
         DBuilderPluginHostPlan hostPlan = BuildHostPlan(descriptorRows, request);
@@ -782,7 +860,10 @@ public static class DBuilderPluginHostModel
             assemblyExists);
         DBuilderPluginTypeDiscoveryPlan typeDiscoveryPlan = PlanReflectionTypeDiscovery(assemblyLoadPlan);
         DBuilderPluginRuntimeInstancePlan instancePlan = ActivateReflectionPlugins(typeDiscoveryPlan);
-        var activatedPlugins = instancePlan.Instances
+        DBuilderPluginCompatibilityPlan compatibilityPlan = PlanReflectionPluginCompatibility(
+            instancePlan,
+            hostRevision);
+        var activatedPlugins = compatibilityPlan.Instances
             .Select(instance => instance.PluginName)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         DBuilderPluginHostPlan readyHostPlan = BuildHostPlan(
@@ -794,6 +875,7 @@ public static class DBuilderPluginHostModel
             assemblyLoadPlan,
             typeDiscoveryPlan,
             instancePlan,
+            compatibilityPlan,
             readyHostPlan);
     }
 
@@ -1323,6 +1405,20 @@ public static class DBuilderPluginHostModel
         if (existingKey != null) settings.Remove(existingKey);
 
         settings[pluginName] = NormalizeSettings(snapshot.Values);
+    }
+
+    private static int? ReadPluginIntProperty(Type pluginType, object instance, string propertyName)
+    {
+        PropertyInfo? property = pluginType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+        if (property == null || property.PropertyType != typeof(int)) return null;
+        return (int?)property.GetValue(instance);
+    }
+
+    private static bool? ReadPluginBoolProperty(Type pluginType, object instance, string propertyName)
+    {
+        PropertyInfo? property = pluginType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+        if (property == null || property.PropertyType != typeof(bool)) return null;
+        return (bool?)property.GetValue(instance);
     }
 
     private static IReadOnlyList<DBuilderPluginContribution> NormalizeContributions(

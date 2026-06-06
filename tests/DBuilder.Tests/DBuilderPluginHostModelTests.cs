@@ -773,6 +773,83 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void PlanReflectionPluginCompatibilityKeepsPluginsWithoutRevisionProperties()
+    {
+        DBuilderPluginRuntimeInstancePlan instancePlan = RuntimeInstancePlan(
+            new ReflectionPluginHostTestPlugin(),
+            "Plain");
+
+        DBuilderPluginCompatibilityPlan plan = DBuilderPluginHostModel.PlanReflectionPluginCompatibility(
+            instancePlan,
+            hostRevision: 37);
+
+        DBuilderPluginCompatibilityCheck check = Assert.Single(plan.Checks);
+        Assert.Equal("Plain", check.PluginName);
+        Assert.Equal(0, check.MinimumRevision);
+        Assert.False(check.StrictRevisionMatching);
+        Assert.True(check.Compatible);
+        Assert.Single(plan.Instances);
+        Assert.Empty(plan.Diagnostics);
+    }
+
+    [Fact]
+    public void PlanReflectionPluginCompatibilityRejectsPluginsMadeForNewerRevisions()
+    {
+        DBuilderPluginRuntimeInstancePlan instancePlan = RuntimeInstancePlan(
+            new ReflectionMinimumRevisionPlugin(),
+            "Newer");
+
+        DBuilderPluginCompatibilityPlan plan = DBuilderPluginHostModel.PlanReflectionPluginCompatibility(
+            instancePlan,
+            hostRevision: 41);
+
+        Assert.Empty(plan.Instances);
+        DBuilderPluginCompatibilityCheck check = Assert.Single(plan.Checks);
+        Assert.Equal(42, check.MinimumRevision);
+        Assert.False(check.Compatible);
+        Assert.Equal("Plugin Newer requires host revision 42 or newer; host revision is 41.", check.Error);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.Diagnostics);
+        Assert.Equal(DBuilderPluginDiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.Equal("Newer", diagnostic.PluginName);
+        Assert.Equal(check.Error, diagnostic.Message);
+    }
+
+    [Fact]
+    public void PlanReflectionPluginCompatibilityIgnoresMinimumRevisionWhenHostRevisionIsZero()
+    {
+        DBuilderPluginRuntimeInstancePlan instancePlan = RuntimeInstancePlan(
+            new ReflectionMinimumRevisionPlugin(),
+            "Newer");
+
+        DBuilderPluginCompatibilityPlan plan = DBuilderPluginHostModel.PlanReflectionPluginCompatibility(
+            instancePlan,
+            hostRevision: 0);
+
+        Assert.Single(plan.Instances);
+        Assert.Empty(plan.Diagnostics);
+        Assert.True(Assert.Single(plan.Checks).Compatible);
+    }
+
+    [Fact]
+    public void PlanReflectionPluginCompatibilityRejectsStrictRevisionMismatches()
+    {
+        DBuilderPluginRuntimeInstancePlan instancePlan = RuntimeInstancePlan(
+            new ReflectionStrictRevisionPlugin(),
+            "Strict");
+
+        DBuilderPluginCompatibilityPlan plan = DBuilderPluginHostModel.PlanReflectionPluginCompatibility(
+            instancePlan,
+            hostRevision: 41);
+
+        Assert.Empty(plan.Instances);
+        DBuilderPluginCompatibilityCheck check = Assert.Single(plan.Checks);
+        Assert.Equal(42, check.MinimumRevision);
+        Assert.True(check.StrictRevisionMatching);
+        Assert.False(check.Compatible);
+        Assert.Equal("Plugin Strict revision 42 must match host revision 41.", check.Error);
+    }
+
+    [Fact]
     public void BuildReflectionRuntimePlanKeepsActivatedInstancesInReadyHost()
     {
         string assemblyPath = typeof(ReflectionPluginHostTestPlugin).Assembly.Location;
@@ -792,6 +869,8 @@ public sealed class DBuilderPluginHostModelTests
 
         DBuilderPluginRuntimeInstance instance = Assert.Single(plan.InstancePlan.Instances);
         Assert.Equal("ReflectionTest", instance.PluginName);
+        DBuilderPluginCompatibilityCheck check = Assert.Single(plan.CompatibilityPlan.Checks);
+        Assert.True(check.Compatible);
         DBuilderPluginDescriptor readyDescriptor = Assert.Single(plan.ReadyHostPlan.DescriptorPlan.Descriptors);
         Assert.Equal("ReflectionTest", readyDescriptor.Name);
         DBuilderPluginApiContribution action = Assert.Single(plan.ReadyHostPlan.ApiContributions.Actions);
@@ -801,6 +880,35 @@ public sealed class DBuilderPluginHostModelTests
             diagnostic => diagnostic.PluginName == "ReflectionTest"
                 && diagnostic.Severity == DBuilderPluginDiagnosticSeverity.Warning
                 && diagnostic.Message.Contains("exposes multiple", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void BuildReflectionRuntimePlanKeepsIncompatiblePluginsOutOfReadyHost()
+    {
+        string assemblyPath = typeof(ReflectionMinimumRevisionPlugin).Assembly.Location;
+        DBuilderPluginReflectionRuntimePlan plan = DBuilderPluginHostModel.BuildReflectionRuntimePlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor(
+                    "Newer",
+                    assemblyPath,
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "newer.action", "Newer Action")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest(Engage: true),
+            _ => true,
+            hostRevision: 41);
+
+        Assert.Single(plan.InstancePlan.Instances);
+        Assert.Empty(plan.CompatibilityPlan.Instances);
+        Assert.Empty(plan.ReadyHostPlan.DescriptorPlan.Descriptors);
+        Assert.Empty(plan.ReadyHostPlan.ApiContributions.Actions);
+        Assert.Contains(
+            plan.CompatibilityPlan.Diagnostics,
+            diagnostic => diagnostic.PluginName == "Newer"
+                && diagnostic.Message == "Plugin Newer requires host revision 42 or newer; host revision is 41.");
     }
 
     [Fact]
@@ -2315,6 +2423,21 @@ public sealed class DBuilderPluginHostModelTests
         Assert.Equal(true, settings["TagRange"]["tagrange.enabled"]);
         Assert.Equal(16, settings["TagRange"]["tagrange.step"]);
     }
+
+    private static DBuilderPluginRuntimeInstancePlan RuntimeInstancePlan(
+        IDBuilderPlugin plugin,
+        string pluginName)
+        => new(
+            new[]
+            {
+                new DBuilderPluginRuntimeInstance(
+                    pluginName,
+                    "/plugins/" + pluginName + ".dll",
+                    plugin.GetType().FullName!,
+                    0,
+                    plugin)
+            },
+            Array.Empty<DBuilderPluginDiagnostic>());
 }
 
 public sealed class ReflectionPluginHostTestPlugin : IDBuilderPlugin
@@ -2327,6 +2450,18 @@ public sealed class ReflectionBrokenPluginHostTestPlugin : IDBuilderPlugin
     {
         throw new InvalidOperationException("constructor failed");
     }
+}
+
+public sealed class ReflectionMinimumRevisionPlugin : IDBuilderPlugin
+{
+    public int MinimumRevision => 42;
+}
+
+public sealed class ReflectionStrictRevisionPlugin : IDBuilderPlugin
+{
+    public int MinimumRevision => 42;
+
+    public bool StrictRevisionMatching => true;
 }
 
 public sealed class ReflectionNonPluginHostTestType
@@ -2352,6 +2487,8 @@ public sealed class ReflectionCallbackPlugin : IDBuilderPlugin
 
 public sealed class ReflectionAbortCallbackPlugin : IDBuilderPlugin
 {
+    public int MinimumRevision => 42;
+
     public bool OnPasteBegin() => true;
 }
 
