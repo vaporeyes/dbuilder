@@ -37,7 +37,7 @@ public sealed class ThingIconRenderPolicyTests
     public void UsesCompactMarkersBeforeSpritesCrowdAtOverviewScale()
     {
         Assert.False(ThingIconRenderPolicy.UseCompactMarkers(
-            viewScale: 0.125,
+            viewScale: ThingIconRenderPolicy.CompactMarkerScaleThreshold - 0.01,
             fixedThingsScale: false,
             thingArrows: false));
         Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
@@ -176,19 +176,19 @@ public sealed class ThingIconRenderPolicyTests
             ThingIconRenderPolicy.OverviewCullCellPixels - 0.01));
         Assert.Equal(1, ThingIconRenderPolicy.OverviewCullCell(
             ThingIconRenderPolicy.OverviewCullCellPixels));
-        Assert.Equal(144.0, ThingIconRenderPolicy.OverviewCullCellPixels);
+        Assert.Equal(192.0, ThingIconRenderPolicy.OverviewCullCellPixels);
     }
 
     [Fact]
     public void FarOverviewCullsWithLargerScreenCells()
     {
-        Assert.Equal(144.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
+        Assert.Equal(192.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
             ThingIconRenderPolicy.OverviewMarkerScaleThreshold - 0.01,
             thingArrows: false));
-        Assert.Equal(320.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
+        Assert.Equal(384.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
             ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
             thingArrows: false));
-        Assert.Equal(320.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
+        Assert.Equal(384.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
             ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
             thingArrows: true));
         Assert.Equal(0, ThingIconRenderPolicy.OverviewCullCell(
