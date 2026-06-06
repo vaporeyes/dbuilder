@@ -2117,7 +2117,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Limit UDB-style short-linedef checks to UDMF maps.
   - [x] Match UDB Polyobj_ExplicitLine mirror-number error text.
   - [x] Match remaining UDB polyobject diagnostic punctuation and suffix text.
-- [ ] Port all map error result types and fix actions.
+- [x] Port all map error result types and fix actions.
   - [x] Add UDB-style fix actions for stray vertices, missing textures, unused textures, and missing flats.
   - [x] Add UDB-style fix actions for missing-front and sidedness flag mismatch linedefs.
   - [x] Add UDB-style fix actions for off-grid vertices and vertices overlapping linedefs.
@@ -2155,7 +2155,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style selected-result descriptions for texture and flat results.
   - [x] Add UDB-style selected-result descriptions for action and ACS script results.
   - [x] Add UDB-style selected-result descriptions for thing results.
-- [ ] Port draw-line, draw-rectangle, draw-ellipse, draw-curve, and draw-grid modes.
+- [x] Port draw-line, draw-rectangle, draw-ellipse, draw-curve, and draw-grid modes.
   - [x] Add UDB-style draw vertex, remove drawn vertex, and finish drawing action metadata, shortcut, and command dispatch.
   - [x] Add UDB-style drawing-session subdivision and bevel action metadata, shortcuts, and command dispatch.
   - [x] Add UDB-style draw-grid action metadata and command dispatch.
@@ -2176,7 +2176,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Apply UDB-style continuous drawing accept lifecycle to line, sector, curve, rectangle, ellipse, and grid drawing.
   - [x] Add UDB-style singular and plural labels to draw-grid completion status.
   - [x] Normalize persisted draw-grid planner options before shape creation.
-- [ ] Port sector drawing options.
+- [x] Port sector drawing options.
   - [x] Apply UDB-style map drawing overrides to newly drawn sectors.
   - [x] Cover UDB-style upper and lower texture overrides for two-sided drawn sectors.
 - [x] Port sector gradient tools.
@@ -2186,19 +2186,19 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style gradient interpolation mode selection for sector and linedef gradient commands.
   - [x] Normalize invalid gradient interpolation modes before sector and linedef gradient application.
   - [x] Dispatch UDB gradientbrightness action by active edit mode.
-- [ ] Port edit selection panel behavior.
+- [x] Port edit selection panel behavior.
   - [x] Add UDB-style persisted edit-selection precise-position and height-adjust setting keys and defaults.
   - [x] Add UDB-style 15-degree edit-selection rotation snapping.
   - [x] Add UDB-style arbitrary edit-selection rotation for vertices and things.
   - [x] Add UDB-style edit-selection sector height adjustment for moved geometry.
   - [x] Add UDB-style non-uniform edit-selection scaling for vertices and things.
   - [x] Add UDB-style selected-linedef and sidedef flipping during edit-selection mirroring.
-- [ ] Port undo/redo panel behavior.
+- [x] Port undo/redo panel behavior.
   - [x] Add UDB-style undo/redo panel timeline model, current row selection, elision, and multi-level operation planning.
   - [x] Add non-modal editor undo/redo panel with multi-level undo and redo row selection.
   - [x] Add UDB-style singular and plural labels to undo/redo panel status text.
   - [x] Add testable Undo/Redo panel header formatting with singular and plural labels.
-- [ ] Port select similar element behavior.
+- [x] Port select similar element behavior.
   - [x] Add UDB-style property matching for selecting similar vertices, linedefs, sectors, and things.
   - [x] Add Edit menu command for selecting similar elements in the active edit mode.
   - [x] Add mode-specific Select Similar options dialog before applying selection.
