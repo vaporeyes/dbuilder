@@ -1261,6 +1261,7 @@ public static class EditorCommandCatalog
         => string.IsNullOrWhiteSpace(gesture)
            || gesture.Equals("None", StringComparison.OrdinalIgnoreCase)
            || gesture.Equals("Unbound", StringComparison.OrdinalIgnoreCase)
+           || gesture.Equals("Unassigned", StringComparison.OrdinalIgnoreCase)
            || gesture.Equals("-", StringComparison.OrdinalIgnoreCase);
 
     private static IEnumerable<string> SplitGestureParts(string gesture)

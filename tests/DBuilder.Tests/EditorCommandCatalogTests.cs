@@ -4176,12 +4176,13 @@ public class EditorCommandCatalogTests
     public void ParseOverrideTextReadsClearedShortcutOverrides()
     {
         var overrides = EditorCommandCatalog.ParseOverrideText(
-            "window.save=None; window.copy=Unbound; window.paste=-; window.delete=");
+            "window.save=None; window.copy=Unbound; window.paste=-; window.delete=; window.open-map=Unassigned");
 
         Assert.Contains(overrides, b => b.CommandId == "window.save" && b.Key == "");
         Assert.Contains(overrides, b => b.CommandId == "window.copy" && b.Key == "");
         Assert.Contains(overrides, b => b.CommandId == "window.paste" && b.Key == "");
         Assert.Contains(overrides, b => b.CommandId == "window.delete" && b.Key == "");
+        Assert.Contains(overrides, b => b.CommandId == "window.open-map" && b.Key == "");
     }
 
     [Fact]

@@ -41,6 +41,7 @@ public class SettingsWindowTests
         Assert.Contains("AddField(\"Shortcut overrides\", EditorCommandCatalog.OverrideText(s.ShortcutOverrides))", body, StringComparison.Ordinal);
         Assert.Contains("ShortcutOverrideWatermark", body, StringComparison.Ordinal);
         Assert.Contains("command.id=Shortcut", body, StringComparison.Ordinal);
+        Assert.Contains("use None or Unassigned to clear", body, StringComparison.Ordinal);
         Assert.Contains("_shortcutOverrides.AcceptsReturn = true;", body, StringComparison.Ordinal);
         Assert.Contains("_shortcutOverrides.MinHeight = 72;", body, StringComparison.Ordinal);
         Assert.Contains("_shortcutOverrides.TextWrapping = Avalonia.Media.TextWrapping.Wrap;", body, StringComparison.Ordinal);
