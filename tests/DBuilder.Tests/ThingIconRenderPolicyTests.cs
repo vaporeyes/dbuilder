@@ -55,14 +55,14 @@ public sealed class ThingIconRenderPolicyTests
             fixedThingsScale: false,
             thingArrows: false));
         Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
-            viewScale: 3.0,
+            viewScale: 1.0,
             fixedThingsScale: false,
             thingArrows: false));
         Assert.True(ThingIconRenderPolicy.UseOverviewMarkers(
-            viewScale: 3.0,
+            viewScale: 1.0,
             thingArrows: false));
         Assert.True(ThingIconRenderPolicy.UseFarOverviewMarkers(
-            viewScale: 3.0,
+            viewScale: 1.0,
             thingArrows: false));
     }
 
@@ -153,7 +153,7 @@ public sealed class ThingIconRenderPolicyTests
         Assert.True(
             ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold
             > ThingIconRenderPolicy.OverviewMarkerScaleThreshold);
-        Assert.Equal(3.0, ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold);
+        Assert.Equal(1.0, ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold);
         Assert.False(ThingIconRenderPolicy.UseFarOverviewMarkers(
             ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold - 0.01,
             thingArrows: false));
