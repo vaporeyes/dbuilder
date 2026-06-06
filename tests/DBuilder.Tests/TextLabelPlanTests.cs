@@ -268,4 +268,49 @@ public sealed class TextLabelPlanTests
         Assert.False(renderPlan.ShouldRender);
         Assert.False(state.AlphaBlendEnabled);
     }
+
+    [Fact]
+    public void TextLabelInvalidationStartsWithLayoutAndTextureUpdatesNeeded()
+    {
+        TextLabelInvalidation state = TextLabelInvalidation.Initial;
+
+        Assert.True(state.LayoutUpdateNeeded);
+        Assert.True(state.TextureUpdateNeeded);
+    }
+
+    [Fact]
+    public void InvalidateLayoutMarksOnlyLayoutWorkWhenTextureIsClean()
+    {
+        TextLabelInvalidation state = TextLabelPlan.InvalidateLayout(TextLabelInvalidation.Clean);
+
+        Assert.True(state.LayoutUpdateNeeded);
+        Assert.False(state.TextureUpdateNeeded);
+    }
+
+    [Fact]
+    public void InvalidateTextureMarksOnlyTextureWorkWhenLayoutIsClean()
+    {
+        TextLabelInvalidation state = TextLabelPlan.InvalidateTexture(TextLabelInvalidation.Clean);
+
+        Assert.False(state.LayoutUpdateNeeded);
+        Assert.True(state.TextureUpdateNeeded);
+    }
+
+    [Fact]
+    public void InvalidateResourcesMarksLayoutAndTextureLikeUdbUnloadResource()
+    {
+        TextLabelInvalidation state = TextLabelPlan.InvalidateResources();
+
+        Assert.True(state.LayoutUpdateNeeded);
+        Assert.True(state.TextureUpdateNeeded);
+    }
+
+    [Fact]
+    public void MarkUpdatedClearsLayoutAndTextureFlagsAfterRendering()
+    {
+        TextLabelInvalidation state = TextLabelPlan.MarkUpdated();
+
+        Assert.False(state.LayoutUpdateNeeded);
+        Assert.False(state.TextureUpdateNeeded);
+    }
 }

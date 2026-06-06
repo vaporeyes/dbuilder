@@ -43,6 +43,7 @@ public static class RendererArchitectureModel
             "Text label plain and background image drawing planning",
             "Text label render dispatch planning",
             "Text label render-state planning",
+            "Text label dirty-state and resource invalidation planning",
             "Runtime shader compile, link, disposal, and uniform lookup caching",
             "Shader disposed-state reporting",
         },

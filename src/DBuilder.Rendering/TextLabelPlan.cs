@@ -83,6 +83,12 @@ public sealed record TextLabelRenderStatePlan(
     float TextureScale,
     bool TextureTransformEnabled);
 
+public readonly record struct TextLabelInvalidation(bool LayoutUpdateNeeded, bool TextureUpdateNeeded)
+{
+    public static TextLabelInvalidation Initial => new(LayoutUpdateNeeded: true, TextureUpdateNeeded: true);
+    public static TextLabelInvalidation Clean => new(LayoutUpdateNeeded: false, TextureUpdateNeeded: false);
+}
+
 public static class TextLabelPlan
 {
     public const double TextOriginX = 4.0;
@@ -255,6 +261,18 @@ public static class TextLabelPlan
             TextureOffset: 0.0f,
             TextureScale: 1.0f,
             TextureTransformEnabled: false);
+
+    public static TextLabelInvalidation InvalidateLayout(TextLabelInvalidation state)
+        => state with { LayoutUpdateNeeded = true };
+
+    public static TextLabelInvalidation InvalidateTexture(TextLabelInvalidation state)
+        => state with { TextureUpdateNeeded = true };
+
+    public static TextLabelInvalidation InvalidateResources()
+        => TextLabelInvalidation.Initial;
+
+    public static TextLabelInvalidation MarkUpdated()
+        => TextLabelInvalidation.Clean;
 
     public static int NextPowerOfTwo(int value)
     {
