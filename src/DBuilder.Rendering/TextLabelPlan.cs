@@ -369,6 +369,17 @@ public static class TextLabelPlan
             TextLabelInvalidation.Clean);
     }
 
+    public static bool IsInViewport(TextLabelPoint location, TextLabelSize textureSize, TextLabelRectangle viewport)
+    {
+        double width = textureSize.IsEmpty ? 0.0 : textureSize.Width;
+        double height = textureSize.IsEmpty ? 0.0 : textureSize.Height;
+
+        return location.X >= viewport.X - width
+            && location.X < viewport.X + viewport.Width + width
+            && location.Y <= viewport.Y - height
+            && location.Y > viewport.Y + viewport.Height + height;
+    }
+
     public static int NextPowerOfTwo(int value)
     {
         if (value <= 1) return 1;

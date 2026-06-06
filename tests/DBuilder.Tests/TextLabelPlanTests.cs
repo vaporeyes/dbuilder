@@ -483,4 +483,37 @@ public sealed class TextLabelPlanTests
         Assert.False(plan.UploadQuadBuffer);
         Assert.Equal(TextLabelInvalidation.Initial, plan.ResultInvalidation);
     }
+
+    [Fact]
+    public void IsInViewportAllowsTextureSizePaddingOnXAxisLikeUdb()
+    {
+        var viewport = new TextLabelRectangle(100, 100, 80, -60);
+        var textureSize = new TextLabelSize(16, 8);
+
+        Assert.True(TextLabelPlan.IsInViewport(new TextLabelPoint(84, 80), textureSize, viewport));
+        Assert.True(TextLabelPlan.IsInViewport(new TextLabelPoint(195, 80), textureSize, viewport));
+        Assert.False(TextLabelPlan.IsInViewport(new TextLabelPoint(83.9, 80), textureSize, viewport));
+        Assert.False(TextLabelPlan.IsInViewport(new TextLabelPoint(196, 80), textureSize, viewport));
+    }
+
+    [Fact]
+    public void IsInViewportUsesUdbInvertedYAxisBounds()
+    {
+        var viewport = new TextLabelRectangle(100, 100, 80, -60);
+        var textureSize = new TextLabelSize(16, 8);
+
+        Assert.True(TextLabelPlan.IsInViewport(new TextLabelPoint(120, 92), textureSize, viewport));
+        Assert.True(TextLabelPlan.IsInViewport(new TextLabelPoint(120, 49), textureSize, viewport));
+        Assert.False(TextLabelPlan.IsInViewport(new TextLabelPoint(120, 93), textureSize, viewport));
+        Assert.False(TextLabelPlan.IsInViewport(new TextLabelPoint(120, 48), textureSize, viewport));
+    }
+
+    [Fact]
+    public void IsInViewportUsesZeroPaddingForEmptyTextureSize()
+    {
+        var viewport = new TextLabelRectangle(100, 100, 80, -60);
+
+        Assert.True(TextLabelPlan.IsInViewport(new TextLabelPoint(100, 99), new TextLabelSize(0, 0), viewport));
+        Assert.False(TextLabelPlan.IsInViewport(new TextLabelPoint(99.9, 99), new TextLabelSize(0, 0), viewport));
+    }
 }
