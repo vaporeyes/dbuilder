@@ -7,6 +7,10 @@ namespace DBuilder.Tests;
 
 public sealed class DBuilderPluginHostModelTests
 {
+    private interface MissingPluginContract
+    {
+    }
+
     [Fact]
     public void UdbCallbackCatalogCoversCorePlugAndManagerSurface()
     {
@@ -422,6 +426,82 @@ public sealed class DBuilderPluginHostModelTests
         DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.Diagnostics);
         Assert.Equal("TagRange", diagnostic.PluginName);
         Assert.Equal("Plugin TagRange assembly was not found at /plugins/tagrange.dll.", diagnostic.Message);
+    }
+
+    [Fact]
+    public void PlanReflectionTypeDiscoveryFindsDBuilderPluginContractTypes()
+    {
+        string assemblyPath = typeof(ReflectionPluginHostTestPlugin).Assembly.Location;
+        DBuilderPluginAssemblyLoadPlan assemblyLoadPlan = DBuilderPluginHostModel.PlanAssemblyLoadAttempts(
+            DBuilderPluginHostModel.PlanLoadCandidates(
+                DBuilderPluginHostModel.PlanDescriptors(new[]
+                {
+                    new DBuilderPluginDescriptor("ReflectionTest", assemblyPath)
+                })),
+            _ => true);
+
+        DBuilderPluginTypeDiscoveryPlan plan = DBuilderPluginHostModel.PlanReflectionTypeDiscovery(assemblyLoadPlan);
+
+        Assert.Empty(plan.Diagnostics);
+        DBuilderPluginTypeDiscovery discovery = Assert.Single(plan.Discoveries);
+        Assert.Equal("ReflectionTest", discovery.PluginName);
+        Assert.Equal(assemblyPath, discovery.AssemblyPath);
+        Assert.Equal(0, discovery.Order);
+        Assert.Equal(typeof(ReflectionPluginHostTestPlugin).FullName, discovery.PluginTypeName);
+    }
+
+    [Fact]
+    public void PlanReflectionTypeDiscoveryReportsAssembliesWithoutContractTypes()
+    {
+        string assemblyPath = typeof(DBuilderPluginHostModelTests).Assembly.Location;
+        DBuilderPluginAssemblyLoadPlan assemblyLoadPlan = DBuilderPluginHostModel.PlanAssemblyLoadAttempts(
+            DBuilderPluginHostModel.PlanLoadCandidates(
+                DBuilderPluginHostModel.PlanDescriptors(new[]
+                {
+                    new DBuilderPluginDescriptor("NoContract", assemblyPath)
+                })),
+            _ => true);
+
+        DBuilderPluginTypeDiscoveryPlan plan = DBuilderPluginHostModel.PlanReflectionTypeDiscovery(
+            assemblyLoadPlan,
+            typeof(MissingPluginContract));
+
+        Assert.Empty(plan.Discoveries);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.Diagnostics);
+        Assert.Equal(DBuilderPluginDiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.Equal("NoContract", diagnostic.PluginName);
+        Assert.Equal(
+            $"Plugin NoContract assembly does not expose a {typeof(MissingPluginContract).FullName} type.",
+            diagnostic.Message);
+    }
+
+    [Fact]
+    public void PlanReflectionTypeDiscoveryReportsInspectionErrors()
+    {
+        string assemblyPath = Path.Combine(Path.GetTempPath(), "dbuilder-broken-plugin-" + Guid.NewGuid() + ".dll");
+        File.WriteAllText(assemblyPath, "not an assembly");
+        try
+        {
+            DBuilderPluginAssemblyLoadPlan assemblyLoadPlan = DBuilderPluginHostModel.PlanAssemblyLoadAttempts(
+                DBuilderPluginHostModel.PlanLoadCandidates(
+                    DBuilderPluginHostModel.PlanDescriptors(new[]
+                    {
+                        new DBuilderPluginDescriptor("Broken", assemblyPath)
+                    })),
+                _ => true);
+
+            DBuilderPluginTypeDiscoveryPlan plan = DBuilderPluginHostModel.PlanReflectionTypeDiscovery(assemblyLoadPlan);
+
+            Assert.Empty(plan.Discoveries);
+            DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.Diagnostics);
+            Assert.Equal(DBuilderPluginDiagnosticSeverity.Error, diagnostic.Severity);
+            Assert.Equal("Broken", diagnostic.PluginName);
+            Assert.StartsWith("Plugin Broken assembly could not be inspected:", diagnostic.Message);
+        }
+        finally
+        {
+            File.Delete(assemblyPath);
+        }
     }
 
     [Fact]
@@ -1566,4 +1646,8 @@ public sealed class DBuilderPluginHostModelTests
         Assert.Equal(true, settings["TagRange"]["tagrange.enabled"]);
         Assert.Equal(16, settings["TagRange"]["tagrange.step"]);
     }
+}
+
+public sealed class ReflectionPluginHostTestPlugin : IDBuilderPlugin
+{
 }

@@ -1,5 +1,7 @@
 // ABOUTME: Models plugin descriptors, contribution kinds and lifecycle hook planning for DBuilder.
-// ABOUTME: Keeps plugin-host rules testable before any runtime assembly loading is added.
+// ABOUTME: Keeps plugin-host rules and runtime type discovery testable outside the editor UI.
+
+using System.Reflection;
 
 namespace DBuilder.IO;
 
@@ -32,6 +34,10 @@ public enum DBuilderPluginDiagnosticSeverity
 {
     Warning,
     Error
+}
+
+public interface IDBuilderPlugin
+{
 }
 
 public sealed record DBuilderPluginContribution(
@@ -434,6 +440,72 @@ public static class DBuilderPluginHostModel
                 attempt.AssemblyPath,
                 attempt.Order,
                 typeName));
+        }
+
+        return new DBuilderPluginTypeDiscoveryPlan(discoveries, diagnostics);
+    }
+
+    public static DBuilderPluginTypeDiscoveryPlan PlanReflectionTypeDiscovery(
+        DBuilderPluginAssemblyLoadPlan assemblyLoadPlan)
+        => PlanReflectionTypeDiscovery(assemblyLoadPlan, typeof(IDBuilderPlugin));
+
+    public static DBuilderPluginTypeDiscoveryPlan PlanReflectionTypeDiscovery(
+        DBuilderPluginAssemblyLoadPlan assemblyLoadPlan,
+        Type pluginContractType)
+    {
+        var discoveries = new List<DBuilderPluginTypeDiscovery>();
+        var diagnostics = new List<DBuilderPluginDiagnostic>(assemblyLoadPlan.Diagnostics);
+        string contractName = pluginContractType.FullName ?? pluginContractType.Name;
+
+        foreach (DBuilderPluginAssemblyLoadAttempt attempt in assemblyLoadPlan.Attempts)
+        {
+            if (!attempt.AssemblyFound) continue;
+
+            Type[] assemblyTypes;
+            try
+            {
+                assemblyTypes = Assembly.LoadFrom(attempt.AssemblyPath).GetTypes();
+            }
+            catch (Exception ex)
+            {
+                diagnostics.Add(new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Error,
+                    attempt.PluginName,
+                    $"Plugin {attempt.PluginName} assembly could not be inspected: {ex.Message}"));
+                continue;
+            }
+
+            Type[] pluginTypes = assemblyTypes
+                .Where(type => type.IsClass
+                    && type.IsPublic
+                    && !type.IsAbstract
+                    && pluginContractType.IsAssignableFrom(type))
+                .OrderBy(type => type.FullName, StringComparer.Ordinal)
+                .ToArray();
+            if (pluginTypes.Length == 0)
+            {
+                diagnostics.Add(new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Error,
+                    attempt.PluginName,
+                    $"Plugin {attempt.PluginName} assembly does not expose a {contractName} type."));
+                continue;
+            }
+
+            Type pluginType = pluginTypes[0];
+            string pluginTypeName = pluginType.FullName ?? pluginType.Name;
+            if (pluginTypes.Length > 1)
+            {
+                diagnostics.Add(new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Warning,
+                    attempt.PluginName,
+                    $"Plugin {attempt.PluginName} assembly exposes multiple {contractName} types; using {pluginTypeName}."));
+            }
+
+            discoveries.Add(new DBuilderPluginTypeDiscovery(
+                attempt.PluginName,
+                attempt.AssemblyPath,
+                attempt.Order,
+                pluginTypeName));
         }
 
         return new DBuilderPluginTypeDiscoveryPlan(discoveries, diagnostics);
