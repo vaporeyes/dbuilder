@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace DBuilder.IO;
 
@@ -49,13 +50,23 @@ public sealed record AcsCompilePreflightResult(
 public static class ScriptCompilerArguments
 {
     public static string Build(string parameters, ScriptCompilerPaths paths)
-        => parameters
-            .Replace("%FI", paths.InputFile)
-            .Replace("%FO", paths.OutputFile)
-            .Replace("%FS", paths.SourceFile)
-            .Replace("%PT", paths.TempPath)
-            .Replace("%PS", paths.SourcePath)
+        => Regex.Replace(
+                parameters,
+                "%(FI|FO|FS|PT|PS)(?![A-Za-z0-9_])",
+                match => ReplacementFor(match.Groups[1].Value, paths),
+                RegexOptions.IgnoreCase)
             .Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+    private static string ReplacementFor(string token, ScriptCompilerPaths paths)
+        => token.ToUpperInvariant() switch
+        {
+            "FI" => paths.InputFile,
+            "FO" => paths.OutputFile,
+            "FS" => paths.SourceFile,
+            "PT" => paths.TempPath,
+            "PS" => paths.SourcePath,
+            _ => "%" + token,
+        };
 }
 
 public static class ScriptCompilerProcess

@@ -315,6 +315,36 @@ public class CompilerConfigurationTests
     }
 
     [Fact]
+    public void ScriptCompilerArgumentsSubstituteTokenCaseVariants()
+    {
+        var paths = new ScriptCompilerPaths(
+            "input.wad",
+            "behavior.o",
+            "scripts.acs",
+            "/tmp/dbuilder_compile",
+            "/maps/project");
+
+        string args = ScriptCompilerArguments.Build("-i %fi -o %fO -s %Fs -temp %pt -I %pS", paths);
+
+        Assert.Equal("-i input.wad -o behavior.o -s scripts.acs -temp /tmp/dbuilder_compile -I /maps/project", args);
+    }
+
+    [Fact]
+    public void ScriptCompilerArgumentsKeepUnknownPlaceholderPrefixes()
+    {
+        var paths = new ScriptCompilerPaths(
+            "input.wad",
+            "behavior.o",
+            "scripts.acs",
+            "/tmp/dbuilder_compile",
+            "/maps/project");
+
+        string args = ScriptCompilerArguments.Build("%FILENAME %FOLDER %PATH %PS_EXTRA", paths);
+
+        Assert.Equal("%FILENAME %FOLDER %PATH %PS_EXTRA", args);
+    }
+
+    [Fact]
     public void ScriptCompilerProcessBuildsAccStartInfoLikeUdb()
     {
         var compiler = new CompilerInfo(
