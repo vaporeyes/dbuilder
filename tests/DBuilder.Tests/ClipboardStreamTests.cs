@@ -15,10 +15,32 @@ public class ClipboardStreamTests
     private static MapSet BuildSampleMap()
     {
         var map = new MapSet { Namespace = "Doom" };
-        var sA = new Sector { Index = 0, FloorHeight = 0, CeilHeight = 128, FloorTexture = "FLOOR1", CeilTexture = "CEIL1", Brightness = 192, Tag = 7 };
+        var sA = new Sector
+        {
+            Index = 0,
+            FloorHeight = 0,
+            CeilHeight = 128,
+            FloorTexture = "FLOOR1",
+            CeilTexture = "CEIL1",
+            LongFloorTexture = 101,
+            LongCeilTexture = 102,
+            Brightness = 192,
+            Tag = 7,
+        };
         sA.UdmfFlags.Add("secret");
         sA.IgnoredErrorChecks.Add(MapIssueKind.UnclosedSector);
-        var sB = new Sector { Index = 1, FloorHeight = 8, CeilHeight = 120, FloorTexture = "FLOOR2", CeilTexture = "CEIL2", Brightness = 160, Special = 9 };
+        var sB = new Sector
+        {
+            Index = 1,
+            FloorHeight = 8,
+            CeilHeight = 120,
+            FloorTexture = "FLOOR2",
+            CeilTexture = "CEIL2",
+            LongFloorTexture = 201,
+            LongCeilTexture = 202,
+            Brightness = 160,
+            Special = 9,
+        };
         map.Sectors.Add(sA); map.Sectors.Add(sB);
 
         var v0 = new Vertex(new Vector2D(0, 0));
@@ -34,14 +56,30 @@ public class ClipboardStreamTests
             l.Args[0] = 11; l.Args[3] = 99;
             l.UdmfFlags.Add("blocking");
             l.IgnoredErrorChecks.Add(MapIssueKind.VertexOverlappingLinedef);
-            var front = new Sidedef(l, true) { Sector = secFront, HighTexture = "HI", MidTexture = "MID", LowTexture = "LO", OffsetX = 4, OffsetY = 8 };
+            var front = new Sidedef(l, true)
+            {
+                Sector = secFront,
+                HighTexture = "HI",
+                MidTexture = "MID",
+                LowTexture = "LO",
+                LongHighTexture = 301,
+                LongMiddleTexture = 302,
+                LongLowTexture = 303,
+                OffsetX = 4,
+                OffsetY = 8,
+            };
             front.UdmfFlags.Add("lightabsolute");
             front.IgnoredErrorChecks.Add(MapIssueKind.MissingTexture);
             l.Front = front;
             map.Sidedefs.Add(front);
             if (secBack != null)
             {
-                var back = new Sidedef(l, false) { Sector = secBack, MidTexture = "BACK" };
+                var back = new Sidedef(l, false)
+                {
+                    Sector = secBack,
+                    MidTexture = "BACK",
+                    LongMiddleTexture = 402,
+                };
                 l.Back = back;
                 map.Sidedefs.Add(back);
             }
@@ -108,6 +146,8 @@ public class ClipboardStreamTests
             Assert.Equal(so.CeilHeight,   sd.CeilHeight);
             Assert.Equal(so.FloorTexture, sd.FloorTexture);
             Assert.Equal(so.CeilTexture,  sd.CeilTexture);
+            Assert.Equal(so.LongFloorTexture, sd.LongFloorTexture);
+            Assert.Equal(so.LongCeilTexture, sd.LongCeilTexture);
             Assert.Equal(so.Brightness,   sd.Brightness);
             Assert.Equal(so.Special,      sd.Special);
             Assert.Equal(so.Tag,          sd.Tag);
@@ -123,6 +163,9 @@ public class ClipboardStreamTests
             Assert.Equal(src.Sidedefs[i].HighTexture, dst.Sidedefs[i].HighTexture);
             Assert.Equal(src.Sidedefs[i].MidTexture,  dst.Sidedefs[i].MidTexture);
             Assert.Equal(src.Sidedefs[i].LowTexture,  dst.Sidedefs[i].LowTexture);
+            Assert.Equal(src.Sidedefs[i].LongHighTexture, dst.Sidedefs[i].LongHighTexture);
+            Assert.Equal(src.Sidedefs[i].LongMiddleTexture, dst.Sidedefs[i].LongMiddleTexture);
+            Assert.Equal(src.Sidedefs[i].LongLowTexture, dst.Sidedefs[i].LongLowTexture);
             Assert.Equal(src.Sidedefs[i].UdmfFlags.OrderBy(s => s), dst.Sidedefs[i].UdmfFlags.OrderBy(s => s));
             Assert.Equal(src.Sidedefs[i].IgnoredErrorChecks.OrderBy(kind => kind), dst.Sidedefs[i].IgnoredErrorChecks.OrderBy(kind => kind));
         }
@@ -530,6 +573,8 @@ public class ClipboardStreamTests
         WriteTags(w);
         WriteString(w, "-");
         WriteString(w, "-");
+        w.Write(MapSet.EmptyLongName);
+        w.Write(MapSet.EmptyLongName);
         for (int i = 0; i < 8; i++) w.Write(double.NaN);
         w.Write(0); // sector udmf flags
         WriteCustomFields(w);
@@ -541,6 +586,9 @@ public class ClipboardStreamTests
         WriteString(w, "-");
         WriteString(w, "MID");
         WriteString(w, "-");
+        w.Write(MapSet.EmptyLongName);
+        w.Write(302L);
+        w.Write(MapSet.EmptyLongName);
         w.Write(0); // sidedef udmf flags
         WriteCustomFields(w);
 

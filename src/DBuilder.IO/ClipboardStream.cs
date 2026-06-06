@@ -12,11 +12,12 @@
  *   header:    int32 numVerts, int32 numSectors, int32 numLinedefs, int32 numThings
  *   vertices:  int32 count; per vertex: double x, double y, zceiling, zfloor; customFields
  *   sectors:   int32 count; per sector: int32 special, hfloor, hceil, bright; tags;
- *                                       str floortex, str ceiltex;
+ *                                       str floortex, str ceiltex; int64 longfloortex, longceiltex;
  *                                       double floorSlopeOffset, fSlope.x/y/z,
  *                                              ceilSlopeOffset, cSlope.x/y/z;
  *                                       int32 udmfFlagCount; (str, bool) pairs; customFields
  *   sidedefs:  int32 count; per sidedef: int32 offx, offy, sectorId; str hi, mid, lo;
+ *                                       int64 longhi, longmid, longlo;
  *                                       int32 udmfFlagCount; (str, bool) pairs; customFields
  *   linedefs:  int32 count; per linedef: int32 v1, v2, sidefront, sideback, action,
  *                                       args[5], flags; tags;
@@ -121,6 +122,8 @@ public static class ClipboardStreamWriter
             WriteTags(w, s.Tags);
             WriteString(w, s.FloorTexture);
             WriteString(w, s.CeilTexture);
+            w.Write(s.LongFloorTexture);
+            w.Write(s.LongCeilTexture);
             w.Write(s.FloorSlopeOffset);
             w.Write(s.FloorSlope.x); w.Write(s.FloorSlope.y); w.Write(s.FloorSlope.z);
             w.Write(s.CeilSlopeOffset);
@@ -143,6 +146,9 @@ public static class ClipboardStreamWriter
             WriteString(w, sd.HighTexture);
             WriteString(w, sd.MidTexture);
             WriteString(w, sd.LowTexture);
+            w.Write(sd.LongHighTexture);
+            w.Write(sd.LongMiddleTexture);
+            w.Write(sd.LongLowTexture);
             WriteUdmfFlagSet(w, sd.UdmfFlags);
             WriteCustomFields(w, sd.Fields, sd.IgnoredErrorChecks);
         }
@@ -344,6 +350,8 @@ public static class ClipboardStreamReader
             var tags      = ReadTags(r);
             string tfloor = ReadString(r);
             string tceil  = ReadString(r);
+            long longFloor = r.ReadInt64();
+            long longCeil = r.ReadInt64();
             double foffset = r.ReadDouble();
             var fslope = new Vector3D(r.ReadDouble(), r.ReadDouble(), r.ReadDouble());
             double coffset = r.ReadDouble();
@@ -358,6 +366,8 @@ public static class ClipboardStreamReader
                 Brightness = bright,
                 FloorTexture = tfloor,
                 CeilTexture = tceil,
+                LongFloorTexture = longFloor,
+                LongCeilTexture = longCeil,
                 FloorSlopeOffset = foffset,
                 FloorSlope = fslope,
                 CeilSlopeOffset = coffset,
@@ -385,6 +395,9 @@ public static class ClipboardStreamReader
             string hi  = ReadString(r);
             string mid = ReadString(r);
             string lo  = ReadString(r);
+            long longHi = r.ReadInt64();
+            long longMid = r.ReadInt64();
+            long longLo = r.ReadInt64();
 
             var sd = new Sidedef
             {
@@ -393,6 +406,9 @@ public static class ClipboardStreamReader
                 HighTexture = hi,
                 MidTexture = mid,
                 LowTexture = lo,
+                LongHighTexture = longHi,
+                LongMiddleTexture = longMid,
+                LongLowTexture = longLo,
                 Sector = (secId >= 0 && secId < newSectors.Count) ? newSectors[secId] : null,
             };
             ReadUdmfFlagSet(r, sd.UdmfFlags);
