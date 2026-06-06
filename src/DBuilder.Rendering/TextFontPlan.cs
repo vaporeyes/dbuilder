@@ -5,7 +5,7 @@ using System.Text;
 
 namespace DBuilder.Rendering;
 
-public sealed record TextFontGlyph(float Width, float Height, float U1, float V1, float U2, float V2);
+public readonly record struct TextFontGlyph(float Width, float Height, float U1, float V1, float U2, float V2);
 
 public sealed record TextFontGlyphSource(int Width, int Height, float U1, float V1, float U2, float V2);
 
@@ -26,6 +26,19 @@ public static class TextFontPlan
             source.V1,
             source.U2,
             source.V2);
+
+    public static TextFontGlyph[] BuildGlyphTable(IReadOnlyDictionary<int, TextFontGlyphSource> configuredGlyphs)
+    {
+        var glyphs = new TextFontGlyph[256];
+        foreach ((int index, TextFontGlyphSource source) in configuredGlyphs)
+        {
+            if (index < 0 || index > 255) continue;
+
+            glyphs[index] = BuildGlyph(source);
+        }
+
+        return glyphs;
+    }
 
     public static bool Contains(TextFontGlyph glyph)
         => glyph.Width > 0.000000001f || glyph.Height > 0.000000001f;
@@ -71,7 +84,7 @@ public static class TextFontPlan
     }
 
     private static TextFontGlyph GetGlyph(IReadOnlyDictionary<byte, TextFontGlyph> glyphs, byte key)
-        => glyphs.TryGetValue(key, out TextFontGlyph? glyph)
+        => glyphs.TryGetValue(key, out TextFontGlyph glyph)
             ? glyph
             : new TextFontGlyph(0, 0, 0, 0, 0, 0);
 

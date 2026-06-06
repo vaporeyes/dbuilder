@@ -22,6 +22,25 @@ public sealed class TextFontPlanTests
     }
 
     [Fact]
+    public void BuildGlyphTableCreatesUdbByteIndexedCharacterArray()
+    {
+        var configured = new Dictionary<int, TextFontGlyphSource>
+        {
+            [65] = new(80, 45, 0.1f, 0.2f, 0.3f, 0.4f),
+            [255] = new(20, 30, 0.5f, 0.6f, 0.7f, 0.8f),
+            [-1] = new(99, 99, 0, 0, 0, 0),
+            [256] = new(99, 99, 0, 0, 0, 0),
+        };
+
+        TextFontGlyph[] glyphs = TextFontPlan.BuildGlyphTable(configured);
+
+        Assert.Equal(256, glyphs.Length);
+        Assert.Equal(new TextFontGlyph(2.0f, 1.5f, 0.1f, 0.2f, 0.3f, 0.4f), glyphs[65]);
+        Assert.Equal(new TextFontGlyph(0.5f, 1.0f, 0.5f, 0.6f, 0.7f, 0.8f), glyphs[255]);
+        Assert.Equal(new TextFontGlyph(0, 0, 0, 0, 0, 0), glyphs[0]);
+    }
+
+    [Fact]
     public void ContainsMatchesUdbWidthOrHeightThreshold()
     {
         Assert.False(TextFontPlan.Contains(new TextFontGlyph(0, 0, 0, 0, 0, 0)));
