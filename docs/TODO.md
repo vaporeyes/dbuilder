@@ -346,6 +346,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Design and implement a plugin loading architecture for DBuilder.
   - [x] Add UI-independent plugin descriptor normalization and lifecycle hook planning.
   - [x] Add aggregate plugin host planning for descriptors, diagnostics, lifecycle, UI, API, and resources.
+  - [x] Add UDB-style Loadorder.cfg filename ordering for plugin load candidates.
   - [x] Add plugin assembly load candidate planning with `.dll` validation and diagnostics.
   - [x] Add plugin assembly load-attempt planning with missing-file diagnostics.
   - [x] Add plugin runtime-ready host planning that excludes missing or invalid assemblies.

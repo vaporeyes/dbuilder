@@ -293,6 +293,58 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void PlanLoadCandidatesAppliesUdbLoadOrderFilenamesBeforeRemainingDlls()
+    {
+        DBuilderPluginDescriptorPlan descriptorPlan = DBuilderPluginHostModel.PlanDescriptors(new[]
+        {
+            new DBuilderPluginDescriptor("TagRange", "/plugins/tagrange.dll"),
+            new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll"),
+            new DBuilderPluginDescriptor("CommentsPanel", "/plugins/comments.dll")
+        });
+
+        DBuilderPluginLoadPlan plan = DBuilderPluginHostModel.PlanLoadCandidates(
+            descriptorPlan,
+            new[] { "TAGRANGE.DLL", "missing.dll", "tagrange.dll" });
+
+        Assert.Collection(
+            plan.Candidates,
+            candidate =>
+            {
+                Assert.Equal("TagRange", candidate.PluginName);
+                Assert.Equal(0, candidate.Order);
+            },
+            candidate =>
+            {
+                Assert.Equal("BuilderModes", candidate.PluginName);
+                Assert.Equal(1, candidate.Order);
+            },
+            candidate =>
+            {
+                Assert.Equal("CommentsPanel", candidate.PluginName);
+                Assert.Equal(2, candidate.Order);
+            });
+    }
+
+    [Fact]
+    public void PlanLoadCandidatesMatchesLoadOrderByFilenameOnly()
+    {
+        DBuilderPluginDescriptorPlan descriptorPlan = DBuilderPluginHostModel.PlanDescriptors(new[]
+        {
+            new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll"),
+            new DBuilderPluginDescriptor("TagRange", "/other/tagrange.dll")
+        });
+
+        DBuilderPluginLoadPlan plan = DBuilderPluginHostModel.PlanLoadCandidates(
+            descriptorPlan,
+            new[] { "tagrange.dll" });
+
+        Assert.Collection(
+            plan.Candidates,
+            candidate => Assert.Equal("TagRange", candidate.PluginName),
+            candidate => Assert.Equal("BuilderModes", candidate.PluginName));
+    }
+
+    [Fact]
     public void PlanLoadCandidatesRejectsNonDllAssemblyPaths()
     {
         DBuilderPluginDescriptorPlan descriptorPlan = DBuilderPluginHostModel.PlanDescriptors(new[]

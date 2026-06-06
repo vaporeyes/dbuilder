@@ -452,11 +452,19 @@ public static class DBuilderPluginHostModel
     }
 
     public static DBuilderPluginLoadPlan PlanLoadCandidates(DBuilderPluginDescriptorPlan descriptorPlan)
+        => PlanLoadCandidates(descriptorPlan, Array.Empty<string>());
+
+    public static DBuilderPluginLoadPlan PlanLoadCandidates(
+        DBuilderPluginDescriptorPlan descriptorPlan,
+        IEnumerable<string> loadOrderFilenames)
     {
         var candidates = new List<DBuilderPluginLoadCandidate>();
         var diagnostics = new List<DBuilderPluginDiagnostic>(descriptorPlan.Diagnostics);
+        DBuilderPluginDescriptor[] descriptors = ApplyLoadOrder(
+            descriptorPlan.Descriptors,
+            loadOrderFilenames);
 
-        foreach (DBuilderPluginDescriptor descriptor in descriptorPlan.Descriptors)
+        foreach (DBuilderPluginDescriptor descriptor in descriptors)
         {
             if (!descriptor.AssemblyPath.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
             {
@@ -1419,6 +1427,34 @@ public static class DBuilderPluginHostModel
         PropertyInfo? property = pluginType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
         if (property == null || property.PropertyType != typeof(bool)) return null;
         return (bool?)property.GetValue(instance);
+    }
+
+    private static DBuilderPluginDescriptor[] ApplyLoadOrder(
+        IReadOnlyList<DBuilderPluginDescriptor> descriptors,
+        IEnumerable<string> loadOrderFilenames)
+    {
+        var result = new List<DBuilderPluginDescriptor>();
+        var usedPlugins = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (string loadOrderFilename in loadOrderFilenames)
+        {
+            string filename = loadOrderFilename.Trim();
+            if (filename.Length == 0) continue;
+
+            DBuilderPluginDescriptor? descriptor = descriptors.FirstOrDefault(candidate =>
+                !usedPlugins.Contains(candidate.Name)
+                && string.Equals(
+                    Path.GetFileName(candidate.AssemblyPath),
+                    filename,
+                    StringComparison.OrdinalIgnoreCase));
+            if (descriptor == null) continue;
+
+            result.Add(descriptor);
+            usedPlugins.Add(descriptor.Name);
+        }
+
+        result.AddRange(descriptors.Where(descriptor => !usedPlugins.Contains(descriptor.Name)));
+        return result.ToArray();
     }
 
     private static IReadOnlyList<DBuilderPluginContribution> NormalizeContributions(
