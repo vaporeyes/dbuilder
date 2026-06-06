@@ -7,6 +7,34 @@ using Silk.NET.OpenGL;
 
 namespace DBuilder.Rendering;
 
+public enum CubeMapFace
+{
+    PositiveX,
+    PositiveY,
+    PositiveZ,
+    NegativeX,
+    NegativeY,
+    NegativeZ,
+}
+
+public enum TextureOperationKind
+{
+    Bind,
+    Clear,
+    CopyCubeFace,
+    SetPixels2D,
+    SetPixelsCubeFace,
+    MapPbo,
+    UnmapPbo,
+}
+
+public sealed record TextureOperationPlan(
+    TextureOperationKind Kind,
+    int Unit,
+    bool HasTexture,
+    CubeMapFace? CubeFace = null,
+    uint? ColorArgb = null);
+
 public sealed class RenderDevice : IDisposable
 {
     private readonly GL _gl;
@@ -253,6 +281,30 @@ public sealed class RenderDevice : IDisposable
         _gl.ActiveTexture(TextureUnit.Texture0 + unit);
         _gl.BindTexture(TextureTarget.Texture2D, texture?.Handle ?? 0);
     }
+
+    public void SetTexture(Texture? texture, int unit = 0)
+        => SetTexture(unit, texture);
+
+    public static TextureOperationPlan BuildSetTexturePlan(Texture? texture, int unit = 0)
+        => new(TextureOperationKind.Bind, unit, texture != null);
+
+    public static TextureOperationPlan BuildClearTexturePlan(uint colorArgb, Texture? texture)
+        => new(TextureOperationKind.Clear, 0, texture != null, ColorArgb: colorArgb);
+
+    public static TextureOperationPlan BuildCopyTexturePlan(CubeMapFace face, Texture? texture)
+        => new(TextureOperationKind.CopyCubeFace, 0, texture != null, CubeFace: face);
+
+    public static TextureOperationPlan BuildSetPixelsPlan(Texture? texture)
+        => new(TextureOperationKind.SetPixels2D, 0, texture != null);
+
+    public static TextureOperationPlan BuildSetCubePixelsPlan(Texture? texture, CubeMapFace face)
+        => new(TextureOperationKind.SetPixelsCubeFace, 0, texture != null, CubeFace: face);
+
+    public static TextureOperationPlan BuildMapPboPlan(Texture? texture)
+        => new(TextureOperationKind.MapPbo, 0, texture != null);
+
+    public static TextureOperationPlan BuildUnmapPboPlan(Texture? texture)
+        => new(TextureOperationKind.UnmapPbo, 0, texture != null);
 
     public void SetSamplerFilter(TextureFilter min, TextureFilter mag, MipmapFilter mip, int unit = 0)
     {

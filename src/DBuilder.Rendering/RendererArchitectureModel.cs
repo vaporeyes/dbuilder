@@ -30,6 +30,7 @@ public static class RendererArchitectureModel
             "Index-buffer binding and primitive draw dispatch",
             "Texture disposed-state reporting",
             "Texture format metadata and 2D/cube allocation planning",
+            "Render-device texture operation planning",
             "Owned indexed-triangle mesh wrapper",
             "Surface-entry chunk metadata and bounds model",
             "Surface manager vertex chunk and buffer allocation planning",
