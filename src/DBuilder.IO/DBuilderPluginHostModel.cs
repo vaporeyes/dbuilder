@@ -66,6 +66,16 @@ public sealed record DBuilderPluginDescriptorPlan(
     IReadOnlyList<DBuilderPluginDescriptor> Descriptors,
     IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
 
+public sealed record DBuilderPluginLoadCandidate(
+    string PluginName,
+    string AssemblyPath,
+    int Order,
+    bool RequiresMap);
+
+public sealed record DBuilderPluginLoadPlan(
+    IReadOnlyList<DBuilderPluginLoadCandidate> Candidates,
+    IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
+
 public sealed record DBuilderPluginSettingDescriptor(
     string Key,
     object? DefaultValue = null);
@@ -109,6 +119,7 @@ public sealed record DBuilderPluginApiContributionPlan(
 
 public sealed record DBuilderPluginHostPlan(
     DBuilderPluginDescriptorPlan DescriptorPlan,
+    DBuilderPluginLoadPlan LoadPlan,
     IReadOnlyList<DBuilderPluginLifecyclePlan> LifecyclePlans,
     DBuilderPluginUiContributionPlan UiContributions,
     DBuilderPluginApiContributionPlan ApiContributions,
@@ -273,15 +284,49 @@ public static class DBuilderPluginHostModel
     {
         DBuilderPluginDescriptorPlan descriptorPlan = PlanDescriptors(descriptors);
         DBuilderPluginDescriptor[] normalizedDescriptors = descriptorPlan.Descriptors.ToArray();
+        DBuilderPluginLoadPlan loadPlan = PlanLoadCandidates(descriptorPlan);
+        var loadCandidateNames = loadPlan.Candidates
+            .Select(candidate => candidate.PluginName)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        DBuilderPluginDescriptor[] loadableDescriptors = normalizedDescriptors
+            .Where(descriptor => loadCandidateNames.Contains(descriptor.Name))
+            .ToArray();
 
         return new DBuilderPluginHostPlan(
             descriptorPlan,
-            normalizedDescriptors
+            loadPlan,
+            loadableDescriptors
                 .Select(descriptor => PlanLifecycle(descriptor, request))
                 .ToArray(),
-            PlanUiContributions(normalizedDescriptors),
-            PlanApiContributions(normalizedDescriptors),
-            PlanResourceHandlers(normalizedDescriptors));
+            PlanUiContributions(loadableDescriptors),
+            PlanApiContributions(loadableDescriptors),
+            PlanResourceHandlers(loadableDescriptors));
+    }
+
+    public static DBuilderPluginLoadPlan PlanLoadCandidates(DBuilderPluginDescriptorPlan descriptorPlan)
+    {
+        var candidates = new List<DBuilderPluginLoadCandidate>();
+        var diagnostics = new List<DBuilderPluginDiagnostic>(descriptorPlan.Diagnostics);
+
+        foreach (DBuilderPluginDescriptor descriptor in descriptorPlan.Descriptors)
+        {
+            if (!descriptor.AssemblyPath.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+            {
+                diagnostics.Add(new DBuilderPluginDiagnostic(
+                    DBuilderPluginDiagnosticSeverity.Error,
+                    descriptor.Name,
+                    $"Plugin {descriptor.Name} assembly path must point to a .dll file."));
+                continue;
+            }
+
+            candidates.Add(new DBuilderPluginLoadCandidate(
+                descriptor.Name,
+                descriptor.AssemblyPath,
+                candidates.Count,
+                descriptor.RequiresMap));
+        }
+
+        return new DBuilderPluginLoadPlan(candidates, diagnostics);
     }
 
     public static DBuilderPluginCallbackInvocationPlan PlanCallbackInvocations(
@@ -305,11 +350,11 @@ public static class DBuilderPluginHostModel
                 });
         }
 
-        DBuilderPluginCallbackInvocation[] invocations = hostPlan.DescriptorPlan.Descriptors
-            .Select((descriptor, index) => new DBuilderPluginCallbackInvocation(
-                descriptor.Name,
+        DBuilderPluginCallbackInvocation[] invocations = hostPlan.LoadPlan.Candidates
+            .Select(candidate => new DBuilderPluginCallbackInvocation(
+                candidate.PluginName,
                 callback.Name,
-                index,
+                candidate.Order,
                 callback.CanAbort))
             .ToArray();
 

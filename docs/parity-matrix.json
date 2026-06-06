@@ -79,8 +79,9 @@
     },
     {
       "udbArea": "Source/Core/Plugins",
-      "status": "missing",
-      "dbuilderLocation": null
+      "status": "partial",
+      "dbuilderLocation": "DBuilder.IO",
+      "notes": "UI-independent plugin descriptor normalization, assembly load candidate planning with diagnostics, lifecycle hook planning, contribution planning, settings persistence planning, callback catalog metadata, callback invocation planning, and callback result aggregation exist. Runtime assembly loading and plugin API execution remain missing."
     },
     {
       "udbArea": "Source/Core/Properties",

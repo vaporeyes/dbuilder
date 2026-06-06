@@ -346,6 +346,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Design and implement a plugin loading architecture for DBuilder.
   - [x] Add UI-independent plugin descriptor normalization and lifecycle hook planning.
   - [x] Add aggregate plugin host planning for descriptors, diagnostics, lifecycle, UI, API, and resources.
+  - [x] Add plugin assembly load candidate planning with `.dll` validation and diagnostics.
 - [ ] Define plugin lifecycle hooks equivalent to UDB plugins.
   - [x] Add plugin lifecycle hook ordering for load, initialize, contribution registration, map-open, engage, disengage, and dispose planning.
 - [ ] Define plugin APIs for map access, UI contribution, actions, edit modes, and dockers.

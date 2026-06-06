@@ -208,6 +208,57 @@ public sealed class DBuilderPluginHostModelTests
     }
 
     [Fact]
+    public void PlanLoadCandidatesUsesNormalizedPluginOrder()
+    {
+        DBuilderPluginDescriptorPlan descriptorPlan = DBuilderPluginHostModel.PlanDescriptors(new[]
+        {
+            new DBuilderPluginDescriptor("TagRange", " /plugins/tagrange.dll "),
+            new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll", RequiresMap: true),
+            new DBuilderPluginDescriptor("Disabled", "/plugins/disabled.dll", Enabled: false)
+        });
+
+        DBuilderPluginLoadPlan plan = DBuilderPluginHostModel.PlanLoadCandidates(descriptorPlan);
+
+        Assert.Collection(
+            plan.Candidates,
+            candidate =>
+            {
+                Assert.Equal("BuilderModes", candidate.PluginName);
+                Assert.Equal("/plugins/buildermodes.dll", candidate.AssemblyPath);
+                Assert.Equal(0, candidate.Order);
+                Assert.True(candidate.RequiresMap);
+            },
+            candidate =>
+            {
+                Assert.Equal("TagRange", candidate.PluginName);
+                Assert.Equal("/plugins/tagrange.dll", candidate.AssemblyPath);
+                Assert.Equal(1, candidate.Order);
+                Assert.False(candidate.RequiresMap);
+            });
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.Diagnostics);
+        Assert.Equal("Plugin Disabled is disabled.", diagnostic.Message);
+    }
+
+    [Fact]
+    public void PlanLoadCandidatesRejectsNonDllAssemblyPaths()
+    {
+        DBuilderPluginDescriptorPlan descriptorPlan = DBuilderPluginHostModel.PlanDescriptors(new[]
+        {
+            new DBuilderPluginDescriptor("LooseScript", "/plugins/loose.txt"),
+            new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll")
+        });
+
+        DBuilderPluginLoadPlan plan = DBuilderPluginHostModel.PlanLoadCandidates(descriptorPlan);
+
+        DBuilderPluginLoadCandidate candidate = Assert.Single(plan.Candidates);
+        Assert.Equal("BuilderModes", candidate.PluginName);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.Diagnostics);
+        Assert.Equal(DBuilderPluginDiagnosticSeverity.Error, diagnostic.Severity);
+        Assert.Equal("LooseScript", diagnostic.PluginName);
+        Assert.Equal("Plugin LooseScript assembly path must point to a .dll file.", diagnostic.Message);
+    }
+
+    [Fact]
     public void BuildHostPlanAggregatesDescriptorsLifecycleAndContributionPlans()
     {
         DBuilderPluginHostPlan plan = DBuilderPluginHostModel.BuildHostPlan(
@@ -234,6 +285,9 @@ public sealed class DBuilderPluginHostModelTests
         DBuilderPluginDescriptor descriptor = Assert.Single(plan.DescriptorPlan.Descriptors);
         Assert.Equal("BuilderModes", descriptor.Name);
         Assert.Equal(2, plan.DescriptorPlan.Diagnostics.Count);
+        DBuilderPluginLoadCandidate loadCandidate = Assert.Single(plan.LoadPlan.Candidates);
+        Assert.Equal("BuilderModes", loadCandidate.PluginName);
+        Assert.Equal(2, plan.LoadPlan.Diagnostics.Count);
         DBuilderPluginLifecyclePlan lifecycle = Assert.Single(plan.LifecyclePlans);
         Assert.Equal(new[]
         {
@@ -257,6 +311,39 @@ public sealed class DBuilderPluginHostModelTests
         Assert.Empty(plan.UiContributions.Warnings);
         Assert.Empty(plan.ApiContributions.Warnings);
         Assert.Empty(plan.ResourceHandlers.Warnings);
+    }
+
+    [Fact]
+    public void BuildHostPlanKeepsInvalidLoadCandidatesOutOfRuntimePlans()
+    {
+        DBuilderPluginHostPlan plan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor(
+                    "LooseScript",
+                    "/plugins/loose.txt",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "loose.action", "Loose action")
+                    }),
+                new DBuilderPluginDescriptor("BuilderModes", "/plugins/buildermodes.dll")
+            },
+            new DBuilderPluginLifecycleRequest(Engage: true));
+
+        DBuilderPluginLoadCandidate loadCandidate = Assert.Single(plan.LoadPlan.Candidates);
+        Assert.Equal("BuilderModes", loadCandidate.PluginName);
+        DBuilderPluginDiagnostic diagnostic = Assert.Single(plan.LoadPlan.Diagnostics);
+        Assert.Equal("LooseScript", diagnostic.PluginName);
+        Assert.Single(plan.LifecyclePlans);
+        Assert.Equal("BuilderModes", plan.LifecyclePlans.Single().Descriptor.Name);
+        Assert.Empty(plan.ApiContributions.Actions);
+
+        DBuilderPluginCallbackInvocationPlan callbackPlan = DBuilderPluginHostModel.PlanCallbackInvocations(
+            plan,
+            "OnMapOpenBegin");
+
+        DBuilderPluginCallbackInvocation invocation = Assert.Single(callbackPlan.Invocations);
+        Assert.Equal("BuilderModes", invocation.PluginName);
     }
 
     [Fact]
