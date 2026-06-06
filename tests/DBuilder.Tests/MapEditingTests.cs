@@ -3,6 +3,7 @@
 
 using DBuilder.Geometry;
 using DBuilder.Map;
+using System.Drawing;
 
 namespace DBuilder.Tests;
 
@@ -245,6 +246,46 @@ public class MapEditingTests
         Assert.Empty(map.Sectors[1].Sidedefs);
         // v1 is still referenced by lA only now.
         Assert.Single(map.Vertices[1].Linedefs);
+    }
+
+    [Fact]
+    public void UpdateRefreshesLineAndSectorCachesLikeUdb()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var start = map.AddVertex(new Vector2D(0, 0));
+        var oldEnd = map.AddVertex(new Vector2D(64, 0));
+        var newEnd = map.AddVertex(new Vector2D(0, 32));
+        var line = map.AddLinedef(start, oldEnd);
+        map.AddSidedef(line, true, sector);
+        map.BuildIndexes();
+
+        line.End = newEnd;
+        Assert.Contains(line, oldEnd.Linedefs);
+        Assert.DoesNotContain(line, newEnd.Linedefs);
+        Assert.NotEqual(Linedef.ComputeAngle(start, newEnd), line.Angle);
+
+        map.Update();
+
+        Assert.DoesNotContain(line, oldEnd.Linedefs);
+        Assert.Contains(line, newEnd.Linedefs);
+        Assert.Equal(Linedef.ComputeAngle(start, newEnd), line.Angle);
+        Assert.Equal(new RectangleF(0, 0, 0, 32), sector.BBox);
+    }
+
+    [Fact]
+    public void UpdateConfigurationKeepsMapDataUnchanged()
+    {
+        var map = BuildTwoRooms();
+        var vertex = map.Vertices[0];
+        var line = map.Linedefs[0];
+        RectangleF bounds = map.Sectors[0].BBox;
+
+        map.UpdateConfiguration();
+
+        Assert.Same(vertex, map.Vertices[0]);
+        Assert.Same(line, map.Linedefs[0]);
+        Assert.Equal(bounds, map.Sectors[0].BBox);
     }
 
     [Fact]

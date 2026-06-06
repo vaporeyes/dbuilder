@@ -104,31 +104,54 @@ public class MapSet : IDisposable
     /// Sector.Sidedefs. Call this once after loading; idempotent (clears existing entries first).
     /// </summary>
     public void BuildIndexes()
+        => Update();
+
+    public void Update()
+        => Update(dolines: true, dosectors: true);
+
+    public void Update(bool dolines, bool dosectors)
     {
         ReindexAllElements();
-        foreach (var v in Vertices) v.Linedefs.Clear();
-        foreach (var s in Sectors)  s.Sidedefs.Clear();
-        foreach (var sd in Sidedefs) sd.Other = null;
+        if (dolines)
+        {
+            foreach (var vertex in Vertices) vertex.Linedefs.Clear();
+            foreach (var side in Sidedefs) side.Other = null;
+        }
+
+        if (dosectors)
+        {
+            foreach (var sector in Sectors) sector.Sidedefs.Clear();
+        }
 
         foreach (var line in Linedefs)
         {
-            if (line.Start != null) line.Start.Linedefs.Add(line);
-            // Avoid double-adding if Start == End (degenerate but observed in the wild).
-            if (line.End != null && !object.ReferenceEquals(line.End, line.Start)) line.End.Linedefs.Add(line);
+            if (dolines)
+            {
+                if (line.Start != null && line.End != null)
+                    line.Angle = Linedef.ComputeAngle(line.Start, line.End);
+                if (line.Start != null) line.Start.Linedefs.Add(line);
+                // Avoid double-adding if Start == End (degenerate but observed in the wild).
+                if (line.End != null && !object.ReferenceEquals(line.End, line.Start)) line.End.Linedefs.Add(line);
+            }
 
             if (line.Front != null)
             {
-                if (line.Front.Sector != null) line.Front.Sector.Sidedefs.Add(line.Front);
-                line.Front.Other = line.Back;
+                if (dosectors && line.Front.Sector != null) line.Front.Sector.Sidedefs.Add(line.Front);
+                if (dolines) line.Front.Other = line.Back;
             }
             if (line.Back != null)
             {
-                if (line.Back.Sector != null) line.Back.Sector.Sidedefs.Add(line.Back);
-                line.Back.Other = line.Front;
+                if (dosectors && line.Back.Sector != null) line.Back.Sector.Sidedefs.Add(line.Back);
+                if (dolines) line.Back.Other = line.Front;
             }
         }
 
-        foreach (var sector in Sectors) sector.UpdateBBox();
+        if (dosectors)
+            foreach (var sector in Sectors) sector.UpdateBBox();
+    }
+
+    public void UpdateConfiguration()
+    {
     }
 
     // ============================================================
