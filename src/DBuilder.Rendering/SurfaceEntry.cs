@@ -68,6 +68,69 @@ public sealed class SurfaceEntry
 public sealed class SurfaceEntryCollection : List<SurfaceEntry>
 {
     public int TotalVertices { get; set; }
+
+    public bool ApplyUpdate(SurfaceUpdate update)
+    {
+        bool reallocated = Count > 0 && TotalVertices != update.NumVertices;
+        if (reallocated)
+            Clear();
+
+        if (Count == 0 && update.NumVertices > 0)
+        {
+            if (update.FloorVertices == null || update.CeilingVertices == null)
+                throw new InvalidOperationException("Surface creation requires floor and ceiling vertices.");
+
+            int offset = 0;
+            foreach (int chunk in SurfaceManagerPlan.SplitSectorVertexCount(update.NumVertices))
+            {
+                var entry = new SurfaceEntry(chunk, bufferIndex: -1, vertexOffset: -1)
+                {
+                    FloorVertices = CopyRange(update.FloorVertices, offset, chunk),
+                    CeilingVertices = CopyRange(update.CeilingVertices, offset, chunk),
+                    FloorTexture = update.FloorTexture,
+                    CeilingTexture = update.CeilingTexture,
+                    Hidden = update.Hidden,
+                    Desaturation = update.Desaturation,
+                };
+                entry.UpdateBounds();
+                Add(entry);
+                offset += chunk;
+            }
+        }
+        else
+        {
+            int offset = 0;
+            foreach (SurfaceEntry entry in this)
+            {
+                if (update.FloorVertices != null)
+                {
+                    Array.Copy(update.FloorVertices, offset, entry.FloorVertices, 0, entry.NumVertices);
+                    entry.FloorTexture = update.FloorTexture;
+                }
+
+                if (update.CeilingVertices != null)
+                {
+                    Array.Copy(update.CeilingVertices, offset, entry.CeilingVertices, 0, entry.NumVertices);
+                    entry.CeilingTexture = update.CeilingTexture;
+                }
+
+                entry.Hidden = update.Hidden;
+                entry.Desaturation = update.Desaturation;
+                entry.UpdateBounds();
+                offset += entry.NumVertices;
+            }
+        }
+
+        TotalVertices = update.NumVertices;
+        return reallocated;
+    }
+
+    private static FlatVertex[] CopyRange(FlatVertex[] vertices, int offset, int count)
+    {
+        var copy = new FlatVertex[count];
+        Array.Copy(vertices, offset, copy, 0, count);
+        return copy;
+    }
 }
 
 public sealed class SurfaceUpdate
