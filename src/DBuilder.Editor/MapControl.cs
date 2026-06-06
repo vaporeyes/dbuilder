@@ -2544,7 +2544,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var targets = TextureApplyTargets3D();
         if (targets.Count == 0) { Target3DChanged?.Invoke("aim at a surface to apply texture"); return; }
         EditBegun?.Invoke(TextureApplied3DEditName(tex, targets[^1].Kind, pasted));
-        foreach (var h in targets) ApplyTextureToHit(h, tex);
+        foreach (var h in targets) ApplyTextureToHit(h, tex, _gameConfig?.UseLongTextureNames ?? false);
         _geo3DDirty = true;
         MarkGeometryDirty();
         Changed?.Invoke();
@@ -2580,15 +2580,40 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             .Where(hit => hit.Kind is VisualHitKind.Floor or VisualHitKind.Ceiling or VisualHitKind.Wall)
             .ToList();
 
-    private static void ApplyTextureToHit(VisualHit h, string tex)
+    public static void ApplyTextureToHit(VisualHit h, string tex, bool useLongTextureNames)
     {
-        if (h.Kind == VisualHitKind.Floor && h.Sector is { } fs) fs.FloorTexture = tex;
-        else if (h.Kind == VisualHitKind.Ceiling && h.Sector is { } cs) cs.CeilTexture = tex;
+        if (h.Kind == VisualHitKind.Floor && h.Sector is { } fs)
+        {
+            fs.SetFloorTexture(tex);
+            fs.LongFloorTexture = Lump.MakeLongName(fs.FloorTexture, useLongTextureNames);
+        }
+        else if (h.Kind == VisualHitKind.Ceiling && h.Sector is { } cs)
+        {
+            cs.SetCeilTexture(tex);
+            cs.LongCeilTexture = Lump.MakeLongName(cs.CeilTexture, useLongTextureNames);
+        }
         else if (h.Kind == VisualHitKind.Wall)
         {
             var sd = h.Front ? h.Line?.Front : h.Line?.Back;
             if (sd == null) return;
             sd.SetTexture(h.Part, tex);
+            SetLongTextureName(sd, h.Part, useLongTextureNames);
+        }
+    }
+
+    private static void SetLongTextureName(Sidedef side, SidedefPart part, bool useLongTextureNames)
+    {
+        switch (part)
+        {
+            case SidedefPart.Upper:
+                side.LongHighTexture = Lump.MakeLongName(side.HighTexture, useLongTextureNames);
+                break;
+            case SidedefPart.Middle:
+                side.LongMiddleTexture = Lump.MakeLongName(side.MidTexture, useLongTextureNames);
+                break;
+            case SidedefPart.Lower:
+                side.LongLowTexture = Lump.MakeLongName(side.LowTexture, useLongTextureNames);
+                break;
         }
     }
 

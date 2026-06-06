@@ -107,6 +107,37 @@ public sealed class MapControlCommandTests
     public void TextureApplied3DEditNameMatchesUdbTargetKind(string textureName, VisualHitKind kind, bool pasted, string expected)
         => Assert.Equal(expected, MapControl.TextureApplied3DEditName(textureName, kind, pasted));
 
+    [Fact]
+    public void ApplyTextureToHitUpdatesLongTextureNames()
+    {
+        var sector = new Sector();
+        var floorHit = new VisualHit(VisualHitKind.Floor, 0, new(), sector, null, true, 0, 0);
+        var ceilingHit = new VisualHit(VisualHitKind.Ceiling, 0, new(), sector, null, true, 0, 0);
+        var line = new Linedef(new Vertex(new Vector2D(0, 0)), new Vertex(new Vector2D(64, 0)));
+        var side = new Sidedef();
+        line.AttachFront(side);
+        var upperHit = new VisualHit(VisualHitKind.Wall, 0, new(), null, line, true, 0, 64, SidedefPart.Upper);
+        var middleHit = new VisualHit(VisualHitKind.Wall, 0, new(), null, line, true, 0, 64, SidedefPart.Middle);
+        var lowerHit = new VisualHit(VisualHitKind.Wall, 0, new(), null, line, true, 0, 64, SidedefPart.Lower);
+
+        MapControl.ApplyTextureToHit(floorHit, "FLOORAPPLIED", useLongTextureNames: true);
+        MapControl.ApplyTextureToHit(ceilingHit, "CEILINGAPPLIED", useLongTextureNames: true);
+        MapControl.ApplyTextureToHit(upperHit, "UPPERAPPLIED", useLongTextureNames: true);
+        MapControl.ApplyTextureToHit(middleHit, "MIDDLEAPPLIED", useLongTextureNames: true);
+        MapControl.ApplyTextureToHit(lowerHit, "LOWERAPPLIED", useLongTextureNames: true);
+
+        Assert.Equal("FLOORAPPLIED", sector.FloorTexture);
+        Assert.Equal(Lump.MakeLongName("FLOORAPPLIED", useLongNames: true), sector.LongFloorTexture);
+        Assert.Equal("CEILINGAPPLIED", sector.CeilTexture);
+        Assert.Equal(Lump.MakeLongName("CEILINGAPPLIED", useLongNames: true), sector.LongCeilTexture);
+        Assert.Equal("UPPERAPPLIED", side.HighTexture);
+        Assert.Equal(Lump.MakeLongName("UPPERAPPLIED", useLongNames: true), side.LongHighTexture);
+        Assert.Equal("MIDDLEAPPLIED", side.MidTexture);
+        Assert.Equal(Lump.MakeLongName("MIDDLEAPPLIED", useLongNames: true), side.LongMiddleTexture);
+        Assert.Equal("LOWERAPPLIED", side.LowTexture);
+        Assert.Equal(Lump.MakeLongName("LOWERAPPLIED", useLongNames: true), side.LongLowTexture);
+    }
+
     [Theory]
     [InlineData("FLOOR0_1", true, "Copied flat \"FLOOR0_1\".")]
     [InlineData("STARTAN3", false, "Copied texture \"STARTAN3\".")]
@@ -1529,7 +1560,7 @@ public sealed class MapControlCommandTests
         int pasteIndex = body.IndexOf("ApplyTextureToTarget(_texClipboard3D!, pasted: true);", chosenIndex, StringComparison.Ordinal);
         int methodIndex = body.IndexOf("private void ApplyTextureToTarget(string tex, bool pasted)", pasteIndex, StringComparison.Ordinal);
         int editIndex = body.IndexOf("EditBegun?.Invoke(TextureApplied3DEditName(tex, targets[^1].Kind, pasted));", methodIndex, StringComparison.Ordinal);
-        int loopIndex = body.IndexOf("foreach (var h in targets) ApplyTextureToHit(h, tex);", editIndex, StringComparison.Ordinal);
+        int loopIndex = body.IndexOf("foreach (var h in targets) ApplyTextureToHit(h, tex, _gameConfig?.UseLongTextureNames ?? false);", editIndex, StringComparison.Ordinal);
         int formatterIndex = body.IndexOf("TexturePasted3DStatusText(tex, targets[^1].Kind)", loopIndex, StringComparison.Ordinal);
 
         Assert.True(chosenIndex >= 0);
