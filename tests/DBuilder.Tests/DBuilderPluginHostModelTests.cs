@@ -2961,7 +2961,7 @@ public sealed class DBuilderPluginHostModelTests
             "/plugins/comments.dll",
             Contributions: new[]
             {
-                new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, " comments.open ", " Open Comments "),
+                new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, " comments.open ", " Open Comments ", ActionId: " comments.toggle "),
                 new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, "comments.open", "Duplicate"),
                 new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "", "No Id"),
                 new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "comments.toggle", "")
@@ -2975,6 +2975,7 @@ public sealed class DBuilderPluginHostModelTests
         Assert.Equal(DBuilderPluginContributionKind.Menu, contribution.Kind);
         Assert.Equal("comments.open", contribution.Id);
         Assert.Equal("Open Comments", contribution.Title);
+        Assert.Equal("comments.toggle", contribution.ActionId);
         Assert.Equal(new[]
         {
             DBuilderPluginLifecycleHook.Load,
@@ -2995,8 +2996,8 @@ public sealed class DBuilderPluginHostModelTests
                 "/plugins/buildermodes.dll",
                 Contributions: new[]
                 {
-                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Toolbar, "builder.draw.toolbar", "Draw"),
-                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, "builder.draw.menu", "Draw"),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Toolbar, "builder.draw.toolbar", "Draw", ActionId: "builder.draw.action"),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, "builder.draw.menu", "Draw", ActionId: "builder.draw.action"),
                     new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "builder.draw.action", "Draw action")
                 }),
             new DBuilderPluginDescriptor(
@@ -3004,8 +3005,8 @@ public sealed class DBuilderPluginHostModelTests
                 "/plugins/comments.dll",
                 Contributions: new[]
                 {
-                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Toolbar, "comments.open.toolbar", "Open Comments"),
-                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, "comments.open.menu", "Open Comments")
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Toolbar, "comments.open.toolbar", "Open Comments", ActionId: "comments.open.action"),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, "comments.open.menu", "Open Comments", ActionId: "comments.open.action")
                 })
         });
 
@@ -3018,6 +3019,7 @@ public sealed class DBuilderPluginHostModelTests
                 Assert.Equal(DBuilderPluginContributionKind.Menu, contribution.Kind);
                 Assert.Equal("builder.draw.menu", contribution.Id);
                 Assert.Equal("Draw", contribution.Title);
+                Assert.Equal("builder.draw.action", contribution.ActionId);
             },
             contribution =>
             {
@@ -3034,6 +3036,7 @@ public sealed class DBuilderPluginHostModelTests
                 Assert.Equal(DBuilderPluginContributionKind.Toolbar, contribution.Kind);
                 Assert.Equal("builder.draw.toolbar", contribution.Id);
                 Assert.Equal("Draw", contribution.Title);
+                Assert.Equal("builder.draw.action", contribution.ActionId);
             },
             contribution =>
             {
@@ -3054,7 +3057,7 @@ public sealed class DBuilderPluginHostModelTests
                 " /plugins/comments.dll ",
                 Contributions: new[]
                 {
-                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, " comments.open ", " Open Comments "),
+                    new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, " comments.open ", " Open Comments ", ActionId: " comments.open.action "),
                     new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, "comments.open", "Duplicate"),
                     new DBuilderPluginContribution(DBuilderPluginContributionKind.Toolbar, "", "Missing Id"),
                     new DBuilderPluginContribution(DBuilderPluginContributionKind.Toolbar, "comments.toolbar", "")
@@ -3066,6 +3069,86 @@ public sealed class DBuilderPluginHostModelTests
         Assert.Equal("CommentsPanel", contribution.PluginName);
         Assert.Equal("comments.open", contribution.Id);
         Assert.Equal("Open Comments", contribution.Title);
+        Assert.Equal("comments.open.action", contribution.ActionId);
+    }
+
+    [Fact]
+    public void PlanUiCommandResolvesMenuAndToolbarActionBindings()
+    {
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor(
+                    "BuilderModes",
+                    "/plugins/buildermodes.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "builder.draw.action", "Draw action"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, "builder.draw.menu", "Draw", ActionId: "builder.draw.action"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Toolbar, "builder.draw.toolbar", "Draw", ActionId: "builder.draw.action")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest());
+
+        DBuilderPluginUiCommandPlan menu = DBuilderPluginHostModel.PlanUiCommand(hostPlan, " builder.draw.menu ");
+        DBuilderPluginUiCommandPlan toolbar = DBuilderPluginHostModel.PlanUiCommand(hostPlan, "builder.draw.toolbar");
+
+        Assert.Empty(menu.Diagnostics);
+        Assert.NotNull(menu.UiContribution);
+        Assert.Equal("builder.draw.menu", menu.UiContribution.Id);
+        Assert.NotNull(menu.Action);
+        Assert.Equal("builder.draw.action", menu.Action.Id);
+        Assert.Empty(toolbar.Diagnostics);
+        Assert.NotNull(toolbar.UiContribution);
+        Assert.Equal(DBuilderPluginContributionKind.Toolbar, toolbar.UiContribution.Kind);
+        Assert.NotNull(toolbar.Action);
+        Assert.Equal("builder.draw.action", toolbar.Action.Id);
+    }
+
+    [Fact]
+    public void PlanUiCommandReportsMissingAmbiguousAndUnboundUiContributions()
+    {
+        DBuilderPluginHostPlan hostPlan = DBuilderPluginHostModel.BuildHostPlan(
+            new[]
+            {
+                new DBuilderPluginDescriptor(
+                    "BuilderModes",
+                    "/plugins/buildermodes.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Action, "builder.draw.action", "Draw action"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, "shared.ui", "Draw", ActionId: "builder.draw.action"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Menu, "unbound.ui", "Unbound"),
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Toolbar, "missing.action.ui", "Missing", ActionId: "missing.action")
+                    }),
+                new DBuilderPluginDescriptor(
+                    "CommentsPanel",
+                    "/plugins/comments.dll",
+                    Contributions: new[]
+                    {
+                        new DBuilderPluginContribution(DBuilderPluginContributionKind.Toolbar, "shared.ui", "Open Comments", ActionId: "builder.draw.action")
+                    })
+            },
+            new DBuilderPluginLifecycleRequest());
+
+        DBuilderPluginUiCommandPlan missingId = DBuilderPluginHostModel.PlanUiCommand(hostPlan, " ");
+        DBuilderPluginUiCommandPlan missingUi = DBuilderPluginHostModel.PlanUiCommand(hostPlan, "missing.ui");
+        DBuilderPluginUiCommandPlan ambiguous = DBuilderPluginHostModel.PlanUiCommand(hostPlan, "shared.ui");
+        DBuilderPluginUiCommandPlan unbound = DBuilderPluginHostModel.PlanUiCommand(hostPlan, "unbound.ui");
+        DBuilderPluginUiCommandPlan missingAction = DBuilderPluginHostModel.PlanUiCommand(hostPlan, "missing.action.ui");
+
+        Assert.Null(missingId.UiContribution);
+        Assert.Equal("Plugin UI contribution id is missing.", Assert.Single(missingId.Diagnostics).Message);
+        Assert.Null(missingUi.UiContribution);
+        Assert.Equal("Plugin UI contribution missing.ui was not found.", Assert.Single(missingUi.Diagnostics).Message);
+        Assert.Null(ambiguous.UiContribution);
+        Assert.Equal("Plugin UI contribution shared.ui is ambiguous.", Assert.Single(ambiguous.Diagnostics).Message);
+        Assert.NotNull(unbound.UiContribution);
+        Assert.Null(unbound.Action);
+        Assert.Equal("Plugin UI contribution unbound.ui does not specify an action id.", Assert.Single(unbound.Diagnostics).Message);
+        Assert.NotNull(missingAction.UiContribution);
+        Assert.Null(missingAction.Action);
+        Assert.Equal("Plugin action missing.action was not found.", Assert.Single(missingAction.Diagnostics).Message);
     }
 
     [Fact]

@@ -52,7 +52,8 @@ public sealed record DBuilderPluginContribution(
     DBuilderPluginContributionKind Kind,
     string Id,
     string Title,
-    string? MethodName = null);
+    string? MethodName = null,
+    string? ActionId = null);
 
 public sealed record DBuilderPluginDescriptor(
     string Name,
@@ -195,7 +196,8 @@ public sealed record DBuilderPluginUiContribution(
     string PluginName,
     DBuilderPluginContributionKind Kind,
     string Id,
-    string Title);
+    string Title,
+    string? ActionId = null);
 
 public sealed record DBuilderPluginUiContributionPlan(
     IReadOnlyList<DBuilderPluginUiContribution> Menus,
@@ -225,6 +227,11 @@ public sealed record DBuilderPluginApiContributionPlan(
     IReadOnlyList<string> Warnings);
 
 public sealed record DBuilderPluginActionCommandPlan(
+    DBuilderPluginApiContribution? Action,
+    IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
+
+public sealed record DBuilderPluginUiCommandPlan(
+    DBuilderPluginUiContribution? UiContribution,
     DBuilderPluginApiContribution? Action,
     IReadOnlyList<DBuilderPluginDiagnostic> Diagnostics);
 
@@ -1595,7 +1602,8 @@ public static class DBuilderPluginHostModel
                     lifecycle.Descriptor.Name,
                     contribution.Kind,
                     contribution.Id,
-                    contribution.Title);
+                    contribution.Title,
+                    contribution.ActionId);
 
                 if (contribution.Kind == DBuilderPluginContributionKind.Menu) menus.Add(uiContribution);
                 if (contribution.Kind == DBuilderPluginContributionKind.Toolbar) toolbars.Add(uiContribution);
@@ -1719,6 +1727,59 @@ public static class DBuilderPluginHostModel
         }
 
         return new DBuilderPluginActionCommandPlan(matches[0], diagnostics);
+    }
+
+    public static DBuilderPluginUiCommandPlan PlanUiCommand(
+        DBuilderPluginHostPlan hostPlan,
+        string uiContributionId)
+    {
+        string id = uiContributionId.Trim();
+        var diagnostics = new List<DBuilderPluginDiagnostic>(hostPlan.DescriptorPlan.Diagnostics);
+        if (id.Length == 0)
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                "(plugin host)",
+                "Plugin UI contribution id is missing."));
+            return new DBuilderPluginUiCommandPlan(null, null, diagnostics);
+        }
+
+        DBuilderPluginUiContribution[] matches = hostPlan.UiContributions.Menus
+            .Concat(hostPlan.UiContributions.Toolbars)
+            .Where(contribution => string.Equals(contribution.Id, id, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        if (matches.Length == 0)
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                "(plugin host)",
+                $"Plugin UI contribution {id} was not found."));
+            return new DBuilderPluginUiCommandPlan(null, null, diagnostics);
+        }
+
+        if (matches.Length > 1)
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                "(plugin host)",
+                $"Plugin UI contribution {id} is ambiguous."));
+            return new DBuilderPluginUiCommandPlan(null, null, diagnostics);
+        }
+
+        DBuilderPluginUiContribution contribution = matches[0];
+        string actionId = contribution.ActionId?.Trim() ?? "";
+        if (actionId.Length == 0)
+        {
+            diagnostics.Add(new DBuilderPluginDiagnostic(
+                DBuilderPluginDiagnosticSeverity.Error,
+                contribution.PluginName,
+                $"Plugin UI contribution {contribution.Id} does not specify an action id."));
+            return new DBuilderPluginUiCommandPlan(contribution, null, diagnostics);
+        }
+
+        DBuilderPluginActionCommandPlan action = PlanActionCommand(hostPlan, actionId);
+        diagnostics.AddRange(action.Diagnostics.Except(hostPlan.DescriptorPlan.Diagnostics));
+        return new DBuilderPluginUiCommandPlan(contribution, action.Action, diagnostics);
     }
 
     public static DBuilderPluginActionExecutionResult ExecuteReflectionActionCommand(
@@ -1951,11 +2012,13 @@ public static class DBuilderPluginHostModel
             string id = contribution.Id.Trim();
             string title = contribution.Title.Trim();
             string? methodName = contribution.MethodName?.Trim();
+            string? actionId = contribution.ActionId?.Trim();
             if (methodName is { Length: 0 }) methodName = null;
+            if (actionId is { Length: 0 }) actionId = null;
             if (id.Length == 0 || title.Length == 0) continue;
             if (!ids.Add(id)) continue;
 
-            result.Add(contribution with { Id = id, Title = title, MethodName = methodName });
+            result.Add(contribution with { Id = id, Title = title, MethodName = methodName, ActionId = actionId });
         }
 
         return result
