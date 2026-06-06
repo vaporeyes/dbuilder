@@ -50,13 +50,14 @@ public sealed class ThingIconRenderPolicyTests
     [Fact]
     public void CompactThresholdStartsWhenSpriteIconsCollapse()
     {
-        Assert.Equal(0.015, ThingIconRenderPolicy.CompactMarkerScaleThreshold);
+        Assert.Equal(0.08, ThingIconRenderPolicy.CompactMarkerScaleThreshold);
+        Assert.Equal(0.02, ThingIconRenderPolicy.MinimumInteractiveViewScale);
         Assert.False(ThingIconRenderPolicy.UseCompactMarkers(
-            viewScale: 0.01,
+            viewScale: ThingIconRenderPolicy.MinimumInteractiveViewScale,
             fixedThingsScale: false,
             thingArrows: false));
-        Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
-            viewScale: 0.02,
+        Assert.False(ThingIconRenderPolicy.UseCompactMarkers(
+            viewScale: ThingIconRenderPolicy.CompactMarkerScaleThreshold - 0.01,
             fixedThingsScale: false,
             thingArrows: false));
         Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
@@ -209,7 +210,8 @@ public sealed class ThingIconRenderPolicyTests
     [Fact]
     public void SpriteIconsRenderOnlyWhenScreenFootprintStaysReadable()
     {
-        Assert.Equal(0.015, ThingIconRenderPolicy.SpriteIconScaleThreshold);
+        Assert.Equal(0.08, ThingIconRenderPolicy.SpriteIconScaleThreshold);
+        Assert.Equal(8.0, ThingIconRenderPolicy.MinimumSpriteScreenRadius);
         Assert.False(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
             mapRadius: 20,
             viewScale: 1.2,
@@ -218,21 +220,21 @@ public sealed class ThingIconRenderPolicyTests
             mapRadius: 20,
             viewScale: 0.08,
             fixedThingsScale: false));
-        Assert.False(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
+        Assert.True(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
             mapRadius: 20,
             viewScale: 0.02,
             fixedThingsScale: false));
-        Assert.False(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
+        Assert.True(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
             mapRadius: 20,
             viewScale: 0.05,
             fixedThingsScale: false));
         Assert.True(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
             mapRadius: 20,
-            viewScale: ThingIconRenderPolicy.SpriteIconScaleThreshold,
+            viewScale: ThingIconRenderPolicy.SpriteIconScaleThreshold - 0.01,
             fixedThingsScale: false));
         Assert.True(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
             mapRadius: 40,
-            viewScale: ThingIconRenderPolicy.SpriteIconScaleThreshold,
+            viewScale: ThingIconRenderPolicy.SpriteIconScaleThreshold - 0.01,
             fixedThingsScale: false));
     }
 
@@ -246,7 +248,7 @@ public sealed class ThingIconRenderPolicyTests
             fixedSize: true));
         Assert.True(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
             mapRadius: 32,
-            viewScale: ThingIconRenderPolicy.SpriteIconScaleThreshold,
+            viewScale: ThingIconRenderPolicy.SpriteIconScaleThreshold - 0.01,
             fixedThingsScale: false,
             fixedSize: true));
     }

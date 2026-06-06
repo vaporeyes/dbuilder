@@ -5,13 +5,14 @@ namespace DBuilder.IO;
 
 public static class ThingIconRenderPolicy
 {
-    public const double SpriteIconScaleThreshold = 0.015;
+    public const double MinimumInteractiveViewScale = 0.02;
+    public const double SpriteIconScaleThreshold = 0.08;
     public const double CompactMarkerScaleThreshold = SpriteIconScaleThreshold;
     public const double FixedThingScreenRadius = 48.0;
     public const double ThingSpriteShrink = 2.0;
     public const double MinimumThingScreenRadius = 1.5;
     public const double MinimumFarOverviewThingScreenRadius = 4.0;
-    public const double MinimumSpriteScreenRadius = 24.0;
+    public const double MinimumSpriteScreenRadius = 8.0;
     public const double OverlapCullScaleThreshold = CompactMarkerScaleThreshold;
     public const double OverviewMarkerScaleThreshold = CompactMarkerScaleThreshold;
     public const double FarOverviewMarkerScaleThreshold = 1.0;
@@ -84,7 +85,7 @@ public static class ThingIconRenderPolicy
         double viewScale,
         bool fixedThingsScale,
         bool fixedSize = false)
-        => viewScale <= SpriteIconScaleThreshold
+        => viewScale < SpriteIconScaleThreshold
             && ProjectedThingScreenRadius(mapRadius, viewScale, fixedThingsScale, fixedSize) >= MinimumSpriteScreenRadius;
 
     public static double MarkerBaseSize(bool compactMarkers)
