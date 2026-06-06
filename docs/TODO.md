@@ -2127,6 +2127,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript top-level host MessageForm UI metadata model.
   - [x] Add UDBScript top-level host message dialog and runner prompt hook.
   - [x] Add UDBScript top-level host API property surface metadata.
+  - [x] Add UDBScript API compatibility coverage for a common map-editing script workflow.
 - [x] Port `USDF`.
   - [x] Add UDB-style DIALOGUE map-lump availability check and USDF conversation parser.
   - [x] Trim configured DIALOGUE map-lump names when checking USDF availability like UDB.
@@ -2583,6 +2584,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add UDBScript top-level host MessageForm UI metadata model.
 - [x] Add UDBScript top-level host message dialog and runner prompt hook.
 - [x] Add UDBScript top-level host API property surface metadata.
+- [x] Add UDBScript API compatibility coverage for a common map-editing script workflow.
 - [x] Port script discovery and execution.
   - [x] Discover UDBScript folders and scripts in stable docker order.
 - [x] Port script options.

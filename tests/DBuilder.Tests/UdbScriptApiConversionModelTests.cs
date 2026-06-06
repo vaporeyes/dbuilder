@@ -2085,6 +2085,52 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void CommonUdbScriptMapEditingSnippetUsesMapWrappersTogether()
+    {
+        var map = new MapSet();
+        var wrapper = new UdbScriptMapWrapper(map);
+
+        bool success = wrapper.drawLines(new object[]
+        {
+            new object[] { 0.0, 0.0 },
+            new UdbScriptVector2DWrapper(64, 0),
+            new object[] { 64.0, 64.0 },
+            new object[] { 0.0, 64.0 },
+            new object[] { 0.0, 0.0 },
+        });
+        int tag = wrapper.getNewTag();
+        UdbScriptSectorWrapper sector = Assert.Single(wrapper.getMarkedSectors());
+        UdbScriptLinedefWrapper[] outline = wrapper.getMarkedLinedefs();
+
+        sector.addTag(tag);
+        foreach (UdbScriptLinedefWrapper line in outline)
+        {
+            line.addTag(tag);
+            line.selected = true;
+        }
+
+        wrapper.markSelectedLinedefs();
+        UdbScriptThingWrapper thing = wrapper.createThing(new UdbScriptVector3DWrapper(32, 32, 8), type: 3001);
+        thing.selected = true;
+        int movedThings = wrapper.moveSelectedThingsBy(new object[] { 16.0, -8.0 });
+
+        Assert.True(success);
+        Assert.Equal(4, wrapper.getVertices().Length);
+        Assert.Equal(4, wrapper.getLinedefs().Length);
+        Assert.Single(wrapper.getSectors());
+        Assert.Single(wrapper.getThings());
+        Assert.Equal(new[] { tag }, sector.getTags());
+        Assert.All(outline, line => Assert.Contains(tag, line.getTags()));
+        Assert.Equal(4, wrapper.getSelectedLinedefs().Length);
+        Assert.Equal(4, wrapper.getMarkedLinedefs().Length);
+        Assert.Equal(1, movedThings);
+        Assert.Equal(new UdbScriptVector3DWrapper(48, 24, 8), thing.position);
+        Assert.Same(thing.Thing, wrapper.nearestThing(new object[] { 48.0, 24.0 })!.Thing);
+        UdbScriptLinedefWrapper nearestLine = wrapper.nearestLinedef(new object[] { 32.0, 0.0 })!;
+        Assert.Contains(outline, line => ReferenceEquals(line.Linedef, nearestLine.Linedef));
+    }
+
+    [Fact]
     public void MapWrapperDrawLinesRejectsInvalidInput()
     {
         var wrapper = new UdbScriptMapWrapper(new MapSet());
