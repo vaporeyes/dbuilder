@@ -7,6 +7,9 @@ using DBuilder.Geometry;
 
 public class Vertex : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
 {
+    public const int BUFFERVERTICES = 1;
+    public const int RENDERPRIMITIVES = 1;
+
     public int Index { get; set; }
     public Vector2D Position { get; set; }
 

@@ -225,6 +225,13 @@ public class MapElementDataTests
     }
 
     [Fact]
+    public void VertexRenderingConstantsMatchUdbSurface()
+    {
+        Assert.Equal(1, Vertex.BUFFERVERTICES);
+        Assert.Equal(1, Vertex.RENDERPRIMITIVES);
+    }
+
+    [Fact]
     public void NamedFlagHelpersMatchUdbSurface()
     {
         var line = new Linedef();
