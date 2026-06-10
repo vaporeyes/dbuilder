@@ -275,3 +275,152 @@ maps
         assert!(parse("x = @bad;").is_err());
     }
 }
+
+/// Recursively merge an overlay into a base structure (UDB Configuration merge rules):
+/// struct fields merge deep, scalar values override, and new keys append in order.
+pub fn merge(base: &mut ConfigValue, overlay: &ConfigValue) {
+    if let (ConfigValue::Struct(base_fields), ConfigValue::Struct(over_fields)) =
+        (&mut *base, overlay)
+    {
+        for (k, ov) in over_fields {
+            if let Some((_, bv)) = base_fields
+                .iter_mut()
+                .find(|(bk, _)| bk.eq_ignore_ascii_case(k))
+            {
+                if matches!((&*bv, ov), (ConfigValue::Struct(_), ConfigValue::Struct(_))) {
+                    merge(bv, ov);
+                } else {
+                    *bv = ov.clone();
+                }
+            } else {
+                base_fields.push((k.clone(), ov.clone()));
+            }
+        }
+    } else {
+        *base = overlay.clone();
+    }
+}
+
+/// Parse with include() support. The resolver maps an include name to file text;
+/// `include("name")` splices the whole document, `include("name", "dotted.path")`
+/// splices the structure at that path, mirroring UDB's include function.
+pub fn parse_with_includes(
+    text: &str,
+    resolver: &dyn Fn(&str) -> Option<String>,
+) -> Result<ConfigValue, ConfigError> {
+    let parsed = parse(text)?;
+    expand_includes(parsed, resolver)
+}
+
+fn expand_includes(
+    value: ConfigValue,
+    resolver: &dyn Fn(&str) -> Option<String>,
+) -> Result<ConfigValue, ConfigError> {
+    match value {
+        ConfigValue::Struct(fields) => {
+            let mut out: Vec<(String, ConfigValue)> = Vec::with_capacity(fields.len());
+            for (k, v) in fields {
+                if k.eq_ignore_ascii_case("include") {
+                    let (name, path) = include_args(&v)?;
+                    let text = resolver(&name)
+                        .ok_or_else(|| ConfigError(format!("cannot resolve include '{}'", name)))?;
+                    let doc = parse_with_includes(&text, resolver)?;
+                    let target = match &path {
+                        Some(p) => doc
+                            .lookup(p)
+                            .ok_or_else(|| {
+                                ConfigError(format!("include path '{}' not found in '{}'", p, name))
+                            })?
+                            .clone(),
+                        None => doc,
+                    };
+                    match target {
+                        ConfigValue::Struct(inc_fields) => {
+                            let mut spliced = ConfigValue::Struct(out);
+                            merge(&mut spliced, &ConfigValue::Struct(inc_fields));
+                            out = match spliced {
+                                ConfigValue::Struct(f) => f,
+                                _ => unreachable!(),
+                            };
+                        }
+                        other => out.push((name, other)),
+                    }
+                } else {
+                    out.push((k, expand_includes(v, resolver)?));
+                }
+            }
+            Ok(ConfigValue::Struct(out))
+        }
+        other => Ok(other),
+    }
+}
+
+// include arguments arrive as the raw value after '=' or as a call-shaped string;
+// the parser stores `include("a", "b")` keys with a String value of the call args.
+fn include_args(v: &ConfigValue) -> Result<(String, Option<String>), ConfigError> {
+    match v {
+        ConfigValue::String(s) => Ok((s.clone(), None)),
+        ConfigValue::Struct(fields) if !fields.is_empty() => {
+            // include { name = "..."; path = "..."; } form used by tests/tools.
+            let name = fields
+                .iter()
+                .find(|(k, _)| k == "name")
+                .and_then(|(_, v)| v.as_str())
+                .ok_or_else(|| ConfigError("include requires a name".into()))?
+                .to_string();
+            let path = fields
+                .iter()
+                .find(|(k, _)| k == "path")
+                .and_then(|(_, v)| v.as_str())
+                .map(str::to_string);
+            Ok((name, path))
+        }
+        _ => Err(ConfigError("invalid include arguments".into())),
+    }
+}
+
+#[cfg(test)]
+mod include_tests {
+    use super::*;
+
+    #[test]
+    fn merge_overrides_scalars_and_merges_structs_deep() {
+        let mut base = parse("a = 1; block { x = 1; y = 2; }").unwrap();
+        let overlay = parse("a = 5; block { y = 9; z = 3; } extra = true;").unwrap();
+        merge(&mut base, &overlay);
+        assert_eq!(Some(5), base.lookup("a").and_then(|v| v.as_i64()));
+        assert_eq!(Some(1), base.lookup("block.x").and_then(|v| v.as_i64()));
+        assert_eq!(Some(9), base.lookup("block.y").and_then(|v| v.as_i64()));
+        assert_eq!(Some(3), base.lookup("block.z").and_then(|v| v.as_i64()));
+        assert_eq!(Some(true), base.lookup("extra").and_then(|v| v.as_bool()));
+    }
+
+    #[test]
+    fn include_splices_whole_document() {
+        let resolver = |name: &str| -> Option<String> {
+            (name == "misc.cfg").then(|| "shared { value = 7; }".to_string())
+        };
+        let cfg = parse_with_includes("include = \"misc.cfg\"; own = 1;", &resolver).unwrap();
+        assert_eq!(Some(7), cfg.lookup("shared.value").and_then(|v| v.as_i64()));
+        assert_eq!(Some(1), cfg.lookup("own").and_then(|v| v.as_i64()));
+    }
+
+    #[test]
+    fn include_with_path_splices_substructure() {
+        let resolver = |name: &str| -> Option<String> {
+            (name == "misc.cfg").then(|| "outer { inner { value = 7; } }".to_string())
+        };
+        let cfg = parse_with_includes(
+            "block { include { name = \"misc.cfg\"; path = \"outer.inner\"; } }",
+            &resolver,
+        )
+        .unwrap();
+        assert_eq!(Some(7), cfg.lookup("block.value").and_then(|v| v.as_i64()));
+    }
+
+    #[test]
+    fn unresolvable_include_errors() {
+        let resolver = |_: &str| -> Option<String> { None };
+        assert!(parse_with_includes("include = \"missing.cfg\";", &resolver).is_err());
+    }
+}
