@@ -2876,6 +2876,7 @@ section of `docs/PARITY_MATRIX.md`.
 - [ ] Port resource readers (WAD, PK3, directory) and palette/colormap behavior.
   - [x] Port WAD marker-range namespaces, in-range lookup with later-range priority, last-lump text resources, and PLAYPAL parsing.
   - [x] Port indexed flat and Doom picture decoding to RGBA with malformed-input rejection.
+  - [x] Port PNAMES and TEXTUREx parsing with patch composition onto texture canvases.
 - [ ] Port ZDoom text parsers.
 - [ ] Decide the Rust editor shell strategy (UI toolkit and renderer) before porting editor behavior.
 
