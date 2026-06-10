@@ -2860,6 +2860,8 @@ section of `docs/PARITY_MATRIX.md`.
 - [ ] Port the map model (`MapSet`, map elements, blockmap) into a `dbuilder-map` crate.
   - [x] Create the `dbuilder-map` crate with plain element records and Doom-lump MapSet assembly.
   - [x] Skip invalid, out-of-range, and zero-length linedefs during assembly like the C# loader.
+  - [x] Assemble MapSets from parsed UDMF documents with core fields and reference validation.
+  - [ ] Assemble MapSets from Hexen lumps with tid, z, special, and args fields.
 - [ ] Port the `DBuilder.Map` geometry tools (UDB `Tools.cs` equivalents) once the map model exists.
 - [ ] Port game configuration parsing.
 - [ ] Port resource readers (WAD, PK3, directory) and palette/colormap behavior.

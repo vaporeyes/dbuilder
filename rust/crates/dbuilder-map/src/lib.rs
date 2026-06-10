@@ -254,3 +254,172 @@ mod tests {
         assert_eq!(None, map.linedefs[0].front);
     }
 }
+
+use dbuilder_io::udmf::{UdmfBlock, UdmfDocument, UdmfValue};
+
+fn udmf_f64(b: &UdmfBlock, key: &str, default: f64) -> f64 {
+    b.fields
+        .iter()
+        .find(|(k, _)| k == key)
+        .map_or(default, |(_, v)| match v {
+            UdmfValue::Float(f) => *f,
+            UdmfValue::Int(i) => *i as f64,
+            _ => default,
+        })
+}
+
+fn udmf_i32(b: &UdmfBlock, key: &str, default: i32) -> i32 {
+    b.fields
+        .iter()
+        .find(|(k, _)| k == key)
+        .map_or(default, |(_, v)| match v {
+            UdmfValue::Int(i) => *i as i32,
+            _ => default,
+        })
+}
+
+fn udmf_str(b: &UdmfBlock, key: &str, default: &str) -> String {
+    b.fields
+        .iter()
+        .find(|(k, _)| k == key)
+        .map_or(default.to_string(), |(_, v)| match v {
+            UdmfValue::String(s) => s.clone(),
+            _ => default.to_string(),
+        })
+}
+
+impl MapSet {
+    /// Assemble a MapSet from a parsed UDMF document. Core fields only for now;
+    /// custom fields and UDMF-only flags land with the element behavior slices.
+    /// Sidedef sector references and linedef vertex/side references resolve by
+    /// block order; invalid references are skipped like the C# loader.
+    pub fn from_udmf(doc: &UdmfDocument) -> MapSet {
+        let mut map = MapSet::default();
+
+        for b in doc.blocks.iter().filter(|b| b.name == "vertex") {
+            map.vertices.push(Vertex {
+                position: dbuilder_geometry::Vector2D::new(
+                    udmf_f64(b, "x", 0.0),
+                    udmf_f64(b, "y", 0.0),
+                ),
+            });
+        }
+        for b in doc.blocks.iter().filter(|b| b.name == "sector") {
+            map.sectors.push(Sector {
+                height_floor: udmf_i32(b, "heightfloor", 0),
+                height_ceiling: udmf_i32(b, "heightceiling", 0),
+                texture_floor: udmf_str(b, "texturefloor", "-"),
+                texture_ceiling: udmf_str(b, "textureceiling", "-"),
+                brightness: udmf_i32(b, "lightlevel", 160),
+                effect: udmf_i32(b, "special", 0),
+                tag: udmf_i32(b, "id", 0),
+            });
+        }
+        for b in doc.blocks.iter().filter(|b| b.name == "sidedef") {
+            let sector = udmf_i32(b, "sector", -1);
+            if sector >= 0 && (sector as usize) < map.sectors.len() {
+                map.sidedefs.push(Sidedef {
+                    offset_x: udmf_i32(b, "offsetx", 0),
+                    offset_y: udmf_i32(b, "offsety", 0),
+                    texture_high: udmf_str(b, "texturetop", "-"),
+                    texture_low: udmf_str(b, "texturebottom", "-"),
+                    texture_mid: udmf_str(b, "texturemiddle", "-"),
+                    sector: sector as usize,
+                });
+            }
+        }
+        for b in doc.blocks.iter().filter(|b| b.name == "linedef") {
+            let v1 = udmf_i32(b, "v1", -1);
+            let v2 = udmf_i32(b, "v2", -1);
+            let valid = v1 >= 0
+                && v2 >= 0
+                && (v1 as usize) < map.vertices.len()
+                && (v2 as usize) < map.vertices.len()
+                && v1 != v2
+                && map.vertices[v1 as usize].position != map.vertices[v2 as usize].position;
+            if !valid {
+                continue;
+            }
+            let side = |key: &str| -> Option<usize> {
+                let s = udmf_i32(b, key, -1);
+                if s >= 0 && (s as usize) < map.sidedefs.len() {
+                    Some(s as usize)
+                } else {
+                    None
+                }
+            };
+            map.linedefs.push(Linedef {
+                start: v1 as usize,
+                end: v2 as usize,
+                flags: 0,
+                action: udmf_i32(b, "special", 0),
+                tag: udmf_i32(b, "id", 0),
+                front: side("sidefront"),
+                back: side("sideback"),
+            });
+        }
+        for b in doc.blocks.iter().filter(|b| b.name == "thing") {
+            map.things.push(Thing {
+                position: dbuilder_geometry::Vector2D::new(
+                    udmf_f64(b, "x", 0.0),
+                    udmf_f64(b, "y", 0.0),
+                ),
+                angle_doom: udmf_i32(b, "angle", 0),
+                thing_type: udmf_i32(b, "type", 0),
+                flags: 0,
+            });
+        }
+
+        map
+    }
+}
+
+#[cfg(test)]
+mod udmf_tests {
+    use super::*;
+    use dbuilder_io::udmf;
+
+    #[test]
+    fn assembles_textmap_square() {
+        let text = r#"
+namespace = "zdoom";
+vertex { x = 0.0; y = 0.0; }
+vertex { x = 64.0; y = 0.0; }
+vertex { x = 64.0; y = 64.0; }
+vertex { x = 0.0; y = 64.0; }
+sector { heightceiling = 128; texturefloor = "FLOOR4_8"; textureceiling = "CEIL3_5"; lightlevel = 192; }
+sidedef { sector = 0; texturemiddle = "STARTAN2"; }
+linedef { v1 = 0; v2 = 1; sidefront = 0; }
+linedef { v1 = 1; v2 = 2; sidefront = 0; }
+linedef { v1 = 2; v2 = 3; sidefront = 0; }
+linedef { v1 = 3; v2 = 0; sidefront = 0; }
+thing { x = 32.0; y = 32.0; angle = 90; type = 1; }
+"#;
+        let doc = udmf::parse(text).unwrap();
+        let map = MapSet::from_udmf(&doc);
+        assert_eq!(4, map.vertices.len());
+        assert_eq!(4, map.linedefs.len());
+        assert_eq!(1, map.sidedefs.len());
+        assert_eq!(1, map.sectors.len());
+        assert_eq!(1, map.things.len());
+        assert_eq!(Some(0), map.linedefs[0].front);
+        assert_eq!(None, map.linedefs[0].back);
+        assert_eq!(192, map.sectors[0].brightness);
+        assert_eq!("STARTAN2", map.sidedefs[0].texture_mid);
+    }
+
+    #[test]
+    fn invalid_udmf_linedefs_are_skipped() {
+        let text = r#"
+namespace = "zdoom";
+vertex { x = 0.0; y = 0.0; }
+vertex { x = 0.0; y = 0.0; }
+vertex { x = 64.0; y = 0.0; }
+linedef { v1 = 0; v2 = 2; }
+linedef { v1 = 0; v2 = 1; }
+linedef { v1 = 0; v2 = 9; }
+"#;
+        let map = MapSet::from_udmf(&udmf::parse(text).unwrap());
+        assert_eq!(1, map.linedefs.len());
+    }
+}
