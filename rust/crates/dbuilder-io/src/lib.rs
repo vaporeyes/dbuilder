@@ -6,6 +6,7 @@
  * This program is released under GNU General Public License
  */
 
+pub mod config;
 pub mod iwad_catalog;
 pub mod lump_name;
 pub mod map_lumps;

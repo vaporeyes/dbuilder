@@ -2866,6 +2866,8 @@ section of `docs/PARITY_MATRIX.md`.
   - [x] Port selection flag sets with invert, mark propagation, and selection conversion.
 - [ ] Port the `DBuilder.Map` geometry tools (UDB `Tools.cs` equivalents) once the map model exists.
 - [ ] Port game configuration parsing.
+  - [x] Port the structured configuration parser (assignments, nested blocks, escapes, dotted lookup).
+  - [ ] Port configuration includes and recursive structure merges.
 - [ ] Port resource readers (WAD, PK3, directory) and palette/colormap behavior.
 - [ ] Port ZDoom text parsers.
 - [ ] Decide the Rust editor shell strategy (UI toolkit and renderer) before porting editor behavior.
