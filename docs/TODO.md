@@ -2858,6 +2858,8 @@ section of `docs/PARITY_MATRIX.md`.
   - [x] Port the UDMF writer with CRLF output, string escaping, and float round-trip preservation.
   - [ ] Compare UDMF writer float formatting and element ordering byte-for-byte against UDB output.
 - [ ] Port the map model (`MapSet`, map elements, blockmap) into a `dbuilder-map` crate.
+  - [x] Create the `dbuilder-map` crate with plain element records and Doom-lump MapSet assembly.
+  - [x] Skip invalid, out-of-range, and zero-length linedefs during assembly like the C# loader.
 - [ ] Port the `DBuilder.Map` geometry tools (UDB `Tools.cs` equivalents) once the map model exists.
 - [ ] Port game configuration parsing.
 - [ ] Port resource readers (WAD, PK3, directory) and palette/colormap behavior.
