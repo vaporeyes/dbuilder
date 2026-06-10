@@ -54,3 +54,15 @@ Status values:
 | `USDF` | partial | `DBuilder.Editor`, `DBuilder.IO` | DIALOGUE parsing, include lump resolution from current map WADs and embedded PK3 map archives, dialog editor action/tool metadata, UDB-style plugin lifecycle plan, UDB-style window setting keys, Dialog Editor form title, tree metadata, image-key metadata, and a non-modal conversation window exist. Editing and save-back remain missing. |
 | `VisplaneExplorer` | partial | `DBuilder.Map`, `DBuilder.IO` | UDB-style tile sampling, packed point-stat storage, stat compression, heatmap byte interpolation, palette rows, heatmap palette selection, void-color override, tile coordinate flooring, view-prioritized scan queueing, map-bound tile creation with one-sided outside-tile culling, NODES preflight checks, tile hover value labels, custom view-height input normalization, mode/action metadata, toolbar settings state for open doors, heatmap, and view height, stat dropdown item metadata, toolbar text and tooltip metadata, toolbar add/remove lifecycle plan, view-height preset item metadata, overlay rectangle planning, and editor overlay rendering exist. Native VPO execution and full UI remain missing. |
 | `WadAuthorMode` | partial | `DBuilder.Map`, `DBuilder.Editor` | Hover highlight priority, highlight transition planning, mode lifecycle planning, renderer-scale ranges, side-based sector selection, linedef popup command order, tool form and linedef popup metadata, mode enter/leave selection behavior, edit-mode descriptor, `wadauthormode` action metadata, editor menu and toolbar toggle, hover highlight rendering, and linedef popup execution for properties, delete, split, flip, and default curve materialization exist. Full plugin workflow remains missing. |
+
+## Rust Port
+
+DBuilder areas are being ported to Rust crates under `rust/`. Status uses the same values as above, measured against the C# DBuilder implementation, which itself tracks UDB.
+
+| DBuilder area | Rust crate | Status | Notes |
+| --- | --- | --- | --- |
+| `src/DBuilder.Geometry` | `rust/crates/dbuilder-geometry` | ported | All ten geometry source files with regression tests mirrored from the C# suite. C# float-literal widening, banker's rounding, int-cast truncation, and UDB quirks are preserved. |
+| `src/DBuilder.IO` | none | missing | Not started. WAD archive IO is the planned first slice. |
+| `src/DBuilder.Map` | none | missing | Not started. |
+| `src/DBuilder.Rendering` | none | missing | Not started. |
+| `src/DBuilder.Editor` | none | missing | Not started. Editor shell strategy undecided. |

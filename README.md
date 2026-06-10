@@ -86,6 +86,7 @@ Avoid unrelated refactors during parity slices. If a gap is discovered but is no
 - `src/DBuilder.Map`: map model, editing helpers, selection, querying, and geometry-adjacent map behavior.
 - `src/DBuilder.Geometry`: shared geometry primitives and helpers.
 - `src/DBuilder.Rendering`: Silk.NET rendering support.
+- `rust`: Cargo workspace for the in-progress Rust port (see the Rust Port section of `docs/TODO.md`).
 - `tests/DBuilder.Tests`: regression suite for ported behavior.
 - `docs`: parity plans, architecture notes, and update policy.
 - `assets`: README screenshots and visual repo assets.

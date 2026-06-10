@@ -17,6 +17,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
 - Current verified baseline: `scripts/verify.sh` passes 6028 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
+- A Rust port of the codebase is underway in `rust/`; see the Rust Port section below.
 
 ## Solution And Project Structure
 
@@ -2828,6 +2829,28 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Document contribution workflow.
 - [x] Document manual QA scenarios.
 - [x] Document release process.
+
+## Rust Port
+
+The Rust port lives in `rust/` as a Cargo workspace and follows the same incremental
+parity process as the C# port: leaves first, every slice green, behavior pinned by
+tests mirrored from the C# regression suite. Area status lives in the "Rust Port"
+section of `docs/PARITY_MATRIX.md`.
+
+- [x] Create the `rust/` Cargo workspace and run its tests from `scripts/verify.sh`.
+- [x] Port `DBuilder.Geometry` to `rust/crates/dbuilder-geometry` with mirrored regression tests.
+  - [x] Port `Vector2D`, `Vector3D`, and `Angle2D` with operator, quirk, and banker's-rounding parity.
+  - [x] Port `Line2D`, `Line3D`, and `Plane` including clipping and intersection semantics.
+  - [x] Port `CurveTools`, `InterpolationTools`, and `ProjectedFrustum2D` with C# float-widening parity.
+  - [x] Port `DrawnVertex` and `LabelPositionInfo` plain data carriers.
+- [ ] Port WAD archive read and write behavior as the first `dbuilder-io` crate slice.
+- [ ] Port Doom, Hexen, and UDMF map lump parsing into `dbuilder-io`.
+- [ ] Port the map model (`MapSet`, map elements, blockmap) into a `dbuilder-map` crate.
+- [ ] Port the `DBuilder.Map` geometry tools (UDB `Tools.cs` equivalents) once the map model exists.
+- [ ] Port game configuration parsing.
+- [ ] Port resource readers (WAD, PK3, directory) and palette/colormap behavior.
+- [ ] Port ZDoom text parsers.
+- [ ] Decide the Rust editor shell strategy (UI toolkit and renderer) before porting editor behavior.
 
 ## Release Criteria For Full Port
 

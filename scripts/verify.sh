@@ -6,3 +6,5 @@ set -euo pipefail
 dotnet restore DBuilder.slnx -m:1
 dotnet build DBuilder.slnx --no-restore -m:1
 dotnet test DBuilder.slnx --no-build -m:1
+
+cargo test --manifest-path rust/Cargo.toml

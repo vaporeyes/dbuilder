@@ -1,0 +1,10 @@
+# ABOUTME: Cargo workspace for the Rust port of DBuilder/Ultimate Doom Builder.
+# ABOUTME: Crates mirror DBuilder project areas; see docs/TODO.md "Rust Port" section.
+
+[workspace]
+resolver = "2"
+members = ["crates/dbuilder-geometry"]
+
+[workspace.package]
+edition = "2021"
+license = "GPL-3.0"
