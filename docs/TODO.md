@@ -2843,7 +2843,9 @@ section of `docs/PARITY_MATRIX.md`.
   - [x] Port `Line2D`, `Line3D`, and `Plane` including clipping and intersection semantics.
   - [x] Port `CurveTools`, `InterpolationTools`, and `ProjectedFrustum2D` with C# float-widening parity.
   - [x] Port `DrawnVertex` and `LabelPositionInfo` plain data carriers.
-- [ ] Port WAD archive read and write behavior as the first `dbuilder-io` crate slice.
+- [x] Port `MurmurHash2` and lump name encoding as the first `dbuilder-io` crate slice.
+  - [x] Pin MurmurHash2 outputs against the C# implementation for cross-language long-name compatibility.
+- [ ] Port WAD archive read and write behavior (`WAD`, `Lump`, `ClippedStream`) into `dbuilder-io`.
 - [ ] Port Doom, Hexen, and UDMF map lump parsing into `dbuilder-io`.
 - [ ] Port the map model (`MapSet`, map elements, blockmap) into a `dbuilder-map` crate.
 - [ ] Port the `DBuilder.Map` geometry tools (UDB `Tools.cs` equivalents) once the map model exists.

@@ -3,7 +3,7 @@
 
 [workspace]
 resolver = "2"
-members = ["crates/dbuilder-geometry"]
+members = ["crates/dbuilder-geometry", "crates/dbuilder-io"]
 
 [workspace.package]
 edition = "2021"

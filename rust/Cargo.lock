@@ -6,6 +6,10 @@ version = 4
 name = "dbuilder-geometry"
 version = "0.1.0"
 
+[[package]]
+name = "dbuilder-io"
+version = "0.1.0"
+
 [[patch.unused]]
 name = "creusot-std"
 version = "0.12.0-dev"
