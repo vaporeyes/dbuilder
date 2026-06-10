@@ -2852,6 +2852,7 @@ section of `docs/PARITY_MATRIX.md`.
 - [x] Port IWAD SHA1 catalog detection into `dbuilder-io` with official IWADs forced read-only.
 - [ ] Port Doom, Hexen, and UDMF map lump parsing into `dbuilder-io`.
   - [x] Port the Doom-format VERTEXES codec with round-trip tests.
+  - [x] Port Doom-format THINGS, LINEDEFS, SIDEDEFS, and SECTORS codecs with unsigned-range and texture-name round-trip tests.
 - [ ] Port the map model (`MapSet`, map elements, blockmap) into a `dbuilder-map` crate.
 - [ ] Port the `DBuilder.Map` geometry tools (UDB `Tools.cs` equivalents) once the map model exists.
 - [ ] Port game configuration parsing.
