@@ -35,18 +35,28 @@ impl DecorateActor {
 /// now; header inheritance, replaces, doomednum, scalar properties, +/- flags,
 /// and //$ editor keys are captured like the C# parser's discovery pass.
 pub fn parse(text: &str) -> Vec<DecorateActor> {
+    parse_impl(text, "actor")
+}
+
+/// Parse ZScript class definitions with the same engine. Properties and flags
+/// live in Default blocks; doomednums come from MAPINFO rather than headers.
+pub fn parse_zscript(text: &str) -> Vec<DecorateActor> {
+    parse_impl(text, "class")
+}
+
+fn parse_impl(text: &str, keyword: &str) -> Vec<DecorateActor> {
     let mut actors = Vec::new();
     let mut lines = text.lines().peekable();
 
     while let Some(line) = lines.next() {
         let trimmed = strip_comment(line).trim().to_string();
         let lower = trimmed.to_lowercase();
-        if !lower.starts_with("actor ") && lower != "actor" {
+        if !lower.starts_with(&format!("{} ", keyword)) && lower != keyword {
             continue;
         }
 
         let mut actor = DecorateActor::default();
-        let after_keyword = trimmed[5..].trim();
+        let after_keyword = trimmed[keyword.len()..].trim();
 
         // The opening brace (and even a full body) may share the header line.
         let (header, inline_rest) = match after_keyword.find('{') {
@@ -80,6 +90,8 @@ pub fn parse(text: &str) -> Vec<DecorateActor> {
         // (states, etc.) for properties but still reading editor keys anywhere.
         let mut in_states = false;
         let mut states_entered = false;
+        let mut in_default = false;
+        let mut default_entered = false;
         let mut pending_label: Option<String> = None;
         for body_line in lines.by_ref() {
             let raw = body_line.trim();
@@ -97,6 +109,15 @@ pub fn parse(text: &str) -> Vec<DecorateActor> {
             }
             if depth == 1 && code.eq_ignore_ascii_case("states") {
                 in_states = true;
+            }
+            if depth == 1 && code.eq_ignore_ascii_case("default") {
+                in_default = true;
+            }
+            if in_default && depth == 2 {
+                default_entered = true;
+                for part in code.split(';') {
+                    parse_body_line(part.trim(), &mut actor);
+                }
             }
             if in_states && depth == 2 {
                 states_entered = true;
@@ -127,6 +148,10 @@ pub fn parse(text: &str) -> Vec<DecorateActor> {
                 in_states = false;
                 states_entered = false;
                 pending_label = None;
+            }
+            if in_default && default_entered && depth < 2 {
+                in_default = false;
+                default_entered = false;
             }
         }
         actors.push(actor);
@@ -291,5 +316,52 @@ ACTOR Demo 5050
         // States content must not leak into properties or flags.
         assert_eq!(Some(16.0), a.radius);
         assert!(a.flags.is_empty());
+    }
+}
+
+#[cfg(test)]
+mod zscript_tests {
+    use super::*;
+
+    #[test]
+    fn zscript_class_with_default_block_parses() {
+        let actors = parse_zscript(
+            r#"
+class RocketGuy : Actor replaces ZombieMan
+{
+    //$Category Monsters
+    Default
+    {
+        Radius 24;
+        Height 60;
+        +SOLID;
+    }
+    States
+    {
+    Spawn:
+        ROCK A 10;
+        Loop;
+    }
+}
+"#,
+        );
+        let a = &actors[0];
+        assert_eq!("RocketGuy", a.name);
+        assert_eq!(Some("Actor".to_string()), a.parent);
+        assert_eq!(Some("ZombieMan".to_string()), a.replaces);
+        assert_eq!(Some(24.0), a.radius);
+        assert_eq!(Some(60.0), a.height);
+        assert!(a.flags.contains(&("solid".to_string(), true)));
+        assert_eq!(Some(&("ROCK".to_string(), 'A')), a.spawn_sprite());
+        assert!(a
+            .editor_keys
+            .contains(&("category".to_string(), "Monsters".to_string())));
+    }
+
+    #[test]
+    fn decorate_keyword_still_parses_after_refactor() {
+        let actors = parse("actor X 100 { Radius 8 }");
+        assert_eq!(Some(100), actors[0].doomednum);
+        assert_eq!(Some(8.0), actors[0].radius);
     }
 }

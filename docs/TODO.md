@@ -2880,7 +2880,7 @@ section of `docs/PARITY_MATRIX.md`.
 - [ ] Port ZDoom text parsers.
   - [x] Port DECORATE actor discovery (headers, inheritance, replaces, doomednum, scalar properties, flags, editor keys).
   - [x] Port DECORATE state-label sprite extraction with spawn-sprite lookup.
-  - [ ] Port ZScript class parsing on the DECORATE engine.
+  - [x] Port ZScript class parsing on the DECORATE engine with Default-block properties.
 - [ ] Decide the Rust editor shell strategy (UI toolkit and renderer) before porting editor behavior.
 
 ## Release Criteria For Full Port
