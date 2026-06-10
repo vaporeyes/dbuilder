@@ -7,6 +7,7 @@
  */
 
 pub mod config;
+pub mod game_configuration;
 pub mod iwad_catalog;
 pub mod lump_name;
 pub mod map_lumps;
