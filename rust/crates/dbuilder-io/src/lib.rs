@@ -8,6 +8,7 @@
 
 pub mod iwad_catalog;
 pub mod lump_name;
+pub mod map_lumps;
 pub mod murmur_hash2;
 pub mod sha1;
 pub mod wad;
