@@ -139,3 +139,144 @@ mod tests {
         assert_eq!((64.0, 600.0), (batch[1].x, batch[1].y));
     }
 }
+
+/// Build grid lines covering the visible world area at the given spacing,
+/// clamped like UDB's dynamic grid so zoomed-out views stay usable.
+pub fn build_grid_batch(
+    view: &View2D,
+    screen_width: f64,
+    screen_height: f64,
+    spacing: f64,
+    color: u32,
+) -> Vec<LineVertex> {
+    let mut out = Vec::new();
+    if spacing <= 0.0 || view.scale <= 0.0 {
+        return out;
+    }
+    let tl = view.screen_to_world(Vector2D::new(0.0, 0.0), screen_height);
+    let br = view.screen_to_world(Vector2D::new(screen_width, screen_height), screen_height);
+    let (x0, x1) = (br.x.min(tl.x), br.x.max(tl.x));
+    let (y0, y1) = (br.y.min(tl.y), br.y.max(tl.y));
+
+    let mut x = (x0 / spacing).floor() * spacing;
+    while x <= x1 {
+        let a = view.world_to_screen(Vector2D::new(x, y0), screen_height);
+        let b = view.world_to_screen(Vector2D::new(x, y1), screen_height);
+        out.push(LineVertex {
+            x: a.x as f32,
+            y: a.y as f32,
+            color,
+        });
+        out.push(LineVertex {
+            x: b.x as f32,
+            y: b.y as f32,
+            color,
+        });
+        x += spacing;
+    }
+    let mut y = (y0 / spacing).floor() * spacing;
+    while y <= y1 {
+        let a = view.world_to_screen(Vector2D::new(x0, y), screen_height);
+        let b = view.world_to_screen(Vector2D::new(x1, y), screen_height);
+        out.push(LineVertex {
+            x: a.x as f32,
+            y: a.y as f32,
+            color,
+        });
+        out.push(LineVertex {
+            x: b.x as f32,
+            y: b.y as f32,
+            color,
+        });
+        y += spacing;
+    }
+    out
+}
+
+/// Build thing markers: a screen-space square outline per thing plus a facing
+/// tick from center toward the thing's Doom angle, like UDB's 2D thing display.
+pub fn build_thing_batch(
+    map: &MapSet,
+    view: &View2D,
+    screen_height: f64,
+    half_size: f64,
+    color: &dyn Fn(usize) -> u32,
+) -> Vec<LineVertex> {
+    let mut out = Vec::new();
+    for (i, t) in map.things.iter().enumerate() {
+        let c = color(i);
+        let center = view.world_to_screen(t.position, screen_height);
+        let h = half_size as f32;
+        let (cx, cy) = (center.x as f32, center.y as f32);
+        let corners = [
+            (cx - h, cy - h),
+            (cx + h, cy - h),
+            (cx + h, cy + h),
+            (cx - h, cy + h),
+        ];
+        for e in 0..4 {
+            let (ax, ay) = corners[e];
+            let (bx, by) = corners[(e + 1) % 4];
+            out.push(LineVertex {
+                x: ax,
+                y: ay,
+                color: c,
+            });
+            out.push(LineVertex {
+                x: bx,
+                y: by,
+                color: c,
+            });
+        }
+        // Facing tick: doom angle 0 = east, 90 = north (screen Y down).
+        let rad = (t.angle_doom as f64).to_radians();
+        out.push(LineVertex {
+            x: cx,
+            y: cy,
+            color: c,
+        });
+        out.push(LineVertex {
+            x: cx + (rad.cos() * half_size) as f32,
+            y: cy - (rad.sin() * half_size) as f32,
+            color: c,
+        });
+    }
+    out
+}
+
+#[cfg(test)]
+mod batch_tests {
+    use super::*;
+    use dbuilder_map::Thing;
+
+    const H: f64 = 600.0;
+
+    #[test]
+    fn grid_batch_covers_view_and_rejects_bad_spacing() {
+        let view = View2D::default();
+        let batch = build_grid_batch(&view, 800.0, H, 64.0, 0xff333333);
+        // 800/64 -> at least 13 vertical and 600/64 -> at least 10 horizontal lines.
+        assert!(batch.len() >= (13 + 10) * 2);
+        assert!(build_grid_batch(&view, 800.0, H, 0.0, 0).is_empty());
+    }
+
+    #[test]
+    fn thing_batch_emits_square_and_facing_tick() {
+        let mut map = MapSet::default();
+        map.things.push(Thing {
+            position: Vector2D::new(0.0, 0.0),
+            angle_doom: 90,
+            thing_type: 1,
+            flags: 0,
+            tid: 0,
+            z: 0.0,
+            special: 0,
+            args: [0; 5],
+        });
+        let batch = build_thing_batch(&map, &View2D::default(), H, 8.0, &|_| 1);
+        assert_eq!(10, batch.len()); // 4 edges * 2 + tick * 2
+                                     // Angle 90 (north) points up on screen: tick end has smaller y.
+        assert!(batch[9].y < batch[8].y);
+        assert!((batch[9].x - batch[8].x).abs() < 1e-4);
+    }
+}
