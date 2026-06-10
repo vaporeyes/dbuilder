@@ -251,3 +251,83 @@ mod tests {
         assert_eq!("x", doc.blocks[0].fields[0].0);
     }
 }
+
+fn write_value(out: &mut String, v: &UdmfValue) {
+    match v {
+        UdmfValue::Bool(b) => out.push_str(if *b { "true" } else { "false" }),
+        UdmfValue::Int(i) => out.push_str(&i.to_string()),
+        UdmfValue::Float(f) => {
+            // UDB emits doubles in invariant culture; integral values keep a trailing ".0"
+            // here so the value round-trips as a float rather than collapsing to an int.
+            if f.fract() == 0.0 && f.is_finite() {
+                out.push_str(&format!("{:.1}", f));
+            } else {
+                out.push_str(&format!("{}", f));
+            }
+        }
+        UdmfValue::String(s) => {
+            out.push('"');
+            for c in s.chars() {
+                if c == '"' || c == '\\' {
+                    out.push('\\');
+                }
+                out.push(c);
+            }
+            out.push('"');
+        }
+    }
+}
+
+/// Write a UDMF document with UDB-style CRLF line endings. Global fields emit
+/// first (namespace leads in document order), then element blocks in order.
+pub fn write(doc: &UdmfDocument) -> String {
+    let mut out = String::new();
+    for (k, v) in &doc.fields {
+        out.push_str(k);
+        out.push_str(" = ");
+        write_value(&mut out, v);
+        out.push_str(";\r\n");
+    }
+    for block in &doc.blocks {
+        out.push_str("\r\n");
+        out.push_str(&block.name);
+        out.push_str("\r\n{\r\n");
+        for (k, v) in &block.fields {
+            out.push_str(k);
+            out.push_str(" = ");
+            write_value(&mut out, v);
+            out.push_str(";\r\n");
+        }
+        out.push_str("}\r\n");
+    }
+    out
+}
+
+#[cfg(test)]
+mod writer_tests {
+    use super::*;
+
+    #[test]
+    fn write_parse_round_trips() {
+        let text = "namespace = \"zdoom\";\nvertex { x = 0.5; y = -64.0; }\nthing { type = 1; skill1 = true; comment = \"a \\\"b\\\"\"; }";
+        let doc = parse(text).unwrap();
+        let written = write(&doc);
+        assert!(written.contains("\r\n"));
+        assert_eq!(doc, parse(&written).unwrap());
+    }
+
+    #[test]
+    fn integral_floats_keep_decimal_point() {
+        let doc = UdmfDocument {
+            fields: vec![],
+            blocks: vec![UdmfBlock {
+                name: "vertex".into(),
+                fields: vec![("x".into(), UdmfValue::Float(64.0))],
+            }],
+        };
+        let written = write(&doc);
+        assert!(written.contains("x = 64.0;"));
+        // Round-trips as a float, not an int.
+        assert_eq!(doc, parse(&written).unwrap());
+    }
+}
