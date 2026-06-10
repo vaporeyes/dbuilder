@@ -7,6 +7,7 @@
  */
 
 pub mod blockmap;
+pub mod selection;
 
 use dbuilder_geometry::Vector2D;
 use dbuilder_io::map_lumps::{self, DoomLinedef, DoomSector, DoomSidedef, DoomThing};

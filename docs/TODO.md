@@ -2863,6 +2863,7 @@ section of `docs/PARITY_MATRIX.md`.
   - [x] Assemble MapSets from parsed UDMF documents with core fields and reference validation.
   - [x] Assemble MapSets from Hexen lumps with tid, z, special, and args fields.
   - [x] Port the editor blockmap with crossed-cell linedef bucketing and square-range queries.
+  - [x] Port selection flag sets with invert, mark propagation, and selection conversion.
 - [ ] Port the `DBuilder.Map` geometry tools (UDB `Tools.cs` equivalents) once the map model exists.
 - [ ] Port game configuration parsing.
 - [ ] Port resource readers (WAD, PK3, directory) and palette/colormap behavior.
