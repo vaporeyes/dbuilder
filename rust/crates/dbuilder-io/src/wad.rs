@@ -68,6 +68,7 @@ pub struct Wad {
     is_readonly: bool,
     // Lump-name length policy (UDB read this from General.Map.Config.UseLongTextureNames).
     pub use_long_texture_names: bool,
+    is_official_iwad: bool,
     lumps: Vec<Lump>,
 }
 
@@ -81,6 +82,7 @@ impl Wad {
             is_iwad: false,
             is_readonly: false,
             use_long_texture_names: false,
+            is_official_iwad: false,
             lumps: Vec::new(),
         };
         wad.write_headers();
@@ -127,6 +129,7 @@ impl Wad {
             is_iwad,
             is_readonly: readonly,
             use_long_texture_names: false,
+            is_official_iwad: false,
             lumps,
         })
     }
@@ -146,6 +149,11 @@ impl Wad {
 
     pub fn is_readonly(&self) -> bool {
         self.is_readonly
+    }
+
+    //mxd. True when the image matched the official IWAD SHA1 catalog on open.
+    pub fn is_official_iwad(&self) -> bool {
+        self.is_official_iwad
     }
 
     pub fn lumps(&self) -> &[Lump] {
@@ -400,7 +408,11 @@ impl Wad {
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => Vec::new(),
             Err(e) => return Err(WadError(e.to_string())),
         };
-        Wad::from_bytes(bytes, readonly)
+        //mxd. Official IWADs are forced read-only like UDB's CheckHash.
+        let official = crate::iwad_catalog::is_official_iwad(&bytes);
+        let mut wad = Wad::from_bytes(bytes, readonly || official)?;
+        wad.is_official_iwad = official;
+        Ok(wad)
     }
 
     /// Persist the current image to disk. No-op on readonly archives.

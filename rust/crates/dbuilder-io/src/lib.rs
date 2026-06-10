@@ -6,6 +6,8 @@
  * This program is released under GNU General Public License
  */
 
+pub mod iwad_catalog;
 pub mod lump_name;
 pub mod murmur_hash2;
+pub mod sha1;
 pub mod wad;

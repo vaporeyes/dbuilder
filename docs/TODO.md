@@ -2849,7 +2849,7 @@ section of `docs/PARITY_MATRIX.md`.
   - [x] Redesign lumps as offset/length records reading through the owning `Wad` buffer.
 - [x] Port file-backed WAD opening, saving, and `Compress` into `dbuilder-io`.
 - [x] Port lump rename into `dbuilder-io`.
-- [ ] Port IWAD SHA1 catalog detection into `dbuilder-io`.
+- [x] Port IWAD SHA1 catalog detection into `dbuilder-io` with official IWADs forced read-only.
 - [ ] Port Doom, Hexen, and UDMF map lump parsing into `dbuilder-io`.
 - [ ] Port the map model (`MapSet`, map elements, blockmap) into a `dbuilder-map` crate.
 - [ ] Port the `DBuilder.Map` geometry tools (UDB `Tools.cs` equivalents) once the map model exists.
