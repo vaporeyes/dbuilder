@@ -15,3 +15,4 @@ pub mod murmur_hash2;
 pub mod sha1;
 pub mod udmf;
 pub mod wad;
+pub mod wad_resources;
