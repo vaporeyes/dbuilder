@@ -2845,7 +2845,9 @@ section of `docs/PARITY_MATRIX.md`.
   - [x] Port `DrawnVertex` and `LabelPositionInfo` plain data carriers.
 - [x] Port `MurmurHash2` and lump name encoding as the first `dbuilder-io` crate slice.
   - [x] Pin MurmurHash2 outputs against the C# implementation for cross-language long-name compatibility.
-- [ ] Port WAD archive read and write behavior (`WAD`, `Lump`, `ClippedStream`) into `dbuilder-io`.
+- [x] Port in-memory WAD archive read and write behavior (`WAD`, `Lump`) into `dbuilder-io`.
+  - [x] Redesign lumps as offset/length records reading through the owning `Wad` buffer.
+- [ ] Port file-backed WAD opening, IWAD SHA1 detection, and `Compress` into `dbuilder-io`.
 - [ ] Port Doom, Hexen, and UDMF map lump parsing into `dbuilder-io`.
 - [ ] Port the map model (`MapSet`, map elements, blockmap) into a `dbuilder-map` crate.
 - [ ] Port the `DBuilder.Map` geometry tools (UDB `Tools.cs` equivalents) once the map model exists.

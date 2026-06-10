@@ -8,3 +8,4 @@
 
 pub mod lump_name;
 pub mod murmur_hash2;
+pub mod wad;
