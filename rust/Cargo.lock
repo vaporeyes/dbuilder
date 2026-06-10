@@ -18,6 +18,14 @@ dependencies = [
  "dbuilder-io",
 ]
 
+[[package]]
+name = "dbuilder-rendering"
+version = "0.1.0"
+dependencies = [
+ "dbuilder-geometry",
+ "dbuilder-map",
+]
+
 [[patch.unused]]
 name = "creusot-std"
 version = "0.12.0-dev"

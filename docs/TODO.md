@@ -2884,6 +2884,7 @@ section of `docs/PARITY_MATRIX.md`.
   - [x] Port MAPINFO DoomEdNums and map lump/title discovery.
   - [x] Port MODELDEF entry parsing (path, models, skins, scale, frame indexes).
 - [ ] Decide the Rust editor shell strategy (UI toolkit and renderer) before porting editor behavior.
+  - [x] Create the `dbuilder-rendering` crate with 2D view transforms, cursor-fixed zoom, and linedef line batches (GPU-independent).
 
 ## Release Criteria For Full Port
 
