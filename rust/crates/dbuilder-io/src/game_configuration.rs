@@ -15,6 +15,7 @@ pub struct ThingTypeInfo {
     pub width: f64,
     pub height: f64,
     pub hangs: bool,
+    pub args: [Option<ArgumentInfo>; 5],
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -51,6 +52,14 @@ pub struct GameConfiguration {
     pub thing_flags: Vec<(String, String)>,
     pub linedef_flags: Vec<(String, String)>,
     pub enums: Vec<(String, Vec<(i64, String)>)>,
+    pub universal_fields: Vec<(String, Vec<UniversalFieldInfo>)>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct UniversalFieldInfo {
+    pub name: String,
+    pub field_type: i32,
+    pub default: ConfigValue,
 }
 
 fn cfg_str(root: &ConfigValue, path: &str, default: &str) -> String {
@@ -58,6 +67,24 @@ fn cfg_str(root: &ConfigValue, path: &str, default: &str) -> String {
         .and_then(|v| v.as_str())
         .unwrap_or(default)
         .to_string()
+}
+
+fn parse_args(val: &ConfigValue) -> [Option<ArgumentInfo>; 5] {
+    let mut args: [Option<ArgumentInfo>; 5] = Default::default();
+    for (slot, arg) in args.iter_mut().enumerate() {
+        if let Some(a) = val.lookup(&format!("arg{}", slot)) {
+            *arg = Some(ArgumentInfo {
+                title: a
+                    .lookup("title")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("")
+                    .to_string(),
+                arg_type: a.lookup("type").and_then(|v| v.as_i64()).unwrap_or(0) as i32,
+                default: a.lookup("default").and_then(|v| v.as_i64()).unwrap_or(0),
+            });
+        }
+    }
+    args
 }
 
 fn cfg_f64(v: &ConfigValue, key: &str, default: f64) -> f64 {
@@ -116,6 +143,7 @@ impl GameConfiguration {
                             width: def_width,
                             height: def_height,
                             hangs: def_hangs,
+                            args: Default::default(),
                         },
                         // Full form: 3001 { title = "Imp"; width = 20; }
                         ConfigValue::Struct(_) => ThingTypeInfo {
@@ -132,6 +160,7 @@ impl GameConfiguration {
                                 .and_then(|v| v.as_i64())
                                 .map(|i| i != 0)
                                 .unwrap_or(def_hangs),
+                            args: parse_args(val),
                         },
                         _ => continue,
                     };
@@ -209,6 +238,24 @@ impl GameConfiguration {
                         }
                     }
                 }
+            }
+        }
+
+        if let Some(ConfigValue::Struct(elements)) = root.lookup("universalfields") {
+            for (element, fields_val) in elements {
+                let ConfigValue::Struct(fields) = fields_val else {
+                    continue;
+                };
+                let mut list = Vec::with_capacity(fields.len());
+                for (name, meta) in fields {
+                    list.push(UniversalFieldInfo {
+                        name: name.clone(),
+                        field_type: meta.lookup("type").and_then(|v| v.as_i64()).unwrap_or(0)
+                            as i32,
+                        default: meta.lookup("default").cloned().unwrap_or(ConfigValue::Null),
+                    });
+                }
+                gc.universal_fields.push((element.clone(), list));
             }
         }
 
@@ -388,5 +435,39 @@ linedeftypes
             (a1.title.as_str(), a1.arg_type, a1.default)
         );
         assert!(action.args[2].is_none());
+    }
+}
+
+#[cfg(test)]
+mod universal_tests {
+    use super::*;
+    use crate::config;
+
+    #[test]
+    fn thing_args_and_universal_fields_project() {
+        let cfg = config::parse(
+            r#"
+thingtypes
+{
+    scripted { title = "Scripted"; 9001 { title = "MapSpot"; arg0 { title = "Tag"; type = 13; } } }
+}
+universalfields
+{
+    sector { comment { type = 2; default = ""; } gravity { type = 1; default = 1.0; } }
+}
+"#,
+        )
+        .unwrap();
+        let gc = GameConfiguration::from_config(&cfg);
+        let spot = &gc.thing_categories[0].things[0];
+        assert_eq!("Tag", spot.args[0].as_ref().unwrap().title);
+        assert!(spot.args[1].is_none());
+        let (element, fields) = &gc.universal_fields[0];
+        assert_eq!("sector", element);
+        assert_eq!(
+            ("comment", 2),
+            (fields[0].name.as_str(), fields[0].field_type)
+        );
+        assert_eq!(ConfigValue::Float(1.0), fields[1].default);
     }
 }

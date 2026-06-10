@@ -2872,7 +2872,7 @@ section of `docs/PARITY_MATRIX.md`.
   - [x] Project parsed configurations into typed game-configuration metadata (identity, format, thing categories with default cascade, linedef actions).
   - [x] Extend game-configuration projection to sector effects, thing and linedef flags, and enums.
   - [x] Extend game-configuration projection to linedef action argument metadata (title, type, default).
-  - [ ] Extend game-configuration projection to universal fields and thing args.
+  - [x] Extend game-configuration projection to thing args and universal field metadata.
 - [ ] Port resource readers (WAD, PK3, directory) and palette/colormap behavior.
 - [ ] Port ZDoom text parsers.
 - [ ] Decide the Rust editor shell strategy (UI toolkit and renderer) before porting editor behavior.
