@@ -2879,7 +2879,8 @@ section of `docs/PARITY_MATRIX.md`.
   - [x] Port PNAMES and TEXTUREx parsing with patch composition onto texture canvases.
 - [ ] Port ZDoom text parsers.
   - [x] Port DECORATE actor discovery (headers, inheritance, replaces, doomednum, scalar properties, flags, editor keys).
-  - [ ] Port DECORATE states parsing and sprite extraction.
+  - [x] Port DECORATE state-label sprite extraction with spawn-sprite lookup.
+  - [ ] Port ZScript class parsing on the DECORATE engine.
 - [ ] Decide the Rust editor shell strategy (UI toolkit and renderer) before porting editor behavior.
 
 ## Release Criteria For Full Port

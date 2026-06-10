@@ -17,6 +17,18 @@ pub struct DecorateActor {
     pub flags: Vec<(String, bool)>,
     /// //$Key value editor comments inside the actor body, keys lowercased.
     pub editor_keys: Vec<(String, String)>,
+    /// First sprite-and-frame per state label (label lowercased, e.g. "spawn" -> ("POSS", 'A')).
+    pub state_sprites: Vec<(String, (String, char))>,
+}
+
+impl DecorateActor {
+    /// The sprite UDB shows for a thing: the first frame of the Spawn state.
+    pub fn spawn_sprite(&self) -> Option<&(String, char)> {
+        self.state_sprites
+            .iter()
+            .find(|(label, _)| label == "spawn")
+            .map(|(_, sf)| sf)
+    }
 }
 
 /// Parse DECORATE text into discovered actors. States blocks are skipped for
@@ -66,6 +78,9 @@ pub fn parse(text: &str) -> Vec<DecorateActor> {
 
         // Body: collect until the matching close brace, skipping nested blocks
         // (states, etc.) for properties but still reading editor keys anywhere.
+        let mut in_states = false;
+        let mut states_entered = false;
+        let mut pending_label: Option<String> = None;
         for body_line in lines.by_ref() {
             let raw = body_line.trim();
             if let Some(key) = raw.strip_prefix("//$") {
@@ -80,9 +95,38 @@ pub fn parse(text: &str) -> Vec<DecorateActor> {
             if depth == 1 && delta <= 0 {
                 parse_body_line(&code, &mut actor);
             }
+            if depth == 1 && code.eq_ignore_ascii_case("states") {
+                in_states = true;
+            }
+            if in_states && depth == 2 {
+                states_entered = true;
+                if let Some(label) = code.strip_suffix(':') {
+                    pending_label = Some(label.trim().to_lowercase());
+                } else if let Some(label) = pending_label.take() {
+                    // First frame line after a label: SPRT ABCD duration ...
+                    let mut toks = code.split_whitespace();
+                    if let (Some(sprite), Some(frames)) = (toks.next(), toks.next()) {
+                        if sprite.len() == 4 {
+                            if let Some(frame) =
+                                frames.chars().next().filter(|c| c.is_ascii_alphabetic())
+                            {
+                                actor.state_sprites.push((
+                                    label,
+                                    (sprite.to_uppercase(), frame.to_ascii_uppercase()),
+                                ));
+                            }
+                        }
+                    }
+                }
+            }
             depth += delta;
             if depth <= 0 {
                 break;
+            }
+            if in_states && states_entered && depth < 2 {
+                in_states = false;
+                states_entered = false;
+                pending_label = None;
             }
         }
         actors.push(actor);
@@ -213,5 +257,39 @@ actor SimpleThing 5000 { Radius 8 }
         assert_eq!(Some(8.0), s.radius);
         // No states content parsed as properties.
         assert!(actors[0].flags.len() == 2);
+    }
+}
+
+#[cfg(test)]
+mod states_tests {
+    use super::*;
+
+    #[test]
+    fn spawn_sprite_extracts_first_frame_per_label() {
+        let actors = parse(
+            r#"
+ACTOR Demo 5050
+{
+    Radius 16
+    States
+    {
+    Spawn:
+        DEMO AB 10 A_Look
+        Loop
+    See:
+        DEMX C 4
+        Loop
+    }
+}
+"#,
+        );
+        let a = &actors[0];
+        assert_eq!(Some(&("DEMO".to_string(), 'A')), a.spawn_sprite());
+        assert!(a
+            .state_sprites
+            .contains(&("see".to_string(), ("DEMX".to_string(), 'C'))));
+        // States content must not leak into properties or flags.
+        assert_eq!(Some(16.0), a.radius);
+        assert!(a.flags.is_empty());
     }
 }
