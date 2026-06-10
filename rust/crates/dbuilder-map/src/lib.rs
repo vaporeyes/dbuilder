@@ -33,6 +33,7 @@ pub struct Linedef {
     pub tag: i32,
     pub front: Option<usize>,
     pub back: Option<usize>,
+    pub args: [i32; 5],
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -52,6 +53,10 @@ pub struct Thing {
     pub angle_doom: i32,
     pub thing_type: i32,
     pub flags: u32,
+    pub tid: i32,
+    pub z: f64,
+    pub special: i32,
+    pub args: [i32; 5],
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -142,6 +147,7 @@ impl MapSet {
                 tag: l.tag as i32,
                 front: side_ref(l.front),
                 back: side_ref(l.back),
+                args: [0; 5],
             })
             .collect();
 
@@ -152,6 +158,10 @@ impl MapSet {
                 angle_doom: t.angle as i32,
                 thing_type: t.thing_type as i32,
                 flags: t.flags as u32,
+                tid: 0,
+                z: 0.0,
+                special: 0,
+                args: [0; 5],
             })
             .collect();
 
@@ -356,6 +366,13 @@ impl MapSet {
                 tag: udmf_i32(b, "id", 0),
                 front: side("sidefront"),
                 back: side("sideback"),
+                args: [
+                    udmf_i32(b, "arg0", 0),
+                    udmf_i32(b, "arg1", 0),
+                    udmf_i32(b, "arg2", 0),
+                    udmf_i32(b, "arg3", 0),
+                    udmf_i32(b, "arg4", 0),
+                ],
             });
         }
         for b in doc.blocks.iter().filter(|b| b.name == "thing") {
@@ -367,6 +384,16 @@ impl MapSet {
                 angle_doom: udmf_i32(b, "angle", 0),
                 thing_type: udmf_i32(b, "type", 0),
                 flags: 0,
+                tid: udmf_i32(b, "id", 0),
+                z: udmf_f64(b, "height", 0.0),
+                special: udmf_i32(b, "special", 0),
+                args: [
+                    udmf_i32(b, "arg0", 0),
+                    udmf_i32(b, "arg1", 0),
+                    udmf_i32(b, "arg2", 0),
+                    udmf_i32(b, "arg3", 0),
+                    udmf_i32(b, "arg4", 0),
+                ],
             });
         }
 
@@ -421,5 +448,122 @@ linedef { v1 = 0; v2 = 9; }
 "#;
         let map = MapSet::from_udmf(&udmf::parse(text).unwrap());
         assert_eq!(1, map.linedefs.len());
+    }
+}
+
+use dbuilder_io::map_lumps::{HexenLinedef, HexenThing};
+
+impl MapSet {
+    /// Assemble a MapSet from decoded Hexen-format lumps. VERTEXES, SIDEDEFS, and
+    /// SECTORS reuse the Doom records; linedefs carry byte action args and things
+    /// carry tid, z, special, and args. Skipping rules match the Doom assembler.
+    pub fn from_hexen_lumps(
+        vertexes: &[(i16, i16)],
+        things: &[HexenThing],
+        linedefs: &[HexenLinedef],
+        sidedefs: &[dbuilder_io::map_lumps::DoomSidedef],
+        sectors: &[dbuilder_io::map_lumps::DoomSector],
+    ) -> MapSet {
+        let mut map = MapSet::from_doom_lumps(vertexes, &[], &[], sidedefs, sectors);
+
+        let side_ref = |r: u16| -> Option<usize> {
+            if r == map_lumps::NO_SIDEDEF {
+                return None;
+            }
+            let i = r as usize;
+            if i < map.sidedefs.len() {
+                Some(i)
+            } else {
+                None
+            }
+        };
+
+        for l in linedefs {
+            let v1 = l.v1 as usize;
+            let v2 = l.v2 as usize;
+            let valid = v1 < map.vertices.len()
+                && v2 < map.vertices.len()
+                && v1 != v2
+                && map.vertices[v1].position != map.vertices[v2].position;
+            if !valid {
+                continue;
+            }
+            map.linedefs.push(Linedef {
+                start: v1,
+                end: v2,
+                flags: l.flags as u32,
+                action: l.action as i32,
+                tag: 0,
+                front: side_ref(l.front),
+                back: side_ref(l.back),
+                args: [
+                    l.args[0] as i32,
+                    l.args[1] as i32,
+                    l.args[2] as i32,
+                    l.args[3] as i32,
+                    l.args[4] as i32,
+                ],
+            });
+        }
+
+        for t in things {
+            map.things.push(Thing {
+                position: dbuilder_geometry::Vector2D::new(t.x as f64, t.y as f64),
+                angle_doom: t.angle as i32,
+                thing_type: t.thing_type as i32,
+                flags: t.flags as u32,
+                tid: t.tid as i32,
+                z: t.z as f64,
+                special: t.special as i32,
+                args: [
+                    t.args[0] as i32,
+                    t.args[1] as i32,
+                    t.args[2] as i32,
+                    t.args[3] as i32,
+                    t.args[4] as i32,
+                ],
+            });
+        }
+
+        map
+    }
+}
+
+#[cfg(test)]
+mod hexen_tests {
+    use super::*;
+
+    #[test]
+    fn assembles_hexen_things_and_linedef_args() {
+        let vx = [(0i16, 0i16), (64, 0)];
+        let lines = [HexenLinedef {
+            v1: 0,
+            v2: 1,
+            flags: 1,
+            action: 121,
+            args: [5, 0, 0, 0, 0],
+            front: map_lumps::NO_SIDEDEF,
+            back: map_lumps::NO_SIDEDEF,
+        }];
+        let things = [HexenThing {
+            tid: 40000,
+            x: 16,
+            y: 8,
+            z: 24,
+            angle: 270,
+            thing_type: 9100,
+            flags: 7,
+            special: 80,
+            args: [1, 2, 3, 4, 5],
+        }];
+
+        let map = MapSet::from_hexen_lumps(&vx, &things, &lines, &[], &[]);
+        assert_eq!(1, map.linedefs.len());
+        assert_eq!(121, map.linedefs[0].action);
+        assert_eq!([5, 0, 0, 0, 0], map.linedefs[0].args);
+        assert_eq!(40000, map.things[0].tid);
+        assert_eq!(24.0, map.things[0].z);
+        assert_eq!(80, map.things[0].special);
+        assert_eq!([1, 2, 3, 4, 5], map.things[0].args);
     }
 }
