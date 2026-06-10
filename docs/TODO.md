@@ -2854,6 +2854,8 @@ section of `docs/PARITY_MATRIX.md`.
   - [x] Port the Doom-format VERTEXES codec with round-trip tests.
   - [x] Port Doom-format THINGS, LINEDEFS, SIDEDEFS, and SECTORS codecs with unsigned-range and texture-name round-trip tests.
   - [x] Port Hexen-format THINGS and LINEDEFS codecs with tid, z, special, and args round-trip tests.
+  - [x] Port the UDMF universal text parser (global fields, element blocks, typed values, comments).
+  - [ ] Port the UDMF writer with UDB element ordering and value formatting.
 - [ ] Port the map model (`MapSet`, map elements, blockmap) into a `dbuilder-map` crate.
 - [ ] Port the `DBuilder.Map` geometry tools (UDB `Tools.cs` equivalents) once the map model exists.
 - [ ] Port game configuration parsing.

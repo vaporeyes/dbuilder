@@ -62,7 +62,7 @@ DBuilder areas are being ported to Rust crates under `rust/`. Status uses the sa
 | DBuilder area | Rust crate | Status | Notes |
 | --- | --- | --- | --- |
 | `src/DBuilder.Geometry` | `rust/crates/dbuilder-geometry` | ported | All ten geometry source files with regression tests mirrored from the C# suite. C# float-literal widening, banker's rounding, int-cast truncation, and UDB quirks are preserved. |
-| `src/DBuilder.IO` | `rust/crates/dbuilder-io` | partial | MurmurHash2, lump name encoding (hash outputs pinned against the C# implementation), and in-memory WAD archive read/write with lump insert, remove, find, and round-trip behavior exist. File-backed opening, saving, and Compress exist. Lump rename and official IWAD SHA1 catalog detection with forced read-only exist. Doom-format map lump codecs (VERTEXES, THINGS, LINEDEFS, SIDEDEFS, SECTORS) and Hexen-format THINGS and LINEDEFS codecs exist. UDMF map IO and the map model remain. |
+| `src/DBuilder.IO` | `rust/crates/dbuilder-io` | partial | MurmurHash2, lump name encoding (hash outputs pinned against the C# implementation), and in-memory WAD archive read/write with lump insert, remove, find, and round-trip behavior exist. File-backed opening, saving, and Compress exist. Lump rename and official IWAD SHA1 catalog detection with forced read-only exist. Doom-format map lump codecs (VERTEXES, THINGS, LINEDEFS, SIDEDEFS, SECTORS) and Hexen-format THINGS and LINEDEFS codecs exist. A UDMF universal text parser exists. The UDMF writer and the map model remain. |
 | `src/DBuilder.Map` | none | missing | Not started. |
 | `src/DBuilder.Rendering` | none | missing | Not started. |
 | `src/DBuilder.Editor` | none | missing | Not started. Editor shell strategy undecided. |
