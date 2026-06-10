@@ -498,3 +498,39 @@ mod file_tests {
         assert_eq!("B", wad2.lumps()[0].name());
     }
 }
+
+impl Wad {
+    /// Rename a lump in place and rewrite the directory (mirrors Lump.Rename).
+    pub fn rename_lump(&mut self, index: usize, newname: &str) {
+        if self.is_readonly {
+            return;
+        }
+        let lump = &mut self.lumps[index];
+        lump.fixedname = lump_name::make_fixed_name(newname);
+        lump.name = lump_name::make_normal_name(&lump.fixedname).to_uppercase();
+        lump.longname = lump_name::make_long_name(newname, self.use_long_texture_names);
+        self.write_headers();
+    }
+}
+
+#[cfg(test)]
+mod rename_tests {
+    use super::*;
+
+    #[test]
+    fn rename_updates_name_and_directory() {
+        let mut wad = Wad::create();
+        let i = wad.insert("OLDNAME", 0, 4).unwrap();
+        wad.set_lump_data(i, &[9, 9, 9, 9]);
+
+        wad.rename_lump(0, "newname");
+        assert_eq!("NEWNAME", wad.lumps()[0].name());
+        assert!(wad.find_lump_index("NEWNAME").is_some());
+        assert!(wad.find_lump_index("OLDNAME").is_none());
+
+        // The rename persists through the on-disk image.
+        let wad2 = Wad::from_bytes(wad.to_bytes().to_vec(), true).expect("valid wad");
+        assert_eq!("NEWNAME", wad2.lumps()[0].name());
+        assert_eq!(&[9, 9, 9, 9], wad2.lump_data(0));
+    }
+}

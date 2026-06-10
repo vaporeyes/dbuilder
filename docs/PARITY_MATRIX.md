@@ -62,7 +62,7 @@ DBuilder areas are being ported to Rust crates under `rust/`. Status uses the sa
 | DBuilder area | Rust crate | Status | Notes |
 | --- | --- | --- | --- |
 | `src/DBuilder.Geometry` | `rust/crates/dbuilder-geometry` | ported | All ten geometry source files with regression tests mirrored from the C# suite. C# float-literal widening, banker's rounding, int-cast truncation, and UDB quirks are preserved. |
-| `src/DBuilder.IO` | `rust/crates/dbuilder-io` | partial | MurmurHash2, lump name encoding (hash outputs pinned against the C# implementation), and in-memory WAD archive read/write with lump insert, remove, find, and round-trip behavior exist. File-backed opening, saving, and Compress exist. IWAD SHA1 detection, lump rename, and map IO remain. |
+| `src/DBuilder.IO` | `rust/crates/dbuilder-io` | partial | MurmurHash2, lump name encoding (hash outputs pinned against the C# implementation), and in-memory WAD archive read/write with lump insert, remove, find, and round-trip behavior exist. File-backed opening, saving, and Compress exist. Lump rename exists. IWAD SHA1 detection and map IO remain. |
 | `src/DBuilder.Map` | none | missing | Not started. |
 | `src/DBuilder.Rendering` | none | missing | Not started. |
 | `src/DBuilder.Editor` | none | missing | Not started. Editor shell strategy undecided. |
