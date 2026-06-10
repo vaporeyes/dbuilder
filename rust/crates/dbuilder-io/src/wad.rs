@@ -388,3 +388,113 @@ mod tests {
         assert!(wad2.is_iwad());
     }
 }
+
+// File-backed opening and saving. UDB writes through a FileStream continuously; the Rust
+// port edits the in-memory image and persists it explicitly via save().
+impl Wad {
+    /// Open a WAD file from disk (mirrors FileMode.OpenOrCreate: a missing or short file
+    /// becomes a fresh empty PWAD).
+    pub fn open_path(path: &std::path::Path, readonly: bool) -> Result<Wad, WadError> {
+        let bytes = match std::fs::read(path) {
+            Ok(b) => b,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => Vec::new(),
+            Err(e) => return Err(WadError(e.to_string())),
+        };
+        Wad::from_bytes(bytes, readonly)
+    }
+
+    /// Persist the current image to disk. No-op on readonly archives.
+    pub fn save_to_path(&self, path: &std::path::Path) -> Result<(), WadError> {
+        if self.is_readonly {
+            return Ok(());
+        }
+        std::fs::write(path, &self.buffer).map_err(|e| WadError(e.to_string()))
+    }
+
+    //mxd. Rebuilds the WAD file, removing all "dead" entries.
+    // Tech info: remove() doesn't remove lump data, so temporary map files slowly grow
+    // with every save; this compacts the image like UDB's Compress().
+    pub fn compress(&mut self) {
+        if self.is_readonly {
+            return;
+        }
+
+        let mut totaldatalength = 0i32;
+        let mut copydata: Vec<(Vec<u8>, Vec<u8>)> = Vec::with_capacity(self.lumps.len());
+        for i in 0..self.lumps.len() {
+            let data = self.lump_data(i).to_vec();
+            copydata.push((self.lumps[i].fixedname.clone(), data));
+            totaldatalength += self.lumps[i].length;
+        }
+
+        if totaldatalength >= self.lumpsoffset + 12 {
+            return;
+        }
+
+        self.buffer = vec![0u8; totaldatalength as usize + copydata.len() * 16 + 12];
+        self.lumpsoffset = 12;
+        self.numlumps = copydata.len() as i32;
+        self.lumps = Vec::with_capacity(copydata.len());
+
+        for (fixedname, data) in copydata {
+            let lump = Lump::new(
+                fixedname,
+                self.lumpsoffset,
+                data.len() as i32,
+                self.use_long_texture_names,
+            );
+            let start = self.lumpsoffset as usize;
+            self.buffer[start..start + data.len()].copy_from_slice(&data);
+            self.lumps.push(lump);
+            self.lumpsoffset += data.len() as i32;
+        }
+
+        self.write_headers();
+    }
+}
+
+#[cfg(test)]
+mod file_tests {
+    use super::*;
+
+    #[test]
+    fn open_save_round_trips_through_disk() {
+        let path = std::env::temp_dir().join("dbuilder_wad_roundtrip_test.wad");
+        let _ = std::fs::remove_file(&path);
+
+        let mut wad = Wad::open_path(&path, false).expect("create");
+        let i = wad.insert("THINGS", 0, 4).unwrap();
+        wad.set_lump_data(i, &[1, 2, 3, 4]);
+        wad.write_headers();
+        wad.save_to_path(&path).expect("save");
+
+        let wad2 = Wad::open_path(&path, true).expect("reopen");
+        assert_eq!(1, wad2.lumps().len());
+        assert_eq!("THINGS", wad2.lumps()[0].name());
+        assert_eq!(&[1, 2, 3, 4], wad2.lump_data(0));
+
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn compress_reclaims_dead_lump_data() {
+        let mut wad = Wad::create();
+        let a = wad.insert("A", 0, 64).unwrap();
+        wad.set_lump_data(a, &[0xAA; 64]);
+        let b = wad.insert("B", 1, 4).unwrap();
+        wad.set_lump_data(b, &[1, 2, 3, 4]);
+        wad.remove_at(0);
+        let before = wad.to_bytes().len();
+
+        wad.compress();
+
+        assert!(wad.to_bytes().len() < before);
+        assert_eq!(1, wad.lumps().len());
+        assert_eq!("B", wad.lumps()[0].name());
+        assert_eq!(&[1, 2, 3, 4], wad.lump_data(0));
+
+        // The compacted image still parses.
+        let wad2 = Wad::from_bytes(wad.to_bytes().to_vec(), true).expect("valid wad");
+        assert_eq!("B", wad2.lumps()[0].name());
+    }
+}

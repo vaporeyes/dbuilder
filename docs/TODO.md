@@ -2847,7 +2847,8 @@ section of `docs/PARITY_MATRIX.md`.
   - [x] Pin MurmurHash2 outputs against the C# implementation for cross-language long-name compatibility.
 - [x] Port in-memory WAD archive read and write behavior (`WAD`, `Lump`) into `dbuilder-io`.
   - [x] Redesign lumps as offset/length records reading through the owning `Wad` buffer.
-- [ ] Port file-backed WAD opening, IWAD SHA1 detection, and `Compress` into `dbuilder-io`.
+- [x] Port file-backed WAD opening, saving, and `Compress` into `dbuilder-io`.
+- [ ] Port IWAD SHA1 catalog detection into `dbuilder-io`.
 - [ ] Port Doom, Hexen, and UDMF map lump parsing into `dbuilder-io`.
 - [ ] Port the map model (`MapSet`, map elements, blockmap) into a `dbuilder-map` crate.
 - [ ] Port the `DBuilder.Map` geometry tools (UDB `Tools.cs` equivalents) once the map model exists.
