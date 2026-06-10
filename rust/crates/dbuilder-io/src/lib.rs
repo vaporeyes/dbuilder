@@ -14,6 +14,7 @@ pub mod iwad_catalog;
 pub mod lump_name;
 pub mod map_lumps;
 pub mod mapinfo;
+pub mod modeldef;
 pub mod murmur_hash2;
 pub mod sha1;
 pub mod texture_compose;

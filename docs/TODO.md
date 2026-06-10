@@ -2882,6 +2882,7 @@ section of `docs/PARITY_MATRIX.md`.
   - [x] Port DECORATE state-label sprite extraction with spawn-sprite lookup.
   - [x] Port ZScript class parsing on the DECORATE engine with Default-block properties.
   - [x] Port MAPINFO DoomEdNums and map lump/title discovery.
+  - [x] Port MODELDEF entry parsing (path, models, skins, scale, frame indexes).
 - [ ] Decide the Rust editor shell strategy (UI toolkit and renderer) before porting editor behavior.
 
 ## Release Criteria For Full Port
