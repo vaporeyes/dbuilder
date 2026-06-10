@@ -2870,7 +2870,8 @@ section of `docs/PARITY_MATRIX.md`.
   - [x] Port configuration includes (whole-document and dotted-path) with a resolver hook.
   - [x] Port recursive configuration structure merges with deep-merge and override rules.
   - [x] Project parsed configurations into typed game-configuration metadata (identity, format, thing categories with default cascade, linedef actions).
-  - [ ] Extend game-configuration projection to flags, args, sector effects, and enums.
+  - [x] Extend game-configuration projection to sector effects, thing and linedef flags, and enums.
+  - [ ] Extend game-configuration projection to argument metadata and universal fields.
 - [ ] Port resource readers (WAD, PK3, directory) and palette/colormap behavior.
 - [ ] Port ZDoom text parsers.
 - [ ] Decide the Rust editor shell strategy (UI toolkit and renderer) before porting editor behavior.

@@ -39,6 +39,10 @@ pub struct GameConfiguration {
     pub sky_flat: String,
     pub thing_categories: Vec<ThingCategory>,
     pub linedef_actions: Vec<LinedefActionInfo>,
+    pub sector_effects: Vec<(i32, String)>,
+    pub thing_flags: Vec<(String, String)>,
+    pub linedef_flags: Vec<(String, String)>,
+    pub enums: Vec<(String, Vec<(i64, String)>)>,
 }
 
 fn cfg_str(root: &ConfigValue, path: &str, default: &str) -> String {
@@ -152,7 +156,59 @@ impl GameConfiguration {
             }
         }
 
+        if let Some(ConfigValue::Struct(effects)) = root.lookup("sectortypes") {
+            for (key, val) in effects {
+                if let (Ok(index), Some(title)) = (key.parse::<i32>(), val.as_str()) {
+                    gc.sector_effects.push((index, title.to_string()));
+                }
+            }
+        }
+
+        for (section, out) in [("thingflags", 0usize), ("linedefflags", 1usize)] {
+            if let Some(ConfigValue::Struct(flags)) = root.lookup(section) {
+                for (key, val) in flags {
+                    if let Some(title) = val.as_str() {
+                        let pair = (key.clone(), title.to_string());
+                        if out == 0 {
+                            gc.thing_flags.push(pair);
+                        } else {
+                            gc.linedef_flags.push(pair);
+                        }
+                    }
+                }
+            }
+        }
+
+        if let Some(ConfigValue::Struct(enums)) = root.lookup("enums") {
+            for (name, val) in enums {
+                let ConfigValue::Struct(items) = val else {
+                    continue;
+                };
+                let mut list = Vec::with_capacity(items.len());
+                for (key, label) in items {
+                    if let (Ok(v), Some(l)) = (key.parse::<i64>(), label.as_str()) {
+                        list.push((v, l.to_string()));
+                    }
+                }
+                gc.enums.push((name.clone(), list));
+            }
+        }
+
         gc
+    }
+
+    pub fn effect_title(&self, index: i32) -> Option<&str> {
+        self.sector_effects
+            .iter()
+            .find(|(i, _)| *i == index)
+            .map(|(_, t)| t.as_str())
+    }
+
+    pub fn enum_options(&self, name: &str) -> Option<&[(i64, String)]> {
+        self.enums
+            .iter()
+            .find(|(n, _)| n.eq_ignore_ascii_case(name))
+            .map(|(_, v)| v.as_slice())
     }
 
     pub fn thing_title(&self, doomednum: i32) -> Option<&str> {
@@ -234,5 +290,33 @@ linedeftypes
         assert_eq!(Some("DR Door open wait close"), gc.action_title(1));
         assert_eq!(Some("S1 Exit level"), gc.action_title(11));
         assert_eq!(None, gc.action_title(999));
+    }
+}
+
+#[cfg(test)]
+mod metadata_tests {
+    use super::*;
+    use crate::config;
+
+    const CFG: &str = r#"
+sectortypes { 0 = "Normal"; 9 = "Secret"; }
+thingflags { 1 = "Easy"; 8 = "Deaf"; }
+linedefflags { 1 = "Impassable"; 4 = "Double sided"; }
+enums { yesno { 1 = "Yes"; 0 = "No"; } }
+"#;
+
+    #[test]
+    fn sector_effects_flags_and_enums_project() {
+        let gc = GameConfiguration::from_config(&config::parse(CFG).unwrap());
+        assert_eq!(Some("Secret"), gc.effect_title(9));
+        assert_eq!(None, gc.effect_title(99));
+        assert_eq!(("1".to_string(), "Easy".to_string()), gc.thing_flags[0]);
+        assert_eq!(
+            ("4".to_string(), "Double sided".to_string()),
+            gc.linedef_flags[1]
+        );
+        let yesno = gc.enum_options("YesNo").unwrap();
+        assert_eq!((1, "Yes".to_string()), yesno[0]);
+        assert_eq!((0, "No".to_string()), yesno[1]);
     }
 }
