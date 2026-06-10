@@ -25,9 +25,17 @@ pub struct ThingCategory {
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
+pub struct ArgumentInfo {
+    pub title: String,
+    pub arg_type: i32,
+    pub default: i64,
+}
+
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct LinedefActionInfo {
     pub index: i32,
     pub title: String,
+    pub args: [Option<ArgumentInfo>; 5],
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -142,16 +150,41 @@ impl GameConfiguration {
                     let Ok(index) = key.parse::<i32>() else {
                         continue;
                     };
-                    let title = match val {
-                        ConfigValue::String(s) => s.clone(),
-                        ConfigValue::Struct(_) => val
-                            .lookup("title")
-                            .and_then(|v| v.as_str())
-                            .unwrap_or("")
-                            .to_string(),
+                    let (title, args) = match val {
+                        ConfigValue::String(s) => (s.clone(), Default::default()),
+                        ConfigValue::Struct(_) => {
+                            let title = val
+                                .lookup("title")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("")
+                                .to_string();
+                            let mut args: [Option<ArgumentInfo>; 5] = Default::default();
+                            for (slot, arg) in args.iter_mut().enumerate() {
+                                if let Some(a) = val.lookup(&format!("arg{}", slot)) {
+                                    *arg = Some(ArgumentInfo {
+                                        title: a
+                                            .lookup("title")
+                                            .and_then(|v| v.as_str())
+                                            .unwrap_or("")
+                                            .to_string(),
+                                        arg_type: a
+                                            .lookup("type")
+                                            .and_then(|v| v.as_i64())
+                                            .unwrap_or(0)
+                                            as i32,
+                                        default: a
+                                            .lookup("default")
+                                            .and_then(|v| v.as_i64())
+                                            .unwrap_or(0),
+                                    });
+                                }
+                            }
+                            (title, args)
+                        }
                         _ => continue,
                     };
-                    gc.linedef_actions.push(LinedefActionInfo { index, title });
+                    gc.linedef_actions
+                        .push(LinedefActionInfo { index, title, args });
                 }
             }
         }
@@ -318,5 +351,42 @@ enums { yesno { 1 = "Yes"; 0 = "No"; } }
         let yesno = gc.enum_options("YesNo").unwrap();
         assert_eq!((1, "Yes".to_string()), yesno[0]);
         assert_eq!((0, "No".to_string()), yesno[1]);
+    }
+}
+
+#[cfg(test)]
+mod argument_tests {
+    use super::*;
+    use crate::config;
+
+    #[test]
+    fn linedef_action_args_project_with_type_and_default() {
+        let cfg = config::parse(
+            r#"
+linedeftypes
+{
+    door
+    {
+        12 {
+            title = "Door_Raise";
+            arg0 { title = "Tag"; type = 13; default = 1; }
+            arg1 { title = "Speed"; type = 0; }
+        }
+    }
+}
+"#,
+        )
+        .unwrap();
+        let gc = GameConfiguration::from_config(&cfg);
+        let action = &gc.linedef_actions[0];
+        assert_eq!(12, action.index);
+        let a0 = action.args[0].as_ref().unwrap();
+        assert_eq!(("Tag", 13, 1), (a0.title.as_str(), a0.arg_type, a0.default));
+        let a1 = action.args[1].as_ref().unwrap();
+        assert_eq!(
+            ("Speed", 0, 0),
+            (a1.title.as_str(), a1.arg_type, a1.default)
+        );
+        assert!(action.args[2].is_none());
     }
 }
