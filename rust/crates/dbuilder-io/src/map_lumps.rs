@@ -266,3 +266,123 @@ mod doom_codec_tests {
         assert_eq!(s, read_doom_sectors(&write_doom_sectors(&s)));
     }
 }
+
+// Hexen THINGS entry: 20 bytes. VERTEXES, SIDEDEFS, and SECTORS reuse the Doom codecs.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct HexenThing {
+    pub tid: u16,
+    pub x: i16,
+    pub y: i16,
+    pub z: i16,
+    pub angle: i16,
+    pub thing_type: u16,
+    pub flags: u16,
+    pub special: u8,
+    pub args: [u8; 5],
+}
+
+pub fn read_hexen_things(data: &[u8]) -> Vec<HexenThing> {
+    data.chunks_exact(20)
+        .map(|c| HexenThing {
+            tid: u16le(c, 0),
+            x: i16le(c, 2),
+            y: i16le(c, 4),
+            z: i16le(c, 6),
+            angle: i16le(c, 8),
+            thing_type: u16le(c, 10),
+            flags: u16le(c, 12),
+            special: c[14],
+            args: [c[15], c[16], c[17], c[18], c[19]],
+        })
+        .collect()
+}
+
+pub fn write_hexen_things(things: &[HexenThing]) -> Vec<u8> {
+    let mut out = Vec::with_capacity(things.len() * 20);
+    for t in things {
+        out.extend_from_slice(&t.tid.to_le_bytes());
+        for v in [t.x, t.y, t.z, t.angle] {
+            out.extend_from_slice(&v.to_le_bytes());
+        }
+        out.extend_from_slice(&t.thing_type.to_le_bytes());
+        out.extend_from_slice(&t.flags.to_le_bytes());
+        out.push(t.special);
+        out.extend_from_slice(&t.args);
+    }
+    out
+}
+
+// Hexen LINEDEFS entry: 16 bytes with a byte action special and five byte args.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct HexenLinedef {
+    pub v1: u16,
+    pub v2: u16,
+    pub flags: u16,
+    pub action: u8,
+    pub args: [u8; 5],
+    pub front: u16,
+    pub back: u16,
+}
+
+pub fn read_hexen_linedefs(data: &[u8]) -> Vec<HexenLinedef> {
+    data.chunks_exact(16)
+        .map(|c| HexenLinedef {
+            v1: u16le(c, 0),
+            v2: u16le(c, 2),
+            flags: u16le(c, 4),
+            action: c[6],
+            args: [c[7], c[8], c[9], c[10], c[11]],
+            front: u16le(c, 12),
+            back: u16le(c, 14),
+        })
+        .collect()
+}
+
+pub fn write_hexen_linedefs(linedefs: &[HexenLinedef]) -> Vec<u8> {
+    let mut out = Vec::with_capacity(linedefs.len() * 16);
+    for l in linedefs {
+        out.extend_from_slice(&l.v1.to_le_bytes());
+        out.extend_from_slice(&l.v2.to_le_bytes());
+        out.extend_from_slice(&l.flags.to_le_bytes());
+        out.push(l.action);
+        out.extend_from_slice(&l.args);
+        out.extend_from_slice(&l.front.to_le_bytes());
+        out.extend_from_slice(&l.back.to_le_bytes());
+    }
+    out
+}
+
+#[cfg(test)]
+mod hexen_codec_tests {
+    use super::*;
+
+    #[test]
+    fn hexen_things_round_trip_with_z_and_args() {
+        let t = vec![HexenThing {
+            tid: 40000, // above signed-short range, preserved unsigned
+            x: -64,
+            y: 32,
+            z: 24,
+            angle: 270,
+            thing_type: 9100,
+            flags: 0x07,
+            special: 80,
+            args: [1, 2, 3, 4, 5],
+        }];
+        assert_eq!(t, read_hexen_things(&write_hexen_things(&t)));
+    }
+
+    #[test]
+    fn hexen_linedefs_round_trip_with_action_args() {
+        let l = vec![HexenLinedef {
+            v1: 2,
+            v2: 3,
+            flags: 0x0200,
+            action: 121, // Line_SetIdentification
+            args: [5, 0, 0, 0, 0],
+            front: 0,
+            back: NO_SIDEDEF,
+        }];
+        assert_eq!(l, read_hexen_linedefs(&write_hexen_linedefs(&l)));
+    }
+}
