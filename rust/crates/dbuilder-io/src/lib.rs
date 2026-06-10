@@ -7,6 +7,7 @@
  */
 
 pub mod config;
+pub mod decorate;
 pub mod game_configuration;
 pub mod image_decode;
 pub mod iwad_catalog;

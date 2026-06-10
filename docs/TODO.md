@@ -2878,6 +2878,8 @@ section of `docs/PARITY_MATRIX.md`.
   - [x] Port indexed flat and Doom picture decoding to RGBA with malformed-input rejection.
   - [x] Port PNAMES and TEXTUREx parsing with patch composition onto texture canvases.
 - [ ] Port ZDoom text parsers.
+  - [x] Port DECORATE actor discovery (headers, inheritance, replaces, doomednum, scalar properties, flags, editor keys).
+  - [ ] Port DECORATE states parsing and sprite extraction.
 - [ ] Decide the Rust editor shell strategy (UI toolkit and renderer) before porting editor behavior.
 
 ## Release Criteria For Full Port
