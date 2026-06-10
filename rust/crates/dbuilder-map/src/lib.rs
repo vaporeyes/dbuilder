@@ -6,6 +6,8 @@
  * This program is released under GNU General Public License
  */
 
+pub mod blockmap;
+
 use dbuilder_geometry::Vector2D;
 use dbuilder_io::map_lumps::{self, DoomLinedef, DoomSector, DoomSidedef, DoomThing};
 
