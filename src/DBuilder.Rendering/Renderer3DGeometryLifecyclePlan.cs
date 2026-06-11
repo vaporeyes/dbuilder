@@ -81,6 +81,19 @@ public sealed record Renderer3DGeometryPassOperation(
 
 public sealed record Renderer3DSkySolidPassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations);
 
+public sealed record Renderer3DSectorGeometryCandidate(
+    int Id,
+    bool HasTexture,
+    int Triangles,
+    bool RenderAsSky,
+    RenderPass RenderPass);
+
+public sealed record Renderer3DSectorGeometryCollectionPlan(
+    int GeometryId,
+    bool Accepted,
+    Renderer3DGeometryBucketKind? Bucket,
+    string? UnsupportedRenderPassMessage);
+
 public sealed record Renderer3DSkyGeometryCandidate(
     int Id,
     int SectorId,
@@ -521,6 +534,50 @@ public static class Renderer3DGeometryLifecyclePlan
             LightBucket: Renderer3DGeometryBucketKind.LightThings));
 
         return new Renderer3DSkySolidPassPlan(operations);
+    }
+
+    public static Renderer3DSectorGeometryCollectionPlan BuildSectorGeometryCollectionPlan(
+        Renderer3DSectorGeometryCandidate geometry,
+        bool drawSky)
+    {
+        if (geometry.Triangles < 0) throw new ArgumentOutOfRangeException(nameof(geometry));
+        if (!geometry.HasTexture || geometry.Triangles == 0)
+        {
+            return new Renderer3DSectorGeometryCollectionPlan(
+                geometry.Id,
+                Accepted: false,
+                Bucket: null,
+                UnsupportedRenderPassMessage: null);
+        }
+
+        if (geometry.RenderAsSky && drawSky)
+        {
+            return new Renderer3DSectorGeometryCollectionPlan(
+                geometry.Id,
+                Accepted: true,
+                Renderer3DGeometryBucketKind.SkyGeometry,
+                UnsupportedRenderPassMessage: null);
+        }
+
+        Renderer3DGeometryBucketKind? bucket = geometry.RenderPass switch
+        {
+            RenderPass.Solid => Renderer3DGeometryBucketKind.SolidGeometry,
+            RenderPass.Mask => Renderer3DGeometryBucketKind.MaskedGeometry,
+            RenderPass.Additive or RenderPass.Alpha => Renderer3DGeometryBucketKind.TranslucentGeometry,
+            _ => null,
+        };
+
+        return bucket.HasValue
+            ? new Renderer3DSectorGeometryCollectionPlan(
+                geometry.Id,
+                Accepted: true,
+                bucket,
+                UnsupportedRenderPassMessage: null)
+            : new Renderer3DSectorGeometryCollectionPlan(
+                geometry.Id,
+                Accepted: false,
+                Bucket: null,
+                UnsupportedRenderPassMessage: "Geometry rendering of " + geometry.RenderPass + " render pass is not implemented!");
     }
 
     public static Renderer3DSkyRenderPlan BuildSkyRenderPlan(IReadOnlyList<Renderer3DSkyGeometryCandidate> geometry)

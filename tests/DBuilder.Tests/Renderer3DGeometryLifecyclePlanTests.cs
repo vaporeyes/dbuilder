@@ -124,6 +124,69 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         => Assert.Throws<ArgumentOutOfRangeException>(() =>
             Renderer3DGeometryLifecyclePlan.BuildSkySolidPassPlan(skyGeometryCount: -1));
 
+    [Theory]
+    [InlineData(false, 1)]
+    [InlineData(true, 0)]
+    public void BuildSectorGeometryCollectionPlanSkipsGeometryWithoutTextureOrTriangles(bool hasTexture, int triangles)
+    {
+        Renderer3DSectorGeometryCollectionPlan plan = Renderer3DGeometryLifecyclePlan.BuildSectorGeometryCollectionPlan(
+            new Renderer3DSectorGeometryCandidate(1, hasTexture, triangles, RenderAsSky: false, RenderPass.Solid),
+            drawSky: true);
+
+        Assert.False(plan.Accepted);
+        Assert.Null(plan.Bucket);
+        Assert.Null(plan.UnsupportedRenderPassMessage);
+    }
+
+    [Fact]
+    public void BuildSectorGeometryCollectionPlanRoutesSkyOnlyWhenSkyRenderingIsEnabled()
+    {
+        Renderer3DSectorGeometryCollectionPlan skyPlan = Renderer3DGeometryLifecyclePlan.BuildSectorGeometryCollectionPlan(
+            new Renderer3DSectorGeometryCandidate(1, HasTexture: true, Triangles: 3, RenderAsSky: true, RenderPass.Solid),
+            drawSky: true);
+        Renderer3DSectorGeometryCollectionPlan solidPlan = Renderer3DGeometryLifecyclePlan.BuildSectorGeometryCollectionPlan(
+            new Renderer3DSectorGeometryCandidate(2, HasTexture: true, Triangles: 3, RenderAsSky: true, RenderPass.Solid),
+            drawSky: false);
+
+        Assert.True(skyPlan.Accepted);
+        Assert.Equal(Renderer3DGeometryBucketKind.SkyGeometry, skyPlan.Bucket);
+        Assert.True(solidPlan.Accepted);
+        Assert.Equal(Renderer3DGeometryBucketKind.SolidGeometry, solidPlan.Bucket);
+    }
+
+    [Theory]
+    [InlineData(RenderPass.Solid, Renderer3DGeometryBucketKind.SolidGeometry)]
+    [InlineData(RenderPass.Mask, Renderer3DGeometryBucketKind.MaskedGeometry)]
+    [InlineData(RenderPass.Alpha, Renderer3DGeometryBucketKind.TranslucentGeometry)]
+    [InlineData(RenderPass.Additive, Renderer3DGeometryBucketKind.TranslucentGeometry)]
+    public void BuildSectorGeometryCollectionPlanRoutesRenderPassBuckets(RenderPass renderPass, Renderer3DGeometryBucketKind bucket)
+    {
+        Renderer3DSectorGeometryCollectionPlan plan = Renderer3DGeometryLifecyclePlan.BuildSectorGeometryCollectionPlan(
+            new Renderer3DSectorGeometryCandidate(1, HasTexture: true, Triangles: 3, RenderAsSky: false, renderPass),
+            drawSky: true);
+
+        Assert.True(plan.Accepted);
+        Assert.Equal(bucket, plan.Bucket);
+        Assert.Null(plan.UnsupportedRenderPassMessage);
+    }
+
+    [Fact]
+    public void BuildSectorGeometryCollectionPlanRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Renderer3DGeometryLifecyclePlan.BuildSectorGeometryCollectionPlan(
+                new Renderer3DSectorGeometryCandidate(1, HasTexture: true, Triangles: -1, RenderAsSky: false, RenderPass.Solid),
+                drawSky: true));
+
+        Renderer3DSectorGeometryCollectionPlan unsupported = Renderer3DGeometryLifecyclePlan.BuildSectorGeometryCollectionPlan(
+            new Renderer3DSectorGeometryCandidate(2, HasTexture: true, Triangles: 1, RenderAsSky: false, (RenderPass)99),
+            drawSky: true);
+
+        Assert.False(unsupported.Accepted);
+        Assert.Null(unsupported.Bucket);
+        Assert.Equal("Geometry rendering of 99 render pass is not implemented!", unsupported.UnsupportedRenderPassMessage);
+    }
+
     [Fact]
     public void BuildSkyRenderPlanSetsUdbSkyStateAndDrawsValidSectors()
     {
@@ -1945,6 +2008,16 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("graphics.SetAlphaTestEnable(false);", source, StringComparison.Ordinal);
         Assert.Contains("if (skygeo.Count > 0)", source, StringComparison.Ordinal);
         Assert.Contains("RenderSky(skygeo);", source, StringComparison.Ordinal);
+        Assert.Contains("public void AddSectorGeometry(VisualGeometry g)", source, StringComparison.Ordinal);
+        Assert.Contains("if(g.Texture != null && g.Triangles > 0)", source, StringComparison.Ordinal);
+        Assert.Contains("if(g.RenderAsSky && General.Settings.GZDrawSky)", source, StringComparison.Ordinal);
+        Assert.Contains("skygeo.Add(g);", source, StringComparison.Ordinal);
+        Assert.Contains("case RenderPass.Solid:", source, StringComparison.Ordinal);
+        Assert.Contains("solidgeo[g.Texture].Add(g);", source, StringComparison.Ordinal);
+        Assert.Contains("case RenderPass.Mask:", source, StringComparison.Ordinal);
+        Assert.Contains("maskedgeo[g.Texture].Add(g);", source, StringComparison.Ordinal);
+        Assert.Contains("translucentgeo.Add(g);", source, StringComparison.Ordinal);
+        Assert.Contains("throw new NotImplementedException(\"Geometry rendering of \" + g.RenderPass + \" render pass is not implemented!\");", source, StringComparison.Ordinal);
         Assert.Contains("private void RenderSky(IEnumerable<VisualGeometry> geo)", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetShader(ShaderName.world3d_skybox);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(General.Map.Data.SkyBox);", source, StringComparison.Ordinal);
