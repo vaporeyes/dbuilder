@@ -1503,6 +1503,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style 2D presentation renderer lifecycle operation planning.
   - [x] Add UDB-style 2D presentation render-target destroy sequence planning.
   - [x] Add UDB-style 2D presentation render-target create sequence planning.
+  - [x] Add UDB-style 2D presentation render-target dimension validation planning.
   - [x] Add UDB-style 2D presentation background draw availability planning.
   - [x] Add UDB-style 2D presentation background vertex-buffer restore planning.
   - [x] Add UDB-style 2D presentation layer draw dispatch argument planning.

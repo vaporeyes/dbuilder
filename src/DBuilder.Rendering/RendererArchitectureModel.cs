@@ -40,6 +40,7 @@ public static class RendererArchitectureModel
             "2D presentation renderer lifecycle operation planning",
             "2D presentation render-target destroy sequence planning",
             "2D presentation render-target create sequence planning",
+            "2D presentation render-target dimension validation planning",
             "2D presentation background draw availability planning",
             "2D presentation background vertex-buffer restore planning",
             "2D presentation layer draw dispatch argument planning",

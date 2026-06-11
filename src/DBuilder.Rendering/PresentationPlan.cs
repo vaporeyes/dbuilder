@@ -501,6 +501,9 @@ public sealed record PresentationRenderTargetPlan(
         PresentationPlan? presentation,
         bool hasMapConfiguration = false)
     {
+        if (width <= 0) throw new ArgumentOutOfRangeException(nameof(width));
+        if (height <= 0) throw new ArgumentOutOfRangeException(nameof(height));
+
         int overlayCount = presentation?.Layers.Count(layer => layer.Layer == PresentationRendererLayer.Overlay) ?? 1;
 
         return new PresentationRenderTargetPlan(

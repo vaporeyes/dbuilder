@@ -233,6 +233,19 @@ public sealed class PresentationPlanTests
     }
 
     [Fact]
+    public void RenderTargetPlanRejectsInvalidTargetDimensions()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            PresentationRenderTargetPlan.Create(0, 200, PresentationPlan.Standard(0.4f, 0.25f)));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            PresentationRenderTargetPlan.Create(320, 0, PresentationPlan.Standard(0.4f, 0.25f)));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            PresentationRenderTargetPlan.BuildCreateSequencePlan(0, 200, PresentationPlan.Standard(0.4f, 0.25f)));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            PresentationRenderTargetPlan.BuildCreateSequencePlan(320, 0, PresentationPlan.Standard(0.4f, 0.25f)));
+    }
+
+    [Fact]
     public void SetPresentationPlanAddsAndClearsOneOverlayTextureWhenUdbNeedsMore()
     {
         var presentation = new PresentationPlan(new[]
