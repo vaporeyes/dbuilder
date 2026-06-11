@@ -46,6 +46,7 @@ public static class RendererArchitectureModel
             "2D presentation per-layer draw operation sequence planning",
             "Render-device alpha-test compatibility state planning",
             "Render-device multisample antialias compatibility state planning",
+            "Render-device depth and depth-write state planning",
             "Render-device blend-operation planning",
             "Render-device blend-factor planning",
             "Render-device cull and fill raster-state planning",

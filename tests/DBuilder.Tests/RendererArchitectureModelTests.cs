@@ -41,6 +41,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("2D presentation per-layer draw operation sequence planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device alpha-test compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device multisample antialias compatibility state planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device depth and depth-write state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device blend-operation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device blend-factor planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device cull and fill raster-state planning", replacement.CoveredResponsibilities);
@@ -249,6 +250,21 @@ public class RendererArchitectureModelTests
 
         Assert.Equal(RenderStateToggleKind.MultisampleAntialias, plan.Kind);
         Assert.True(plan.Enabled);
+    }
+
+    [Fact]
+    public void RenderDeviceBuildsUdbDepthStatePlans()
+    {
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetZEnable), new[] { typeof(bool) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetZWriteEnable), new[] { typeof(bool) }));
+
+        RenderStateTogglePlan depth = RenderDevice.BuildDepthPlan(enabled: true);
+        RenderStateTogglePlan depthWrite = RenderDevice.BuildDepthWritePlan(enabled: false);
+
+        Assert.Equal(RenderStateToggleKind.Depth, depth.Kind);
+        Assert.True(depth.Enabled);
+        Assert.Equal(RenderStateToggleKind.DepthWrite, depthWrite.Kind);
+        Assert.False(depthWrite.Enabled);
     }
 
     [Fact]

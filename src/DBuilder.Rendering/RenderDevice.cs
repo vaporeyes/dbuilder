@@ -854,6 +854,12 @@ public sealed class RenderDevice : IDisposable
     public static RenderStateTogglePlan BuildMultisampleAntialiasPlan(bool enabled)
         => new(RenderStateToggleKind.MultisampleAntialias, enabled);
 
+    public static RenderStateTogglePlan BuildDepthPlan(bool enabled)
+        => new(RenderStateToggleKind.Depth, enabled);
+
+    public static RenderStateTogglePlan BuildDepthWritePlan(bool enabled)
+        => new(RenderStateToggleKind.DepthWrite, enabled);
+
     public static BlendOperationPlan BuildBlendOperationPlan(BlendOperation operation)
         => new(operation);
 
@@ -879,8 +885,8 @@ public sealed class RenderDevice : IDisposable
             FillMode: FillMode.Solid,
             MultisampleAntialias: BuildMultisampleAntialiasPlan(antialiasingEnabled),
             SourceBlend: Blend.SourceAlpha,
-            Depth: new(RenderStateToggleKind.Depth, Enabled: false),
-            DepthWrite: new(RenderStateToggleKind.DepthWrite, Enabled: false),
+            Depth: BuildDepthPlan(enabled: false),
+            DepthWrite: BuildDepthWritePlan(enabled: false),
             SamplerAddress: TextureAddress.Wrap,
             SamplerFilter: BuildSamplerFilterPlan(
                 magMinFilter,
