@@ -1685,6 +1685,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Collapse zoomed-out 2D thing sprites to overview markers and cull overlapping marker cells.
   - [x] Prefer selected and larger 2D thing markers when overview culling dense cells.
   - [x] Keep close-zoom 2D thing sprites reachable before overview marker culling.
+  - [x] Force 2D thing sprite rendering when fixed-size scaling clamps the thing footprint.
   - [x] Add UDB-style model render mode gating and MODELDEF/thing transform planning for future mesh rendering.
   - [x] Add UDB-style model render mode cycling, persistence, menu state, and 3D billboard fallback gating.
   - [x] Add UDB-style Toggle models rendering action alias for model render mode cycling.

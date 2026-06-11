@@ -243,9 +243,9 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
-    public void FixedSizeSpriteIconsCollapseWhenTheyWouldCrowdOverview()
+    public void FixedSizeSpriteIconsRenderWhenScaleIsClamped()
     {
-        Assert.False(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
+        Assert.True(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
             mapRadius: 20,
             viewScale: ThingIconRenderPolicy.SpriteIconScaleThreshold,
             fixedThingsScale: false,
@@ -255,6 +255,24 @@ public sealed class ThingIconRenderPolicyTests
             viewScale: ThingIconRenderPolicy.SpriteIconScaleThreshold - 0.01,
             fixedThingsScale: false,
             fixedSize: true));
+        Assert.False(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
+            mapRadius: 32,
+            viewScale: 1.0,
+            fixedThingsScale: false,
+            fixedSize: true));
+    }
+
+    [Fact]
+    public void FixedThingScaleSpriteIconsRenderWhenScaleIsClamped()
+    {
+        Assert.True(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
+            mapRadius: 80,
+            viewScale: 0.5,
+            fixedThingsScale: true));
+        Assert.False(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
+            mapRadius: 20,
+            viewScale: 0.5,
+            fixedThingsScale: true));
     }
 
     [Fact]

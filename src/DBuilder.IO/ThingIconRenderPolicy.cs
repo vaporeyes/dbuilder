@@ -85,8 +85,15 @@ public static class ThingIconRenderPolicy
         double viewScale,
         bool fixedThingsScale,
         bool fixedSize = false)
-        => viewScale < SpriteIconScaleThreshold
+    {
+        double scale = Math.Max(0.001, viewScale);
+        double radius = Math.Max(1.0, mapRadius);
+        if (fixedSize && scale < 1.0) return true;
+        if (fixedThingsScale && radius / scale > FixedThingScreenRadius) return true;
+
+        return viewScale < SpriteIconScaleThreshold
             && ProjectedThingScreenRadius(mapRadius, viewScale, fixedThingsScale, fixedSize) >= MinimumSpriteScreenRadius;
+    }
 
     public static double MarkerBaseSize(bool compactMarkers)
         => compactMarkers ? CompactMarkerBaseSize : RegularMarkerBaseSize;
