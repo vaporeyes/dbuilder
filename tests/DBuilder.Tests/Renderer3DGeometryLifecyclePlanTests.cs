@@ -1771,6 +1771,55 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
     }
 
     [Fact]
+    public void BuildThingTextureGroupPlanMatchesUdbTextureGroupSetupAndRestoration()
+    {
+        Renderer3DThingTextureGroupPlanSet plan = Renderer3DGeometryLifecyclePlan.BuildThingTextureGroupPlan(
+            [
+                new Renderer3DThingTextureGroupCandidate(TextureLongName: 100, DrawPaletted: false, HasUnknownTexture: false, ThingCount: 2),
+                new Renderer3DThingTextureGroupCandidate(TextureLongName: 200, DrawPaletted: true, HasUnknownTexture: false, ThingCount: 1),
+            ]);
+
+        Assert.Equal(TextureAddress.Clamp, plan.InitialTextureAddress);
+        Assert.Equal(Cull.None, plan.InitialCullMode);
+        Assert.Equal(TextureAddress.Wrap, plan.RestoredTextureAddress);
+        Assert.Equal(Cull.Clockwise, plan.RestoredCullMode);
+        Assert.Equal(
+            [
+                new Renderer3DThingTextureGroupPlan(100, SkipUnknownTexture: false, SetTexture: true, BoundTextureLongName: 100, DrawPaletted: false, IterateThings: true, ThingCount: 2, ResetStencilAfterGroup: true),
+                new Renderer3DThingTextureGroupPlan(200, SkipUnknownTexture: false, SetTexture: true, BoundTextureLongName: 200, DrawPaletted: true, IterateThings: true, ThingCount: 1, ResetStencilAfterGroup: true),
+            ],
+            plan.Groups);
+    }
+
+    [Fact]
+    public void BuildThingTextureGroupPlanSkipsUnknownImageGroupsBeforeBindingTexture()
+    {
+        Renderer3DThingTextureGroupPlanSet plan = Renderer3DGeometryLifecyclePlan.BuildThingTextureGroupPlan(
+            [
+                new Renderer3DThingTextureGroupCandidate(TextureLongName: 0, DrawPaletted: false, HasUnknownTexture: true, ThingCount: 3),
+            ]);
+
+        Renderer3DThingTextureGroupPlan group = Assert.Single(plan.Groups);
+        Assert.True(group.SkipUnknownTexture);
+        Assert.False(group.SetTexture);
+        Assert.Null(group.BoundTextureLongName);
+        Assert.Null(group.DrawPaletted);
+        Assert.False(group.IterateThings);
+        Assert.Equal(0, group.ThingCount);
+        Assert.False(group.ResetStencilAfterGroup);
+    }
+
+    [Fact]
+    public void BuildThingTextureGroupPlanRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentNullException>(() => Renderer3DGeometryLifecyclePlan.BuildThingTextureGroupPlan(null!));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildThingTextureGroupPlan(
+            [
+                new Renderer3DThingTextureGroupCandidate(TextureLongName: 100, DrawPaletted: false, HasUnknownTexture: false, ThingCount: -1),
+            ]));
+    }
+
+    [Fact]
     public void BuildTranslucentGeometryOrderPlanSortsWallsBackToFrontByCameraDistance()
     {
         Renderer3DTranslucentGeometryOrderPlan plan = Renderer3DGeometryLifecyclePlan.BuildTranslucentGeometryOrderPlan(
@@ -3101,6 +3150,12 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("if(wantedshaderpass > ShaderName.world3d_p7)", source, StringComparison.Ordinal);
         Assert.Contains("ShaderName wantedshaderpass = (((t == highlighted) && showhighlight) || (t.Selected && showselection)) ? highshaderpass : shaderpass;", source, StringComparison.Ordinal);
         Assert.Contains("if(General.Settings.GZDrawFog && !fullbrightness && !General.Settings.ClassicRendering && t.Thing.Sector != null && t.Thing.Sector.FogMode != SectorFogMode.NONE)", source, StringComparison.Ordinal);
+        Assert.Contains("foreach(KeyValuePair<ImageData, List<VisualThing>> group in thingspass)", source, StringComparison.Ordinal);
+        Assert.Contains("if(group.Key is UnknownImage) continue;", source, StringComparison.Ordinal);
+        Assert.Contains("curtexture = group.Key;", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetTexture(texture);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.drawPaletted, texture.UserData == ImageData.TEXTURE_INDEXED);", source, StringComparison.Ordinal);
+        Assert.Contains("foreach(VisualThing t in group.Value)", source, StringComparison.Ordinal);
         Assert.Contains("if(t.LightType != null && t.LightType.LightInternal && t.LightType.LightType != GZGeneral.LightType.SUN && !fullbrightness && !General.Settings.ClassicRendering)", source, StringComparison.Ordinal);
         Assert.Contains("wantedshaderpass += 4; // Render using one of passes, which uses World3D.VertexColor", source, StringComparison.Ordinal);
         Assert.Contains("else if(General.Settings.GZDrawLightsMode != LightRenderMode.NONE && !fullbrightness && !General.Settings.ClassicRendering && lightthings.Count > 0)", source, StringComparison.Ordinal);

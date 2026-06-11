@@ -468,6 +468,29 @@ public sealed record Renderer3DThingDrawStatePlanSet(
     bool WrapTextureAddressAfterThings,
     Cull RestoreCullModeAfterThings);
 
+public sealed record Renderer3DThingTextureGroupCandidate(
+    long TextureLongName,
+    bool DrawPaletted,
+    bool HasUnknownTexture,
+    int ThingCount);
+
+public sealed record Renderer3DThingTextureGroupPlan(
+    long TextureLongName,
+    bool SkipUnknownTexture,
+    bool SetTexture,
+    long? BoundTextureLongName,
+    bool? DrawPaletted,
+    bool IterateThings,
+    int ThingCount,
+    bool ResetStencilAfterGroup);
+
+public sealed record Renderer3DThingTextureGroupPlanSet(
+    TextureAddress InitialTextureAddress,
+    Cull InitialCullMode,
+    IReadOnlyList<Renderer3DThingTextureGroupPlan> Groups,
+    TextureAddress RestoredTextureAddress,
+    Cull RestoredCullMode);
+
 public enum Renderer3DVisualGeometryType
 {
     Floor,
@@ -1717,6 +1740,52 @@ public static class Renderer3DGeometryLifecyclePlan
             ResetStencilAfterTextureGroup: things.Count > 0,
             WrapTextureAddressAfterThings: things.Count > 0,
             RestoreCullModeAfterThings: Cull.Clockwise);
+    }
+
+    public static Renderer3DThingTextureGroupPlanSet BuildThingTextureGroupPlan(
+        IReadOnlyList<Renderer3DThingTextureGroupCandidate> textureGroups)
+    {
+        ArgumentNullException.ThrowIfNull(textureGroups);
+
+        foreach (Renderer3DThingTextureGroupCandidate group in textureGroups)
+        {
+            if (group.ThingCount < 0) throw new ArgumentOutOfRangeException(nameof(textureGroups));
+        }
+
+        var groups = new List<Renderer3DThingTextureGroupPlan>(textureGroups.Count);
+        foreach (Renderer3DThingTextureGroupCandidate group in textureGroups)
+        {
+            if (group.HasUnknownTexture)
+            {
+                groups.Add(new Renderer3DThingTextureGroupPlan(
+                    group.TextureLongName,
+                    SkipUnknownTexture: true,
+                    SetTexture: false,
+                    BoundTextureLongName: null,
+                    DrawPaletted: null,
+                    IterateThings: false,
+                    ThingCount: 0,
+                    ResetStencilAfterGroup: false));
+                continue;
+            }
+
+            groups.Add(new Renderer3DThingTextureGroupPlan(
+                group.TextureLongName,
+                SkipUnknownTexture: false,
+                SetTexture: true,
+                BoundTextureLongName: group.TextureLongName,
+                DrawPaletted: group.DrawPaletted,
+                IterateThings: true,
+                ThingCount: group.ThingCount,
+                ResetStencilAfterGroup: true));
+        }
+
+        return new Renderer3DThingTextureGroupPlanSet(
+            TextureAddress.Clamp,
+            Cull.None,
+            groups,
+            TextureAddress.Wrap,
+            Cull.Clockwise);
     }
 
     public static Renderer3DTranslucentGeometryOrderPlan BuildTranslucentGeometryOrderPlan(
