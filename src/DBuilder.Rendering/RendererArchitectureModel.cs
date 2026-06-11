@@ -101,6 +101,7 @@ public static class RendererArchitectureModel
             "Text font Font.cfg resource discovery and glyph-source parsing",
             "Text font configuration metric normalization",
             "Text font glyph metrics and vertex planning",
+            "Text font string vertex sequence planning",
             "Text label constructor and dispose lifecycle planning",
             "Text label font selection and legacy scale planning",
             "Text label compatibility property mutation planning",

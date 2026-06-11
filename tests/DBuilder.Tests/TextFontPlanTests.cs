@@ -234,6 +234,56 @@ public sealed class TextFontPlanTests
         Assert.All(plan.Vertices, vertex => Assert.Equal(unchecked((int)0xff102030), vertex.c));
     }
 
+    [Fact]
+    public void BuildTextVerticesComposesGlyphQuadsAndAdvancesTextPosition()
+    {
+        TextFontGlyph[] glyphs = TextFontPlan.BuildGlyphTable(new Dictionary<int, TextFontGlyphSource>
+        {
+            [(byte)'A'] = new(80, 30, 0.1f, 0.2f, 0.3f, 0.4f),
+            [(byte)'B'] = new(40, 30, 0.5f, 0.6f, 0.7f, 0.8f),
+        });
+
+        TextFontTextVertexPlan plan = TextFontPlan.BuildTextVertices(
+            "AB",
+            scale: 5.0f,
+            color: unchecked((int)0xff102030),
+            textX: 7.0f,
+            textY: 11.0f,
+            offsetV: 0.25f,
+            glyphs);
+
+        float afterA = 7.0f + 10.0f + TextFontPlan.AdjustSpacing * 5.0f;
+        float afterB = afterA + 5.0f + TextFontPlan.AdjustSpacing * 5.0f;
+        Assert.Equal(afterB, plan.NextTextX);
+        Assert.Equal(12, plan.Vertices.Length);
+        AssertVertex(plan.Vertices[0], 7.0f, 11.0f, 0.1f, 0.35f);
+        AssertVertex(plan.Vertices[5], 17.0f, 16.0f, 0.3f, 0.45f);
+        AssertVertex(plan.Vertices[6], afterA, 11.0f, 0.5f, 0.55f);
+        AssertVertex(plan.Vertices[11], afterA + 5.0f, 16.0f, 0.7f, 0.65f);
+        Assert.All(plan.Vertices, vertex => Assert.Equal(unchecked((int)0xff102030), vertex.c));
+    }
+
+    [Fact]
+    public void BuildTextVerticesSkipsMissingGlyphs()
+    {
+        TextFontGlyph[] glyphs = TextFontPlan.BuildGlyphTable(new Dictionary<int, TextFontGlyphSource>
+        {
+            [(byte)'A'] = new(80, 30, 0.1f, 0.2f, 0.3f, 0.4f),
+        });
+
+        TextFontTextVertexPlan plan = TextFontPlan.BuildTextVertices(
+            "AZ",
+            scale: 5.0f,
+            color: unchecked((int)0xff102030),
+            textX: 7.0f,
+            textY: 11.0f,
+            offsetV: 0.25f,
+            glyphs);
+
+        Assert.Equal(6, plan.Vertices.Length);
+        Assert.Equal(7.0f + 10.0f + TextFontPlan.AdjustSpacing * 5.0f, plan.NextTextX);
+    }
+
     private static void AssertVertex(FlatVertex vertex, float x, float y, float u, float v)
     {
         Assert.Equal(x, vertex.x);

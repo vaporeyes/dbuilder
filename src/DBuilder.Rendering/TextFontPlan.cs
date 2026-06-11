@@ -13,6 +13,8 @@ public sealed record TextFontGlyphSource(int Width, int Height, float U1, float 
 
 public sealed record TextFontGlyphVertexPlan(FlatVertex[] Vertices, float NextTextX);
 
+public sealed record TextFontTextVertexPlan(FlatVertex[] Vertices, float NextTextX);
+
 public sealed record TextFontResourcePlan(
     string? ResourceName,
     bool Found,
@@ -159,6 +161,39 @@ public static class TextFontPlan
         };
 
         return new TextFontGlyphVertexPlan(vertices, textX + charWidth + AdjustSpacing * scale);
+    }
+
+    public static TextFontTextVertexPlan BuildTextVertices(
+        string text,
+        float scale,
+        int color,
+        float textX,
+        float textY,
+        float offsetV,
+        IReadOnlyList<TextFontGlyph> glyphs)
+    {
+        TextLabelSize size = GetTextSize(text, scale, glyphs);
+        float nextTextX = textX;
+        var vertices = new List<FlatVertex>();
+
+        foreach (byte b in Encoding.ASCII.GetBytes(text))
+        {
+            TextFontGlyph glyph = b < glyphs.Count ? glyphs[b] : new TextFontGlyph(0, 0, 0, 0, 0, 0);
+            if (!Contains(glyph)) continue;
+
+            TextFontGlyphVertexPlan plan = SetupVertices(
+                glyph,
+                scale,
+                color,
+                nextTextX,
+                textY,
+                (float)size.Height,
+                offsetV);
+            vertices.AddRange(plan.Vertices);
+            nextTextX = plan.NextTextX;
+        }
+
+        return new TextFontTextVertexPlan(vertices.ToArray(), nextTextX);
     }
 
     private static TextFontGlyph GetGlyph(IReadOnlyDictionary<byte, TextFontGlyph> glyphs, byte key)
