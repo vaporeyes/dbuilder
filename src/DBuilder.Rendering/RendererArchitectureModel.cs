@@ -47,6 +47,7 @@ public static class RendererArchitectureModel
             "Render-device alpha-test compatibility state planning",
             "Render-device multisample antialias compatibility state planning",
             "Render-device sampler-filter overload planning",
+            "Render-device sampler address-state planning",
             "Render-device setup settings planning",
             "Render-device setup settings state application",
             "Render-device resource registration lifecycle planning",

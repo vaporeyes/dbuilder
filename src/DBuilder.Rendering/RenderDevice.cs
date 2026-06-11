@@ -106,6 +106,10 @@ public sealed record SamplerFilterPlan(
     float MaxAnisotropy,
     int Unit);
 
+public sealed record SamplerStatePlan(
+    TextureAddress Address,
+    int Unit);
+
 public sealed record RenderDeviceSetupSettingsPlan(
     RenderStateTogglePlan AlphaBlend,
     RenderStateTogglePlan AlphaTest,
@@ -868,6 +872,9 @@ public sealed class RenderDevice : IDisposable
 
     public static SamplerFilterPlan BuildSamplerFilterPlan(TextureFilter filter, int unit = 0)
         => BuildSamplerFilterPlan(filter, filter, MipmapFilter.None, 0.0f, unit);
+
+    public static SamplerStatePlan BuildSamplerStatePlan(TextureAddress address, int unit = 0)
+        => new(address, unit);
 
     public static RenderStartPlan BuildStartRenderingPlan(bool clear, uint clearColorArgb)
         => new(clear, clearColorArgb, HasTarget: false, UseDepthBuffer: true);

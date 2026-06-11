@@ -42,6 +42,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Render-device alpha-test compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device multisample antialias compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device sampler-filter overload planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device sampler address-state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device setup settings planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device setup settings state application", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device resource registration lifecycle planning", replacement.CoveredResponsibilities);
@@ -275,6 +276,22 @@ public class RendererArchitectureModelTests
         Assert.Equal(MipmapFilter.Nearest, detailed.MipFilter);
         Assert.Equal(4.0f, detailed.MaxAnisotropy);
         Assert.Equal(3, detailed.Unit);
+    }
+
+    [Fact]
+    public void RenderDeviceBuildsUdbSamplerAddressPlans()
+    {
+        Assert.NotNull(typeof(RenderDevice).GetMethod(
+            nameof(RenderDevice.SetSamplerState),
+            new[] { typeof(TextureAddress), typeof(int) }));
+
+        SamplerStatePlan wrap = RenderDevice.BuildSamplerStatePlan(TextureAddress.Wrap);
+        SamplerStatePlan clamp = RenderDevice.BuildSamplerStatePlan(TextureAddress.Clamp, unit: 4);
+
+        Assert.Equal(TextureAddress.Wrap, wrap.Address);
+        Assert.Equal(0, wrap.Unit);
+        Assert.Equal(TextureAddress.Clamp, clamp.Address);
+        Assert.Equal(4, clamp.Unit);
     }
 
     [Fact]
