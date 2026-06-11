@@ -1038,6 +1038,68 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
     }
 
     [Fact]
+    public void BuildTranslucentGeometryOrderPlanSortsWallsBackToFrontByCameraDistance()
+    {
+        Renderer3DTranslucentGeometryOrderPlan plan = Renderer3DGeometryLifecyclePlan.BuildTranslucentGeometryOrderPlan(
+            [
+                new Renderer3DTranslucentGeometryCandidate(1, Renderer3DVisualGeometryType.WallMiddle, new Vector3D(3, 0, 0), RenderPass.Alpha),
+                new Renderer3DTranslucentGeometryCandidate(2, Renderer3DVisualGeometryType.WallUpper, new Vector3D(10, 0, 0), RenderPass.Alpha),
+                new Renderer3DTranslucentGeometryCandidate(3, Renderer3DVisualGeometryType.WallLower, new Vector3D(1, 0, 0), RenderPass.Alpha),
+            ],
+            new Vector3D(0, 0, 0));
+
+        Assert.Equal([2, 1, 3], plan.Draws.Select(draw => draw.GeometryId).ToArray());
+    }
+
+    [Fact]
+    public void BuildTranslucentGeometryOrderPlanUsesVerticalDistanceWhenEitherGeometryIsPlane()
+    {
+        Renderer3DTranslucentGeometryOrderPlan plan = Renderer3DGeometryLifecyclePlan.BuildTranslucentGeometryOrderPlan(
+            [
+                new Renderer3DTranslucentGeometryCandidate(1, Renderer3DVisualGeometryType.WallMiddle, new Vector3D(100, 0, 1), RenderPass.Alpha),
+                new Renderer3DTranslucentGeometryCandidate(2, Renderer3DVisualGeometryType.Floor, new Vector3D(1, 0, 20), RenderPass.Alpha),
+                new Renderer3DTranslucentGeometryCandidate(3, Renderer3DVisualGeometryType.Ceiling, new Vector3D(2, 0, 5), RenderPass.Alpha),
+            ],
+            new Vector3D(0, 0, 0));
+
+        Assert.Equal([2, 3, 1], plan.Draws.Select(draw => draw.GeometryId).ToArray());
+    }
+
+    [Fact]
+    public void BuildTranslucentGeometryOrderPlanMatchesUdbDestinationBlendChanges()
+    {
+        Renderer3DTranslucentGeometryOrderPlan plan = Renderer3DGeometryLifecyclePlan.BuildTranslucentGeometryOrderPlan(
+            [
+                new Renderer3DTranslucentGeometryCandidate(1, Renderer3DVisualGeometryType.WallMiddle, new Vector3D(4, 0, 0), RenderPass.Alpha),
+                new Renderer3DTranslucentGeometryCandidate(2, Renderer3DVisualGeometryType.WallMiddle, new Vector3D(3, 0, 0), RenderPass.Alpha),
+                new Renderer3DTranslucentGeometryCandidate(3, Renderer3DVisualGeometryType.WallMiddle, new Vector3D(2, 0, 0), RenderPass.Additive),
+                new Renderer3DTranslucentGeometryCandidate(4, Renderer3DVisualGeometryType.WallMiddle, new Vector3D(1, 0, 0), RenderPass.Alpha),
+            ],
+            new Vector3D(0, 0, 0));
+
+        Assert.Equal(
+            [
+                new Renderer3DTranslucentGeometryDrawPlan(1, RenderPass.Alpha, Blend.InverseSourceAlpha),
+                new Renderer3DTranslucentGeometryDrawPlan(2, RenderPass.Alpha, DestinationBlendChange: null),
+                new Renderer3DTranslucentGeometryDrawPlan(3, RenderPass.Additive, Blend.One),
+                new Renderer3DTranslucentGeometryDrawPlan(4, RenderPass.Alpha, Blend.InverseSourceAlpha),
+            ],
+            plan.Draws);
+    }
+
+    [Fact]
+    public void BuildTranslucentGeometryOrderPlanRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentNullException>(() => Renderer3DGeometryLifecyclePlan.BuildTranslucentGeometryOrderPlan(null!, new Vector3D()));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildTranslucentGeometryOrderPlan([], new Vector3D(double.NaN, 0, 0)));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildTranslucentGeometryOrderPlan(
+            [
+                new Renderer3DTranslucentGeometryCandidate(1, Renderer3DVisualGeometryType.WallMiddle, new Vector3D(0, double.NaN, 0), RenderPass.Alpha),
+            ],
+            new Vector3D()));
+    }
+
+    [Fact]
     public void Renderer3DStartGeometryExpressionsMatchUdbWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -1149,6 +1211,15 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("wantedshaderpass += 4; // Render using one of passes, which uses World3D.VertexColor", source, StringComparison.Ordinal);
         Assert.Contains("else if(General.Settings.GZDrawLightsMode != LightRenderMode.NONE && !fullbrightness && !General.Settings.ClassicRendering && lightthings.Count > 0)", source, StringComparison.Ordinal);
         Assert.Contains("if(litcolor.ToArgb() != 0)", source, StringComparison.Ordinal);
+        Assert.Contains("private void RenderTranslucentPass(List<VisualGeometry> geopass, List<VisualThing> thingspass, List<VisualThing> lights)", source, StringComparison.Ordinal);
+        Assert.Contains("geopass.Sort(delegate(VisualGeometry vg1, VisualGeometry vg2)", source, StringComparison.Ordinal);
+        Assert.Contains("vg1.GeometryType == VisualGeometryType.FLOOR || vg1.GeometryType == VisualGeometryType.CEILING", source, StringComparison.Ordinal);
+        Assert.Contains("dist1 = Math.Abs(vg1.BoundingBox[0].z - cameraPos.z);", source, StringComparison.Ordinal);
+        Assert.Contains("dist1 = (General.Map.VisualCamera.Position - vg1.BoundingBox[0]).GetLengthSq();", source, StringComparison.Ordinal);
+        Assert.Contains("return (int)(dist2 - dist1);", source, StringComparison.Ordinal);
+        Assert.Contains("case RenderPass.Additive:", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetDestinationBlend(Blend.One);", source, StringComparison.Ordinal);
+        Assert.Contains("case RenderPass.Alpha:", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);

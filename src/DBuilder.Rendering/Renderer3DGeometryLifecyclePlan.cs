@@ -273,6 +273,31 @@ public sealed record Renderer3DThingShaderPassPlan(
     Renderer3DThingVertexColorSource VertexColorSource,
     bool AppliesFogUniforms);
 
+public enum Renderer3DVisualGeometryType
+{
+    Floor,
+    Ceiling,
+    WallUpper,
+    WallMiddle,
+    WallMiddle3D,
+    WallLower,
+    FogBoundary,
+    Unknown,
+}
+
+public sealed record Renderer3DTranslucentGeometryCandidate(
+    int Id,
+    Renderer3DVisualGeometryType GeometryType,
+    Vector3D BoundingBoxCenter,
+    RenderPass RenderPass);
+
+public sealed record Renderer3DTranslucentGeometryDrawPlan(
+    int GeometryId,
+    RenderPass RenderPass,
+    Blend? DestinationBlendChange);
+
+public sealed record Renderer3DTranslucentGeometryOrderPlan(IReadOnlyList<Renderer3DTranslucentGeometryDrawPlan> Draws);
+
 public static class Renderer3DGeometryLifecyclePlan
 {
     public const float EventLineArrowheadLength = 20.0f;
@@ -738,6 +763,42 @@ public static class Renderer3DGeometryLifecyclePlan
             AppliesFogUniforms: wantedShader > ShaderName.world3d_p7);
     }
 
+    public static Renderer3DTranslucentGeometryOrderPlan BuildTranslucentGeometryOrderPlan(
+        IReadOnlyList<Renderer3DTranslucentGeometryCandidate> geometry,
+        Vector3D cameraPosition)
+    {
+        ArgumentNullException.ThrowIfNull(geometry);
+        if (!cameraPosition.IsFinite()) throw new ArgumentOutOfRangeException(nameof(cameraPosition));
+        foreach (Renderer3DTranslucentGeometryCandidate candidate in geometry)
+        {
+            if (!candidate.BoundingBoxCenter.IsFinite()) throw new ArgumentOutOfRangeException(nameof(geometry));
+        }
+
+        Renderer3DTranslucentGeometryCandidate[] ordered = geometry.ToArray();
+        Array.Sort(ordered, (first, second) => CompareTranslucentGeometry(first, second, cameraPosition));
+
+        var draws = new List<Renderer3DTranslucentGeometryDrawPlan>(ordered.Length);
+        RenderPass currentPass = RenderPass.Solid;
+        foreach (Renderer3DTranslucentGeometryCandidate candidate in ordered)
+        {
+            Blend? destinationBlend = null;
+            if (candidate.RenderPass != currentPass)
+            {
+                destinationBlend = candidate.RenderPass switch
+                {
+                    RenderPass.Additive => Blend.One,
+                    RenderPass.Alpha => Blend.InverseSourceAlpha,
+                    _ => null,
+                };
+                currentPass = candidate.RenderPass;
+            }
+
+            draws.Add(new Renderer3DTranslucentGeometryDrawPlan(candidate.Id, candidate.RenderPass, destinationBlend));
+        }
+
+        return new Renderer3DTranslucentGeometryOrderPlan(draws);
+    }
+
     public static Renderer3DFinishGeometryCleanupPlan BuildFinishGeometryCleanupPlan()
         => new(
             UnbindTexture: true,
@@ -758,4 +819,24 @@ public static class Renderer3DGeometryLifecyclePlan
 
     private static WorldVertex Vertex(Vector3D position, int color)
         => new((float)position.x, (float)position.y, (float)position.z, color, u: 0.0f, v: 0.0f);
+
+    private static int CompareTranslucentGeometry(
+        Renderer3DTranslucentGeometryCandidate first,
+        Renderer3DTranslucentGeometryCandidate second,
+        Vector3D cameraPosition)
+    {
+        if (first == second) return 0;
+
+        bool comparePlanes = IsPlaneGeometry(first.GeometryType) || IsPlaneGeometry(second.GeometryType);
+        double firstDistance = comparePlanes
+            ? Math.Abs(first.BoundingBoxCenter.z - cameraPosition.z)
+            : (cameraPosition - first.BoundingBoxCenter).GetLengthSq();
+        double secondDistance = comparePlanes
+            ? Math.Abs(second.BoundingBoxCenter.z - cameraPosition.z)
+            : (cameraPosition - second.BoundingBoxCenter).GetLengthSq();
+        return secondDistance.CompareTo(firstDistance);
+    }
+
+    private static bool IsPlaneGeometry(Renderer3DVisualGeometryType geometryType)
+        => geometryType is Renderer3DVisualGeometryType.Floor or Renderer3DVisualGeometryType.Ceiling;
 }
