@@ -109,6 +109,8 @@ public static class SurfaceRenderPlan
         IEnumerable<SurfaceRenderBatch> batches,
         SurfaceRenderPass pass)
     {
+        ValidatePass(pass);
+
         int surfaceVertexOffsetMultiplier = pass == SurfaceRenderPass.Ceiling ? 1 : 0;
         var commands = new List<SurfaceRenderCommand>();
         foreach (SurfaceRenderBatch batch in batches)
@@ -152,6 +154,8 @@ public static class SurfaceRenderPlan
         bool visualBilinear,
         float filterAnisotropy)
     {
+        ValidatePass(pass);
+
         TextureFilter filter = visualBilinear ? TextureFilter.Linear : TextureFilter.Nearest;
         MipmapFilter mipFilter = visualBilinear ? MipmapFilter.Linear : MipmapFilter.Nearest;
         string shaderName = fullBrightness && pass != SurfaceRenderPass.Brightness
@@ -163,5 +167,10 @@ public static class SurfaceRenderPlan
             TextureAddress.Wrap,
             RenderDevice.BuildSamplerFilterPlan(filter, filter, mipFilter, filterAnisotropy),
             ResetDesaturationAfterRender: true);
+    }
+
+    private static void ValidatePass(SurfaceRenderPass pass)
+    {
+        if (!Enum.IsDefined(pass)) throw new ArgumentOutOfRangeException(nameof(pass), pass, null);
     }
 }

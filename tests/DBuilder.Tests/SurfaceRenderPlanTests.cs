@@ -251,6 +251,15 @@ public sealed class SurfaceRenderPlanTests
     }
 
     [Fact]
+    public void CommandAndStatePlansRejectInvalidRenderPasses()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            SurfaceRenderPlan.BuildCommands(Array.Empty<SurfaceRenderBatch>(), (SurfaceRenderPass)99));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            SurfaceRenderPlan.BuildRenderStatePlan((SurfaceRenderPass)99, fullBrightness: false, visualBilinear: false, filterAnisotropy: 0));
+    }
+
+    [Fact]
     public void BufferBindingsCollapseConsecutiveCommandsForSameBuffer()
     {
         var commands = new[]

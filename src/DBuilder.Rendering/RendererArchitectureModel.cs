@@ -105,6 +105,7 @@ public static class RendererArchitectureModel
             "Surface update entry application and chunk reuse planning",
             "Surface update vertex-count validation planning",
             "Surface render pass visibility filtering and texture grouping",
+            "Surface render pass validation planning",
             "Surface render texture fallback resolution planning",
             "Surface render draw-command and vertex-buffer binding planning",
             "Surface render shader and sampler state planning",
