@@ -99,6 +99,44 @@ public class TriangulationFallbackTests
     }
 
     [Fact]
+    public void ReusedTriangulationClearsApproximateFlag()
+    {
+        var fallbackMap = new MapSet();
+        var fallbackSector = new Sector { Index = 0 };
+        fallbackMap.Sectors.Add(fallbackSector);
+        var v0 = new Vertex(new Vector2D(0, 0));
+        var v1 = new Vertex(new Vector2D(20, 0));
+        var v2 = new Vertex(new Vector2D(20, 20));
+        var v3 = new Vertex(new Vector2D(0, 20));
+        fallbackMap.Vertices.AddRange(new[] { v0, v1, v2, v3 });
+
+        void MakeFallbackLine(Vertex start, Vertex end)
+        {
+            var line = new Linedef(start, end);
+            var side = new Sidedef(line, true) { Sector = fallbackSector };
+            line.AttachFront(side);
+            fallbackMap.Linedefs.Add(line);
+            fallbackMap.Sidedefs.Add(side);
+        }
+
+        MakeFallbackLine(v0, v1);
+        MakeFallbackLine(v1, v2);
+        MakeFallbackLine(v2, v3);
+        MakeFallbackLine(v3, v0);
+        fallbackMap.BuildIndexes();
+        var (_, normalSector) = BuildCwSquare(64);
+        var tri = new Triangulation();
+
+        tri.Triangulate(fallbackSector);
+        Assert.True(tri.IsApproximate);
+
+        tri.Triangulate(normalSector);
+
+        Assert.False(tri.IsApproximate);
+        Assert.Equal(6, tri.Vertices.Count);
+    }
+
+    [Fact]
     public void FallbackEmitsThreeVerticesPerTriangle()
     {
         // Force the fallback with a CCW-wound square (same as above).

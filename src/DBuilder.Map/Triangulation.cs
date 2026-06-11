@@ -65,6 +65,7 @@ public sealed class Triangulation
         var sidedefslist = new List<Sidedef?>();
 
         GC.SuppressFinalize(this);
+        IsApproximate = false;
 
         // Stage 1: trace polygons
         List<EarClipPolygon> polys = DoTrace(s);
