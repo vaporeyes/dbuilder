@@ -100,6 +100,7 @@ public static class RendererArchitectureModel
             "Mesh draw availability planning",
             "Surface-entry chunk metadata and bounds model",
             "Surface manager vertex chunk and buffer allocation planning",
+            "Surface buffer entry-size validation planning",
             "Surface buffer hole allocation and free-entry planning",
             "Surface update entry application and chunk reuse planning",
             "Surface render pass visibility filtering and texture grouping",

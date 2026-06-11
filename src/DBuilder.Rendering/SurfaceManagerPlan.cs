@@ -61,6 +61,8 @@ public sealed class SurfaceBufferSetState
 {
     public SurfaceBufferSetState(int verticesPerEntry)
     {
+        SurfaceManagerPlan.ValidateVerticesPerEntry(verticesPerEntry);
+
         VerticesPerEntry = verticesPerEntry;
     }
 
@@ -222,6 +224,8 @@ public sealed class SurfaceManagerState
 
     public SurfaceBufferSetState GetSet(int numVertices)
     {
+        SurfaceManagerPlan.ValidateVerticesPerEntry(numVertices);
+
         if (!_sets.TryGetValue(numVertices, out SurfaceBufferSetState? set))
         {
             set = new SurfaceBufferSetState(numVertices);
@@ -378,10 +382,19 @@ public static class SurfaceManagerPlan
     }
 
     public static int VerticesPerBufferEntry(int verticesPerEntry)
-        => checked(verticesPerEntry * 2);
+    {
+        ValidateVerticesPerEntry(verticesPerEntry);
+
+        return checked(verticesPerEntry * 2);
+    }
 
     public static int MaxEntriesPerBuffer(int verticesPerEntry)
         => MaxVerticesPerBuffer / VerticesPerBufferEntry(verticesPerEntry);
+
+    public static void ValidateVerticesPerEntry(int verticesPerEntry)
+    {
+        if (verticesPerEntry <= 0) throw new ArgumentOutOfRangeException(nameof(verticesPerEntry));
+    }
 
     public static SurfaceBufferUnlockPlan BuildUnlockBuffersPlan(int lockedBufferCount, bool resourcesUnloaded)
     {

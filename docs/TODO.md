@@ -1594,6 +1594,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port surface manager behavior.
   - [x] Add UDB-style surface manager vertex limit constant aliases.
   - [x] Add UDB-style surface vertex chunk and buffer allocation planning.
+  - [x] Add UDB-style surface buffer entry-size validation planning.
   - [x] Add UDB-style surface update entry application behavior.
   - [x] Add UDB-style surface buffer hole allocation planning.
   - [x] Add UDB-style surface render pass visibility filtering and texture grouping.

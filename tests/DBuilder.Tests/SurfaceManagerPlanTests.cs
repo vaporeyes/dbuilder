@@ -117,6 +117,15 @@ public sealed class SurfaceManagerPlanTests
     }
 
     [Fact]
+    public void BufferEntrySizingRejectsInvalidVerticesPerEntry()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => SurfaceManagerPlan.VerticesPerBufferEntry(0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => SurfaceManagerPlan.MaxEntriesPerBuffer(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new SurfaceBufferSetState(0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new SurfaceManagerState().GetSet(-1));
+    }
+
+    [Fact]
     public void SurfaceBufferSetExposesUdbFieldShape()
     {
         var buffers = new List<VertexBuffer>();
