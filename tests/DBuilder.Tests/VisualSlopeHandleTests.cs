@@ -432,6 +432,26 @@ public class VisualSlopeHandleTests
     }
 
     [Fact]
+    public void SlopeHandlePairUsesSmartPivotWhenHighlightedHandleWrapsSelectedSidedefLikeUdb()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        VisualSlopeLevel level = VisualSlopeLevel.Floor(sector);
+        VisualSlopeHandle selected = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[0], level, up: true) with { Selected = true };
+        VisualSlopeHandle highlighted = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[0], level, up: true);
+        VisualSlopeHandle smartPivot = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[2], level, up: true);
+
+        VisualSlopeHandlePairResult result = VisualSlopeHandles.GetSlopeHandlePair(
+            [selected, highlighted, smartPivot],
+            highlighted);
+
+        Assert.Null(result.WarningMessage);
+        Assert.Equal(2, result.Handles.Count);
+        Assert.Same(selected, result.Handles[0]);
+        Assert.Same(smartPivot, result.Handles[1]);
+    }
+
+    [Fact]
     public void SlopeHandlePairWarnsWhenSmartPivotIsMissingLikeUdb()
     {
         var map = new MapSet();

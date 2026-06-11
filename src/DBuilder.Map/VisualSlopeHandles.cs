@@ -312,7 +312,7 @@ public static class VisualSlopeHandles
         }
         else if (pair.Count == 1)
         {
-            if (highlightedLine && !ReferenceEquals(highlightedHandle, pair[0]))
+            if (highlightedLine && !SameLineHandle(highlightedHandle!, pair[0]))
             {
                 pair.Add(highlightedHandle!);
             }
@@ -916,6 +916,14 @@ public static class VisualSlopeHandles
            && left.ExtraFloor == right.ExtraFloor
            && left.Plane.Normal == right.Plane.Normal
            && left.Plane.Offset == right.Plane.Offset;
+
+    private static bool SameLineHandle(VisualSlopeHandle left, VisualSlopeHandle right)
+        => left.Kind == VisualSlopeHandleKind.Line
+           && right.Kind == VisualSlopeHandleKind.Line
+           && left.Sidedef != null
+           && right.Sidedef != null
+           && ReferenceEquals(left.Sidedef, right.Sidedef)
+           && ReferenceEquals(left.Sidedef.Line, right.Sidedef.Line);
 
     private static bool IsNearestSlopeHandleCandidate(VisualSlopeHandle handle)
         => (handle.Kind == VisualSlopeHandleKind.Line && handle.Sidedef != null)
