@@ -17,6 +17,31 @@ public readonly record struct Renderer2DRectangleDrawPlan(
 
 public static class Renderer2DRectangleDrawPlanner
 {
+    public static Renderer2DRectangleDrawPlan BuildFilledPlan(
+        double left,
+        double top,
+        double right,
+        double bottom,
+        int color,
+        bool transformRectangle,
+        double translateX,
+        double translateY,
+        double scale)
+    {
+        if (double.IsNaN(left)) throw new ArgumentOutOfRangeException(nameof(left));
+        if (double.IsNaN(top)) throw new ArgumentOutOfRangeException(nameof(top));
+        if (double.IsNaN(right)) throw new ArgumentOutOfRangeException(nameof(right));
+        if (double.IsNaN(bottom)) throw new ArgumentOutOfRangeException(nameof(bottom));
+        if (double.IsNaN(translateX)) throw new ArgumentOutOfRangeException(nameof(translateX));
+        if (double.IsNaN(translateY)) throw new ArgumentOutOfRangeException(nameof(translateY));
+        if (scale == 0.0 || double.IsNaN(scale)) throw new ArgumentOutOfRangeException(nameof(scale));
+
+        (double ltX, double ltY) = Project(left, top, transformRectangle, translateX, translateY, scale);
+        (double rbX, double rbY) = Project(right, bottom, transformRectangle, translateX, translateY, scale);
+
+        return BuildPlan([Quad(ltX, ltY, rbX, rbY, color)]);
+    }
+
     public static Renderer2DRectangleDrawPlan BuildBorderPlan(
         double left,
         double top,
@@ -48,6 +73,11 @@ public static class Renderer2DRectangleDrawPlanner
             Quad(rbX - borderSize, ltY - borderSize, rbX, rbY + borderSize, color),
         ];
 
+        return BuildPlan(quads);
+    }
+
+    private static Renderer2DRectangleDrawPlan BuildPlan(FlatQuad[] quads)
+    {
         return new Renderer2DRectangleDrawPlan(
             quads,
             PrimitiveCountPerQuad: 2,

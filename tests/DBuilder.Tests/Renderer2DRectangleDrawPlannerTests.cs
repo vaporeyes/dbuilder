@@ -19,6 +19,50 @@ public sealed class Renderer2DRectangleDrawPlannerTests
     }
 
     [Fact]
+    public void BuildFilledPlanMatchesUdbTransformedRectangleQuad()
+    {
+        Renderer2DRectangleDrawPlan plan = Renderer2DRectangleDrawPlanner.BuildFilledPlan(
+            left: 0,
+            top: -10,
+            right: 10,
+            bottom: -20,
+            color: 0x123456,
+            transformRectangle: true,
+            translateX: 1,
+            translateY: 0,
+            scale: 2);
+
+        FlatQuad quad = Assert.Single(plan.Quads);
+        Assert.Equal(2, plan.PrimitiveCountPerQuad);
+        Assert.Equal(Cull.None, plan.CullMode);
+        Assert.False(plan.DepthEnabled);
+        Assert.False(plan.AlphaBlendEnabled);
+        Assert.False(plan.AlphaTestEnabled);
+        Assert.True(plan.ResetWorldTransformation);
+        Assert.Equal(ShaderName.display2d_normal, plan.Shader);
+        Assert.True(plan.BindWhiteTexture);
+        Assert.Equal(PrimitiveType.TriangleStrip, plan.PrimitiveType);
+        AssertQuad(quad, 2, 20, 22, 40, 0x123456);
+    }
+
+    [Fact]
+    public void BuildFilledPlanKeepsPreprojectedRectangleWhenTransformIsDisabled()
+    {
+        Renderer2DRectangleDrawPlan plan = Renderer2DRectangleDrawPlanner.BuildFilledPlan(
+            left: 10,
+            top: 20,
+            right: 30,
+            bottom: 40,
+            color: 0x654321,
+            transformRectangle: false,
+            translateX: 100,
+            translateY: 100,
+            scale: 4);
+
+        AssertQuad(Assert.Single(plan.Quads), 10, 20, 30, 40, 0x654321);
+    }
+
+    [Fact]
     public void BuildBorderPlanMatchesUdbTransformedRectangleQuads()
     {
         Renderer2DRectangleDrawPlan plan = Renderer2DRectangleDrawPlanner.BuildBorderPlan(
@@ -106,6 +150,16 @@ public sealed class Renderer2DRectangleDrawPlannerTests
             translateX: 0,
             translateY: 0,
             scale: 0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer2DRectangleDrawPlanner.BuildFilledPlan(
+            0,
+            double.NaN,
+            1,
+            1,
+            0,
+            transformRectangle: false,
+            translateX: 0,
+            translateY: 0,
+            scale: 1));
     }
 
     [Fact]
@@ -117,8 +171,11 @@ public sealed class Renderer2DRectangleDrawPlannerTests
         string source = File.ReadAllText(Path.Combine(udbRoot, "Source", "Core", "Rendering", "Renderer2D.cs"));
 
         Assert.Contains("public void RenderRectangle(RectangleF rect, float bordersize, PixelColor c, bool transformrect)", source, StringComparison.Ordinal);
+        Assert.Contains("public void RenderRectangleFilled(RectangleF rect, PixelColor c, bool transformrect)", source, StringComparison.Ordinal);
         Assert.Contains("lt = lt.GetTransformed(translatex, translatey, scale, -scale);", source, StringComparison.Ordinal);
         Assert.Contains("rb = rb.GetTransformed(translatex, translatey, scale, -scale);", source, StringComparison.Ordinal);
+        Assert.Contains("FlatQuad quad = new FlatQuad(PrimitiveType.TriangleStrip, (float)lt.x, (float)lt.y, (float)rb.x, (float)rb.y);", source, StringComparison.Ordinal);
+        Assert.Contains("quad.SetColors(c.ToInt());", source, StringComparison.Ordinal);
         Assert.Contains("quads[0] = new FlatQuad(PrimitiveType.TriangleStrip, (float)lt.x, (float)lt.y, (float)rb.x, (float)lt.y - bordersize);", source, StringComparison.Ordinal);
         Assert.Contains("quads[3] = new FlatQuad(PrimitiveType.TriangleStrip, (float)rb.x - bordersize, (float)lt.y - bordersize, (float)rb.x, (float)rb.y + bordersize);", source, StringComparison.Ordinal);
         Assert.Contains("quads[0].SetColors(c.ToInt());", source, StringComparison.Ordinal);
