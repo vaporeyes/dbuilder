@@ -493,6 +493,63 @@ public sealed record Renderer3DTranslucentGeometryDrawPlan(
 
 public sealed record Renderer3DTranslucentGeometryOrderPlan(IReadOnlyList<Renderer3DTranslucentGeometryDrawPlan> Draws);
 
+public sealed record Renderer3DTranslucentGeometryDrawStateCandidate(
+    int Id,
+    Renderer3DVisualGeometryType GeometryType,
+    Vector3D BoundingBoxCenter,
+    RenderPass RenderPass,
+    long TextureLongName,
+    bool DrawPaletted,
+    int SectorId,
+    bool SectorNeedsUpdate,
+    bool SectorHasGeometryBuffer,
+    bool SectorHasMap,
+    bool Highlighted,
+    bool Selected,
+    bool SectorHasFog,
+    int SectorFogColor,
+    double SectorDesaturation,
+    double FogFactor,
+    Vector2f Skew,
+    int VertexOffset,
+    int Triangles);
+
+public sealed record Renderer3DTranslucentGeometryDrawStatePlan(
+    int GeometryId,
+    RenderPass RenderPass,
+    Blend? DestinationBlendChange,
+    bool SetTexture,
+    long? TextureLongName,
+    bool? DrawPaletted,
+    bool UpdateSectorGeometry,
+    bool BindSectorGeometryBuffer,
+    bool ClearCurrentSector,
+    ShaderName? WantedShader,
+    bool SwitchShader,
+    bool SetModelNormalForFog,
+    bool SetCameraFogUniform,
+    double? FogFactor,
+    bool SetDesaturation,
+    double SectorDesaturation,
+    bool SetSkew,
+    Vector2f Skew,
+    bool SetSectorFogColor,
+    int? SectorFogColor,
+    bool SetHighlightColor,
+    bool Draw,
+    PrimitiveType PrimitiveType,
+    int VertexOffset,
+    int Triangles);
+
+public sealed record Renderer3DTranslucentGeometryDrawStatePlanSet(
+    ShaderName InitialShader,
+    bool LightsEnabled,
+    bool IgnoreNormals,
+    bool UseLightStrength,
+    IReadOnlyList<Renderer3DTranslucentGeometryDrawStatePlan> Draws,
+    bool ResetSkewAfterGeometry,
+    bool DisableLightsAfterGeometry);
+
 public sealed record Renderer3DTranslucentThingCandidate(
     int Id,
     Vector3D BoundingBoxCenter,
@@ -1628,6 +1685,147 @@ public static class Renderer3DGeometryLifecyclePlan
         }
 
         return new Renderer3DTranslucentGeometryOrderPlan(draws);
+    }
+
+    public static Renderer3DTranslucentGeometryDrawStatePlanSet BuildTranslucentGeometryDrawStatePlan(
+        IReadOnlyList<Renderer3DTranslucentGeometryDrawStateCandidate> geometry,
+        Vector3D cameraPosition,
+        bool fullBrightness,
+        bool drawFog,
+        bool classicRendering,
+        bool showHighlight,
+        bool showSelection,
+        int lightCount,
+        bool inverseSquareLightAttenuation)
+    {
+        ArgumentNullException.ThrowIfNull(geometry);
+        if (!cameraPosition.IsFinite()) throw new ArgumentOutOfRangeException(nameof(cameraPosition));
+        if (lightCount < 0) throw new ArgumentOutOfRangeException(nameof(lightCount));
+
+        foreach (Renderer3DTranslucentGeometryDrawStateCandidate candidate in geometry)
+        {
+            if (!candidate.BoundingBoxCenter.IsFinite()) throw new ArgumentOutOfRangeException(nameof(geometry));
+            if (!double.IsFinite(candidate.SectorDesaturation)) throw new ArgumentOutOfRangeException(nameof(geometry));
+            if (!double.IsFinite(candidate.FogFactor)) throw new ArgumentOutOfRangeException(nameof(geometry));
+            if (!IsFinite(candidate.Skew)) throw new ArgumentOutOfRangeException(nameof(geometry));
+            if (candidate.VertexOffset < 0) throw new ArgumentOutOfRangeException(nameof(geometry));
+            if (candidate.Triangles < 0) throw new ArgumentOutOfRangeException(nameof(geometry));
+        }
+
+        Renderer3DTranslucentGeometryDrawStateCandidate[] ordered = geometry.ToArray();
+        Array.Sort(ordered, (first, second) => CompareTranslucentGeometry(
+            new Renderer3DTranslucentGeometryCandidate(first.Id, first.GeometryType, first.BoundingBoxCenter, first.RenderPass),
+            new Renderer3DTranslucentGeometryCandidate(second.Id, second.GeometryType, second.BoundingBoxCenter, second.RenderPass),
+            cameraPosition));
+
+        ShaderName shaderPass = fullBrightness ? ShaderName.world3d_fullbright : ShaderName.world3d_main;
+        ShaderName currentShader = shaderPass;
+        RenderPass currentPass = RenderPass.Solid;
+        long currentTextureLongName = 0;
+        int? currentSectorId = null;
+        double currentFogFactor = -1.0;
+        var draws = new List<Renderer3DTranslucentGeometryDrawStatePlan>(ordered.Length);
+
+        foreach (Renderer3DTranslucentGeometryDrawStateCandidate candidate in ordered)
+        {
+            Blend? destinationBlend = null;
+            if (candidate.RenderPass != currentPass)
+            {
+                destinationBlend = candidate.RenderPass switch
+                {
+                    RenderPass.Additive => Blend.One,
+                    RenderPass.Alpha => Blend.InverseSourceAlpha,
+                    _ => null,
+                };
+                currentPass = candidate.RenderPass;
+            }
+
+            bool setTexture = candidate.TextureLongName != currentTextureLongName;
+            if (setTexture)
+            {
+                currentTextureLongName = candidate.TextureLongName;
+            }
+
+            bool sectorChanged = currentSectorId != candidate.SectorId;
+            bool sectorAvailable = candidate.SectorHasGeometryBuffer && candidate.SectorHasMap;
+            bool updateSectorGeometry = sectorChanged && candidate.SectorNeedsUpdate;
+            bool bindSectorGeometryBuffer = sectorChanged && sectorAvailable;
+            bool clearCurrentSector = sectorChanged && !sectorAvailable;
+            if (sectorChanged)
+            {
+                currentSectorId = sectorAvailable ? candidate.SectorId : null;
+            }
+
+            bool draw = currentSectorId.HasValue;
+            ShaderName? wantedShader = null;
+            bool switchShader = false;
+            bool setModelNormalForFog = false;
+            bool setCameraFogUniform = false;
+            double? fogFactor = null;
+            if (draw)
+            {
+                Renderer3DShaderPassPlan shaderPlan = BuildGeometryShaderPassPlan(
+                    shaderPass,
+                    candidate.Highlighted,
+                    showHighlight,
+                    candidate.Selected,
+                    showSelection,
+                    drawFog,
+                    fullBrightness,
+                    classicRendering,
+                    candidate.SectorHasFog);
+                wantedShader = shaderPlan.WantedShader;
+                switchShader = currentShader != wantedShader.Value;
+                setModelNormalForFog = switchShader && shaderPlan.AppliesFogUniforms;
+                if (switchShader)
+                {
+                    currentShader = wantedShader.Value;
+                }
+
+                setCameraFogUniform = shaderPlan.AppliesFogUniforms && candidate.FogFactor != currentFogFactor;
+                if (setCameraFogUniform)
+                {
+                    currentFogFactor = candidate.FogFactor;
+                    fogFactor = candidate.FogFactor;
+                }
+            }
+
+            draws.Add(new Renderer3DTranslucentGeometryDrawStatePlan(
+                candidate.Id,
+                candidate.RenderPass,
+                DestinationBlendChange: destinationBlend,
+                SetTexture: setTexture,
+                TextureLongName: setTexture ? candidate.TextureLongName : null,
+                DrawPaletted: setTexture ? candidate.DrawPaletted : null,
+                UpdateSectorGeometry: updateSectorGeometry,
+                BindSectorGeometryBuffer: bindSectorGeometryBuffer,
+                ClearCurrentSector: clearCurrentSector,
+                WantedShader: wantedShader,
+                SwitchShader: switchShader,
+                SetModelNormalForFog: setModelNormalForFog,
+                SetCameraFogUniform: setCameraFogUniform,
+                FogFactor: fogFactor,
+                SetDesaturation: true,
+                SectorDesaturation: draw ? candidate.SectorDesaturation : 0.0,
+                SetSkew: draw,
+                Skew: draw ? candidate.Skew : new Vector2f(),
+                SetSectorFogColor: draw,
+                SectorFogColor: draw ? candidate.SectorFogColor : null,
+                SetHighlightColor: draw,
+                Draw: draw,
+                PrimitiveType: PrimitiveType.TriangleList,
+                VertexOffset: candidate.VertexOffset,
+                Triangles: draw ? candidate.Triangles : 0));
+        }
+
+        return new Renderer3DTranslucentGeometryDrawStatePlanSet(
+            shaderPass,
+            LightsEnabled: lightCount > 0,
+            IgnoreNormals: false,
+            UseLightStrength: inverseSquareLightAttenuation,
+            Draws: draws,
+            ResetSkewAfterGeometry: true,
+            DisableLightsAfterGeometry: true);
     }
 
     public static Renderer3DTranslucentThingOrderPlan BuildTranslucentThingOrderPlan(
