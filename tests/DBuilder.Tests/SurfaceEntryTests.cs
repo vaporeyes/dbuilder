@@ -103,6 +103,7 @@ public sealed class SurfaceEntryTests
 
         Assert.False(reallocated);
         Assert.Equal(6001, entries.TotalVertices);
+        Assert.Equal(6001, entries.totalvertices);
         Assert.Equal(new[] { 6000, 1 }, entries.Select(entry => entry.NumVertices).ToArray());
         Assert.Equal(11, entries[0].FloorTexture);
         Assert.Equal(22, entries[0].CeilingTexture);
@@ -112,6 +113,18 @@ public sealed class SurfaceEntryTests
         Assert.Equal(6009, entries[0].FloorVertices[^1].x);
         Assert.Equal(6010, entries[1].FloorVertices[0].x);
         Assert.Equal(1000, entries[0].CeilingVertices[0].x);
+    }
+
+    [Fact]
+    public void TotalVerticesPropertyAndUdbFieldStayInSync()
+    {
+        var entries = new SurfaceEntryCollection();
+
+        entries.TotalVertices = 12;
+        Assert.Equal(12, entries.totalvertices);
+
+        entries.totalvertices = 24;
+        Assert.Equal(24, entries.TotalVertices);
     }
 
     [Fact]
@@ -187,6 +200,7 @@ public sealed class SurfaceEntryTests
         Assert.True(reallocated);
         Assert.Empty(entries);
         Assert.Equal(0, entries.TotalVertices);
+        Assert.Equal(0, entries.totalvertices);
     }
 
     [Fact]

@@ -67,7 +67,13 @@ public sealed class SurfaceEntry
 
 public sealed class SurfaceEntryCollection : List<SurfaceEntry>
 {
-    public int TotalVertices { get; set; }
+    public int totalvertices;
+
+    public int TotalVertices
+    {
+        get => totalvertices;
+        set => totalvertices = value;
+    }
 
     public bool ApplyUpdate(SurfaceUpdate update)
     {
