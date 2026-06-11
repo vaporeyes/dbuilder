@@ -70,6 +70,82 @@ public sealed class TextLabelPlanTests
     }
 
     [Fact]
+    public void BackcolorCompatibilityForcesHalfAlphaLikeUdb()
+    {
+        PixelColor value = TextLabelPlan.BuildBackcolorCompatibilityValue(new PixelColor(255, 1, 2, 3));
+
+        Assert.Equal(new PixelColor(128, 1, 2, 3), value);
+    }
+
+    [Fact]
+    public void TextChangeInvalidatesTextureOnlyWhenValueChanges()
+    {
+        TextLabelPropertyChangePlan unchanged = TextLabelPlan.BuildTextChangePlan(
+            currentText: "Thing",
+            nextText: "Thing",
+            TextLabelInvalidation.Clean);
+        TextLabelPropertyChangePlan changed = TextLabelPlan.BuildTextChangePlan(
+            currentText: "Thing",
+            nextText: "Line",
+            TextLabelInvalidation.Clean);
+
+        Assert.Equal(TextLabelPropertyChangeKind.None, unchanged.ChangeKind);
+        Assert.Equal(TextLabelInvalidation.Clean, unchanged.Invalidation);
+        Assert.Equal(TextLabelPropertyChangeKind.Texture, changed.ChangeKind);
+        Assert.Equal(new TextLabelInvalidation(LayoutUpdateNeeded: false, TextureUpdateNeeded: true), changed.Invalidation);
+    }
+
+    [Fact]
+    public void LocationAndRectangleCompatibilityInvalidateLayoutOnly()
+    {
+        var current = new TextLabelPoint(10, 20);
+
+        TextLabelPropertyChangePlan location = TextLabelPlan.BuildLocationChangePlan(
+            current,
+            new TextLabelPoint(12, 20),
+            TextLabelInvalidation.Clean);
+        TextLabelPropertyChangePlan rectangle = TextLabelPlan.BuildRectangleCompatibilityChangePlan(
+            current,
+            new TextLabelRectangle(12, 24, 100, 50),
+            TextLabelInvalidation.Clean);
+
+        Assert.Equal(TextLabelPropertyChangeKind.Layout, location.ChangeKind);
+        Assert.Equal(new TextLabelInvalidation(LayoutUpdateNeeded: true, TextureUpdateNeeded: false), location.Invalidation);
+        Assert.Equal(TextLabelPropertyChangeKind.Layout, rectangle.ChangeKind);
+        Assert.Equal(new TextLabelInvalidation(LayoutUpdateNeeded: true, TextureUpdateNeeded: false), rectangle.Invalidation);
+    }
+
+    [Fact]
+    public void ColorAndBackgroundTogglesInvalidateTextureOnlyWhenChanged()
+    {
+        var color = new PixelColor(255, 1, 2, 3);
+
+        TextLabelPropertyChangePlan sameColor = TextLabelPlan.BuildColorChangePlan(
+            color,
+            color,
+            TextLabelInvalidation.Clean);
+        TextLabelPropertyChangePlan newColor = TextLabelPlan.BuildColorChangePlan(
+            color,
+            new PixelColor(255, 3, 2, 1),
+            TextLabelInvalidation.Clean);
+        TextLabelPropertyChangePlan sameBackground = TextLabelPlan.BuildDrawBackgroundChangePlan(
+            currentDrawBackground: true,
+            nextDrawBackground: true,
+            TextLabelInvalidation.Clean);
+        TextLabelPropertyChangePlan newBackground = TextLabelPlan.BuildDrawBackgroundChangePlan(
+            currentDrawBackground: true,
+            nextDrawBackground: false,
+            TextLabelInvalidation.Clean);
+
+        Assert.Equal(TextLabelPropertyChangeKind.None, sameColor.ChangeKind);
+        Assert.Equal(TextLabelPropertyChangeKind.Texture, newColor.ChangeKind);
+        Assert.Equal(new TextLabelInvalidation(LayoutUpdateNeeded: false, TextureUpdateNeeded: true), newColor.Invalidation);
+        Assert.Equal(TextLabelPropertyChangeKind.None, sameBackground.ChangeKind);
+        Assert.Equal(TextLabelPropertyChangeKind.Texture, newBackground.ChangeKind);
+        Assert.Equal(new TextLabelInvalidation(LayoutUpdateNeeded: false, TextureUpdateNeeded: true), newBackground.Invalidation);
+    }
+
+    [Fact]
     public void BuildPadsMeasuredTextAndUsesPowerOfTwoTextureSize()
     {
         TextLabelLayout layout = TextLabelPlan.Build(

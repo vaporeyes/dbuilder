@@ -94,6 +94,7 @@ public static class RendererArchitectureModel
             "Text font configuration metric normalization",
             "Text font glyph metrics and vertex planning",
             "Text label font selection and legacy scale planning",
+            "Text label compatibility property mutation planning",
             "Text label size, alignment, transform, culling, and quad planning",
             "Text label plain and background image drawing planning",
             "Text label render dispatch planning",

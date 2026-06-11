@@ -123,6 +123,17 @@ public sealed record TextLabelFontPlan(
     bool Bold,
     bool UsedFallback);
 
+public enum TextLabelPropertyChangeKind
+{
+    None,
+    Layout,
+    Texture,
+}
+
+public sealed record TextLabelPropertyChangePlan(
+    TextLabelInvalidation Invalidation,
+    TextLabelPropertyChangeKind ChangeKind);
+
 public static class TextLabelPlan
 {
     public const string DefaultTextLabelFontName = "Microsoft Sans Serif";
@@ -180,6 +191,50 @@ public static class TextLabelPlan
             bold,
             availableFamilies,
             fallbackFamily);
+
+    public static PixelColor BuildBackcolorCompatibilityValue(PixelColor value)
+        => value.WithAlpha(128);
+
+    public static TextLabelPropertyChangePlan BuildTextChangePlan(
+        string? currentText,
+        string? nextText,
+        TextLabelInvalidation invalidation)
+        => string.Equals(currentText, nextText, StringComparison.Ordinal)
+            ? new TextLabelPropertyChangePlan(invalidation, TextLabelPropertyChangeKind.None)
+            : new TextLabelPropertyChangePlan(InvalidateTexture(invalidation), TextLabelPropertyChangeKind.Texture);
+
+    public static TextLabelPropertyChangePlan BuildLocationChangePlan(
+        TextLabelPoint currentLocation,
+        TextLabelPoint nextLocation,
+        TextLabelInvalidation invalidation)
+        => currentLocation.Equals(nextLocation)
+            ? new TextLabelPropertyChangePlan(invalidation, TextLabelPropertyChangeKind.None)
+            : new TextLabelPropertyChangePlan(InvalidateLayout(invalidation), TextLabelPropertyChangeKind.Layout);
+
+    public static TextLabelPropertyChangePlan BuildRectangleCompatibilityChangePlan(
+        TextLabelPoint currentLocation,
+        TextLabelRectangle rectangle,
+        TextLabelInvalidation invalidation)
+        => BuildLocationChangePlan(
+            currentLocation,
+            new TextLabelPoint(rectangle.X, rectangle.Y),
+            invalidation);
+
+    public static TextLabelPropertyChangePlan BuildColorChangePlan(
+        PixelColor currentColor,
+        PixelColor nextColor,
+        TextLabelInvalidation invalidation)
+        => currentColor.Equals(nextColor)
+            ? new TextLabelPropertyChangePlan(invalidation, TextLabelPropertyChangeKind.None)
+            : new TextLabelPropertyChangePlan(InvalidateTexture(invalidation), TextLabelPropertyChangeKind.Texture);
+
+    public static TextLabelPropertyChangePlan BuildDrawBackgroundChangePlan(
+        bool currentDrawBackground,
+        bool nextDrawBackground,
+        TextLabelInvalidation invalidation)
+        => currentDrawBackground == nextDrawBackground
+            ? new TextLabelPropertyChangePlan(invalidation, TextLabelPropertyChangeKind.None)
+            : new TextLabelPropertyChangePlan(InvalidateTexture(invalidation), TextLabelPropertyChangeKind.Texture);
 
     public static TextLabelLayout Build(
         string? text,
