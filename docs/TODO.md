@@ -528,6 +528,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style outer-loop rightward scan candidate tie-break behavior.
 - [ ] Port curve tools and interpolation behavior fully.
   - [x] Handle zero-step direct Bezier curve generation safely.
+  - [x] Mark changed geometry when applying Curve Linedefs.
 - [ ] Port robust triangulation behavior for all known UDB map shapes.
 - [x] Port projected frustum behavior fully.
   - [x] Add UDB-style projected frustum box intersection helper.

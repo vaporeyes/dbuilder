@@ -107,4 +107,28 @@ public class CurveLinedefsTests
         Assert.Equal(2, result.InsertedVertices);
         Assert.Equal(3, map.Linedefs.Count);
     }
+
+    [Fact]
+    public void ApplyMarksCurvedGeometryAndClearsOldMarks()
+    {
+        var map = new MapSet();
+        var oldMarkedVertex = map.AddVertex(new Vector2D(-64, 0));
+        var oldMarkedLine = map.AddLinedef(map.AddVertex(new Vector2D(-32, 0)), oldMarkedVertex);
+        oldMarkedVertex.Marked = true;
+        oldMarkedLine.Marked = true;
+        Linedef line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(128, 0)));
+        line.Selected = true;
+
+        CurveLinedefs.ApplyToSelectedLinedefs(map, new CurveLinedefsOptions(Vertices: 2, Distance: 32));
+
+        Assert.False(oldMarkedVertex.Marked);
+        Assert.False(oldMarkedLine.Marked);
+        Assert.Equal(3, map.Linedefs.Count(linedef => linedef.Marked));
+        Assert.Equal(4, map.Vertices.Count(vertex => vertex.Marked));
+        Assert.All(map.Linedefs.Where(linedef => linedef.Marked), linedef =>
+        {
+            Assert.True(linedef.Start.Marked);
+            Assert.True(linedef.End.Marked);
+        });
+    }
 }

@@ -126,6 +126,7 @@ public static class CurveLinedefs
         var selected = map.GetSelectedLinedefs();
         int curved = 0;
         int inserted = 0;
+        map.ClearAllMarks(false);
         foreach (Linedef line in selected)
         {
             if (!map.Linedefs.Contains(line)) continue;
@@ -133,15 +134,24 @@ public static class CurveLinedefs
             if (points.Count == 0) continue;
 
             Linedef splitLine = line;
+            MarkSplitLine(splitLine);
             foreach (Vector2D point in points)
             {
                 Vertex vertex = map.AddVertex(point);
                 splitLine = map.SplitLinedefAt(splitLine, vertex);
+                MarkSplitLine(splitLine);
                 inserted++;
             }
             curved++;
         }
 
         return new CurveLinedefsResult(curved, inserted);
+    }
+
+    private static void MarkSplitLine(Linedef line)
+    {
+        line.Marked = true;
+        line.Start.Marked = true;
+        line.End.Marked = true;
     }
 }
