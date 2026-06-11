@@ -7235,7 +7235,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             isUdmf: _mapFormat == MapFormat.Udmf,
             isDoom: _mapFormat == MapFormat.Doom);
         List<Linedef> validLines = AutomapModeModel.GetValidLinedefs(_map, options);
-        AutomapHighlightResult next = AutomapModeModel.PlanHighlight(_map, validLines, world, highlightRange: 20, rendererScale: _zoom, editSectors);
+        AutomapHighlightResult next = AutomapModeModel.PlanHighlight(_map, validLines, world, highlightRange: 20, viewScale: _zoom, editSectors);
 
         if (_automapHighlight == next && _automapEditSectors == editSectors && _automapInvertLineVisibility == invert) return;
         _automapHighlight = next;

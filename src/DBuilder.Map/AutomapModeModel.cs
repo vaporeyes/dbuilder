@@ -211,7 +211,7 @@ public static class AutomapModeModel
         ICollection<Linedef> validLinedefs,
         Vector2D mouseMapPosition,
         double highlightRange,
-        double rendererScale,
+        double viewScale,
         bool editSectors)
     {
         if (editSectors)
@@ -222,8 +222,8 @@ public static class AutomapModeModel
                 : new AutomapHighlightResult(AutomapHighlightKind.Sector, null, sector, SectorBoundaryLines(sector));
         }
 
-        double scale = rendererScale <= 0 ? 1 : rendererScale;
-        Linedef? line = MapSet.NearestLinedefRange(validLinedefs, mouseMapPosition, highlightRange / scale);
+        double scale = viewScale <= 0 ? 1 : viewScale;
+        Linedef? line = MapSet.NearestLinedefRange(validLinedefs, mouseMapPosition, highlightRange * scale);
         return line == null
             ? new AutomapHighlightResult(AutomapHighlightKind.None, null, null, Array.Empty<Linedef>())
             : new AutomapHighlightResult(AutomapHighlightKind.Linedef, line, null, new[] { line });

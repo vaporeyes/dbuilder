@@ -299,13 +299,13 @@ public static class WadAuthorModeModel
     public static WadAuthorHighlightTransitionPlan MouseLeaveTransition(WadAuthorHighlight previous)
         => HighlightTransition(previous, WadAuthorHighlight.None);
 
-    public static WadAuthorHighlight PickHighlight(MapSet map, Vector2D mouseMapPosition, double rendererScale = 1.0)
+    public static WadAuthorHighlight PickHighlight(MapSet map, Vector2D mouseMapPosition, double viewScale = 1.0)
     {
         if (map == null) throw new ArgumentNullException(nameof(map));
 
-        double scale = rendererScale <= 0.0 ? 1.0 : rendererScale;
-        Vertex? vertex = map.NearestVertexSquareRange(mouseMapPosition, VertexHighlightRange / scale);
-        Thing? thing = map.NearestThingSquareRange(mouseMapPosition, ThingHighlightRange / scale);
+        double scale = viewScale <= 0.0 ? 1.0 : viewScale;
+        Vertex? vertex = map.NearestVertexSquareRange(mouseMapPosition, VertexHighlightRange * scale);
+        Thing? thing = map.NearestThingSquareRange(mouseMapPosition, ThingHighlightRange * scale);
 
         if (vertex != null && thing != null)
             return vertex.DistanceToSq(mouseMapPosition) < thing.DistanceToSq(mouseMapPosition)
@@ -319,7 +319,7 @@ public static class WadAuthorModeModel
         if (line == null) return WadAuthorHighlight.None;
 
         double lineDistance = line.DistanceTo(mouseMapPosition, bounded: true);
-        if (lineDistance < LinedefHighlightRange / scale)
+        if (lineDistance < LinedefHighlightRange * scale)
             return new WadAuthorHighlight(WadAuthorHighlightKind.Linedef, line);
 
         Sector? sector = SectorFromNearestLineSide(line, mouseMapPosition);

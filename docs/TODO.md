@@ -1858,6 +1858,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor commands for toggling selected automap line and sector visibility flags.
   - [x] Add UDB-style singular and plural labels to selected automap flag toggle status text.
   - [x] Add UDB-style mode metadata, persisted setting defaults, presentation layers, valid-linedef collection, and highlight target planning.
+  - [x] Convert DBuilder view scale to UDB-style Automap hover highlight ranges.
   - [x] Add UDB-style automap render planning for valid-line draw order, highlight colors, and textured-background fallback.
   - [x] Add editor Automap Mode rendering that uses UDB-style valid-line colors and textured-sector visibility.
   - [x] Add editor Automap Mode hover highlighting and click toggles for highlighted line and sector automap flags.
@@ -2174,6 +2175,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add editor overlay rendering support for completed Visplane Explorer point data.
 - [x] Port `WadAuthorMode`.
   - [x] Add UDB-style hover highlight priority model for vertices, things, linedefs, and sectors.
+  - [x] Convert DBuilder view scale to UDB-style WadAuthor hover highlight ranges.
   - [x] Add UDB-style linedef popup command order model.
   - [x] Add UDB-style WadAuthor mode selection conversion and cleanup model.
   - [x] Add editor WadAuthor mode menu, toolbar action, and hover highlight rendering.
@@ -2641,6 +2643,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style singular and plural labels to selected automap flag toggle status text.
   - [x] Add stable UDB action id and map dispatch for Automap Mode.
   - [x] Add UDB-style mode metadata, persisted setting defaults, presentation layers, valid-linedef collection, and highlight target planning.
+  - [x] Convert DBuilder view scale to UDB-style Automap hover highlight ranges.
   - [x] Add UDB-style automap render planning for valid-line draw order, highlight colors, and textured-background fallback.
   - [x] Add editor Automap Mode rendering that uses UDB-style valid-line colors and textured-sector visibility.
   - [x] Add editor Automap Mode hover highlighting and click toggles for highlighted line and sector automap flags.
@@ -2772,6 +2775,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Combine Visplane Explorer ready settings and queued progress in editor mode status.
 - [x] Port WadAuthor mode behavior.
   - [x] Add WadAuthorMode hit-test model with UDB highlight ranges, renderer scale handling, and side-based sector selection.
+  - [x] Convert DBuilder view scale to UDB-style WadAuthor hover highlight ranges.
   - [x] Add UDB-style linedef popup command order model.
   - [x] Add UDB-style mode enter and leave selection lifecycle helpers.
   - [x] Add UDB-style mode descriptor and `wadauthormode` action metadata.

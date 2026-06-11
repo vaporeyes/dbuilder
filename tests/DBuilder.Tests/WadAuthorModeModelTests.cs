@@ -441,15 +441,15 @@ public class WadAuthorModeModelTests
     }
 
     [Fact]
-    public void RendererScaleShrinksHighlightRangesLikeUdb()
+    public void ViewScaleExpandsHighlightRangesLikeUdbRendererScale()
     {
         var map = EmptyLineMap();
 
-        WadAuthorHighlight normal = WadAuthorModeModel.PickHighlight(map, new Vector2D(50, 6), rendererScale: 1.0);
-        WadAuthorHighlight zoomed = WadAuthorModeModel.PickHighlight(map, new Vector2D(50, 6), rendererScale: 2.0);
+        WadAuthorHighlight normal = WadAuthorModeModel.PickHighlight(map, new Vector2D(50, 12), viewScale: 1.0);
+        WadAuthorHighlight zoomedOut = WadAuthorModeModel.PickHighlight(map, new Vector2D(50, 12), viewScale: 2.0);
 
-        Assert.Equal(WadAuthorHighlightKind.Linedef, normal.Kind);
-        Assert.Equal(WadAuthorHighlightKind.None, zoomed.Kind);
+        Assert.Equal(WadAuthorHighlightKind.None, normal.Kind);
+        Assert.Equal(WadAuthorHighlightKind.Linedef, zoomedOut.Kind);
     }
 
     [Fact]

@@ -190,7 +190,7 @@ public class AutomapModeModelTests
             validLines,
             new Vector2D(32, 6),
             highlightRange: 16,
-            rendererScale: 2,
+            viewScale: 0.5,
             editSectors: false);
 
         Assert.Equal(AutomapHighlightKind.Linedef, result.Kind);
@@ -203,7 +203,7 @@ public class AutomapModeModelTests
             validLines,
             new Vector2D(32, 9),
             highlightRange: 16,
-            rendererScale: 2,
+            viewScale: 0.5,
             editSectors: false);
         Assert.Equal(AutomapHighlightKind.None, tooFar.Kind);
     }
@@ -218,7 +218,7 @@ public class AutomapModeModelTests
             Array.Empty<Linedef>(),
             new Vector2D(32, 32),
             highlightRange: 1,
-            rendererScale: 100,
+            viewScale: 100,
             editSectors: true);
 
         Assert.Equal(AutomapHighlightKind.Sector, result.Kind);
