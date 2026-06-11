@@ -1309,6 +1309,219 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
             inverseSquareLightAttenuation: false));
     }
 
+    [Fact]
+    public void BuildModelDrawStatePlanUpdatesBeforeDistanceCullAndSkipsLaterUniforms()
+    {
+        Renderer3DModelDrawStatePlan plan = Renderer3DGeometryLifecyclePlan.BuildModelDrawStatePlan(
+            [
+                new Renderer3DModelThingDrawStateCandidate(
+                    1,
+                    new Vector3D(10, 0, 0),
+                    DistanceCheckSq: 25.0,
+                    Highlighted: true,
+                    Selected: true,
+                    SectorHasFog: true,
+                    SectorDesaturation: 0.5),
+            ],
+            new Vector3D(),
+            fullBrightness: false,
+            drawFog: true,
+            classicRendering: false,
+            showHighlight: true,
+            showSelection: true);
+
+        Assert.Equal(ShaderName.world3d_main_vertexcolor, plan.InitialShader);
+        Assert.Equal(
+            [
+                new Renderer3DModelThingDrawStatePlan(
+                    1,
+                    UpdateBuffer: true,
+                    SkippedByDistance: true,
+                    WantedShader: null,
+                    SwitchShader: false,
+                    SetVertexColor: false,
+                    SetHighlightColor: false,
+                    SetFogUniforms: false,
+                    SectorDesaturation: 0.0),
+            ],
+            plan.Draws);
+    }
+
+    [Fact]
+    public void BuildModelDrawStatePlanSelectsHighlightAndFogShadersAndTracksSwitches()
+    {
+        Renderer3DModelDrawStatePlan plan = Renderer3DGeometryLifecyclePlan.BuildModelDrawStatePlan(
+            [
+                new Renderer3DModelThingDrawStateCandidate(
+                    1,
+                    new Vector3D(3, 0, 0),
+                    DistanceCheckSq: double.MaxValue,
+                    Highlighted: false,
+                    Selected: false,
+                    SectorHasFog: false,
+                    SectorDesaturation: 0.0),
+                new Renderer3DModelThingDrawStateCandidate(
+                    2,
+                    new Vector3D(4, 0, 0),
+                    DistanceCheckSq: double.MaxValue,
+                    Highlighted: true,
+                    Selected: false,
+                    SectorHasFog: true,
+                    SectorDesaturation: 0.25),
+                new Renderer3DModelThingDrawStateCandidate(
+                    3,
+                    new Vector3D(5, 0, 0),
+                    DistanceCheckSq: double.MaxValue,
+                    Highlighted: false,
+                    Selected: true,
+                    SectorHasFog: true,
+                    SectorDesaturation: 0.5),
+                new Renderer3DModelThingDrawStateCandidate(
+                    4,
+                    new Vector3D(6, 0, 0),
+                    DistanceCheckSq: double.MaxValue,
+                    Highlighted: false,
+                    Selected: false,
+                    SectorHasFog: false,
+                    SectorDesaturation: 0.75),
+            ],
+            new Vector3D(),
+            fullBrightness: false,
+            drawFog: true,
+            classicRendering: false,
+            showHighlight: true,
+            showSelection: true);
+
+        Assert.Equal(
+            [
+                new Renderer3DModelThingDrawStatePlan(
+                    1,
+                    UpdateBuffer: true,
+                    SkippedByDistance: false,
+                    ShaderName.world3d_main_vertexcolor,
+                    SwitchShader: false,
+                    SetVertexColor: true,
+                    SetHighlightColor: true,
+                    SetFogUniforms: false,
+                    SectorDesaturation: 0.0),
+                new Renderer3DModelThingDrawStatePlan(
+                    2,
+                    UpdateBuffer: true,
+                    SkippedByDistance: false,
+                    ShaderName.world3d_main_highlight_fog_vertexcolor,
+                    SwitchShader: true,
+                    SetVertexColor: true,
+                    SetHighlightColor: true,
+                    SetFogUniforms: true,
+                    SectorDesaturation: 0.25),
+                new Renderer3DModelThingDrawStatePlan(
+                    3,
+                    UpdateBuffer: true,
+                    SkippedByDistance: false,
+                    ShaderName.world3d_main_highlight_fog_vertexcolor,
+                    SwitchShader: false,
+                    SetVertexColor: true,
+                    SetHighlightColor: true,
+                    SetFogUniforms: true,
+                    SectorDesaturation: 0.5),
+                new Renderer3DModelThingDrawStatePlan(
+                    4,
+                    UpdateBuffer: true,
+                    SkippedByDistance: false,
+                    ShaderName.world3d_main_vertexcolor,
+                    SwitchShader: true,
+                    SetVertexColor: true,
+                    SetHighlightColor: true,
+                    SetFogUniforms: false,
+                    SectorDesaturation: 0.75),
+            ],
+            plan.Draws);
+    }
+
+    [Theory]
+    [InlineData(true, false, true)]
+    [InlineData(false, true, true)]
+    [InlineData(false, false, false)]
+    public void BuildModelDrawStatePlanSuppressesFogForFullBrightClassicOrFoglessSectors(
+        bool fullBrightness,
+        bool classicRendering,
+        bool sectorHasFog)
+    {
+        Renderer3DModelDrawStatePlan plan = Renderer3DGeometryLifecyclePlan.BuildModelDrawStatePlan(
+            [
+                new Renderer3DModelThingDrawStateCandidate(
+                    1,
+                    new Vector3D(1, 0, 0),
+                    DistanceCheckSq: double.MaxValue,
+                    Highlighted: true,
+                    Selected: false,
+                    sectorHasFog,
+                    SectorDesaturation: 0.0),
+            ],
+            new Vector3D(),
+            fullBrightness,
+            drawFog: true,
+            classicRendering,
+            showHighlight: true,
+            showSelection: true);
+
+        Assert.False(plan.Draws[0].SetFogUniforms);
+        Assert.Equal(
+            fullBrightness ? ShaderName.world3d_fullbright_highlight : ShaderName.world3d_main_highlight_vertexcolor,
+            plan.Draws[0].WantedShader);
+    }
+
+    [Fact]
+    public void BuildModelDrawStatePlanRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentNullException>(() => Renderer3DGeometryLifecyclePlan.BuildModelDrawStatePlan(
+            null!,
+            new Vector3D(),
+            fullBrightness: false,
+            drawFog: false,
+            classicRendering: false,
+            showHighlight: true,
+            showSelection: true));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildModelDrawStatePlan(
+            [],
+            new Vector3D(double.NaN, 0, 0),
+            fullBrightness: false,
+            drawFog: false,
+            classicRendering: false,
+            showHighlight: true,
+            showSelection: true));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildModelDrawStatePlan(
+            [
+                new Renderer3DModelThingDrawStateCandidate(1, new Vector3D(double.NaN, 0, 0), double.MaxValue, Highlighted: false, Selected: false, SectorHasFog: false, SectorDesaturation: 0.0),
+            ],
+            new Vector3D(),
+            fullBrightness: false,
+            drawFog: false,
+            classicRendering: false,
+            showHighlight: true,
+            showSelection: true));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildModelDrawStatePlan(
+            [
+                new Renderer3DModelThingDrawStateCandidate(1, new Vector3D(), DistanceCheckSq: -1.0, Highlighted: false, Selected: false, SectorHasFog: false, SectorDesaturation: 0.0),
+            ],
+            new Vector3D(),
+            fullBrightness: false,
+            drawFog: false,
+            classicRendering: false,
+            showHighlight: true,
+            showSelection: true));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildModelDrawStatePlan(
+            [
+                new Renderer3DModelThingDrawStateCandidate(1, new Vector3D(), double.MaxValue, Highlighted: false, Selected: false, SectorHasFog: false, SectorDesaturation: double.NaN),
+            ],
+            new Vector3D(),
+            fullBrightness: false,
+            drawFog: false,
+            classicRendering: false,
+            showHighlight: true,
+            showSelection: true));
+    }
+
     [Theory]
     [InlineData(false, Renderer3DThingPositionMatrixStrategy.Billboard)]
     [InlineData(true, Renderer3DThingPositionMatrixStrategy.XYBillboard)]
@@ -1535,6 +1748,14 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("translucentmodelthings.Sort((vt1, vt2) => (int)((General.Map.VisualCamera.Position - vt2.BoundingBox[0]).GetLengthSq()", source, StringComparison.Ordinal);
         Assert.Contains("foreach (KeyValuePair<ModelData, List<VisualThing>> group in maskedmodelthings)", source, StringComparison.Ordinal);
         Assert.Contains("if (t.RenderPass != currentpass)", source, StringComparison.Ordinal);
+        Assert.Contains("t.Update();", source, StringComparison.Ordinal);
+        Assert.Contains("if (t.Info.DistanceCheckSq < double.MaxValue)", source, StringComparison.Ordinal);
+        Assert.Contains("if (t.CameraDistance > t.Info.DistanceCheckSq)", source, StringComparison.Ordinal);
+        Assert.Contains("continue;", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.vertexColor, vertexcolor);", source, StringComparison.Ordinal);
+        Assert.Contains("ShaderName wantedshaderpass = ((((t == highlighted) && showhighlight) || (t.Selected && showselection)) ? highshaderpass : shaderpass);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.highlightcolor, CalculateHighlightColor((t == highlighted) && showhighlight, (t.Selected && showselection)));", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.desaturation, (float)t.Thing.Sector.Desaturation);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);

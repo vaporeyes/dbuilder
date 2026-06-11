@@ -335,6 +335,30 @@ public sealed record Renderer3DModelRenderPlan(
     bool UseLightStrength,
     IReadOnlyList<Renderer3DModelThingDrawPlan> Draws);
 
+public sealed record Renderer3DModelThingDrawStateCandidate(
+    int Id,
+    Vector3D BoundingBoxCenter,
+    double DistanceCheckSq,
+    bool Highlighted,
+    bool Selected,
+    bool SectorHasFog,
+    double SectorDesaturation);
+
+public sealed record Renderer3DModelThingDrawStatePlan(
+    int ThingId,
+    bool UpdateBuffer,
+    bool SkippedByDistance,
+    ShaderName? WantedShader,
+    bool SwitchShader,
+    bool SetVertexColor,
+    bool SetHighlightColor,
+    bool SetFogUniforms,
+    double SectorDesaturation);
+
+public sealed record Renderer3DModelDrawStatePlan(
+    ShaderName InitialShader,
+    IReadOnlyList<Renderer3DModelThingDrawStatePlan> Draws);
+
 public enum Renderer3DThingPositionMatrixStrategy
 {
     Billboard,
@@ -954,6 +978,78 @@ public static class Renderer3DGeometryLifecyclePlan
             IgnoreNormals: true,
             UseLightStrength: inverseSquareLightAttenuation,
             draws);
+    }
+
+    public static Renderer3DModelDrawStatePlan BuildModelDrawStatePlan(
+        IReadOnlyList<Renderer3DModelThingDrawStateCandidate> things,
+        Vector3D cameraPosition,
+        bool fullBrightness,
+        bool drawFog,
+        bool classicRendering,
+        bool showHighlight,
+        bool showSelection)
+    {
+        ArgumentNullException.ThrowIfNull(things);
+        if (!cameraPosition.IsFinite()) throw new ArgumentOutOfRangeException(nameof(cameraPosition));
+
+        foreach (Renderer3DModelThingDrawStateCandidate thing in things)
+        {
+            if (!thing.BoundingBoxCenter.IsFinite()) throw new ArgumentOutOfRangeException(nameof(things));
+            if (!double.IsFinite(thing.DistanceCheckSq) || thing.DistanceCheckSq < 0.0) throw new ArgumentOutOfRangeException(nameof(things));
+            if (!double.IsFinite(thing.SectorDesaturation)) throw new ArgumentOutOfRangeException(nameof(things));
+        }
+
+        ShaderName shaderPass = fullBrightness ? ShaderName.world3d_fullbright : ShaderName.world3d_main_vertexcolor;
+        ShaderName highShaderPass = (ShaderName)(shaderPass + 2);
+        ShaderName currentShaderPass = shaderPass;
+        var draws = new List<Renderer3DModelThingDrawStatePlan>(things.Count);
+
+        foreach (Renderer3DModelThingDrawStateCandidate thing in things)
+        {
+            double cameraDistance = (cameraPosition - thing.BoundingBoxCenter).GetLengthSq();
+            bool skippedByDistance = thing.DistanceCheckSq < double.MaxValue && cameraDistance > thing.DistanceCheckSq;
+            if (skippedByDistance)
+            {
+                draws.Add(new Renderer3DModelThingDrawStatePlan(
+                    thing.Id,
+                    UpdateBuffer: true,
+                    SkippedByDistance: true,
+                    WantedShader: null,
+                    SwitchShader: false,
+                    SetVertexColor: false,
+                    SetHighlightColor: false,
+                    SetFogUniforms: false,
+                    SectorDesaturation: 0.0));
+                continue;
+            }
+
+            bool useHighlightShader = thing.Highlighted && showHighlight || thing.Selected && showSelection;
+            ShaderName wantedShaderPass = useHighlightShader ? highShaderPass : shaderPass;
+            bool useFogShader = drawFog && !fullBrightness && !classicRendering && thing.SectorHasFog;
+            if (useFogShader)
+            {
+                wantedShaderPass += 8;
+            }
+
+            bool switchShader = currentShaderPass != wantedShaderPass;
+            if (switchShader)
+            {
+                currentShaderPass = wantedShaderPass;
+            }
+
+            draws.Add(new Renderer3DModelThingDrawStatePlan(
+                thing.Id,
+                UpdateBuffer: true,
+                SkippedByDistance: false,
+                wantedShaderPass,
+                switchShader,
+                SetVertexColor: true,
+                SetHighlightColor: true,
+                SetFogUniforms: wantedShaderPass > ShaderName.world3d_p7,
+                thing.SectorDesaturation));
+        }
+
+        return new Renderer3DModelDrawStatePlan(shaderPass, draws);
     }
 
     public static Renderer3DThingPositionMatrixPlan BuildThingPositionMatrixPlan(
