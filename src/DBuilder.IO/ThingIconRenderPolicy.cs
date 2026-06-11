@@ -88,11 +88,11 @@ public static class ThingIconRenderPolicy
     {
         double scale = Math.Max(0.001, viewScale);
         double radius = Math.Max(1.0, mapRadius);
+        if (viewScale >= SpriteIconScaleThreshold) return false;
         if (fixedSize && scale < 1.0) return true;
         if (fixedThingsScale && radius / scale > FixedThingScreenRadius) return true;
 
-        return viewScale < SpriteIconScaleThreshold
-            && ProjectedThingScreenRadius(mapRadius, viewScale, fixedThingsScale, fixedSize) >= MinimumSpriteScreenRadius;
+        return ProjectedThingScreenRadius(mapRadius, viewScale, fixedThingsScale, fixedSize) >= MinimumSpriteScreenRadius;
     }
 
     public static double MarkerBaseSize(bool compactMarkers)
