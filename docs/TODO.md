@@ -2374,6 +2374,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match UDB unclosed-sector selected-result description text.
   - [x] Match UDB invalid-sector selected-result description text.
   - [x] Match UDB map-size selected-result description text.
+  - [x] Add UDB-style selected-result description and dissolve fix for empty sectors.
 - [x] Port all map error result types and fix actions.
   - [x] Add UDB-style fix actions for stray vertices, missing textures, unused textures, and missing flats.
   - [x] Add UDB-style fix actions for missing-front and sidedness flag mismatch linedefs.

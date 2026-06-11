@@ -2269,8 +2269,7 @@ public static class MapAnalysis
             Sector sector = map.Sectors[i];
             if (!sidesBySector.TryGetValue(sector, out List<Sidedef>? sides))
             {
-                issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.EmptySector,
-                    $"Sector {i} has no sidedefs") { Target = sector });
+                issues.Add(EmptySectorIssue(sector, i));
                 continue;
             }
 
@@ -2282,6 +2281,20 @@ public static class MapAnalysis
             else if (IsInvalidSector(sector))
                 issues.Add(InvalidSectorIssue(sector, i, Centroid(sides.SelectMany(side => new[] { side.Line.Start, side.Line.End }))));
         }
+    }
+
+    private static MapIssue EmptySectorIssue(Sector sector, int index)
+    {
+        return new MapIssue(MapIssueSeverity.Warning, MapIssueKind.EmptySector,
+            $"Sector {index} has no sidedefs")
+        {
+            Description = InvalidSectorDescription,
+            Target = sector,
+            Fixes = new[]
+            {
+                new MapIssueFix("Dissolve", map => DissolveInvalidSector(map, sector)),
+            },
+        };
     }
 
     private static List<Vertex> FindUnclosedSectorVertices(Sector sector, IEnumerable<Sidedef> sides)

@@ -884,6 +884,12 @@ public class MapAnalysisTests
         var issue = Assert.Single(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.EmptySector);
         Assert.Same(sector, issue.Target);
         Assert.Equal("Sector 1 has no sidedefs", issue.Message);
+        Assert.Equal("This sector has invalid geometry (it has less than 3 sidedefs or linedefs, or it's area is 0). This could cause problems with clipping and rendering in the game.", issue.Description);
+
+        var fix = Assert.Single(issue.Fixes);
+        Assert.Equal("Dissolve", fix.Label);
+        Assert.True(fix.Apply(map));
+        Assert.DoesNotContain(sector, map.Sectors);
     }
 
     [Fact]
