@@ -47,6 +47,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] List and recover autosave snapshots from the File menu.
   - [x] Prompt for recoverable autosave snapshots when the editor starts.
   - [x] Prune old autosave snapshots after successful autosave writes.
+  - [x] Persist and apply UDB-style autosave enablement, count, and interval preferences.
 - [x] Port launcher and external command execution behavior.
   - [x] Build testable external command launch plans from parsed command settings.
   - [x] Drain external command stdout and stderr during pre/post command execution.

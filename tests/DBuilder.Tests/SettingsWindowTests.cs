@@ -66,6 +66,28 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesAutosavePreferences()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("Autosave", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("AutosaveCount", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("AutosaveIntervalMinutes", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCheckBox(\"Enable autosave\", s.Autosave)", body, StringComparison.Ordinal);
+        Assert.Contains("AddField(\"Autosave count\", Settings.AutosaveCountText(s))", body, StringComparison.Ordinal);
+        Assert.Contains("AddField(\"Autosave interval\", Settings.AutosaveIntervalText(s))", body, StringComparison.Ordinal);
+        Assert.Contains("Autosave = _autosave.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("AutosaveCount = Settings.AcceptAutosaveCountText(_autosaveCount.Text);", body, StringComparison.Ordinal);
+        Assert.Contains("AutosaveIntervalMinutes = Settings.AcceptAutosaveIntervalText(_autosaveInterval.Text);", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.Autosave = dlg.Autosave;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.AutosaveCount = dlg.AutosaveCount;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.AutosaveIntervalMinutes = dlg.AutosaveIntervalMinutes;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("ApplyAutosaveSettings();", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesAlphaBasedTextureHighlightingPreference()
     {
         Type type = typeof(SettingsWindow);

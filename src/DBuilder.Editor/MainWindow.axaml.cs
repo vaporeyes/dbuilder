@@ -238,6 +238,7 @@ public partial class MainWindow : Window
         MapView.SetShowVisualVertices(_settings.ShowVisualVertices);
         MapView.SetSelectAdjacentVisualVertexSlopeHandles(_settings.SelectAdjacentVisualVertexSlopeHandles);
         MapView.SetViewMode2D((MapControl.ClassicViewMode)_settings.NormalizedDefaultViewMode);
+        ApplyAutosaveSettings();
         ApplyShortcutBindings();
         _statusHistory.SetCapacity(_settings.NormalizedStatusHistoryLimit);
         ApplyWindowPlacement();
@@ -1399,6 +1400,9 @@ public partial class MainWindow : Window
         _settings.NodeBuilderArgs = dlg.NodeBuilderArgs;
         _settings.UdbScriptExternalEditor = dlg.UdbScriptExternalEditor;
         _settings.MaxRecentFiles = dlg.MaxRecentFiles;
+        _settings.Autosave = dlg.Autosave;
+        _settings.AutosaveCount = dlg.AutosaveCount;
+        _settings.AutosaveIntervalMinutes = dlg.AutosaveIntervalMinutes;
         _settings.AutoClearSidedefTextures = dlg.AutoClearSidedefTextures;
         _settings.AutoMerge = dlg.AutoMerge;
         _settings.SplitJoinedSectors = dlg.SplitJoinedSectors;
@@ -1455,6 +1459,7 @@ public partial class MainWindow : Window
         RebuildRecentMenu();
         RebuildTestMapMenu();
         ReloadCompilerConfiguration();
+        ApplyAutosaveSettings();
         SaveSettings();
         SetStatus("Settings saved.");
     }
@@ -5078,6 +5083,7 @@ public partial class MainWindow : Window
 
     private void ScheduleAutosave()
     {
+        if (!_settings.Autosave) return;
         _autosavePending = true;
         if (!_autosaveTimer.IsEnabled) _autosaveTimer.Start();
     }
@@ -5107,7 +5113,7 @@ public partial class MainWindow : Window
             }
 
             if (AutoSaveStore.Write(key, bytes) is not null)
-                AutoSaveStore.Prune();
+                AutoSaveStore.Prune(_settings.NormalizedAutosaveCount);
         }
         catch (Exception ex)
         {
@@ -5121,6 +5127,16 @@ public partial class MainWindow : Window
         if (_mapMarker is null) return null;
         string source = _wadPath ?? _pk3Path ?? $"untitled:{_untitledAutosaveId}";
         return new AutoSaveKey(source, _mapMarker, _pk3MapArchivePath);
+    }
+
+    private void ApplyAutosaveSettings()
+    {
+        _autosaveTimer.Interval = TimeSpan.FromMinutes(_settings.NormalizedAutosaveIntervalMinutes);
+        if (!_settings.Autosave)
+        {
+            _autosavePending = false;
+            _autosaveTimer.Stop();
+        }
     }
 
     private void DeleteCurrentAutosave()

@@ -1377,6 +1377,19 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void AutosaveRuntimeUsesPersistedPreferences()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("ApplyAutosaveSettings();", body, StringComparison.Ordinal);
+        Assert.Contains("_autosaveTimer.Interval = TimeSpan.FromMinutes(_settings.NormalizedAutosaveIntervalMinutes);", body, StringComparison.Ordinal);
+        Assert.Contains("if (!_settings.Autosave) return;", body, StringComparison.Ordinal);
+        Assert.Contains("AutoSaveStore.Prune(_settings.NormalizedAutosaveCount);", body, StringComparison.Ordinal);
+        Assert.Contains("_autosavePending = false;", body, StringComparison.Ordinal);
+        Assert.Contains("_autosaveTimer.Stop();", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ResourceCatalogGuardsUseWarningStatusKind()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));

@@ -12,9 +12,9 @@ public sealed class SettingsWindow : PropertyDialog
 {
     private const string ShortcutOverrideWatermark = "command.id=Shortcut; use None or Unassigned to clear; separate entries with semicolons, commas, or new lines";
 
-    private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _testSkill, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _statusHistoryLimit, _toastDuration, _toastDisabledActions, _shortcutOverrides;
+    private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _testSkill, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _autosaveCount, _autosaveInterval, _statusHistoryLimit, _toastDuration, _toastDisabledActions, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _mergeGeometryMode, _toastAnchor, _pasteTagMode;
-    private readonly CheckBox _testMonsters, _autoClearSidedefTextures, _autoMerge, _splitJoinedSectors, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _toastsEnabled, _pasteRemoveActions;
+    private readonly CheckBox _testMonsters, _autosave, _autoClearSidedefTextures, _autoMerge, _splitJoinedSectors, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _toastsEnabled, _pasteRemoveActions;
     private readonly bool _drawLineShowGuidelines;
     private readonly int _drawRectangleSubdivisions, _drawRectangleBevelWidth;
     private readonly bool _drawRectangleShowGuidelines;
@@ -25,6 +25,9 @@ public sealed class SettingsWindow : PropertyDialog
 
     public string? ConfigDir, TestPort, TestIwad, TestPortArgs, TestAdditionalParameters, NodeBuilderPath, NodeBuilderArgs, UdbScriptExternalEditor;
     public int? MaxRecentFiles;
+    public bool Autosave;
+    public int? AutosaveCount;
+    public int? AutosaveIntervalMinutes;
     public int? TestSkill;
     public bool TestMonsters;
     public bool AutoClearSidedefTextures;
@@ -75,6 +78,9 @@ public sealed class SettingsWindow : PropertyDialog
             "...",
             BrowseExternalEditor);
         _maxRecentFiles = AddField("Max recent files", Settings.MaxRecentFilesText(s));
+        _autosave = AddCheckBox("Enable autosave", s.Autosave);
+        _autosaveCount = AddField("Autosave count", Settings.AutosaveCountText(s));
+        _autosaveInterval = AddField("Autosave interval", Settings.AutosaveIntervalText(s));
         _statusHistoryLimit = AddField("Status history", Settings.StatusHistoryLimitText(s));
         _toastsEnabled = AddCheckBox("Show toasts", s.ToastsEnabled);
         _toastDuration = AddField("Toast duration", ToastPreferences.DurationSecondsText(s.NormalizedToastDurationMilliseconds));
@@ -146,6 +152,9 @@ public sealed class SettingsWindow : PropertyDialog
         NodeBuilderArgs = NullIfBlank(_nodeArgs.Text);
         UdbScriptExternalEditor = UdbScriptPreferencesModel.AcceptExternalEditorPath(_udbScriptExternalEditor.Text ?? "")?.Value?.ToString();
         MaxRecentFiles = Settings.AcceptMaxRecentFilesText(_maxRecentFiles.Text);
+        Autosave = _autosave.IsChecked == true;
+        AutosaveCount = Settings.AcceptAutosaveCountText(_autosaveCount.Text);
+        AutosaveIntervalMinutes = Settings.AcceptAutosaveIntervalText(_autosaveInterval.Text);
         StatusHistoryLimit = Settings.AcceptStatusHistoryLimitText(_statusHistoryLimit.Text);
         AutoClearSidedefTextures = _autoClearSidedefTextures.IsChecked == true;
         AutoMerge = _autoMerge.IsChecked == true;

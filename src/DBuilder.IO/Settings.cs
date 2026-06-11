@@ -22,6 +22,12 @@ public sealed class Settings
     public const int DefaultTestSkill = 3;
     public const int MinTestSkill = 1;
     public const int MaxTestSkill = 5;
+    public const int DefaultAutosaveCount = 5;
+    public const int MinAutosaveCount = 1;
+    public const int MaxAutosaveCount = 50;
+    public const int DefaultAutosaveIntervalMinutes = 5;
+    public const int MinAutosaveIntervalMinutes = 1;
+    public const int MaxAutosaveIntervalMinutes = 60;
 
     public string? ConfigDir { get; set; }
     public string? LastUsedConfigName { get; set; }
@@ -39,6 +45,9 @@ public sealed class Settings
     public Dictionary<string, object?> UsdfDialogEditorSettings { get; set; } = new(StringComparer.Ordinal);
     public Dictionary<string, Dictionary<string, object?>> PluginSettings { get; set; } = new(StringComparer.Ordinal);
     public int? MaxRecentFiles { get; set; }
+    public bool Autosave { get; set; } = true;
+    public int? AutosaveCount { get; set; }
+    public int? AutosaveIntervalMinutes { get; set; }
     public bool AutoClearSidedefTextures { get; set; } = true;
     public bool AutoMerge { get; set; } = true;
     public bool SplitJoinedSectors { get; set; } = true;
@@ -105,6 +114,12 @@ public sealed class Settings
     public int NormalizedTestSkill =>
         Math.Clamp(TestSkill ?? DefaultTestSkill, MinTestSkill, MaxTestSkill);
 
+    public int NormalizedAutosaveCount =>
+        Math.Clamp(AutosaveCount ?? DefaultAutosaveCount, MinAutosaveCount, MaxAutosaveCount);
+
+    public int NormalizedAutosaveIntervalMinutes =>
+        Math.Clamp(AutosaveIntervalMinutes ?? DefaultAutosaveIntervalMinutes, MinAutosaveIntervalMinutes, MaxAutosaveIntervalMinutes);
+
     public ToastAnchor NormalizedToastAnchor =>
         ToastPreferences.NormalizeAnchor(ToastAnchor);
 
@@ -129,6 +144,18 @@ public sealed class Settings
         return Math.Clamp(value, MinTestSkill, MaxTestSkill);
     }
 
+    public static int? AcceptAutosaveCountText(string? text)
+    {
+        if (!int.TryParse(text, out int value) || value <= 0) return null;
+        return Math.Clamp(value, MinAutosaveCount, MaxAutosaveCount);
+    }
+
+    public static int? AcceptAutosaveIntervalText(string? text)
+    {
+        if (!int.TryParse(text, out int value) || value <= 0) return null;
+        return Math.Clamp(value, MinAutosaveIntervalMinutes, MaxAutosaveIntervalMinutes);
+    }
+
     public static string MaxRecentFilesText(Settings settings)
         => settings.NormalizedMaxRecentFiles.ToString(CultureInfo.InvariantCulture);
 
@@ -137,6 +164,12 @@ public sealed class Settings
 
     public static string TestSkillText(Settings settings)
         => settings.NormalizedTestSkill.ToString(CultureInfo.InvariantCulture);
+
+    public static string AutosaveCountText(Settings settings)
+        => settings.NormalizedAutosaveCount.ToString(CultureInfo.InvariantCulture);
+
+    public static string AutosaveIntervalText(Settings settings)
+        => settings.NormalizedAutosaveIntervalMinutes.ToString(CultureInfo.InvariantCulture);
 
     public int NormalizedDefaultViewMode =>
         Math.Clamp(DefaultViewMode ?? 0, 0, 3);
