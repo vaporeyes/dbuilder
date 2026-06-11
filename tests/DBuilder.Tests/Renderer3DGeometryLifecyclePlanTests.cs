@@ -1573,6 +1573,46 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
                     SectorDesaturation: double.NaN)));
 
     [Fact]
+    public void BuildThingDrawCommandPlanMatchesUdbWorldBufferAndTriangleDraw()
+    {
+        Renderer3DThingDrawCommandPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingDrawCommandPlan(
+            new Renderer3DThingDrawCommandCandidate(
+                HasGeometryBuffer: true,
+                Triangles: 12));
+
+        Assert.True(plan.SetWorldMatrix);
+        Assert.True(plan.BindGeometryBuffer);
+        Assert.True(plan.Draw);
+        Assert.Equal(PrimitiveType.TriangleList, plan.PrimitiveType);
+        Assert.Equal(0, plan.StartIndex);
+        Assert.Equal(12, plan.Triangles);
+    }
+
+    [Fact]
+    public void BuildThingDrawCommandPlanSkipsDrawWhenGeometryBufferIsMissing()
+    {
+        Renderer3DThingDrawCommandPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingDrawCommandPlan(
+            new Renderer3DThingDrawCommandCandidate(
+                HasGeometryBuffer: false,
+                Triangles: 12));
+
+        Assert.False(plan.SetWorldMatrix);
+        Assert.False(plan.BindGeometryBuffer);
+        Assert.False(plan.Draw);
+        Assert.Equal(PrimitiveType.TriangleList, plan.PrimitiveType);
+        Assert.Equal(0, plan.StartIndex);
+        Assert.Equal(0, plan.Triangles);
+    }
+
+    [Fact]
+    public void BuildThingDrawCommandPlanRejectsInvalidInputs()
+        => Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Renderer3DGeometryLifecyclePlan.BuildThingDrawCommandPlan(
+                new Renderer3DThingDrawCommandCandidate(
+                    HasGeometryBuffer: true,
+                    Triangles: -1)));
+
+    [Fact]
     public void BuildThingShaderPassPlanKeepsBaseShaderWithoutHighlightFogOrVertexColor()
     {
         Renderer3DThingShaderPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingShaderPassPlan(

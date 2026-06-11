@@ -535,6 +535,18 @@ public sealed record Renderer3DThingSectorUniformPlan(
     bool SetDesaturation,
     double SectorDesaturation);
 
+public sealed record Renderer3DThingDrawCommandCandidate(
+    bool HasGeometryBuffer,
+    int Triangles);
+
+public sealed record Renderer3DThingDrawCommandPlan(
+    bool SetWorldMatrix,
+    bool BindGeometryBuffer,
+    bool Draw,
+    PrimitiveType PrimitiveType,
+    int StartIndex,
+    int Triangles);
+
 public sealed record Renderer3DThingTextureGroupCandidate(
     long TextureLongName,
     bool DrawPaletted,
@@ -1763,6 +1775,30 @@ public static class Renderer3DGeometryLifecyclePlan
             SectorFogColor: thing.HasSector ? thing.SectorFogColor : null,
             SetDesaturation: true,
             SectorDesaturation: thing.HasSector ? thing.SectorDesaturation : 0.0);
+    }
+
+    public static Renderer3DThingDrawCommandPlan BuildThingDrawCommandPlan(
+        Renderer3DThingDrawCommandCandidate thing)
+    {
+        if (thing.Triangles < 0) throw new ArgumentOutOfRangeException(nameof(thing));
+        if (!thing.HasGeometryBuffer)
+        {
+            return new Renderer3DThingDrawCommandPlan(
+                SetWorldMatrix: false,
+                BindGeometryBuffer: false,
+                Draw: false,
+                PrimitiveType: PrimitiveType.TriangleList,
+                StartIndex: 0,
+                Triangles: 0);
+        }
+
+        return new Renderer3DThingDrawCommandPlan(
+            SetWorldMatrix: true,
+            BindGeometryBuffer: true,
+            Draw: true,
+            PrimitiveType: PrimitiveType.TriangleList,
+            StartIndex: 0,
+            Triangles: thing.Triangles);
     }
 
     public static Renderer3DThingDrawStatePlanSet BuildThingDrawStatePlan(
