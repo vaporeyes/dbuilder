@@ -452,6 +452,29 @@ public sealed class TextLabelPlanTests
     }
 
     [Fact]
+    public void TextLabelPlannersRejectNullInputs()
+    {
+        TextLabelLayout layout = TextLabelPlan.Build(
+            "Visible",
+            new TextLabelSize(24, 10),
+            new TextLabelPoint(8, 8),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+
+        Assert.Throws<ArgumentNullException>(() =>
+            TextLabelPlan.BuildImagePlan(null!, layout, drawBackground: false, new PixelColor(), new PixelColor()));
+        Assert.Throws<ArgumentNullException>(() =>
+            TextLabelPlan.BuildImagePlan("Visible", null!, drawBackground: false, new PixelColor(), new PixelColor()));
+        Assert.Throws<ArgumentNullException>(() =>
+            TextLabelPlan.BuildRenderPlan(null!));
+        Assert.Throws<ArgumentNullException>(() =>
+            TextLabelPlan.BuildRenderStatePlan(null!));
+        Assert.Throws<ArgumentNullException>(() =>
+            TextLabelPlan.BuildResourceUpdatePlan(TextLabelInvalidation.Initial, null!, hasTexture: false, hasVertexBuffer: false, vertexBufferDisposed: false));
+    }
+
+    [Fact]
     public void BuildRenderStatePlanMatchesUdbTextRenderState()
     {
         TextLabelLayout visible = TextLabelPlan.Build(

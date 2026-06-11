@@ -134,6 +134,7 @@ public static class RendererArchitectureModel
             "Text label plain and background image drawing planning",
             "Text label render dispatch planning",
             "Text label render-state planning",
+            "Text label planner input validation planning",
             "Text label dirty-state and resource invalidation planning",
             "Text label unload-resource disposal planning",
             "Text label skipped-resource invalidation planning",

@@ -407,6 +407,9 @@ public static class TextLabelPlan
         PixelColor color,
         PixelColor backColor)
     {
+        ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(layout);
+
         if (drawBackground)
         {
             return new TextLabelImagePlan(
@@ -441,6 +444,8 @@ public static class TextLabelPlan
 
     public static TextLabelRenderPlan BuildRenderPlan(IReadOnlyList<TextLabelLayout> labels)
     {
+        ArgumentNullException.ThrowIfNull(labels);
+
         var commands = new List<TextLabelRenderCommand>();
         int skipped = 0;
 
@@ -464,7 +469,10 @@ public static class TextLabelPlan
     }
 
     public static TextLabelRenderStatePlan BuildRenderStatePlan(TextLabelRenderPlan renderPlan)
-        => new(
+    {
+        ArgumentNullException.ThrowIfNull(renderPlan);
+
+        return new TextLabelRenderStatePlan(
             CullMode: Cull.None,
             DepthEnabled: false,
             AlphaBlendEnabled: renderPlan.ShouldRender,
@@ -476,6 +484,7 @@ public static class TextLabelPlan
             TextureOffset: 0.0f,
             TextureScale: 1.0f,
             TextureTransformEnabled: false);
+    }
 
     public static TextLabelInvalidation InvalidateLayout(TextLabelInvalidation state)
         => state with { LayoutUpdateNeeded = true };
@@ -532,6 +541,8 @@ public static class TextLabelPlan
         bool hasVertexBuffer,
         bool vertexBufferDisposed)
     {
+        ArgumentNullException.ThrowIfNull(layout);
+
         if (layout.SkipRendering)
         {
             TextLabelInvalidation resultInvalidation = layout.SkipReason == TextLabelSkipReason.Empty
