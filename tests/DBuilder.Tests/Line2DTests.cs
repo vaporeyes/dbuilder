@@ -108,29 +108,31 @@ public class Line2DTests
     }
 
     [Fact]
-    public void NearestPointOnDegenerateLineReturnsStart()
+    public void NearestPointOnDegenerateLineMatchesUdbNaN()
     {
         var line = new Line2D(3, 4, 3, 4);
+        Vector2D nearest = line.GetNearestPointOnLine(new Vector2D(100, 200), bounded: true);
 
-        Assert.Equal(new Vector2D(3, 4), line.GetNearestPointOnLine(new Vector2D(100, 200), bounded: true));
+        Assert.True(double.IsNaN(nearest.x));
+        Assert.True(double.IsNaN(nearest.y));
     }
 
     [Fact]
-    public void DegenerateLineDistanceUsesStartPointDistance()
+    public void DegenerateLineDistanceMatchesUdbNaN()
     {
         var line = new Line2D(3, 4, 3, 4);
 
-        Assert.Equal(25, Line2D.GetDistanceToLineSq(line.v1, line.v2, new Vector2D(6, 8), bounded: true), Epsilon);
-        Assert.Equal(5, line.GetDistanceToLine(new Vector2D(6, 8), bounded: false), Epsilon);
+        Assert.True(double.IsNaN(Line2D.GetDistanceToLineSq(line.v1, line.v2, new Vector2D(6, 8), bounded: true)));
+        Assert.True(double.IsNaN(line.GetDistanceToLine(new Vector2D(6, 8), bounded: false)));
     }
 
     [Fact]
-    public void NearestOnDegenerateLineReturnsStartParameter()
+    public void NearestOnDegenerateLineMatchesUdbNaN()
     {
         var line = new Line2D(3, 4, 3, 4);
 
-        Assert.Equal(0, Line2D.GetNearestOnLine(line.v1, line.v2, new Vector2D(6, 8)), Epsilon);
-        Assert.Equal(0, line.GetNearestOnLine(new Vector2D(6, 8)), Epsilon);
+        Assert.True(double.IsNaN(Line2D.GetNearestOnLine(line.v1, line.v2, new Vector2D(6, 8))));
+        Assert.True(double.IsNaN(line.GetNearestOnLine(new Vector2D(6, 8))));
     }
 
     [Fact]
