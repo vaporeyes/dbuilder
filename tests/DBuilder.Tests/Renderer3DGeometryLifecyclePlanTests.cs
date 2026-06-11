@@ -2007,6 +2007,57 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
             maxDynamicLightsPerSurface: 1));
     }
 
+    [Theory]
+    [InlineData(0.0, 0.0, 0.0, true)]
+    [InlineData(10.0, 0.0, 0.0, true)]
+    [InlineData(10.1, 0.0, 0.0, false)]
+    [InlineData(0.0, -10.0, 0.0, true)]
+    [InlineData(0.0, -10.1, 0.0, false)]
+    [InlineData(0.0, 0.0, 10.0, true)]
+    [InlineData(0.0, 0.0, 10.1, false)]
+    public void BoundingBoxesIntersectMatchesUdbAxisOverlapRule(double x, double y, double z, bool expected)
+    {
+        Vector3D[] first =
+        [
+            new(0.0, 0.0, 0.0),
+            new(-5.0, -5.0, -5.0),
+        ];
+        Vector3D[] second =
+        [
+            new(x, y, z),
+            new(x - 5.0, y - 5.0, z - 5.0),
+        ];
+
+        Assert.Equal(expected, Renderer3DGeometryLifecyclePlan.BoundingBoxesIntersect(first, second));
+    }
+
+    [Fact]
+    public void BoundingBoxesIntersectRejectsInvalidInputs()
+    {
+        Vector3D[] valid =
+        [
+            new(0.0, 0.0, 0.0),
+            new(-1.0, -1.0, -1.0),
+        ];
+
+        Assert.Throws<ArgumentNullException>(() => Renderer3DGeometryLifecyclePlan.BoundingBoxesIntersect(null!, valid));
+        Assert.Throws<ArgumentNullException>(() => Renderer3DGeometryLifecyclePlan.BoundingBoxesIntersect(valid, null!));
+        Assert.Throws<ArgumentException>(() => Renderer3DGeometryLifecyclePlan.BoundingBoxesIntersect([new Vector3D()], valid));
+        Assert.Throws<ArgumentException>(() => Renderer3DGeometryLifecyclePlan.BoundingBoxesIntersect(valid, [new Vector3D()]));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BoundingBoxesIntersect(
+            [
+                new Vector3D(double.NaN, 0.0, 0.0),
+                new Vector3D(-1.0, -1.0, -1.0),
+            ],
+            valid));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BoundingBoxesIntersect(
+            valid,
+            [
+                new Vector3D(0.0, 0.0, 0.0),
+                new Vector3D(double.PositiveInfinity, -1.0, -1.0),
+            ]));
+    }
+
     [Fact]
     public void BuildModelMeshRenderPlanSetsTextureAndDrawsEveryMeshInThingOrder()
     {
@@ -2197,6 +2248,11 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("translucentthings.Add(t);", source, StringComparison.Ordinal);
         Assert.Contains("throw new NotImplementedException(\"Thing rendering of \" + t.RenderPass + \" render pass is not implemented!\");", source, StringComparison.Ordinal);
         Assert.Contains("allthings.Add(t);", source, StringComparison.Ordinal);
+        Assert.Contains("private static bool BoundingBoxesIntersect(Vector3D[] bbox1, Vector3D[] bbox2)", source, StringComparison.Ordinal);
+        Assert.Contains("Vector3D dist = bbox1[0] - bbox2[0];", source, StringComparison.Ordinal);
+        Assert.Contains("Vector3D halfSize1 = bbox1[0] - bbox1[1];", source, StringComparison.Ordinal);
+        Assert.Contains("Vector3D halfSize2 = bbox2[0] - bbox2[1];", source, StringComparison.Ordinal);
+        Assert.Contains("halfSize1.x + halfSize2.x >= Math.Abs(dist.x)", source, StringComparison.Ordinal);
         Assert.Contains("private void RenderSky(IEnumerable<VisualGeometry> geo)", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetShader(ShaderName.world3d_skybox);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(General.Map.Data.SkyBox);", source, StringComparison.Ordinal);

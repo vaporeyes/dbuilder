@@ -1566,6 +1566,24 @@ public static class Renderer3DGeometryLifecyclePlan
                 Renderer3DGeometryBucketKind.VisualVertices,
             ]);
 
+    public static bool BoundingBoxesIntersect(IReadOnlyList<Vector3D> firstBoundingBox, IReadOnlyList<Vector3D> secondBoundingBox)
+    {
+        ArgumentNullException.ThrowIfNull(firstBoundingBox);
+        ArgumentNullException.ThrowIfNull(secondBoundingBox);
+        if (firstBoundingBox.Count < 2) throw new ArgumentException("Bounding boxes must contain center and half-size corner points.", nameof(firstBoundingBox));
+        if (secondBoundingBox.Count < 2) throw new ArgumentException("Bounding boxes must contain center and half-size corner points.", nameof(secondBoundingBox));
+        if (!IsFinite(firstBoundingBox[0]) || !IsFinite(firstBoundingBox[1])) throw new ArgumentOutOfRangeException(nameof(firstBoundingBox));
+        if (!IsFinite(secondBoundingBox[0]) || !IsFinite(secondBoundingBox[1])) throw new ArgumentOutOfRangeException(nameof(secondBoundingBox));
+
+        Vector3D dist = firstBoundingBox[0] - secondBoundingBox[0];
+        Vector3D halfSize1 = firstBoundingBox[0] - firstBoundingBox[1];
+        Vector3D halfSize2 = secondBoundingBox[0] - secondBoundingBox[1];
+
+        return halfSize1.x + halfSize2.x >= Math.Abs(dist.x) &&
+            halfSize1.y + halfSize2.y >= Math.Abs(dist.y) &&
+            halfSize1.z + halfSize2.z >= Math.Abs(dist.z);
+    }
+
     private static WorldVertex Vertex(Vector3D position, int color)
         => new((float)position.x, (float)position.y, (float)position.z, color, u: 0.0f, v: 0.0f);
 
@@ -1613,6 +1631,9 @@ public static class Renderer3DGeometryLifecyclePlan
 
     private static bool IsFinite(Vector3f vector)
         => float.IsFinite(vector.X) && float.IsFinite(vector.Y) && float.IsFinite(vector.Z);
+
+    private static bool IsFinite(Vector3D vector)
+        => double.IsFinite(vector.x) && double.IsFinite(vector.y) && double.IsFinite(vector.z);
 
     private static bool IsFinite(Color4 color)
         => float.IsFinite(color.Red) && float.IsFinite(color.Green) && float.IsFinite(color.Blue) && float.IsFinite(color.Alpha);
