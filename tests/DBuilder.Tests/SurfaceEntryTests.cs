@@ -2,6 +2,7 @@
 // ABOUTME: Covers chunk metadata, update allocation, copy semantics, and floor-vertex bounds.
 
 using DBuilder.Rendering;
+using System.Drawing;
 
 namespace DBuilder.Tests;
 
@@ -15,6 +16,50 @@ public sealed class SurfaceEntryTests
         Assert.Equal(6, entry.NumVertices);
         Assert.Equal(2, entry.BufferIndex);
         Assert.Equal(18, entry.VertexOffset);
+        Assert.Equal(6, entry.numvertices);
+        Assert.Equal(2, entry.bufferindex);
+        Assert.Equal(18, entry.vertexoffset);
+    }
+
+    [Fact]
+    public void UdbFieldAliasesStayInSyncWithSurfaceEntryProperties()
+    {
+        var entry = new SurfaceEntry(numVertices: 6, bufferIndex: 2, vertexOffset: 18)
+        {
+            FloorVertices = new[] { Vertex(1, 2) },
+            CeilingVertices = new[] { Vertex(3, 4) },
+            FloorTexture = 10,
+            CeilingTexture = 20,
+            Hidden = true,
+            Desaturation = 0.5,
+        };
+
+        Assert.Same(entry.FloorVertices, entry.floorvertices);
+        Assert.Same(entry.CeilingVertices, entry.ceilvertices);
+        Assert.Equal(10, entry.floortexture);
+        Assert.Equal(20, entry.ceiltexture);
+        Assert.True(entry.hidden);
+        Assert.Equal(0.5, entry.desaturation);
+
+        entry.numvertices = 9;
+        entry.bufferindex = 4;
+        entry.vertexoffset = 27;
+        entry.floorvertices = new[] { Vertex(5, 6) };
+        entry.ceilvertices = new[] { Vertex(7, 8) };
+        entry.floortexture = 30;
+        entry.ceiltexture = 40;
+        entry.hidden = false;
+        entry.desaturation = 0.25;
+
+        Assert.Equal(9, entry.NumVertices);
+        Assert.Equal(4, entry.BufferIndex);
+        Assert.Equal(27, entry.VertexOffset);
+        Assert.Same(entry.floorvertices, entry.FloorVertices);
+        Assert.Same(entry.ceilvertices, entry.CeilingVertices);
+        Assert.Equal(30, entry.FloorTexture);
+        Assert.Equal(40, entry.CeilingTexture);
+        Assert.False(entry.Hidden);
+        Assert.Equal(0.25, entry.Desaturation);
     }
 
     [Fact]
@@ -74,6 +119,26 @@ public sealed class SurfaceEntryTests
         Assert.Equal(-2, entry.Bounds.Top);
         Assert.Equal(16, entry.Bounds.Width);
         Assert.Equal(11, entry.Bounds.Height);
+    }
+
+    [Fact]
+    public void UpdateBBoxAndBboxAliasMatchUdbSurface()
+    {
+        var entry = new SurfaceEntry(numVertices: 3, bufferIndex: 0, vertexOffset: 0)
+        {
+            floorvertices = new[] { Vertex(12, 3), Vertex(-4, 9), Vertex(6, -2) },
+        };
+
+        entry.UpdateBBox();
+
+        Assert.Equal(new RectangleF(-4, -2, 16, 11), entry.bbox);
+
+        entry.bbox = new RectangleF(1, 2, 3, 4);
+
+        Assert.Equal(1, entry.Bounds.Left);
+        Assert.Equal(2, entry.Bounds.Top);
+        Assert.Equal(3, entry.Bounds.Width);
+        Assert.Equal(4, entry.Bounds.Height);
     }
 
     [Fact]

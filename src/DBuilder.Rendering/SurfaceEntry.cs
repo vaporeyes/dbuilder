@@ -1,6 +1,8 @@
 // ABOUTME: UDB-style sector surface entry and update data for buffered 2D floor and ceiling rendering.
 // ABOUTME: Keeps surface manager chunk metadata and bounding-box behavior testable before full manager parity.
 
+using System.Drawing;
+
 namespace DBuilder.Rendering;
 
 public sealed record SurfaceBounds(float Left, float Top, float Width, float Height)
@@ -40,6 +42,66 @@ public sealed class SurfaceEntry
     public bool Hidden { get; set; }
     public double Desaturation { get; set; }
 
+    public int numvertices
+    {
+        get => NumVertices;
+        set => NumVertices = value;
+    }
+
+    public int bufferindex
+    {
+        get => BufferIndex;
+        set => BufferIndex = value;
+    }
+
+    public RectangleF bbox
+    {
+        get => new(Bounds.Left, Bounds.Top, Bounds.Width, Bounds.Height);
+        set => Bounds = new SurfaceBounds(value.Left, value.Top, value.Width, value.Height);
+    }
+
+    public int vertexoffset
+    {
+        get => VertexOffset;
+        set => VertexOffset = value;
+    }
+
+    public FlatVertex[] floorvertices
+    {
+        get => FloorVertices;
+        set => FloorVertices = value;
+    }
+
+    public FlatVertex[] ceilvertices
+    {
+        get => CeilingVertices;
+        set => CeilingVertices = value;
+    }
+
+    public long floortexture
+    {
+        get => FloorTexture;
+        set => FloorTexture = value;
+    }
+
+    public long ceiltexture
+    {
+        get => CeilingTexture;
+        set => CeilingTexture = value;
+    }
+
+    public bool hidden
+    {
+        get => Hidden;
+        set => Hidden = value;
+    }
+
+    public double desaturation
+    {
+        get => Desaturation;
+        set => Desaturation = value;
+    }
+
     public void UpdateBounds()
     {
         if (FloorVertices.Length == 0)
@@ -63,6 +125,8 @@ public sealed class SurfaceEntry
 
         Bounds = new SurfaceBounds(left, top, right - left, bottom - top);
     }
+
+    public void UpdateBBox() => UpdateBounds();
 }
 
 public sealed class SurfaceEntryCollection : List<SurfaceEntry>
