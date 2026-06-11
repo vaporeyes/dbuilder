@@ -97,6 +97,8 @@ public static class RendererArchitectureModel
             "Render-device texture pixel upload byte-size planning",
             "Render-device unsafe plotter pixel upload surface",
             "Cube texture resource and render-device cube operation surface",
+            "Cube texture render-device constructor surface",
+            "Cube map face enum values",
             "PixelColor arithmetic helper surface",
             "Owned indexed-triangle mesh wrapper",
             "Mesh construction, draw, and dispose operation planning",

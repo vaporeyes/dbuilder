@@ -90,6 +90,8 @@ public class RendererArchitectureModelTests
         Assert.Contains("Render-device texture pixel upload byte-size planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device unsafe plotter pixel upload surface", replacement.CoveredResponsibilities);
         Assert.Contains("Cube texture resource and render-device cube operation surface", replacement.CoveredResponsibilities);
+        Assert.Contains("Cube texture render-device constructor surface", replacement.CoveredResponsibilities);
+        Assert.Contains("Cube map face enum values", replacement.CoveredResponsibilities);
         Assert.Contains("PixelColor arithmetic helper surface", replacement.CoveredResponsibilities);
         Assert.Contains("Mesh construction, draw, and dispose operation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Mesh disposal and finalizer lifecycle", replacement.CoveredResponsibilities);
