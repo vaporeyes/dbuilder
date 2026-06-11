@@ -1,12 +1,47 @@
 // ABOUTME: Tests 2D thing icon zoom policy for compact map-scale rendering.
 // ABOUTME: Verifies sprite-backed things collapse to small markers only in dense fixed-scale views.
 
+using System.Globalization;
+using System.Text.RegularExpressions;
 using DBuilder.IO;
 
 namespace DBuilder.Tests;
 
 public sealed class ThingIconRenderPolicyTests
 {
+    private static string? FindUdbRoot()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "."));
+        string sibling = Path.GetFullPath(Path.Combine(repositoryRoot, "..", "UltimateDoomBuilder"));
+        if (File.Exists(Path.Combine(sibling, "Source", "Core", "Rendering", "Renderer2D.cs"))) return sibling;
+
+        string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string root = Path.Combine(home, "dev", "repos", "UltimateDoomBuilder");
+        return File.Exists(Path.Combine(root, "Source", "Core", "Rendering", "Renderer2D.cs")) ? root : null;
+    }
+
+    private static double Renderer2DConstant(string source, string name)
+    {
+        var match = Regex.Match(source, @"(?:private|internal)\s+const\s+float\s+" + name + @"\s*=\s*(?<value>[0-9.]+)f?");
+        Assert.True(match.Success, "Expected UDB Renderer2D constant " + name + ".");
+        return double.Parse(match.Groups["value"].Value, CultureInfo.InvariantCulture);
+    }
+
+    [Fact]
+    public void ThingIconSizingConstantsMatchUdbRenderer2DWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string path = Path.Combine(udbRoot, "Source", "Core", "Rendering", "Renderer2D.cs");
+        string source = File.ReadAllText(path);
+
+        Assert.Equal(ThingIconRenderPolicy.ThingSpriteShrink, Renderer2DConstant(source, "THING_SPRITE_SHRINK"));
+        Assert.Equal(ThingIconRenderPolicy.MinimumThingScreenRadius, Renderer2DConstant(source, "MINIMUM_THING_RADIUS"));
+        Assert.Equal(ThingIconRenderPolicy.MinimumSpriteScreenRadius, Renderer2DConstant(source, "MINIMUM_SPRITE_RADIUS"));
+        Assert.Equal(ThingIconRenderPolicy.FixedThingScreenRadius, Renderer2DConstant(source, "FIXED_THING_SIZE"));
+    }
+
     [Fact]
     public void UsesCompactMarkersAtOverviewScaleWhenThingSizeIsFixed()
     {
