@@ -1558,6 +1558,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style 3D single-pass setup planning.
   - [x] Add UDB-style 3D single-pass geometry finish planning.
   - [x] Add UDB-style 3D single-pass thing state planning.
+  - [x] Add UDB-style 3D thing sector uniform planning.
   - [x] Add UDB-style 3D thing draw-state planning.
   - [x] Add UDB-style 3D thing texture-group planning.
   - [x] Add UDB-style 3D translucent geometry draw-state planning.

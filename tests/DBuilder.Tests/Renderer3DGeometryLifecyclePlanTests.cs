@@ -1527,6 +1527,52 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
             Renderer3DGeometryLifecyclePlan.BuildSinglePassThingStatePlan(thingCount: -1));
 
     [Fact]
+    public void BuildThingSectorUniformPlanSetsSectorLightFogAndDesaturationWhenSectorExists()
+    {
+        Renderer3DThingSectorUniformPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingSectorUniformPlan(
+            new Renderer3DThingSectorUniformCandidate(
+                HasSector: true,
+                SectorBrightness: 160,
+                SectorFogColor: unchecked((int)0xff010203),
+                SectorDesaturation: 0.25));
+
+        Assert.True(plan.SetSectorLightLevel);
+        Assert.Equal(160, plan.SectorBrightness);
+        Assert.True(plan.SetSectorFogColor);
+        Assert.Equal(unchecked((int)0xff010203), plan.SectorFogColor);
+        Assert.True(plan.SetDesaturation);
+        Assert.Equal(0.25, plan.SectorDesaturation);
+    }
+
+    [Fact]
+    public void BuildThingSectorUniformPlanClearsDesaturationWithoutSector()
+    {
+        Renderer3DThingSectorUniformPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingSectorUniformPlan(
+            new Renderer3DThingSectorUniformCandidate(
+                HasSector: false,
+                SectorBrightness: 160,
+                SectorFogColor: unchecked((int)0xff010203),
+                SectorDesaturation: 0.25));
+
+        Assert.False(plan.SetSectorLightLevel);
+        Assert.Null(plan.SectorBrightness);
+        Assert.False(plan.SetSectorFogColor);
+        Assert.Null(plan.SectorFogColor);
+        Assert.True(plan.SetDesaturation);
+        Assert.Equal(0.0, plan.SectorDesaturation);
+    }
+
+    [Fact]
+    public void BuildThingSectorUniformPlanRejectsInvalidInputs()
+        => Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Renderer3DGeometryLifecyclePlan.BuildThingSectorUniformPlan(
+                new Renderer3DThingSectorUniformCandidate(
+                    HasSector: true,
+                    SectorBrightness: 160,
+                    SectorFogColor: 0,
+                    SectorDesaturation: double.NaN)));
+
+    [Fact]
     public void BuildThingShaderPassPlanKeepsBaseShaderWithoutHighlightFogOrVertexColor()
     {
         Renderer3DThingShaderPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingShaderPassPlan(

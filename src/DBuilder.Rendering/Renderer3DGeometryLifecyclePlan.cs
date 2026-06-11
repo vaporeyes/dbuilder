@@ -521,6 +521,20 @@ public sealed record Renderer3DThingDrawStatePlanSet(
     bool WrapTextureAddressAfterThings,
     Cull RestoreCullModeAfterThings);
 
+public sealed record Renderer3DThingSectorUniformCandidate(
+    bool HasSector,
+    int SectorBrightness,
+    int SectorFogColor,
+    double SectorDesaturation);
+
+public sealed record Renderer3DThingSectorUniformPlan(
+    bool SetSectorLightLevel,
+    int? SectorBrightness,
+    bool SetSectorFogColor,
+    int? SectorFogColor,
+    bool SetDesaturation,
+    double SectorDesaturation);
+
 public sealed record Renderer3DThingTextureGroupCandidate(
     long TextureLongName,
     bool DrawPaletted,
@@ -1735,6 +1749,20 @@ public static class Renderer3DGeometryLifecyclePlan
             ResetStencilAfterThings: true,
             RestoredTextureAddress: TextureAddress.Wrap,
             RestoredCullMode: Cull.Clockwise);
+    }
+
+    public static Renderer3DThingSectorUniformPlan BuildThingSectorUniformPlan(
+        Renderer3DThingSectorUniformCandidate thing)
+    {
+        if (!double.IsFinite(thing.SectorDesaturation)) throw new ArgumentOutOfRangeException(nameof(thing));
+
+        return new Renderer3DThingSectorUniformPlan(
+            SetSectorLightLevel: thing.HasSector,
+            SectorBrightness: thing.HasSector ? thing.SectorBrightness : null,
+            SetSectorFogColor: thing.HasSector,
+            SectorFogColor: thing.HasSector ? thing.SectorFogColor : null,
+            SetDesaturation: true,
+            SectorDesaturation: thing.HasSector ? thing.SectorDesaturation : 0.0);
     }
 
     public static Renderer3DThingDrawStatePlanSet BuildThingDrawStatePlan(
