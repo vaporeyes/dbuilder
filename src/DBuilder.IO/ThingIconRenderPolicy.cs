@@ -9,6 +9,7 @@ public static class ThingIconRenderPolicy
     public const double SpriteIconScaleThreshold = 0.0225;
     public const double CompactMarkerScaleThreshold = SpriteIconScaleThreshold;
     public const double FixedThingScreenRadius = 48.0;
+    public const double ThingArrowScale = 1.4;
     public const double ThingSpriteShrink = 2.0;
     public const double MinimumThingScreenRadius = 1.5;
     public const double MinimumFarOverviewThingScreenRadius = 4.0;
@@ -23,8 +24,8 @@ public static class ThingIconRenderPolicy
     public const double MaxFarOverviewCullCellPixels = 640.0;
     public const double CompactMarkerBaseSize = 4.0;
     public const double RegularMarkerBaseSize = 10.0;
-    public const double CompactDirectionTickBaseSize = 7.0;
-    public const double RegularDirectionTickBaseSize = 18.0;
+    public const double CompactDirectionTickBaseSize = CompactMarkerBaseSize * ThingArrowScale;
+    public const double RegularDirectionTickBaseSize = RegularMarkerBaseSize * ThingArrowScale;
 
     public static bool UseCompactMarkers(double viewScale, bool fixedThingsScale, bool thingArrows)
         => viewScale >= CompactMarkerScaleThreshold;

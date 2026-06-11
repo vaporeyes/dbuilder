@@ -40,6 +40,7 @@ public sealed class ThingIconRenderPolicyTests
         Assert.Equal(ThingIconRenderPolicy.MinimumThingScreenRadius, Renderer2DConstant(source, "MINIMUM_THING_RADIUS"));
         Assert.Equal(ThingIconRenderPolicy.MinimumSpriteScreenRadius, Renderer2DConstant(source, "MINIMUM_SPRITE_RADIUS"));
         Assert.Equal(ThingIconRenderPolicy.FixedThingScreenRadius, Renderer2DConstant(source, "FIXED_THING_SIZE"));
+        Assert.Equal(ThingIconRenderPolicy.ThingArrowScale, Renderer2DConstant(source, "THING_ARROW_SIZE"));
     }
 
     [Fact]
@@ -162,6 +163,12 @@ public sealed class ThingIconRenderPolicyTests
             < ThingIconRenderPolicy.MarkerBaseSize(compactMarkers: false));
         Assert.True(ThingIconRenderPolicy.DirectionTickBaseSize(compactMarkers: true)
             < ThingIconRenderPolicy.DirectionTickBaseSize(compactMarkers: false));
+        Assert.Equal(
+            ThingIconRenderPolicy.MarkerBaseSize(compactMarkers: true) * ThingIconRenderPolicy.ThingArrowScale,
+            ThingIconRenderPolicy.DirectionTickBaseSize(compactMarkers: true));
+        Assert.Equal(
+            ThingIconRenderPolicy.MarkerBaseSize(compactMarkers: false) * ThingIconRenderPolicy.ThingArrowScale,
+            ThingIconRenderPolicy.DirectionTickBaseSize(compactMarkers: false));
     }
 
     [Fact]

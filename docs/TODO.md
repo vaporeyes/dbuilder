@@ -1491,6 +1491,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style render-device finish and present frame handoff planning.
 - [ ] Port renderer 2D parity.
   - [x] Add compatibility coverage for UDB 2D thing icon sizing constants.
+  - [x] Match UDB 2D thing arrow scale metadata.
 - [ ] Port renderer 3D parity.
 - [ ] Port render passes and layers.
   - [x] Add UDB-style 2D presentation layer stack planning.
