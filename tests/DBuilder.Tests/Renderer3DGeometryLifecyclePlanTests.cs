@@ -78,6 +78,52 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
     }
 
     [Fact]
+    public void BuildSkySolidPassPlanSkipsSkyWhenNoSkyGeometryAndAlwaysRendersSolidPass()
+    {
+        Renderer3DSkySolidPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildSkySolidPassPlan(skyGeometryCount: 0);
+
+        Assert.Equal(
+            [
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetIdentityWorld),
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetWorldUniform),
+                new Renderer3DGeometryPassOperation(
+                    Renderer3DGeometryPassOperationKind.RenderSinglePass,
+                    GeometryBucket: Renderer3DGeometryBucketKind.SolidGeometry,
+                    ThingBucket: Renderer3DGeometryBucketKind.SolidThings,
+                    LightBucket: Renderer3DGeometryBucketKind.LightThings),
+            ],
+            plan.Operations);
+    }
+
+    [Fact]
+    public void BuildSkySolidPassPlanIncludesSkyPassBeforeSolidPass()
+    {
+        Renderer3DSkySolidPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildSkySolidPassPlan(skyGeometryCount: 2);
+
+        Assert.Equal(
+            [
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetIdentityWorld),
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetWorldUniform),
+                new Renderer3DGeometryPassOperation(
+                    Renderer3DGeometryPassOperationKind.RenderSky,
+                    GeometryBucket: Renderer3DGeometryBucketKind.SkyGeometry),
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetIdentityWorld),
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetWorldUniform),
+                new Renderer3DGeometryPassOperation(
+                    Renderer3DGeometryPassOperationKind.RenderSinglePass,
+                    GeometryBucket: Renderer3DGeometryBucketKind.SolidGeometry,
+                    ThingBucket: Renderer3DGeometryBucketKind.SolidThings,
+                    LightBucket: Renderer3DGeometryBucketKind.LightThings),
+            ],
+            plan.Operations);
+    }
+
+    [Fact]
+    public void BuildSkySolidPassPlanRejectsNegativeSkyCounts()
+        => Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Renderer3DGeometryLifecyclePlan.BuildSkySolidPassPlan(skyGeometryCount: -1));
+
+    [Fact]
     public void Renderer3DStartGeometryExpressionsMatchUdbWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -102,6 +148,9 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("graphics.SetZWriteEnable(true);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetAlphaBlendEnable(false);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetAlphaTestEnable(false);", source, StringComparison.Ordinal);
+        Assert.Contains("if (skygeo.Count > 0)", source, StringComparison.Ordinal);
+        Assert.Contains("RenderSky(skygeo);", source, StringComparison.Ordinal);
+        Assert.Contains("RenderSinglePass(solidgeo, solidthings, lightthings);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);

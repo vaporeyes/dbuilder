@@ -47,6 +47,22 @@ public sealed record Renderer3DFinishGeometryInitialStatePlan(
     bool AlphaBlendEnabled,
     bool AlphaTestEnabled);
 
+public enum Renderer3DGeometryPassOperationKind
+{
+    SetIdentityWorld,
+    SetWorldUniform,
+    RenderSky,
+    RenderSinglePass,
+}
+
+public sealed record Renderer3DGeometryPassOperation(
+    Renderer3DGeometryPassOperationKind Kind,
+    Renderer3DGeometryBucketKind? GeometryBucket = null,
+    Renderer3DGeometryBucketKind? ThingBucket = null,
+    Renderer3DGeometryBucketKind? LightBucket = null);
+
+public sealed record Renderer3DSkySolidPassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations);
+
 public static class Renderer3DGeometryLifecyclePlan
 {
     public static Renderer3DStartGeometryPlan BuildStartGeometryPlan()
@@ -72,6 +88,31 @@ public static class Renderer3DGeometryLifecyclePlan
             DepthWriteEnabled: true,
             AlphaBlendEnabled: false,
             AlphaTestEnabled: false);
+
+    public static Renderer3DSkySolidPassPlan BuildSkySolidPassPlan(int skyGeometryCount)
+    {
+        if (skyGeometryCount < 0) throw new ArgumentOutOfRangeException(nameof(skyGeometryCount));
+
+        var operations = new List<Renderer3DGeometryPassOperation>();
+        if (skyGeometryCount > 0)
+        {
+            operations.Add(new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetIdentityWorld));
+            operations.Add(new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetWorldUniform));
+            operations.Add(new Renderer3DGeometryPassOperation(
+                Renderer3DGeometryPassOperationKind.RenderSky,
+                GeometryBucket: Renderer3DGeometryBucketKind.SkyGeometry));
+        }
+
+        operations.Add(new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetIdentityWorld));
+        operations.Add(new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetWorldUniform));
+        operations.Add(new Renderer3DGeometryPassOperation(
+            Renderer3DGeometryPassOperationKind.RenderSinglePass,
+            GeometryBucket: Renderer3DGeometryBucketKind.SolidGeometry,
+            ThingBucket: Renderer3DGeometryBucketKind.SolidThings,
+            LightBucket: Renderer3DGeometryBucketKind.LightThings));
+
+        return new Renderer3DSkySolidPassPlan(operations);
+    }
 
     public static Renderer3DFinishGeometryCleanupPlan BuildFinishGeometryCleanupPlan()
         => new(
