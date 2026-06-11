@@ -1,12 +1,32 @@
 // ABOUTME: Verifies UDB-style 2D renderer presentation layer stacks.
 // ABOUTME: Covers Standard, Things, custom layer addition, and hidden-sector skip state.
 
+using System.Globalization;
+using System.Text.RegularExpressions;
 using DBuilder.Rendering;
 
 namespace DBuilder.Tests;
 
 public sealed class PresentationPlanTests
 {
+    private static string? FindUdbRoot()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "."));
+        string sibling = Path.GetFullPath(Path.Combine(repositoryRoot, "..", "UltimateDoomBuilder"));
+        if (File.Exists(Path.Combine(sibling, "Source", "Core", "Rendering", "Renderer2D.cs"))) return sibling;
+
+        string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string root = Path.Combine(home, "dev", "repos", "UltimateDoomBuilder");
+        return File.Exists(Path.Combine(root, "Source", "Core", "Rendering", "Renderer2D.cs")) ? root : null;
+    }
+
+    private static double Renderer2DConstant(string source, string type, string name)
+    {
+        Match match = Regex.Match(source, @"(?:private|internal)\s+const\s+" + Regex.Escape(type) + @"\s+" + Regex.Escape(name) + @"\s*=\s*(?<value>[0-9.]+)f?");
+        Assert.True(match.Success, "Expected UDB Renderer2D constant " + name + ".");
+        return double.Parse(match.Groups["value"].Value, CultureInfo.InvariantCulture);
+    }
+
     [Fact]
     public void StandardPresentationMatchesUdbLayerOrder()
     {
@@ -548,6 +568,19 @@ public sealed class PresentationPlanTests
 
         Assert.Equal(100, PresentationRenderTargetPlan.ThingBufferSize);
         Assert.Equal(1200, plan.ThingVertexCapacity);
+    }
+
+    [Fact]
+    public void RenderTargetConstantsMatchUdbRenderer2DWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Source", "Core", "Rendering", "Renderer2D.cs"));
+
+        Assert.Equal(PresentationRenderTargetPlan.ThingBufferSize, Renderer2DConstant(source, "int", "THING_BUFFER_SIZE"));
+        Assert.Equal(PresentationRenderTargetPlan.MapCenterSize, Renderer2DConstant(source, "int", "MAP_CENTER_SIZE"));
+        Assert.Equal(PresentationRenderTargetPlan.FsaaFactor, (float)Renderer2DConstant(source, "float", "FSAA_FACTOR"));
     }
 
     [Fact]

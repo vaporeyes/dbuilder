@@ -344,6 +344,7 @@ public sealed record PresentationRenderTargetPlan(
 {
     public const int ThingBufferSize = 100;
     public const int ThingVerticesPerBufferItem = 12;
+    public const int MapCenterSize = 16;
     public const float FsaaFactor = 0.6f;
 
     public static PresentationRenderTargetLifecyclePlan BuildLifecyclePlan(
