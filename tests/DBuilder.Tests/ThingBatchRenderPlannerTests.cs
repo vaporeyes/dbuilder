@@ -678,6 +678,66 @@ public sealed class ThingBatchRenderPlannerTests
     }
 
     [Fact]
+    public void BoxLineDrawPlanMatchesUdbRenderArrowsStateForThingBoxes()
+    {
+        ThingBoxLineDrawPlan plan = ThingBatchRenderPlanner.BuildBoxLineDrawPlan(
+            new[] { new ThingBoxLine(1, 2, 9, 10, 0x123456) },
+            windowWidth: 100,
+            windowHeight: 100);
+
+        Assert.Equal(2, plan.PointCount);
+        Assert.Equal(1, plan.PrimitiveCount);
+        Assert.Equal(Cull.None, plan.CullMode);
+        Assert.False(plan.DepthEnabled);
+        Assert.False(plan.AlphaBlendEnabled);
+        Assert.False(plan.AlphaTestEnabled);
+        Assert.True(plan.ResetWorldTransformation);
+        Assert.Equal(ShaderName.display2d_normal, plan.Shader);
+        Assert.True(plan.BindWhiteTexture);
+        Assert.Equal(PrimitiveType.LineList, plan.PrimitiveType);
+        Assert.Equal(2, plan.Vertices.Length);
+        AssertVertex(plan.Vertices[0], 1, 2, 0x123456, 0.0f, 0.0f);
+        AssertVertex(plan.Vertices[1], 9, 10, 0x123456, 0.0f, 0.0f);
+    }
+
+    [Fact]
+    public void BoxLineDrawPlanSkipsTinyAndOffscreenLinesLikeUdbRenderArrows()
+    {
+        ThingBoxLineDrawPlan plan = ThingBatchRenderPlanner.BuildBoxLineDrawPlan(
+            new[]
+            {
+                new ThingBoxLine(10, 10, 11, 11, 0x111111),
+                new ThingBoxLine(-20, 10, 0, 10, 0x222222),
+                new ThingBoxLine(10, 10, 20, 10, 0x333333),
+            },
+            windowWidth: 100,
+            windowHeight: 100);
+
+        Assert.Equal(2, plan.PointCount);
+        Assert.Equal(1, plan.PrimitiveCount);
+        Assert.Equal(2, plan.Vertices.Length);
+        AssertVertex(plan.Vertices[0], 10, 10, 0x333333, 0.0f, 0.0f);
+        AssertVertex(plan.Vertices[1], 20, 10, 0x333333, 0.0f, 0.0f);
+    }
+
+    [Fact]
+    public void BoxLineDrawPlanRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentNullException>(() => ThingBatchRenderPlanner.BuildBoxLineDrawPlan(
+            null!,
+            windowWidth: 100,
+            windowHeight: 100));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildBoxLineDrawPlan(
+            Array.Empty<ThingBoxLine>(),
+            windowWidth: -1,
+            windowHeight: 100));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildBoxLineDrawPlan(
+            Array.Empty<ThingBoxLine>(),
+            windowWidth: 100,
+            windowHeight: double.NaN));
+    }
+
+    [Fact]
     public void ThingBatchExpressionsMatchUdbRenderer2DWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -746,6 +806,12 @@ public sealed class ThingBatchRenderPlannerTests
         Assert.Contains("bboxes.Add(new Line3D(tr, br, boxcolor, false));", source, StringComparison.Ordinal);
         Assert.Contains("bboxes.Add(new Line3D(bl, br, boxcolor, false));", source, StringComparison.Ordinal);
         Assert.Contains("bboxes.Add(new Line3D(tl, bl, boxcolor, false));", source, StringComparison.Ordinal);
+        Assert.Contains("RenderArrows(bboxes, false);", source, StringComparison.Ordinal);
+        Assert.Contains("if(((line.End2D - line.Start2D).GetLengthSq() < MINIMUM_SPRITE_RADIUS) || ((maxx <= 0.0f) || (minx >= windowsize.Width) || (maxy <= 0.0f) || (miny >= windowsize.Height)))", source, StringComparison.Ordinal);
+        Assert.Contains("pointscount += (line.RenderArrowhead ? 6 : 2);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetShader(ShaderName.display2d_normal);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetTexture(General.Map.Data.WhiteTexture.Texture);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.Draw(PrimitiveType.LineList, 0, pointscount / 2);", source, StringComparison.Ordinal);
     }
 
     private static void AssertVertex(FlatVertex vertex, float x, float y, int color, float u, float v)

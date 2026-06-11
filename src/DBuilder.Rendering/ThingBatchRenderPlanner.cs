@@ -28,6 +28,19 @@ public readonly record struct ThingBoxRenderPlan(
     FlatVertex[] Vertices,
     IReadOnlyList<ThingBoxLine> BoundingBoxLines);
 
+public readonly record struct ThingBoxLineDrawPlan(
+    FlatVertex[] Vertices,
+    int PointCount,
+    int PrimitiveCount,
+    Cull CullMode,
+    bool DepthEnabled,
+    bool AlphaBlendEnabled,
+    bool AlphaTestEnabled,
+    bool ResetWorldTransformation,
+    ShaderName Shader,
+    bool BindWhiteTexture,
+    PrimitiveType PrimitiveType);
+
 public readonly record struct ThingBatchSetupPlan(
     Cull CullMode,
     bool DepthEnabled,
@@ -305,6 +318,39 @@ public static class ThingBatchRenderPlanner
             useRotationCenter);
     }
 
+    public static ThingBoxLineDrawPlan BuildBoxLineDrawPlan(
+        IReadOnlyList<ThingBoxLine> lines,
+        double windowWidth,
+        double windowHeight)
+    {
+        if (lines == null) throw new ArgumentNullException(nameof(lines));
+        if (windowWidth < 0 || double.IsNaN(windowWidth)) throw new ArgumentOutOfRangeException(nameof(windowWidth));
+        if (windowHeight < 0 || double.IsNaN(windowHeight)) throw new ArgumentOutOfRangeException(nameof(windowHeight));
+
+        var vertices = new List<FlatVertex>(lines.Count * 2);
+        foreach (ThingBoxLine line in lines)
+        {
+            if (!IsBoxLineVisible(line, windowWidth, windowHeight)) continue;
+
+            vertices.Add(Vertex(line.StartX, line.StartY, line.Color, 0.0f, 0.0f));
+            vertices.Add(Vertex(line.EndX, line.EndY, line.Color, 0.0f, 0.0f));
+        }
+
+        int pointCount = vertices.Count;
+        return new ThingBoxLineDrawPlan(
+            vertices.ToArray(),
+            pointCount,
+            pointCount / 2,
+            CullMode: Cull.None,
+            DepthEnabled: false,
+            AlphaBlendEnabled: false,
+            AlphaTestEnabled: false,
+            ResetWorldTransformation: true,
+            Shader: ShaderName.display2d_normal,
+            BindWhiteTexture: true,
+            PrimitiveType: PrimitiveType.LineList);
+    }
+
     public static ThingArrowTextureBounds ArrowTextureBounds(bool spriteSkipped)
         => spriteSkipped
             ? new ThingArrowTextureBounds(
@@ -421,6 +467,23 @@ public static class ThingBatchRenderPlanner
             u = u,
             v = v,
         };
+
+    private static bool IsBoxLineVisible(ThingBoxLine line, double windowWidth, double windowHeight)
+    {
+        float maxX = Math.Max(line.StartX, line.EndX);
+        float minX = Math.Min(line.StartX, line.EndX);
+        float maxY = Math.Max(line.StartY, line.EndY);
+        float minY = Math.Min(line.StartY, line.EndY);
+        double dx = line.EndX - line.StartX;
+        double dy = line.EndY - line.StartY;
+        double lengthSquared = dx * dx + dy * dy;
+
+        return lengthSquared >= MinimumSpriteRadius
+            && maxX > 0.0f
+            && minX < windowWidth
+            && maxY > 0.0f
+            && minY < windowHeight;
+    }
 
     private static int ClampAngle(int angle)
     {
