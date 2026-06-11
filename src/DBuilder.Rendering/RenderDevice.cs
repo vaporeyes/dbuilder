@@ -135,6 +135,10 @@ public sealed record RenderDeviceSetupSettingsPlan(
     SamplerFilterPlan SamplerFilter,
     bool InitializePresentation);
 
+public sealed record ViewportPlan(
+    int Width,
+    int Height);
+
 public sealed record RenderStartPlan(
     bool Clear,
     uint ClearColorArgb,
@@ -904,6 +908,14 @@ public sealed class RenderDevice : IDisposable
 
     public static SamplerStatePlan BuildSamplerStatePlan(TextureAddress address, int unit = 0)
         => new(address, unit);
+
+    public static ViewportPlan BuildViewportPlan(int width, int height)
+    {
+        if (width <= 0) throw new ArgumentOutOfRangeException(nameof(width));
+        if (height <= 0) throw new ArgumentOutOfRangeException(nameof(height));
+
+        return new ViewportPlan(width, height);
+    }
 
     public static RenderStartPlan BuildStartRenderingPlan(bool clear, uint clearColorArgb)
         => new(clear, clearColorArgb, HasTarget: false, UseDepthBuffer: true);

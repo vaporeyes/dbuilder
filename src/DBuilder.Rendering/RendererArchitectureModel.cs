@@ -21,6 +21,7 @@ public static class RendererArchitectureModel
         CoveredResponsibilities: new[]
         {
             "Viewport and clear state",
+            "Render-device viewport planning",
             "Render-device disposed-state reporting",
             "2D presentation layer stack planning",
             "2D presentation draw-command planning",

@@ -16,6 +16,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Silk.NET OpenGL", replacement.DeviceApi);
         Assert.Equal("Desktop OpenGL 3.3 core profile", replacement.MinimumGlProfile);
         Assert.Contains("Viewport and clear state", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device viewport planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device disposed-state reporting", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation layer stack planning", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation draw-command planning", replacement.CoveredResponsibilities);
@@ -227,6 +228,19 @@ public class RendererArchitectureModelTests
     public void RenderDeviceExposesUdbDisposedState()
     {
         Assert.NotNull(typeof(RenderDevice).GetProperty(nameof(RenderDevice.Disposed)));
+    }
+
+    [Fact]
+    public void RenderDeviceBuildsUdbViewportPlans()
+    {
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetViewport), new[] { typeof(int), typeof(int) }));
+
+        ViewportPlan plan = RenderDevice.BuildViewportPlan(width: 320, height: 200);
+
+        Assert.Equal(320, plan.Width);
+        Assert.Equal(200, plan.Height);
+        Assert.Throws<ArgumentOutOfRangeException>(() => RenderDevice.BuildViewportPlan(width: 0, height: 200));
+        Assert.Throws<ArgumentOutOfRangeException>(() => RenderDevice.BuildViewportPlan(width: 320, height: 0));
     }
 
     [Fact]
