@@ -292,9 +292,29 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return _fixedThingsScale;
     }
 
+    public bool SetFixedThingsScale(bool enabled)
+    {
+        if (_fixedThingsScale == enabled) return _fixedThingsScale;
+        _fixedThingsScale = enabled;
+        _geometryDirty = true;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _fixedThingsScale;
+    }
+
     public bool ToggleAlwaysShowVertices()
     {
         _alwaysShowVertices = !_alwaysShowVertices;
+        _geometryDirty = true;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _alwaysShowVertices;
+    }
+
+    public bool SetAlwaysShowVertices(bool enabled)
+    {
+        if (_alwaysShowVertices == enabled) return _alwaysShowVertices;
+        _alwaysShowVertices = enabled;
         _geometryDirty = true;
         ActionStateChanged?.Invoke();
         RequestNextFrameRendering();

@@ -190,6 +190,16 @@ public partial class MainWindow : Window
                 _settings.ShowVisualVertices = MapView.ShowVisualVertices;
                 SaveSettings();
             }
+            if (_settings.FixedThingsScale != MapView.FixedThingsScale)
+            {
+                _settings.FixedThingsScale = MapView.FixedThingsScale;
+                SaveSettings();
+            }
+            if (_settings.AlwaysShowVertices != MapView.AlwaysShowVertices)
+            {
+                _settings.AlwaysShowVertices = MapView.AlwaysShowVertices;
+                SaveSettings();
+            }
             if (_settings.SelectAdjacentVisualVertexSlopeHandles != MapView.SelectAdjacentVisualVertexSlopeHandles)
             {
                 _settings.SelectAdjacentVisualVertexSlopeHandles = MapView.SelectAdjacentVisualVertexSlopeHandles;
@@ -236,6 +246,8 @@ public partial class MainWindow : Window
         MapView.SetDrawSky(_settings.DrawSky);
         MapView.SetShowEventLines(_settings.ShowEventLines);
         MapView.SetShowVisualVertices(_settings.ShowVisualVertices);
+        MapView.SetFixedThingsScale(_settings.FixedThingsScale);
+        MapView.SetAlwaysShowVertices(_settings.AlwaysShowVertices);
         MapView.SetSelectAdjacentVisualVertexSlopeHandles(_settings.SelectAdjacentVisualVertexSlopeHandles);
         MapView.SetViewMode2D((MapControl.ClassicViewMode)_settings.NormalizedDefaultViewMode);
         ApplySectorDefaultSettings();
@@ -1419,6 +1431,8 @@ public partial class MainWindow : Window
         _settings.DrawSky = dlg.DrawSky;
         _settings.ShowEventLines = dlg.ShowEventLines;
         _settings.ShowVisualVertices = dlg.ShowVisualVertices;
+        _settings.FixedThingsScale = dlg.FixedThingsScale;
+        _settings.AlwaysShowVertices = dlg.AlwaysShowVertices;
         _settings.SelectAdjacentVisualVertexSlopeHandles = dlg.SelectAdjacentVisualVertexSlopeHandles;
         _settings.ToastsEnabled = dlg.ToastsEnabled;
         _settings.ToastAnchor = dlg.ToastAnchor;
@@ -1456,6 +1470,8 @@ public partial class MainWindow : Window
         MapView.SetDrawSky(_settings.DrawSky);
         MapView.SetShowEventLines(_settings.ShowEventLines);
         MapView.SetShowVisualVertices(_settings.ShowVisualVertices);
+        MapView.SetFixedThingsScale(_settings.FixedThingsScale);
+        MapView.SetAlwaysShowVertices(_settings.AlwaysShowVertices);
         MapView.SetSelectAdjacentVisualVertexSlopeHandles(_settings.SelectAdjacentVisualVertexSlopeHandles);
         MapView.SetViewMode2D((MapControl.ClassicViewMode)_settings.NormalizedDefaultViewMode);
         ApplyShortcutBindings();

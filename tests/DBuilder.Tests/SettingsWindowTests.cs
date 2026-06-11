@@ -422,4 +422,23 @@ public class SettingsWindowTests
         Assert.Contains("_settings.SelectAdjacentVisualVertexSlopeHandles = dlg.SelectAdjacentVisualVertexSlopeHandles;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.SetSelectAdjacentVisualVertexSlopeHandles(_settings.SelectAdjacentVisualVertexSlopeHandles);", mainWindow, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void SettingsWindowExposesClassicThingRenderPreferences()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("FixedThingsScale", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("AlwaysShowVertices", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCheckBox(\"Fixed things scale\", s.FixedThingsScale)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Always show vertices\", s.AlwaysShowVertices)", body, StringComparison.Ordinal);
+        Assert.Contains("FixedThingsScale = _fixedThingsScale.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("AlwaysShowVertices = _alwaysShowVertices.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.FixedThingsScale = dlg.FixedThingsScale;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.AlwaysShowVertices = dlg.AlwaysShowVertices;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.SetFixedThingsScale(_settings.FixedThingsScale);", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.SetAlwaysShowVertices(_settings.AlwaysShowVertices);", mainWindow, StringComparison.Ordinal);
+    }
 }

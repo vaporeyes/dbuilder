@@ -1189,6 +1189,19 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void ClassicThingRenderTogglesPersistLikeUdb()
+    {
+        string code = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("MapView.SetFixedThingsScale(_settings.FixedThingsScale);", code, StringComparison.Ordinal);
+        Assert.Contains("MapView.SetAlwaysShowVertices(_settings.AlwaysShowVertices);", code, StringComparison.Ordinal);
+        Assert.Contains("_settings.FixedThingsScale = MapView.FixedThingsScale;", code, StringComparison.Ordinal);
+        Assert.Contains("_settings.AlwaysShowVertices = MapView.AlwaysShowVertices;", code, StringComparison.Ordinal);
+        Assert.Contains("SetChecked(ToggleFixedThingsScaleMenuItem, MapView.FixedThingsScale);", code, StringComparison.Ordinal);
+        Assert.Contains("SetChecked(ToggleAlwaysShowVerticesMenuItem, MapView.AlwaysShowVertices);", code, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ViewModeMenuAvailabilityReflectsMapState()
     {
         string code = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));

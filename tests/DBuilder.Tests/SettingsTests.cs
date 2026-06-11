@@ -168,6 +168,8 @@ public class SettingsTests
         Assert.True(settings.DrawSky);
         Assert.True(settings.ShowEventLines);
         Assert.True(settings.ShowVisualVertices);
+        Assert.False(settings.FixedThingsScale);
+        Assert.True(settings.AlwaysShowVertices);
     }
 
     [Fact]
@@ -369,6 +371,8 @@ public class SettingsTests
                 DrawSky = false,
                 ShowEventLines = false,
                 ShowVisualVertices = false,
+                FixedThingsScale = true,
+                AlwaysShowVertices = false,
                 ToastsEnabled = false,
                 ToastAnchor = ToastAnchor.TopLeft,
                 ToastDurationMilliseconds = 5000,
@@ -537,6 +541,8 @@ public class SettingsTests
             Assert.False(loaded.DrawSky);
             Assert.False(loaded.ShowEventLines);
             Assert.False(loaded.ShowVisualVertices);
+            Assert.True(loaded.FixedThingsScale);
+            Assert.False(loaded.AlwaysShowVertices);
             Assert.False(loaded.ToastsEnabled);
             Assert.Equal(ToastAnchor.TopLeft, loaded.ToastAnchor);
             Assert.Equal(ToastAnchor.TopLeft, loaded.NormalizedToastAnchor);
