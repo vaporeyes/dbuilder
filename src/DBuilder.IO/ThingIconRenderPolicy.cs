@@ -3,6 +3,16 @@
 
 namespace DBuilder.IO;
 
+public readonly record struct ThingIconScreenSizePlan(
+    double CircleSize,
+    double BoundingBoxSize,
+    double ArrowSize,
+    double SpriteScale,
+    bool ForceSpriteRendering)
+{
+    public bool HasBoundingBox => BoundingBoxSize > 0;
+}
+
 public static class ThingIconRenderPolicy
 {
     public const double MinimumInteractiveViewScale = 0.02;
@@ -94,6 +104,44 @@ public static class ThingIconRenderPolicy
         if (fixedThingsScale && radius / scale > FixedThingScreenRadius) return true;
 
         return ProjectedThingScreenRadius(mapRadius, viewScale, fixedThingsScale, fixedSize) >= MinimumSpriteScreenRadius;
+    }
+
+    public static ThingIconScreenSizePlan BuildScreenSizePlan(
+        double mapRadius,
+        double viewScale,
+        bool fixedThingsScale,
+        bool fixedSize = false)
+    {
+        if (mapRadius < 0 || double.IsNaN(mapRadius)) throw new ArgumentOutOfRangeException(nameof(mapRadius));
+        if (viewScale <= 0 || double.IsNaN(viewScale)) throw new ArgumentOutOfRangeException(nameof(viewScale));
+
+        if (fixedSize && viewScale > 1.0)
+        {
+            return new ThingIconScreenSizePlan(
+                CircleSize: mapRadius,
+                BoundingBoxSize: -1.0,
+                ArrowSize: mapRadius * ThingArrowScale,
+                SpriteScale: 1.0,
+                ForceSpriteRendering: true);
+        }
+
+        if (fixedThingsScale && mapRadius * viewScale > FixedThingScreenRadius)
+        {
+            return new ThingIconScreenSizePlan(
+                CircleSize: FixedThingScreenRadius,
+                BoundingBoxSize: mapRadius * viewScale,
+                ArrowSize: FixedThingScreenRadius * ThingArrowScale,
+                SpriteScale: FixedThingScreenRadius / mapRadius,
+                ForceSpriteRendering: true);
+        }
+
+        double scaledRadius = mapRadius * viewScale;
+        return new ThingIconScreenSizePlan(
+            CircleSize: scaledRadius,
+            BoundingBoxSize: -1.0,
+            ArrowSize: scaledRadius * ThingArrowScale,
+            SpriteScale: viewScale,
+            ForceSpriteRendering: false);
     }
 
     public static double MarkerBaseSize(bool compactMarkers)

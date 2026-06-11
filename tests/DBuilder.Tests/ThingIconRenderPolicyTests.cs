@@ -41,6 +41,10 @@ public sealed class ThingIconRenderPolicyTests
         Assert.Equal(ThingIconRenderPolicy.MinimumSpriteScreenRadius, Renderer2DConstant(source, "MINIMUM_SPRITE_RADIUS"));
         Assert.Equal(ThingIconRenderPolicy.FixedThingScreenRadius, Renderer2DConstant(source, "FIXED_THING_SIZE"));
         Assert.Equal(ThingIconRenderPolicy.ThingArrowScale, Renderer2DConstant(source, "THING_ARROW_SIZE"));
+        Assert.Contains("if(t.FixedSize && scale > 1.0f)", source, StringComparison.Ordinal);
+        Assert.Contains("else if(General.Settings.FixedThingsScale && t.Size * scale > FIXED_THING_SIZE)", source, StringComparison.Ordinal);
+        Assert.Contains("arrowsize = FIXED_THING_SIZE * THING_ARROW_SIZE;", source, StringComparison.Ordinal);
+        Assert.Contains("spritescale = FIXED_THING_SIZE / t.Size;", source, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -300,6 +304,65 @@ public sealed class ThingIconRenderPolicyTests
             mapRadius: 40,
             viewScale: ThingIconRenderPolicy.SpriteIconScaleThreshold - 0.01,
             fixedThingsScale: false));
+    }
+
+    [Fact]
+    public void ScreenSizePlanMatchesUdbFixedSizeBranch()
+    {
+        ThingIconScreenSizePlan plan = ThingIconRenderPolicy.BuildScreenSizePlan(
+            mapRadius: 20,
+            viewScale: 2,
+            fixedThingsScale: false,
+            fixedSize: true);
+
+        Assert.Equal(20, plan.CircleSize);
+        Assert.Equal(-1, plan.BoundingBoxSize);
+        Assert.False(plan.HasBoundingBox);
+        Assert.Equal(28, plan.ArrowSize);
+        Assert.Equal(1, plan.SpriteScale);
+        Assert.True(plan.ForceSpriteRendering);
+    }
+
+    [Fact]
+    public void ScreenSizePlanMatchesUdbFixedThingsScaleBranch()
+    {
+        ThingIconScreenSizePlan plan = ThingIconRenderPolicy.BuildScreenSizePlan(
+            mapRadius: 80,
+            viewScale: 1,
+            fixedThingsScale: true);
+
+        Assert.Equal(ThingIconRenderPolicy.FixedThingScreenRadius, plan.CircleSize);
+        Assert.Equal(80, plan.BoundingBoxSize);
+        Assert.True(plan.HasBoundingBox);
+        Assert.Equal(ThingIconRenderPolicy.FixedThingScreenRadius * ThingIconRenderPolicy.ThingArrowScale, plan.ArrowSize);
+        Assert.Equal(0.6, plan.SpriteScale);
+        Assert.True(plan.ForceSpriteRendering);
+    }
+
+    [Fact]
+    public void ScreenSizePlanMatchesUdbScaledThingBranch()
+    {
+        ThingIconScreenSizePlan plan = ThingIconRenderPolicy.BuildScreenSizePlan(
+            mapRadius: 20,
+            viewScale: 0.5,
+            fixedThingsScale: false);
+
+        Assert.Equal(10, plan.CircleSize);
+        Assert.Equal(-1, plan.BoundingBoxSize);
+        Assert.False(plan.HasBoundingBox);
+        Assert.Equal(14, plan.ArrowSize);
+        Assert.Equal(0.5, plan.SpriteScale);
+        Assert.False(plan.ForceSpriteRendering);
+    }
+
+    [Fact]
+    public void ScreenSizePlanRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingIconRenderPolicy.BuildScreenSizePlan(-1, 1, false));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingIconRenderPolicy.BuildScreenSizePlan(double.NaN, 1, false));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingIconRenderPolicy.BuildScreenSizePlan(1, 0, false));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingIconRenderPolicy.BuildScreenSizePlan(1, -1, false));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingIconRenderPolicy.BuildScreenSizePlan(1, double.NaN, false));
     }
 
     [Fact]
