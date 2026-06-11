@@ -110,6 +110,7 @@ public sealed record TextLabelTransformUpdatePlan(
 
 public sealed record TextLabelResourceUpdatePlan(
     bool DisposeTexture,
+    bool DisposeVertexBuffer,
     bool CreateLabelImage,
     bool CreateTexture,
     bool UploadTexture,
@@ -539,6 +540,7 @@ public static class TextLabelPlan
 
             return new TextLabelResourceUpdatePlan(
                 DisposeTexture: layout.SkipReason == TextLabelSkipReason.Offscreen && hasTexture,
+                DisposeVertexBuffer: layout.SkipReason == TextLabelSkipReason.Offscreen && hasVertexBuffer,
                 CreateLabelImage: false,
                 CreateTexture: false,
                 UploadTexture: false,
@@ -552,6 +554,7 @@ public static class TextLabelPlan
         bool createVertexBuffer = !hasVertexBuffer || vertexBufferDisposed;
         return new TextLabelResourceUpdatePlan(
             DisposeTexture: false,
+            DisposeVertexBuffer: false,
             CreateLabelImage: updateTexture,
             CreateTexture: createTexture,
             UploadTexture: updateTexture,

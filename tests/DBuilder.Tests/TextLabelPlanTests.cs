@@ -664,6 +664,28 @@ public sealed class TextLabelPlanTests
     }
 
     [Fact]
+    public void ResourceUpdatePlanDoesNotDisposeResourcesForVisibleLabel()
+    {
+        TextLabelLayout layout = TextLabelPlan.Build(
+            "Visible",
+            new TextLabelSize(24, 10),
+            new TextLabelPoint(8, 8),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+
+        TextLabelResourceUpdatePlan plan = TextLabelPlan.BuildResourceUpdatePlan(
+            TextLabelInvalidation.Initial,
+            layout,
+            hasTexture: true,
+            hasVertexBuffer: true,
+            vertexBufferDisposed: false);
+
+        Assert.False(plan.DisposeTexture);
+        Assert.False(plan.DisposeVertexBuffer);
+    }
+
+    [Fact]
     public void ResourceUpdatePlanCreatesTextureOnlyWhenMissing()
     {
         TextLabelLayout layout = TextLabelPlan.Build(
@@ -736,6 +758,7 @@ public sealed class TextLabelPlanTests
             vertexBufferDisposed: false);
 
         Assert.False(plan.DisposeTexture);
+        Assert.False(plan.DisposeVertexBuffer);
         Assert.False(plan.CreateLabelImage);
         Assert.False(plan.CreateTexture);
         Assert.False(plan.UploadTexture);
@@ -802,7 +825,7 @@ public sealed class TextLabelPlanTests
     }
 
     [Fact]
-    public void ResourceUpdatePlanDisposesOffscreenTextureAndKeepsInvalidation()
+    public void ResourceUpdatePlanDisposesOffscreenResourcesAndKeepsInvalidation()
     {
         TextLabelLayout layout = TextLabelPlan.Build(
             "Skipped",
@@ -822,6 +845,7 @@ public sealed class TextLabelPlanTests
         Assert.True(layout.SkipRendering);
         Assert.Equal(TextLabelSkipReason.Offscreen, layout.SkipReason);
         Assert.True(plan.DisposeTexture);
+        Assert.True(plan.DisposeVertexBuffer);
         Assert.False(plan.CreateLabelImage);
         Assert.False(plan.CreateTexture);
         Assert.False(plan.UploadTexture);
@@ -851,6 +875,7 @@ public sealed class TextLabelPlanTests
         Assert.True(layout.SkipRendering);
         Assert.Equal(TextLabelSkipReason.Empty, layout.SkipReason);
         Assert.False(plan.DisposeTexture);
+        Assert.False(plan.DisposeVertexBuffer);
         Assert.False(plan.CreateLabelImage);
         Assert.False(plan.CreateTexture);
         Assert.False(plan.UploadTexture);

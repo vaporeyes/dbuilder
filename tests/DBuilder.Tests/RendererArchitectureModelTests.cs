@@ -128,6 +128,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Text label unload-resource disposal planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label skipped-resource invalidation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label offscreen texture disposal planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Text label offscreen vertex-buffer disposal planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label texture and vertex-buffer update planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label texture upload reuse planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label missing-texture recovery planning", replacement.CoveredResponsibilities);
