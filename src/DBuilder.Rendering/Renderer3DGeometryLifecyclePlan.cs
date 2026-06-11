@@ -315,6 +315,19 @@ public sealed record Renderer3DTranslucentThingOrderPlan(
     TextureAddress RestoredTextureAddress,
     Cull RestoredCullMode);
 
+public enum Renderer3DThingPositionMatrixStrategy
+{
+    Billboard,
+    XYBillboard,
+    DirectPosition,
+}
+
+public sealed record Renderer3DThingPositionMatrixPlan(
+    ThingRenderMode RequestedRenderMode,
+    ThingRenderMode EffectiveRenderMode,
+    Renderer3DThingPositionMatrixStrategy Strategy,
+    bool DemotedModelRenderMode);
+
 public static class Renderer3DGeometryLifecyclePlan
 {
     public const float EventLineArrowheadLength = 20.0f;
@@ -856,6 +869,39 @@ public static class Renderer3DGeometryLifecyclePlan
             draws,
             TextureAddress.Wrap,
             Cull.Clockwise);
+    }
+
+    public static Renderer3DThingPositionMatrixPlan BuildThingPositionMatrixPlan(
+        ThingRenderMode renderMode,
+        ModelRenderMode modelRenderMode,
+        bool selected,
+        bool xyBillboard)
+    {
+        ThingRenderMode effectiveRenderMode = renderMode;
+        bool demotedModelRenderMode = false;
+        if (renderMode is ThingRenderMode.MODEL or ThingRenderMode.VOXEL &&
+            (modelRenderMode == ModelRenderMode.NONE ||
+             modelRenderMode == ModelRenderMode.SELECTION && !selected))
+        {
+            effectiveRenderMode = ThingRenderMode.NORMAL;
+            demotedModelRenderMode = true;
+        }
+
+        Renderer3DThingPositionMatrixStrategy strategy = effectiveRenderMode switch
+        {
+            ThingRenderMode.NORMAL => xyBillboard
+                ? Renderer3DThingPositionMatrixStrategy.XYBillboard
+                : Renderer3DThingPositionMatrixStrategy.Billboard,
+            ThingRenderMode.FLATSPRITE or ThingRenderMode.WALLSPRITE or ThingRenderMode.MODEL or ThingRenderMode.VOXEL
+                => Renderer3DThingPositionMatrixStrategy.DirectPosition,
+            _ => throw new ArgumentOutOfRangeException(nameof(renderMode)),
+        };
+
+        return new Renderer3DThingPositionMatrixPlan(
+            renderMode,
+            effectiveRenderMode,
+            strategy,
+            demotedModelRenderMode);
     }
 
     public static Renderer3DFinishGeometryCleanupPlan BuildFinishGeometryCleanupPlan()

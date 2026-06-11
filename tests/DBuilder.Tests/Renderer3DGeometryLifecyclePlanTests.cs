@@ -1151,6 +1151,84 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
             new Vector3D()));
     }
 
+    [Theory]
+    [InlineData(false, Renderer3DThingPositionMatrixStrategy.Billboard)]
+    [InlineData(true, Renderer3DThingPositionMatrixStrategy.XYBillboard)]
+    public void BuildThingPositionMatrixPlanUsesBillboardStrategyForNormalThings(
+        bool xyBillboard,
+        Renderer3DThingPositionMatrixStrategy strategy)
+    {
+        Renderer3DThingPositionMatrixPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingPositionMatrixPlan(
+            ThingRenderMode.NORMAL,
+            ModelRenderMode.ALL,
+            selected: false,
+            xyBillboard);
+
+        Assert.Equal(ThingRenderMode.NORMAL, plan.RequestedRenderMode);
+        Assert.Equal(ThingRenderMode.NORMAL, plan.EffectiveRenderMode);
+        Assert.Equal(strategy, plan.Strategy);
+        Assert.False(plan.DemotedModelRenderMode);
+    }
+
+    [Theory]
+    [InlineData(ThingRenderMode.FLATSPRITE)]
+    [InlineData(ThingRenderMode.WALLSPRITE)]
+    [InlineData(ThingRenderMode.MODEL)]
+    [InlineData(ThingRenderMode.VOXEL)]
+    public void BuildThingPositionMatrixPlanUsesDirectPositionForNonNormalEffectiveModes(ThingRenderMode renderMode)
+    {
+        Renderer3DThingPositionMatrixPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingPositionMatrixPlan(
+            renderMode,
+            ModelRenderMode.ALL,
+            selected: false,
+            xyBillboard: true);
+
+        Assert.Equal(renderMode, plan.EffectiveRenderMode);
+        Assert.Equal(Renderer3DThingPositionMatrixStrategy.DirectPosition, plan.Strategy);
+        Assert.False(plan.DemotedModelRenderMode);
+    }
+
+    [Theory]
+    [InlineData(ThingRenderMode.MODEL, ModelRenderMode.NONE, false)]
+    [InlineData(ThingRenderMode.MODEL, ModelRenderMode.SELECTION, false)]
+    [InlineData(ThingRenderMode.VOXEL, ModelRenderMode.NONE, true)]
+    [InlineData(ThingRenderMode.VOXEL, ModelRenderMode.SELECTION, false)]
+    public void BuildThingPositionMatrixPlanDemotesModelAndVoxelModesWhenUdbModelRenderingIsDisabled(
+        ThingRenderMode renderMode,
+        ModelRenderMode modelRenderMode,
+        bool xyBillboard)
+    {
+        Renderer3DThingPositionMatrixPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingPositionMatrixPlan(
+            renderMode,
+            modelRenderMode,
+            selected: false,
+            xyBillboard);
+
+        Assert.Equal(renderMode, plan.RequestedRenderMode);
+        Assert.Equal(ThingRenderMode.NORMAL, plan.EffectiveRenderMode);
+        Assert.Equal(
+            xyBillboard ? Renderer3DThingPositionMatrixStrategy.XYBillboard : Renderer3DThingPositionMatrixStrategy.Billboard,
+            plan.Strategy);
+        Assert.True(plan.DemotedModelRenderMode);
+    }
+
+    [Theory]
+    [InlineData(ModelRenderMode.SELECTION)]
+    [InlineData(ModelRenderMode.ACTIVE_THINGS_FILTER)]
+    [InlineData(ModelRenderMode.ALL)]
+    public void BuildThingPositionMatrixPlanKeepsSelectedOrEnabledModelModes(ModelRenderMode modelRenderMode)
+    {
+        Renderer3DThingPositionMatrixPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingPositionMatrixPlan(
+            ThingRenderMode.MODEL,
+            modelRenderMode,
+            selected: true,
+            xyBillboard: true);
+
+        Assert.Equal(ThingRenderMode.MODEL, plan.EffectiveRenderMode);
+        Assert.Equal(Renderer3DThingPositionMatrixStrategy.DirectPosition, plan.Strategy);
+        Assert.False(plan.DemotedModelRenderMode);
+    }
+
     [Fact]
     public void Renderer3DStartGeometryExpressionsMatchUdbWhenCloneIsAvailable()
     {
@@ -1279,6 +1357,18 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("if(t.RenderPass != currentpass)", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetSamplerState(TextureAddress.Wrap);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetCullMode(Cull.Clockwise); //mxd", source, StringComparison.Ordinal);
+        Assert.Contains("private Matrix CreateThingPositionMatrix(VisualThing t)", source, StringComparison.Ordinal);
+        Assert.Contains("ThingRenderMode rendermode = t.Thing.RenderMode;", source, StringComparison.Ordinal);
+        Assert.Contains("if((t.Thing.RenderMode == ThingRenderMode.MODEL || t.Thing.RenderMode == ThingRenderMode.VOXEL) &&", source, StringComparison.Ordinal);
+        Assert.Contains("General.Settings.GZDrawModelsMode == ModelRenderMode.NONE ||", source, StringComparison.Ordinal);
+        Assert.Contains("(General.Settings.GZDrawModelsMode == ModelRenderMode.SELECTION && !t.Selected)))", source, StringComparison.Ordinal);
+        Assert.Contains("rendermode = ThingRenderMode.NORMAL;", source, StringComparison.Ordinal);
+        Assert.Contains("case ThingRenderMode.NORMAL:", source, StringComparison.Ordinal);
+        Assert.Contains("if(t.Info.XYBillboard) // Apply billboarding?", source, StringComparison.Ordinal);
+        Assert.Contains("case ThingRenderMode.FLATSPRITE:", source, StringComparison.Ordinal);
+        Assert.Contains("case ThingRenderMode.WALLSPRITE:", source, StringComparison.Ordinal);
+        Assert.Contains("case ThingRenderMode.MODEL:", source, StringComparison.Ordinal);
+        Assert.Contains("case ThingRenderMode.VOXEL:", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);
