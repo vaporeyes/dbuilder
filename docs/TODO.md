@@ -1563,7 +1563,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style vertex-buffer disposed-state reporting and allocation failure guard.
   - [x] Add UDB-style vertex-buffer finalizer lifecycle.
   - [x] Add UDB-style VertexFormat enum surface.
-- [ ] Port index buffer behavior.
+- [x] Port index buffer behavior.
   - [x] Add UDB-style length index-buffer allocation overload.
   - [x] Add UDB-style index-buffer subdata upload overload.
   - [x] Add UDB-style index-buffer disposed-state reporting and allocation failure guard.

@@ -82,6 +82,7 @@ public static class RendererArchitectureModel
             "Render-device array upload input validation planning",
             "Vertex and index buffer disposed-state reporting",
             "Length-based index-buffer allocation",
+            "Index-buffer finalizer lifecycle",
             "Index-buffer binding and primitive draw dispatch",
             "Texture disposed-state reporting",
             "Base texture lifecycle and render-device binding surface",

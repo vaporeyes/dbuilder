@@ -76,6 +76,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Vertex and index buffer constructor input validation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Vertex and index buffer disposed-state reporting", replacement.CoveredResponsibilities);
         Assert.Contains("Length-based index-buffer allocation", replacement.CoveredResponsibilities);
+        Assert.Contains("Index-buffer finalizer lifecycle", replacement.CoveredResponsibilities);
         Assert.Contains("Texture disposed-state reporting", replacement.CoveredResponsibilities);
         Assert.Contains("Base texture lifecycle and render-device binding surface", replacement.CoveredResponsibilities);
         Assert.Contains("Texture constructor input validation planning", replacement.CoveredResponsibilities);
