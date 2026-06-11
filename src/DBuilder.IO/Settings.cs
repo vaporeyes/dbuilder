@@ -56,6 +56,10 @@ public sealed class Settings
     public bool UseHighlight { get; set; } = true;
     public bool AlphaBasedTextureHighlighting { get; set; } = true;
     public bool SelectAdjacentVisualVertexSlopeHandles { get; set; }
+    public bool ToastsEnabled { get; set; } = true;
+    public ToastAnchor ToastAnchor { get; set; } = ToastPreferences.DefaultAnchor;
+    public int? ToastDurationMilliseconds { get; set; }
+    public Dictionary<string, bool> ToastActionSettings { get; set; } = new(StringComparer.Ordinal);
     public int? StatusHistoryLimit { get; set; }
     public MergeGeometryMode MergeGeometryMode { get; set; } = MergeGeometryMode.Replace;
     public PasteOptions PasteOptions { get; set; } = new();
@@ -100,6 +104,12 @@ public sealed class Settings
 
     public int NormalizedTestSkill =>
         Math.Clamp(TestSkill ?? DefaultTestSkill, MinTestSkill, MaxTestSkill);
+
+    public ToastAnchor NormalizedToastAnchor =>
+        ToastPreferences.NormalizeAnchor(ToastAnchor);
+
+    public int NormalizedToastDurationMilliseconds =>
+        ToastPreferences.NormalizeDurationMilliseconds(ToastDurationMilliseconds);
 
     public static int? AcceptMaxRecentFilesText(string? text)
     {
@@ -356,6 +366,7 @@ public sealed class Settings
             settings.RecentMaps ??= new();
             settings.ShortcutOverrides ??= new();
             settings.MapErrorCheckSettings ??= new(StringComparer.Ordinal);
+            settings.ToastActionSettings ??= new(StringComparer.Ordinal);
             settings.ConfigurationResources ??= new(StringComparer.OrdinalIgnoreCase);
             settings.UdbScriptSettings ??= new(StringComparer.Ordinal);
             settings.UsdfDialogEditorSettings ??= new(StringComparer.Ordinal);

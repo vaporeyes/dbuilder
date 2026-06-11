@@ -149,6 +149,17 @@ public class SettingsTests
     }
 
     [Fact]
+    public void ToastPreferencesDefaultLikeUdb()
+    {
+        var settings = new Settings();
+
+        Assert.True(settings.ToastsEnabled);
+        Assert.Equal(ToastAnchor.BottomRight, settings.NormalizedToastAnchor);
+        Assert.Equal(3000, settings.NormalizedToastDurationMilliseconds);
+        Assert.Empty(settings.ToastActionSettings);
+    }
+
+    [Fact]
     public void EnabledMapErrorCheckersUseUdbDefaults()
     {
         var settings = new Settings();
@@ -324,6 +335,14 @@ public class SettingsTests
                 DrawSky = false,
                 ShowEventLines = false,
                 ShowVisualVertices = false,
+                ToastsEnabled = false,
+                ToastAnchor = ToastAnchor.TopLeft,
+                ToastDurationMilliseconds = 5000,
+                ToastActionSettings = new Dictionary<string, bool>(StringComparer.Ordinal)
+                {
+                    ["togglehighlight"] = false,
+                    ["autosave"] = true,
+                },
                 StatusHistoryLimit = 250,
                 MergeGeometryMode = MergeGeometryMode.Merge,
                 PasteOptions = new PasteOptions
@@ -473,6 +492,13 @@ public class SettingsTests
             Assert.False(loaded.DrawSky);
             Assert.False(loaded.ShowEventLines);
             Assert.False(loaded.ShowVisualVertices);
+            Assert.False(loaded.ToastsEnabled);
+            Assert.Equal(ToastAnchor.TopLeft, loaded.ToastAnchor);
+            Assert.Equal(ToastAnchor.TopLeft, loaded.NormalizedToastAnchor);
+            Assert.Equal(5000, loaded.ToastDurationMilliseconds);
+            Assert.Equal(5000, loaded.NormalizedToastDurationMilliseconds);
+            Assert.False(loaded.ToastActionSettings["togglehighlight"]);
+            Assert.True(loaded.ToastActionSettings["autosave"]);
             Assert.Equal(250, loaded.StatusHistoryLimit);
             Assert.Equal(250, loaded.NormalizedStatusHistoryLimit);
             Assert.Equal(MergeGeometryMode.Merge, loaded.MergeGeometryMode);

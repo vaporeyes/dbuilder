@@ -252,6 +252,31 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesToastPreferences()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("ToastsEnabled", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("ToastAnchor", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("ToastDurationMilliseconds", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("ToastActionSettings", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCheckBox(\"Show toasts\", s.ToastsEnabled)", body, StringComparison.Ordinal);
+        Assert.Contains("AddField(\"Toast duration\", ToastPreferences.DurationSecondsText(s.NormalizedToastDurationMilliseconds))", body, StringComparison.Ordinal);
+        Assert.Contains("AddCombo(\"Toast position\", ToastAnchorItems(), (int)s.NormalizedToastAnchor)", body, StringComparison.Ordinal);
+        Assert.Contains("AddField(\"Disabled toasts\", ToastPreferences.DisabledActionsText(s.ToastActionSettings))", body, StringComparison.Ordinal);
+        Assert.Contains("ToastsEnabled = _toastsEnabled.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("ToastAnchor = (ToastAnchor)ComboNumber(_toastAnchor, (int)ToastPreferences.DefaultAnchor);", body, StringComparison.Ordinal);
+        Assert.Contains("ToastDurationMilliseconds = ToastPreferences.AcceptDurationSecondsText(_toastDuration.Text);", body, StringComparison.Ordinal);
+        Assert.Contains("ToastActionSettings = ToastPreferences.ParseDisabledActionsText(_toastDisabledActions.Text);", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.ToastsEnabled = dlg.ToastsEnabled;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.ToastAnchor = dlg.ToastAnchor;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.ToastDurationMilliseconds = dlg.ToastDurationMilliseconds;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.ToastActionSettings = dlg.ToastActionSettings;", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesClassicRenderingPreference()
     {
         Type type = typeof(SettingsWindow);

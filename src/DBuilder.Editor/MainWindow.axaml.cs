@@ -1410,6 +1410,10 @@ public partial class MainWindow : Window
         _settings.ShowEventLines = dlg.ShowEventLines;
         _settings.ShowVisualVertices = dlg.ShowVisualVertices;
         _settings.SelectAdjacentVisualVertexSlopeHandles = dlg.SelectAdjacentVisualVertexSlopeHandles;
+        _settings.ToastsEnabled = dlg.ToastsEnabled;
+        _settings.ToastAnchor = dlg.ToastAnchor;
+        _settings.ToastDurationMilliseconds = dlg.ToastDurationMilliseconds;
+        _settings.ToastActionSettings = dlg.ToastActionSettings;
         _settings.DefaultViewMode = dlg.DefaultViewMode;
         _settings.ModelRenderMode = dlg.ModelRenderMode;
         _settings.LightRenderMode = dlg.LightRenderMode;

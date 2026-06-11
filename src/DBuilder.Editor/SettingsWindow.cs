@@ -12,9 +12,9 @@ public sealed class SettingsWindow : PropertyDialog
 {
     private const string ShortcutOverrideWatermark = "command.id=Shortcut; use None or Unassigned to clear; separate entries with semicolons, commas, or new lines";
 
-    private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _testSkill, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _statusHistoryLimit, _shortcutOverrides;
-    private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _mergeGeometryMode, _pasteTagMode;
-    private readonly CheckBox _testMonsters, _autoClearSidedefTextures, _autoMerge, _splitJoinedSectors, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _pasteRemoveActions;
+    private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _testSkill, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _statusHistoryLimit, _toastDuration, _toastDisabledActions, _shortcutOverrides;
+    private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _mergeGeometryMode, _toastAnchor, _pasteTagMode;
+    private readonly CheckBox _testMonsters, _autoClearSidedefTextures, _autoMerge, _splitJoinedSectors, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _toastsEnabled, _pasteRemoveActions;
     private readonly bool _drawLineShowGuidelines;
     private readonly int _drawRectangleSubdivisions, _drawRectangleBevelWidth;
     private readonly bool _drawRectangleShowGuidelines;
@@ -40,6 +40,10 @@ public sealed class SettingsWindow : PropertyDialog
     public bool ShowEventLines;
     public bool ShowVisualVertices;
     public bool SelectAdjacentVisualVertexSlopeHandles;
+    public bool ToastsEnabled;
+    public ToastAnchor ToastAnchor;
+    public int ToastDurationMilliseconds;
+    public Dictionary<string, bool> ToastActionSettings = new(StringComparer.Ordinal);
     public int DefaultViewMode;
     public int ModelRenderMode;
     public int LightRenderMode;
@@ -72,6 +76,14 @@ public sealed class SettingsWindow : PropertyDialog
             BrowseExternalEditor);
         _maxRecentFiles = AddField("Max recent files", Settings.MaxRecentFilesText(s));
         _statusHistoryLimit = AddField("Status history", Settings.StatusHistoryLimitText(s));
+        _toastsEnabled = AddCheckBox("Show toasts", s.ToastsEnabled);
+        _toastDuration = AddField("Toast duration", ToastPreferences.DurationSecondsText(s.NormalizedToastDurationMilliseconds));
+        _toastAnchor = AddCombo("Toast position", ToastAnchorItems(), (int)s.NormalizedToastAnchor);
+        _toastDisabledActions = AddField("Disabled toasts", ToastPreferences.DisabledActionsText(s.ToastActionSettings));
+        _toastDisabledActions.AcceptsReturn = true;
+        _toastDisabledActions.MinHeight = 72;
+        _toastDisabledActions.Watermark = "toast action ids, separated by semicolons, commas, or new lines";
+        _toastDisabledActions.TextWrapping = Avalonia.Media.TextWrapping.Wrap;
         _shortcutOverrides = AddField("Shortcut overrides", EditorCommandCatalog.OverrideText(s.ShortcutOverrides));
         _shortcutOverrides.AcceptsReturn = true;
         _shortcutOverrides.MinHeight = 72;
@@ -148,6 +160,10 @@ public sealed class SettingsWindow : PropertyDialog
         ShowEventLines = _showEventLines.IsChecked == true;
         ShowVisualVertices = _showVisualVertices.IsChecked == true;
         SelectAdjacentVisualVertexSlopeHandles = _selectAdjacentVisualVertexSlopeHandles.IsChecked == true;
+        ToastsEnabled = _toastsEnabled.IsChecked == true;
+        ToastAnchor = (ToastAnchor)ComboNumber(_toastAnchor, (int)ToastPreferences.DefaultAnchor);
+        ToastDurationMilliseconds = ToastPreferences.AcceptDurationSecondsText(_toastDuration.Text);
+        ToastActionSettings = ToastPreferences.ParseDisabledActionsText(_toastDisabledActions.Text);
         DefaultViewMode = ComboNumber(_defaultViewMode, 0);
         ModelRenderMode = ComboNumber(_modelRenderMode, (int)ThingModelRenderMode.All);
         LightRenderMode = ComboNumber(_lightRenderMode, (int)ThingLightRenderMode.All);
@@ -239,6 +255,14 @@ public sealed class SettingsWindow : PropertyDialog
         yield return new CatalogItem((int)MergeGeometryMode.Classic, "Classic");
         yield return new CatalogItem((int)MergeGeometryMode.Merge, "Merge");
         yield return new CatalogItem((int)MergeGeometryMode.Replace, "Replace");
+    }
+
+    private static IEnumerable<CatalogItem> ToastAnchorItems()
+    {
+        yield return new CatalogItem((int)ToastAnchor.TopLeft, "Top left");
+        yield return new CatalogItem((int)ToastAnchor.TopRight, "Top right");
+        yield return new CatalogItem((int)ToastAnchor.BottomRight, "Bottom right");
+        yield return new CatalogItem((int)ToastAnchor.BottomLeft, "Bottom left");
     }
 
     private static IEnumerable<CatalogItem> PasteTagModeItems()
