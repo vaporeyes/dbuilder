@@ -42,6 +42,30 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
     }
 
     [Fact]
+    public void BuildFinishGeometryCleanupPlanMatchesUdbReferenceCleanup()
+    {
+        Renderer3DFinishGeometryCleanupPlan plan = Renderer3DGeometryLifecyclePlan.BuildFinishGeometryCleanupPlan();
+
+        Assert.True(plan.UnbindTexture);
+        Assert.Equal(
+            [
+                Renderer3DGeometryBucketKind.SolidGeometry,
+                Renderer3DGeometryBucketKind.MaskedGeometry,
+                Renderer3DGeometryBucketKind.TranslucentGeometry,
+                Renderer3DGeometryBucketKind.SkyGeometry,
+                Renderer3DGeometryBucketKind.SolidThings,
+                Renderer3DGeometryBucketKind.MaskedThings,
+                Renderer3DGeometryBucketKind.TranslucentThings,
+                Renderer3DGeometryBucketKind.AllThings,
+                Renderer3DGeometryBucketKind.LightThings,
+                Renderer3DGeometryBucketKind.MaskedModelThings,
+                Renderer3DGeometryBucketKind.TranslucentModelThings,
+                Renderer3DGeometryBucketKind.VisualVertices,
+            ],
+            plan.ClearedBuckets);
+    }
+
+    [Fact]
     public void Renderer3DStartGeometryExpressionsMatchUdbWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -61,5 +85,18 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("translucentmodelthings = new List<VisualThing>();", source, StringComparison.Ordinal);
         Assert.Contains("lightthings = new List<VisualThing>();", source, StringComparison.Ordinal);
         Assert.Contains("allthings = new List<VisualThing>();", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
+        Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
+        Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);
+        Assert.Contains("translucentgeo = null;", source, StringComparison.Ordinal);
+        Assert.Contains("skygeo = null;", source, StringComparison.Ordinal);
+        Assert.Contains("solidthings = null;", source, StringComparison.Ordinal);
+        Assert.Contains("maskedthings = null;", source, StringComparison.Ordinal);
+        Assert.Contains("translucentthings = null;", source, StringComparison.Ordinal);
+        Assert.Contains("allthings = null;", source, StringComparison.Ordinal);
+        Assert.Contains("lightthings = null;", source, StringComparison.Ordinal);
+        Assert.Contains("maskedmodelthings = null;", source, StringComparison.Ordinal);
+        Assert.Contains("translucentmodelthings = null;", source, StringComparison.Ordinal);
+        Assert.Contains("visualvertices = null;", source, StringComparison.Ordinal);
     }
 }

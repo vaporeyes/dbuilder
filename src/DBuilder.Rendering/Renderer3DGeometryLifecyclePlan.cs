@@ -16,6 +16,7 @@ public enum Renderer3DGeometryBucketKind
     TranslucentModelThings,
     LightThings,
     AllThings,
+    VisualVertices,
 }
 
 public enum Renderer3DGeometryCollectionKind
@@ -35,6 +36,10 @@ public sealed record Renderer3DStartGeometryPlan(IReadOnlyList<Renderer3DGeometr
     public bool InitializesAllBuckets => Buckets.All(bucket => bucket.InitializedEmpty);
 }
 
+public sealed record Renderer3DFinishGeometryCleanupPlan(
+    bool UnbindTexture,
+    IReadOnlyList<Renderer3DGeometryBucketKind> ClearedBuckets);
+
 public static class Renderer3DGeometryLifecyclePlan
 {
     public static Renderer3DStartGeometryPlan BuildStartGeometryPlan()
@@ -51,5 +56,23 @@ public static class Renderer3DGeometryLifecyclePlan
                 new(Renderer3DGeometryBucketKind.TranslucentModelThings, Renderer3DGeometryCollectionKind.List, InitializedEmpty: true),
                 new(Renderer3DGeometryBucketKind.LightThings, Renderer3DGeometryCollectionKind.List, InitializedEmpty: true),
                 new(Renderer3DGeometryBucketKind.AllThings, Renderer3DGeometryCollectionKind.List, InitializedEmpty: true),
+            ]);
+
+    public static Renderer3DFinishGeometryCleanupPlan BuildFinishGeometryCleanupPlan()
+        => new(
+            UnbindTexture: true,
+            [
+                Renderer3DGeometryBucketKind.SolidGeometry,
+                Renderer3DGeometryBucketKind.MaskedGeometry,
+                Renderer3DGeometryBucketKind.TranslucentGeometry,
+                Renderer3DGeometryBucketKind.SkyGeometry,
+                Renderer3DGeometryBucketKind.SolidThings,
+                Renderer3DGeometryBucketKind.MaskedThings,
+                Renderer3DGeometryBucketKind.TranslucentThings,
+                Renderer3DGeometryBucketKind.AllThings,
+                Renderer3DGeometryBucketKind.LightThings,
+                Renderer3DGeometryBucketKind.MaskedModelThings,
+                Renderer3DGeometryBucketKind.TranslucentModelThings,
+                Renderer3DGeometryBucketKind.VisualVertices,
             ]);
 }
