@@ -801,6 +801,128 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
     }
 
     [Fact]
+    public void BuildGeometryShaderPassPlanKeepsBaseShaderWithoutHighlightOrFog()
+    {
+        Renderer3DShaderPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildGeometryShaderPassPlan(
+            ShaderName.world3d_main,
+            highlighted: false,
+            showHighlight: true,
+            selected: false,
+            showSelection: true,
+            drawFog: false,
+            fullBrightness: false,
+            classicRendering: false,
+            sectorHasFog: false);
+
+        Assert.Equal(ShaderName.world3d_main, plan.BaseShader);
+        Assert.Equal(ShaderName.world3d_main_highlight, plan.HighlightShader);
+        Assert.Equal(ShaderName.world3d_main, plan.WantedShader);
+        Assert.False(plan.UsesHighlightShader);
+        Assert.False(plan.UsesFogShader);
+        Assert.False(plan.AppliesFogUniforms);
+    }
+
+    [Theory]
+    [InlineData(true, true, false, true)]
+    [InlineData(false, true, true, true)]
+    public void BuildGeometryShaderPassPlanUsesHighlightShaderForVisibleHighlightedOrSelectedGeometry(
+        bool highlighted,
+        bool showHighlight,
+        bool selected,
+        bool showSelection)
+    {
+        Renderer3DShaderPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildGeometryShaderPassPlan(
+            ShaderName.world3d_fullbright,
+            highlighted,
+            showHighlight,
+            selected,
+            showSelection,
+            drawFog: false,
+            fullBrightness: true,
+            classicRendering: false,
+            sectorHasFog: false);
+
+        Assert.Equal(ShaderName.world3d_fullbright_highlight, plan.WantedShader);
+        Assert.True(plan.UsesHighlightShader);
+    }
+
+    [Fact]
+    public void BuildGeometryShaderPassPlanSuppressesHiddenHighlightAndSelection()
+    {
+        Renderer3DShaderPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildGeometryShaderPassPlan(
+            ShaderName.world3d_main,
+            highlighted: true,
+            showHighlight: false,
+            selected: true,
+            showSelection: false,
+            drawFog: false,
+            fullBrightness: false,
+            classicRendering: false,
+            sectorHasFog: false);
+
+        Assert.Equal(ShaderName.world3d_main, plan.WantedShader);
+        Assert.False(plan.UsesHighlightShader);
+    }
+
+    [Fact]
+    public void BuildGeometryShaderPassPlanAddsUdbFogOffsetWhenFogRenderingIsActive()
+    {
+        Renderer3DShaderPassPlan basePlan = Renderer3DGeometryLifecyclePlan.BuildGeometryShaderPassPlan(
+            ShaderName.world3d_main,
+            highlighted: false,
+            showHighlight: true,
+            selected: false,
+            showSelection: true,
+            drawFog: true,
+            fullBrightness: false,
+            classicRendering: false,
+            sectorHasFog: true);
+        Renderer3DShaderPassPlan highlightedPlan = Renderer3DGeometryLifecyclePlan.BuildGeometryShaderPassPlan(
+            ShaderName.world3d_main,
+            highlighted: true,
+            showHighlight: true,
+            selected: false,
+            showSelection: true,
+            drawFog: true,
+            fullBrightness: false,
+            classicRendering: false,
+            sectorHasFog: true);
+
+        Assert.Equal(ShaderName.world3d_main_fog, basePlan.WantedShader);
+        Assert.True(basePlan.UsesFogShader);
+        Assert.True(basePlan.AppliesFogUniforms);
+        Assert.Equal(ShaderName.world3d_main_highlight_fog, highlightedPlan.WantedShader);
+        Assert.True(highlightedPlan.UsesHighlightShader);
+        Assert.True(highlightedPlan.UsesFogShader);
+        Assert.True(highlightedPlan.AppliesFogUniforms);
+    }
+
+    [Theory]
+    [InlineData(true, false, true)]
+    [InlineData(false, true, true)]
+    [InlineData(false, false, false)]
+    public void BuildGeometryShaderPassPlanSuppressesFogForFullBrightClassicOrFoglessSectors(
+        bool fullBrightness,
+        bool classicRendering,
+        bool sectorHasFog)
+    {
+        Renderer3DShaderPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildGeometryShaderPassPlan(
+            ShaderName.world3d_main,
+            highlighted: false,
+            showHighlight: true,
+            selected: false,
+            showSelection: true,
+            drawFog: true,
+            fullBrightness,
+            classicRendering,
+            sectorHasFog);
+
+        Assert.Equal(ShaderName.world3d_main, plan.WantedShader);
+        Assert.False(plan.UsesFogShader);
+        Assert.False(plan.AppliesFogUniforms);
+    }
+
+    [Fact]
     public void Renderer3DStartGeometryExpressionsMatchUdbWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -901,6 +1023,11 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("world = Matrix.Identity;", source, StringComparison.Ordinal);
         Assert.Contains("graphics.Draw(PrimitiveType.LineList, 0, pointscount / 2);", source, StringComparison.Ordinal);
         Assert.Contains("vb.Dispose();", source, StringComparison.Ordinal);
+        Assert.Contains("ShaderName highshaderpass = (ShaderName)(shaderpass + 2);", source, StringComparison.Ordinal);
+        Assert.Contains("ShaderName wantedshaderpass = (((g == highlighted) && showhighlight) || (g.Selected && showselection)) ? highshaderpass : shaderpass;", source, StringComparison.Ordinal);
+        Assert.Contains("if(General.Settings.GZDrawFog && !fullbrightness && !General.Settings.ClassicRendering && sector.Sector.FogMode != SectorFogMode.NONE)", source, StringComparison.Ordinal);
+        Assert.Contains("wantedshaderpass += 8;", source, StringComparison.Ordinal);
+        Assert.Contains("if(wantedshaderpass > ShaderName.world3d_p7)", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);

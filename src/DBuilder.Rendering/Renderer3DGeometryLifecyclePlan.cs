@@ -249,6 +249,14 @@ public sealed record Renderer3DEventLineRenderPlan(
     int PrimitiveCount,
     bool DisposeVertexBuffer);
 
+public sealed record Renderer3DShaderPassPlan(
+    ShaderName BaseShader,
+    ShaderName HighlightShader,
+    ShaderName WantedShader,
+    bool UsesHighlightShader,
+    bool UsesFogShader,
+    bool AppliesFogUniforms);
+
 public static class Renderer3DGeometryLifecyclePlan
 {
     public const float EventLineArrowheadLength = 20.0f;
@@ -636,6 +644,35 @@ public static class Renderer3DGeometryLifecyclePlan
             StartIndex: 0,
             PrimitiveCount: vertices.Count / 2,
             DisposeVertexBuffer: true);
+    }
+
+    public static Renderer3DShaderPassPlan BuildGeometryShaderPassPlan(
+        ShaderName baseShader,
+        bool highlighted,
+        bool showHighlight,
+        bool selected,
+        bool showSelection,
+        bool drawFog,
+        bool fullBrightness,
+        bool classicRendering,
+        bool sectorHasFog)
+    {
+        ShaderName highlightShader = (ShaderName)(baseShader + 2);
+        bool useHighlightShader = highlighted && showHighlight || selected && showSelection;
+        ShaderName wantedShader = useHighlightShader ? highlightShader : baseShader;
+        bool useFogShader = drawFog && !fullBrightness && !classicRendering && sectorHasFog;
+        if (useFogShader)
+        {
+            wantedShader += 8;
+        }
+
+        return new Renderer3DShaderPassPlan(
+            baseShader,
+            highlightShader,
+            wantedShader,
+            useHighlightShader,
+            useFogShader,
+            AppliesFogUniforms: wantedShader > ShaderName.world3d_p7);
     }
 
     public static Renderer3DFinishGeometryCleanupPlan BuildFinishGeometryCleanupPlan()
