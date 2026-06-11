@@ -121,6 +121,15 @@ public sealed class RenderingMetadataTests
     }
 
     [Fact]
+    public void VertexFormatValuesMatchUdbBufferSurface()
+    {
+        Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(VertexFormat)));
+        Assert.Equal(0, (int)VertexFormat.Flat);
+        Assert.Equal(1, (int)VertexFormat.World);
+        Assert.Equal(new[] { "Flat", "World" }, Enum.GetNames<VertexFormat>());
+    }
+
+    [Fact]
     public void BufferSubdataPlansConvertElementOffsetsToByteOffsets()
     {
         RenderBufferOperationPlan flat = RenderDevice.BuildSetBufferSubdataPlan(4, new FlatVertex[3]);

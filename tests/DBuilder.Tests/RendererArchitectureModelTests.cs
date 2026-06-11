@@ -64,6 +64,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Render-device named uniform payload conversion planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device uniform array input validation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device constructor input validation planning", replacement.CoveredResponsibilities);
+        Assert.Contains("VertexFormat enum surface", replacement.CoveredResponsibilities);
         Assert.Contains("Index-buffer binding and primitive draw dispatch", replacement.CoveredResponsibilities);
         Assert.Contains("Length-based vertex-buffer allocation", replacement.CoveredResponsibilities);
         Assert.Contains("Flat and world vertex-buffer subdata updates", replacement.CoveredResponsibilities);

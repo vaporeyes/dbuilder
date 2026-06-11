@@ -70,6 +70,7 @@ public static class RendererArchitectureModel
             "Render-device uniform array input validation planning",
             "Render-device constructor input validation planning",
             "Cull, depth, fill, blend, sampler, and texture state",
+            "VertexFormat enum surface",
             "Flat and world vertex-buffer attribute binding",
             "Vertex and index buffer binding planning",
             "Render-device vertex and index buffer binding state reporting",

@@ -1552,7 +1552,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add raw UDB full-brightness action alias to window command dispatch.
   - [x] Add UDB-style classic rendering toggle action, persistence, dynamic-light tint suppression, and 16-step visual light banding.
   - [x] Add UDB-style fog, sky, event-line, and visual-vertices toggle actions and persisted state.
-- [ ] Port vertex formats and buffers.
+- [x] Port vertex formats and buffers.
   - [x] Add UDB-style length and format vertex-buffer allocation overload.
   - [x] Add UDB-style vertex-buffer subdata upload overloads.
   - [x] Add UDB-style vertex and index buffer upload byte-size planning.
@@ -1562,6 +1562,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style vertex and index buffer constructor input validation planning.
   - [x] Add UDB-style vertex-buffer disposed-state reporting and allocation failure guard.
   - [x] Add UDB-style vertex-buffer finalizer lifecycle.
+  - [x] Add UDB-style VertexFormat enum surface.
 - [ ] Port index buffer behavior.
   - [x] Add UDB-style length index-buffer allocation overload.
   - [x] Add UDB-style index-buffer subdata upload overload.
