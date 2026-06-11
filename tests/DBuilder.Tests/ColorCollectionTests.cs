@@ -49,7 +49,7 @@ public sealed class ColorCollectionTests
     {
         var colors = new ColorCollection();
 
-        Assert.Equal(ColorCollection.NumColors, colors.Colors.Count);
+        Assert.Equal(ColorCollection.NumColors, colors.Colors.Length);
         Assert.Equal(unchecked((int)0xFF000000), colors.Background.ToArgb());
         Assert.Equal(unchecked((int)0xFF51A2FF), colors.Vertices.ToArgb());
         Assert.Equal(unchecked((int)0xFFFFFFFF), colors.Linedefs.ToArgb());
@@ -61,6 +61,21 @@ public sealed class ColorCollectionTests
         Assert.Equal(unchecked((int)0xFF39392F), colors.Grid64.ToArgb());
         Assert.Equal(unchecked((int)0xFFFF0000), colors.ThreeDFloor.ToArgb());
         Assert.Equal(unchecked((int)0xFF0099A1), colors.Properties.ToArgb());
+    }
+
+    [Fact]
+    public void ArrayPropertiesExposeUdbMutableColorStorage()
+    {
+        var colors = new ColorCollection();
+        PixelColor replacement = PixelColor.FromArgb(unchecked((int)0xFF010203));
+
+        Assert.IsType<PixelColor[]>(colors.Colors);
+        Assert.IsType<PixelColor[]>(colors.BrightColors);
+        Assert.IsType<PixelColor[]>(colors.DarkColors);
+
+        colors.Colors[ColorCollection.BackgroundIndex] = replacement;
+
+        Assert.Equal(replacement, colors.Background);
     }
 
     [Fact]

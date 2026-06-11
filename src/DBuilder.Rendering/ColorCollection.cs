@@ -125,9 +125,9 @@ public sealed class ColorCollection
         _correctionTable = CreateCorrectionTable(imageBrightness);
     }
 
-    public IReadOnlyList<PixelColor> Colors => _colors;
-    public IReadOnlyList<PixelColor> BrightColors => _brightColors;
-    public IReadOnlyList<PixelColor> DarkColors => _darkColors;
+    public PixelColor[] Colors => _colors;
+    public PixelColor[] BrightColors => _brightColors;
+    public PixelColor[] DarkColors => _darkColors;
     public IReadOnlyList<byte> CorrectionTable => _correctionTable;
 
     public PixelColor Background => _colors[BackgroundIndex];
