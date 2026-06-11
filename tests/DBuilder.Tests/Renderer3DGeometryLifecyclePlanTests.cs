@@ -562,6 +562,70 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
             Renderer3DGeometryLifecyclePlan.BuildTranslucentModelPassPlan(translucentModelThingCount: -1));
 
     [Fact]
+    public void BuildSinglePassSetupPlanMatchesUdbShaderAndLightUniformSetup()
+    {
+        Renderer3DSinglePassSetupPlan plan = Renderer3DGeometryLifecyclePlan.BuildSinglePassSetupPlan(
+            ShaderName.world3d_main,
+            lightCount: 2,
+            maxDynamicLightsPerSurface: 4,
+            inverseSquareLightAttenuation: true,
+            classicColorMapWidth: null,
+            classicColorMapHeight: null);
+
+        Assert.Equal(ShaderName.world3d_main, plan.InitialShader);
+        Assert.Equal(ShaderName.world3d_main, plan.CurrentShader);
+        Assert.Equal(ShaderName.world3d_main_highlight, plan.HighlightShader);
+        Assert.Equal(4, plan.LightArrayLength);
+        Assert.True(plan.SetLightsEnabled);
+        Assert.True(plan.LightsEnabled);
+        Assert.False(plan.IgnoreNormals);
+        Assert.True(plan.UseLightStrength);
+        Assert.False(plan.InitializeHadLights);
+        Assert.False(plan.BindClassicLightingColorMap);
+        Assert.False(plan.SetClassicColorMapSize);
+        Assert.Null(plan.ClassicColorMapWidth);
+        Assert.Null(plan.ClassicColorMapHeight);
+        Assert.False(plan.SetClassicColorMapTexture);
+        Assert.Null(plan.ClassicColorMapTextureUnit);
+        Assert.Null(plan.ClassicColorMapSamplerFilter);
+        Assert.Null(plan.ClassicColorMapSamplerAddress);
+    }
+
+    [Fact]
+    public void BuildSinglePassSetupPlanBindsClassicLightingColorMapWhenAvailable()
+    {
+        Renderer3DSinglePassSetupPlan plan = Renderer3DGeometryLifecyclePlan.BuildSinglePassSetupPlan(
+            ShaderName.world3d_fullbright,
+            lightCount: 0,
+            maxDynamicLightsPerSurface: 3,
+            inverseSquareLightAttenuation: false,
+            classicColorMapWidth: 256,
+            classicColorMapHeight: 32);
+
+        Assert.Equal(ShaderName.world3d_fullbright_highlight, plan.HighlightShader);
+        Assert.False(plan.LightsEnabled);
+        Assert.True(plan.BindClassicLightingColorMap);
+        Assert.True(plan.SetClassicColorMapSize);
+        Assert.Equal(256, plan.ClassicColorMapWidth);
+        Assert.Equal(32, plan.ClassicColorMapHeight);
+        Assert.True(plan.SetClassicColorMapTexture);
+        Assert.Equal(1, plan.ClassicColorMapTextureUnit);
+        Assert.Equal(new SamplerFilterPlan(TextureFilter.Nearest, TextureFilter.Nearest, MipmapFilter.None, MaxAnisotropy: 0.0f, Unit: 1), plan.ClassicColorMapSamplerFilter);
+        Assert.Equal(TextureAddress.Clamp, plan.ClassicColorMapSamplerAddress);
+    }
+
+    [Fact]
+    public void BuildSinglePassSetupPlanRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildSinglePassSetupPlan(ShaderName.world3d_main, lightCount: -1, maxDynamicLightsPerSurface: 4, inverseSquareLightAttenuation: false, classicColorMapWidth: null, classicColorMapHeight: null));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildSinglePassSetupPlan(ShaderName.world3d_main, lightCount: 0, maxDynamicLightsPerSurface: -1, inverseSquareLightAttenuation: false, classicColorMapWidth: null, classicColorMapHeight: null));
+        Assert.Throws<ArgumentException>(() => Renderer3DGeometryLifecyclePlan.BuildSinglePassSetupPlan(ShaderName.world3d_main, lightCount: 0, maxDynamicLightsPerSurface: 4, inverseSquareLightAttenuation: false, classicColorMapWidth: 256, classicColorMapHeight: null));
+        Assert.Throws<ArgumentException>(() => Renderer3DGeometryLifecyclePlan.BuildSinglePassSetupPlan(ShaderName.world3d_main, lightCount: 0, maxDynamicLightsPerSurface: 4, inverseSquareLightAttenuation: false, classicColorMapWidth: null, classicColorMapHeight: 32));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildSinglePassSetupPlan(ShaderName.world3d_main, lightCount: 0, maxDynamicLightsPerSurface: 4, inverseSquareLightAttenuation: false, classicColorMapWidth: 0, classicColorMapHeight: 32));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildSinglePassSetupPlan(ShaderName.world3d_main, lightCount: 0, maxDynamicLightsPerSurface: 4, inverseSquareLightAttenuation: false, classicColorMapWidth: 256, classicColorMapHeight: 0));
+    }
+
+    [Fact]
     public void BuildThingCagePassPlanSkipsWhenThingCagesAreDisabled()
     {
         Renderer3DThingCagePassPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingCagePassPlan(renderThingCages: false);
@@ -3203,7 +3267,22 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("world = Matrix.Identity;", source, StringComparison.Ordinal);
         Assert.Contains("graphics.Draw(PrimitiveType.LineList, 0, pointscount / 2);", source, StringComparison.Ordinal);
         Assert.Contains("vb.Dispose();", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetShader(shaderpass);", source, StringComparison.Ordinal);
         Assert.Contains("ShaderName highshaderpass = (ShaderName)(shaderpass + 2);", source, StringComparison.Ordinal);
+        Assert.Contains("Vector4f[] lightColor = new Vector4f[MAX_DYNLIGHTS_PER_SURFACE];", source, StringComparison.Ordinal);
+        Assert.Contains("Vector4f[] lightPosAndRadius = new Vector4f[MAX_DYNLIGHTS_PER_SURFACE];", source, StringComparison.Ordinal);
+        Assert.Contains("Vector4f[] lightOrientation = new Vector4f[MAX_DYNLIGHTS_PER_SURFACE];", source, StringComparison.Ordinal);
+        Assert.Contains("Vector2f[] light2Radius = new Vector2f[MAX_DYNLIGHTS_PER_SURFACE];", source, StringComparison.Ordinal);
+        Assert.Contains("Vector2f[] lightStrengthAndLinearity = new Vector2f[MAX_DYNLIGHTS_PER_SURFACE];", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.lightsEnabled, lights.Count > 0);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.ignoreNormals, false);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.useLightStrength, General.Map.Data.MapInfo.LightAttenuationMode == \"InverseSquare\");", source, StringComparison.Ordinal);
+        Assert.Contains("bool hadlights = false;", source, StringComparison.Ordinal);
+        Assert.Contains("if (classicLightingColorMap != null)", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.colormapSize, new Vector2i(classicLightingColorMapTex.Width, classicLightingColorMapTex.Height));", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetTexture(classicLightingColorMapTex, 1);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetSamplerFilter(TextureFilter.Nearest, TextureFilter.Nearest, MipmapFilter.None, 0, 1);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetSamplerState(TextureAddress.Clamp, 1);", source, StringComparison.Ordinal);
         Assert.Contains("foreach (KeyValuePair<ImageData, List<VisualGeometry>> group in geopass)", source, StringComparison.Ordinal);
         Assert.Contains("curtexture = group.Key;", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(texture);", source, StringComparison.Ordinal);

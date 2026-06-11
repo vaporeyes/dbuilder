@@ -81,6 +81,25 @@ public sealed record Renderer3DGeometryPassOperation(
 
 public sealed record Renderer3DSkySolidPassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations);
 
+public sealed record Renderer3DSinglePassSetupPlan(
+    ShaderName InitialShader,
+    ShaderName CurrentShader,
+    ShaderName HighlightShader,
+    int LightArrayLength,
+    bool SetLightsEnabled,
+    bool LightsEnabled,
+    bool IgnoreNormals,
+    bool UseLightStrength,
+    bool InitializeHadLights,
+    bool BindClassicLightingColorMap,
+    bool SetClassicColorMapSize,
+    int? ClassicColorMapWidth,
+    int? ClassicColorMapHeight,
+    bool SetClassicColorMapTexture,
+    int? ClassicColorMapTextureUnit,
+    SamplerFilterPlan? ClassicColorMapSamplerFilter,
+    TextureAddress? ClassicColorMapSamplerAddress);
+
 public sealed record Renderer3DSectorGeometryCandidate(
     int Id,
     bool HasTexture,
@@ -1099,6 +1118,43 @@ public static class Renderer3DGeometryLifecyclePlan
                     new(Renderer3DGeometryPassOperationKind.RenderThingCages),
                 ])
             : new Renderer3DThingCagePassPlan([]);
+
+    public static Renderer3DSinglePassSetupPlan BuildSinglePassSetupPlan(
+        ShaderName shaderPass,
+        int lightCount,
+        int maxDynamicLightsPerSurface,
+        bool inverseSquareLightAttenuation,
+        int? classicColorMapWidth,
+        int? classicColorMapHeight)
+    {
+        if (lightCount < 0) throw new ArgumentOutOfRangeException(nameof(lightCount));
+        if (maxDynamicLightsPerSurface < 0) throw new ArgumentOutOfRangeException(nameof(maxDynamicLightsPerSurface));
+        if (classicColorMapWidth.HasValue != classicColorMapHeight.HasValue) throw new ArgumentException("Classic colormap dimensions must be provided together.");
+        if (classicColorMapWidth.HasValue && classicColorMapWidth.Value <= 0) throw new ArgumentOutOfRangeException(nameof(classicColorMapWidth));
+        if (classicColorMapHeight.HasValue && classicColorMapHeight.Value <= 0) throw new ArgumentOutOfRangeException(nameof(classicColorMapHeight));
+
+        bool bindClassicLightingColorMap = classicColorMapWidth.HasValue;
+        return new Renderer3DSinglePassSetupPlan(
+            InitialShader: shaderPass,
+            CurrentShader: shaderPass,
+            HighlightShader: (ShaderName)(shaderPass + 2),
+            LightArrayLength: maxDynamicLightsPerSurface,
+            SetLightsEnabled: true,
+            LightsEnabled: lightCount > 0,
+            IgnoreNormals: false,
+            UseLightStrength: inverseSquareLightAttenuation,
+            InitializeHadLights: false,
+            BindClassicLightingColorMap: bindClassicLightingColorMap,
+            SetClassicColorMapSize: bindClassicLightingColorMap,
+            ClassicColorMapWidth: classicColorMapWidth,
+            ClassicColorMapHeight: classicColorMapHeight,
+            SetClassicColorMapTexture: bindClassicLightingColorMap,
+            ClassicColorMapTextureUnit: bindClassicLightingColorMap ? 1 : null,
+            ClassicColorMapSamplerFilter: bindClassicLightingColorMap
+                ? new SamplerFilterPlan(TextureFilter.Nearest, TextureFilter.Nearest, MipmapFilter.None, MaxAnisotropy: 0.0f, Unit: 1)
+                : null,
+            ClassicColorMapSamplerAddress: bindClassicLightingColorMap ? TextureAddress.Clamp : null);
+    }
 
     public static Renderer3DVisualVerticesPassPlan BuildVisualVerticesPassPlan()
         => new(
