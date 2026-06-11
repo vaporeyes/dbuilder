@@ -1570,6 +1570,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style PixelColor field aliases and copy-alpha constructor.
   - [x] Add UDB-style ColorCollection constant aliases.
   - [x] Add UDB-style ColorCollection mutable array property surface.
+  - [x] Add UDB-style PixelColor Blend instance method surface.
 - [ ] Port surface manager behavior.
   - [x] Add UDB-style surface vertex chunk and buffer allocation planning.
   - [x] Add UDB-style surface update entry application behavior.

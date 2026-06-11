@@ -173,6 +173,18 @@ public sealed class ColorCollectionTests
     }
 
     [Fact]
+    public void PixelColorBlendMatchesUdbInstanceSurfaceAndChannelMath()
+    {
+        var color = new PixelColor(255, 0, 0, 0);
+        var foreground = new PixelColor(128, 10, 20, 30);
+        var background = new PixelColor(64, 200, 100, 50);
+
+        PixelColor blended = color.Blend(foreground, background);
+
+        Assert.Equal(new PixelColor(64, 105, 60, 40), blended);
+    }
+
+    [Fact]
     public void CorrectionTableUsesUdbImageBrightnessFormula()
     {
         byte[] darker = ColorCollection.CreateCorrectionTable(-5);

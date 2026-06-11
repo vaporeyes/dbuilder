@@ -91,7 +91,7 @@ public readonly record struct PixelColor(byte A, byte R, byte G, byte B)
             (byte)((left.G * ByteToFloat * right.G * ByteToFloat) * 255.0f),
             (byte)((left.B * ByteToFloat * right.B * ByteToFloat) * 255.0f));
 
-    public static PixelColor Blend(PixelColor foreground, PixelColor background)
+    public PixelColor Blend(PixelColor foreground, PixelColor background)
     {
         float alpha = foreground.A * ByteToFloat;
         return new PixelColor(
