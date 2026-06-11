@@ -1184,9 +1184,7 @@ public static class MapAnalysis
             bool blocks = l.Back == null || IsLineFlagSet(l, ctx.ImpassableFlag);
             if (!blocks) continue;
 
-            if (PointInRect(left, right, top, bottom, l.Start.Position) ||
-                PointInRect(left, right, top, bottom, l.End.Position) ||
-                SegmentIntersectsRect(l.Start.Position, l.End.Position, left, right, top, bottom))
+            if (SegmentIntersectsRect(l.Start.Position, l.End.Position, left, right, top, bottom))
             {
                 stuck = true;
                 issues.Add(DeleteThingIssue(MapIssueKind.ThingStuckInLinedef, thing, null,
@@ -1332,10 +1330,6 @@ public static class MapAnalysis
                 }),
             },
         };
-
-    private static bool PointInRect(double left, double right, double top, double bottom, Vector2D p)
-        => p.x >= Math.Min(left, right) && p.x <= Math.Max(left, right) &&
-           p.y >= Math.Min(top, bottom) && p.y <= Math.Max(top, bottom);
 
     private static bool SegmentIntersectsRect(Vector2D a, Vector2D b, double left, double right, double top, double bottom)
     {

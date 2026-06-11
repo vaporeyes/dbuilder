@@ -1960,6 +1960,26 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void BlockingThingContainingOneSidedLineEndpointOnlyIsNotFlaggedAsStuckLikeUdb()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var a = map.AddVertex(new Vector2D(60, 64));
+        var b = map.AddVertex(new Vector2D(68, 64));
+        var line = map.AddLinedef(a, b);
+        map.AddSidedef(line, true, sector);
+        var thing = map.AddThing(new Vector2D(64, 64), 3004);
+        thing.Size = 20;
+        var ctx = new MapCheckContext
+        {
+            ThingErrorCheck = _ => 2,
+            ThingBlocking = _ => 2,
+        };
+
+        Assert.DoesNotContain(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.ThingStuckInLinedef);
+    }
+
+    [Fact]
     public void BlockingThingIntersectingPassableTwoSidedLineIsNotFlaggedAsStuck()
     {
         var map = new MapSet();
