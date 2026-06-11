@@ -1680,6 +1680,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Document and test runtime GLSL shader compilation as the current UDB shader-manager replacement.
   - [x] Add UDB-style shader constructor input validation planning.
 - [ ] Add screenshot and pixel-level regression tests for key render states.
+  - [x] Add pixel-level regression tests for alpha, additive, and mask presentation states.
 
 ## Visual Modes And 3D Editing
 
