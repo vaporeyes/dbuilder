@@ -2141,13 +2141,11 @@ public static class MapAnalysis
 
     private static void CheckOverlappingVertices(MapSet map, List<MapIssue> issues)
     {
-        // Group by quantized position; any cell with more than one vertex is a stack of coincident points.
-        var buckets = new Dictionary<(long, long), List<int>>();
+        var buckets = new Dictionary<Vector2D, List<int>>();
         for (int i = 0; i < map.Vertices.Count; i++)
         {
             var p = map.Vertices[i].Position;
-            var key = ((long)Math.Round(p.x * 1000.0), (long)Math.Round(p.y * 1000.0));
-            if (!buckets.TryGetValue(key, out var list)) { list = new List<int>(); buckets[key] = list; }
+            if (!buckets.TryGetValue(p, out var list)) { list = new List<int>(); buckets[p] = list; }
             list.Add(i);
         }
         foreach (var (_, list) in buckets)

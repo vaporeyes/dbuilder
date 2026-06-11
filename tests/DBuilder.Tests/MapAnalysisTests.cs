@@ -568,6 +568,17 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void CloseFractionalVerticesDoNotOverlapUnlessPositionsMatchExactly()
+    {
+        var map = new MapSet();
+        map.AddVertex(new Vector2D(0, 0));
+        map.AddVertex(new Vector2D(0.0004, 0));
+        map.BuildIndexes();
+
+        Assert.False(Has(map, MapIssueKind.OverlappingVertices));
+    }
+
+    [Fact]
     public void OverlappingVerticesIssueCanMergeVertices()
     {
         var map = new MapSet();
