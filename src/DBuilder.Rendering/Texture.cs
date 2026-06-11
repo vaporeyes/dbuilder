@@ -79,6 +79,11 @@ public sealed class Texture : BaseTexture
         Allocate2D(width, height, format);
     }
 
+    public Texture(RenderDevice device, int width, int height, TextureFormat format)
+        : this(device.GL, width, height, format)
+    {
+    }
+
     public static TextureAllocationPlan Build2DAllocationPlan(int width, int height, TextureFormat format)
         => new(TextureAllocationKind.Texture2D, width, height, format);
 
