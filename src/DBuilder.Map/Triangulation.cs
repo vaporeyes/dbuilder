@@ -111,6 +111,7 @@ public sealed class Triangulation
         var positions = new List<Vector2D>();
         foreach (var sd in s.Sidedefs)
         {
+            if (sd.Other != null && sd.Sector == sd.Other.Sector) continue;
             if (sd.Line == null) continue;
             TryAdd(sd.Line.Start.Position);
             TryAdd(sd.Line.End.Position);

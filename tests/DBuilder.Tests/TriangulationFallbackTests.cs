@@ -65,6 +65,40 @@ public class TriangulationFallbackTests
     }
 
     [Fact]
+    public void FallbackIgnoresSameSectorTwoSidedReferences()
+    {
+        var map = new MapSet();
+        var sector = new Sector { Index = 0 };
+        map.Sectors.Add(sector);
+        var a = new Vertex(new Vector2D(0, 0));
+        var b = new Vertex(new Vector2D(64, 0));
+        var c = new Vertex(new Vector2D(64, 64));
+        map.Vertices.AddRange(new[] { a, b, c });
+
+        void AddInternal(Vertex start, Vertex end)
+        {
+            var line = new Linedef(start, end);
+            var front = new Sidedef(line, true) { Sector = sector };
+            var back = new Sidedef(line, false) { Sector = sector };
+            line.AttachFront(front);
+            line.AttachBack(back);
+            map.Linedefs.Add(line);
+            map.Sidedefs.Add(front);
+            map.Sidedefs.Add(back);
+        }
+
+        AddInternal(a, b);
+        AddInternal(b, c);
+        AddInternal(c, a);
+        map.BuildIndexes();
+
+        var tri = Triangulation.Create(sector);
+
+        Assert.Empty(tri.Vertices);
+        Assert.False(tri.IsApproximate);
+    }
+
+    [Fact]
     public void FallbackEmitsThreeVerticesPerTriangle()
     {
         // Force the fallback with a CCW-wound square (same as above).

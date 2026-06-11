@@ -532,6 +532,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style stitch and snap post-processing for Curve Linedefs materialization.
   - [x] Wire editor Curve Linedefs command to merge-mode post-processing.
 - [ ] Port robust triangulation behavior for all known UDB map shapes.
+  - [x] Keep fallback triangulation from reviving same-sector internal sidedefs.
 - [x] Port projected frustum behavior fully.
   - [x] Add UDB-style projected frustum box intersection helper.
 - [x] Port label placement behavior fully.
