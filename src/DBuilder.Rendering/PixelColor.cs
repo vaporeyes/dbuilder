@@ -1,5 +1,7 @@
 // ABOUTME: Represents UDB-style ARGB pixel colors used by rendering models.
 // ABOUTME: Keeps channel packing and helper math independent from UI frameworks.
+using System.Drawing;
+
 namespace DBuilder.Rendering;
 
 public readonly record struct PixelColor(byte A, byte R, byte G, byte B)
@@ -8,6 +10,10 @@ public readonly record struct PixelColor(byte A, byte R, byte G, byte B)
     public const int IntBlack = unchecked((int)0xFF000000);
     public const int IntWhite = unchecked((int)0xFFFFFFFF);
     public const int IntWhiteNoAlpha = 0x00FFFFFF;
+    public const float BYTE_TO_FLOAT = ByteToFloat;
+    public const int INT_BLACK = IntBlack;
+    public const int INT_WHITE = IntWhite;
+    public const int INT_WHITE_NO_ALPHA = IntWhiteNoAlpha;
 
     public static PixelColor Transparent { get; } = new(0, 0, 0, 0);
 
@@ -18,8 +24,26 @@ public readonly record struct PixelColor(byte A, byte R, byte G, byte B)
             (byte)((argb >> 8) & 0xFF),
             (byte)(argb & 0xFF));
 
+    public static PixelColor FromColor(Color color)
+        => new(color.A, color.R, color.G, color.B);
+
+    public static PixelColor FromInt(int color)
+        => FromColor(Color.FromArgb(color));
+
     public int ToArgb()
         => unchecked((int)((uint)A << 24 | (uint)R << 16 | (uint)G << 8 | B));
+
+    public int ToInt()
+        => ToArgb();
+
+    public Color ToColor()
+        => Color.FromArgb(ToArgb());
+
+    public Color4 ToColorValue()
+        => new(R * ByteToFloat, G * ByteToFloat, B * ByteToFloat, A * ByteToFloat);
+
+    public Color4 ToColorValue(float withalpha)
+        => new(R * ByteToFloat, G * ByteToFloat, B * ByteToFloat, withalpha);
 
     public PixelColor WithAlpha(byte alpha)
         => this with { A = alpha };

@@ -117,10 +117,20 @@ public sealed class ColorCollectionTests
     {
         var color = new PixelColor(0x80, 0x10, 0x20, 0x30);
 
+        Assert.Equal(PixelColor.ByteToFloat, PixelColor.BYTE_TO_FLOAT);
+        Assert.Equal(PixelColor.IntBlack, PixelColor.INT_BLACK);
+        Assert.Equal(PixelColor.IntWhite, PixelColor.INT_WHITE);
+        Assert.Equal(PixelColor.IntWhiteNoAlpha, PixelColor.INT_WHITE_NO_ALPHA);
         Assert.Equal(unchecked((int)0x80102030), color.ToArgb());
+        Assert.Equal(unchecked((int)0x80102030), color.ToInt());
         Assert.Equal(color, PixelColor.FromArgb(unchecked((int)0x80102030)));
+        Assert.Equal(color, PixelColor.FromInt(unchecked((int)0x80102030)));
+        Assert.Equal(color, PixelColor.FromColor(Color.FromArgb(unchecked((int)0x80102030))));
+        Assert.Equal(Color.FromArgb(unchecked((int)0x80102030)), color.ToColor());
         Assert.Equal(new PixelColor(0x40, 0x10, 0x20, 0x30), color.WithAlpha(0x40));
         Assert.Equal(0x302010, color.ToInversedColorRef());
+        Assert.Equal(new Color4(0x10 * PixelColor.ByteToFloat, 0x20 * PixelColor.ByteToFloat, 0x30 * PixelColor.ByteToFloat, 0x80 * PixelColor.ByteToFloat), color.ToColorValue());
+        Assert.Equal(new Color4(0x10 * PixelColor.ByteToFloat, 0x20 * PixelColor.ByteToFloat, 0x30 * PixelColor.ByteToFloat, 0.25f), color.ToColorValue(0.25f));
         Assert.Equal("[A=128, R=16, G=32, B=48]", color.ToString());
     }
 
