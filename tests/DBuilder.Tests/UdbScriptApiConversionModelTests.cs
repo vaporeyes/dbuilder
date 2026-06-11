@@ -2506,6 +2506,21 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void CommonUdbScriptBlockMapSnippetFindsSectorAtPoint()
+    {
+        var (map, _, sector, _, _) = CreateBlockMapFixture(64);
+        var wrapper = new UdbScriptBlockMapWrapper(map);
+
+        UdbScriptSectorWrapper? found = wrapper
+            .getBlockAt(new object[] { 32.0, 32.0 })
+            .getSectors()
+            .FirstOrDefault(candidate => candidate.intersect(new UdbScriptVector2DWrapper(32, 32)));
+
+        Assert.NotNull(found);
+        Assert.Same(sector, found.Sector);
+    }
+
+    [Fact]
     public void BlockMapContentWrappersUseOwningMapForMutations()
     {
         var (map, line, _, thing, _) = CreateBlockMapFixture(64);

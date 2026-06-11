@@ -7,4 +7,6 @@ dotnet restore DBuilder.slnx -m:1
 dotnet build DBuilder.slnx --no-restore -m:1
 dotnet test DBuilder.slnx --no-build -m:1
 
-cargo test --manifest-path rust/Cargo.toml
+if [[ -f rust/Cargo.toml ]]; then
+    cargo test --manifest-path rust/Cargo.toml
+fi
