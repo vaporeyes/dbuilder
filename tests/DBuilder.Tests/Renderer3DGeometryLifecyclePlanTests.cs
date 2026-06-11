@@ -923,6 +923,121 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
     }
 
     [Fact]
+    public void BuildThingShaderPassPlanKeepsBaseShaderWithoutHighlightFogOrVertexColor()
+    {
+        Renderer3DThingShaderPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingShaderPassPlan(
+            ShaderName.world3d_main,
+            highlighted: false,
+            showHighlight: true,
+            selected: false,
+            showSelection: true,
+            drawFog: false,
+            fullBrightness: false,
+            classicRendering: false,
+            thingSectorHasFog: false,
+            lightInternal: false,
+            lightIsSun: false,
+            drawLights: false,
+            hasDynamicLights: false,
+            litColorNonZero: false);
+
+        Assert.Equal(ShaderName.world3d_main, plan.BaseShader);
+        Assert.Equal(ShaderName.world3d_main_highlight, plan.HighlightShader);
+        Assert.Equal(ShaderName.world3d_main, plan.WantedShader);
+        Assert.False(plan.UsesHighlightShader);
+        Assert.False(plan.UsesFogShader);
+        Assert.Equal(Renderer3DThingVertexColorSource.None, plan.VertexColorSource);
+        Assert.False(plan.AppliesFogUniforms);
+    }
+
+    [Fact]
+    public void BuildThingShaderPassPlanAppliesHighlightFogAndInternalLightOffsetsInUdbOrder()
+    {
+        Renderer3DThingShaderPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingShaderPassPlan(
+            ShaderName.world3d_main,
+            highlighted: true,
+            showHighlight: true,
+            selected: false,
+            showSelection: true,
+            drawFog: true,
+            fullBrightness: false,
+            classicRendering: false,
+            thingSectorHasFog: true,
+            lightInternal: true,
+            lightIsSun: false,
+            drawLights: true,
+            hasDynamicLights: true,
+            litColorNonZero: true);
+
+        Assert.Equal(ShaderName.world3d_main_highlight_fog_vertexcolor, plan.WantedShader);
+        Assert.True(plan.UsesHighlightShader);
+        Assert.True(plan.UsesFogShader);
+        Assert.Equal(Renderer3DThingVertexColorSource.InternalLight, plan.VertexColorSource);
+        Assert.True(plan.AppliesFogUniforms);
+    }
+
+    [Fact]
+    public void BuildThingShaderPassPlanUsesDynamicLightVertexColorWhenNoInternalLightApplies()
+    {
+        Renderer3DThingShaderPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingShaderPassPlan(
+            ShaderName.world3d_main,
+            highlighted: false,
+            showHighlight: true,
+            selected: true,
+            showSelection: true,
+            drawFog: false,
+            fullBrightness: false,
+            classicRendering: false,
+            thingSectorHasFog: false,
+            lightInternal: false,
+            lightIsSun: false,
+            drawLights: true,
+            hasDynamicLights: true,
+            litColorNonZero: true);
+
+        Assert.Equal(ShaderName.world3d_main_highlight_vertexcolor, plan.WantedShader);
+        Assert.True(plan.UsesHighlightShader);
+        Assert.False(plan.UsesFogShader);
+        Assert.Equal(Renderer3DThingVertexColorSource.DynamicLight, plan.VertexColorSource);
+        Assert.False(plan.AppliesFogUniforms);
+    }
+
+    [Theory]
+    [InlineData(true, false, false, true, true, true)]
+    [InlineData(false, true, false, true, true, true)]
+    [InlineData(false, false, true, false, true, true)]
+    [InlineData(false, false, false, false, true, true)]
+    [InlineData(false, false, false, true, false, true)]
+    [InlineData(false, false, false, true, true, false)]
+    public void BuildThingShaderPassPlanSuppressesVertexColorWhenUdbConditionsDoNotApply(
+        bool fullBrightness,
+        bool classicRendering,
+        bool lightIsSun,
+        bool drawLights,
+        bool hasDynamicLights,
+        bool litColorNonZero)
+    {
+        Renderer3DThingShaderPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingShaderPassPlan(
+            ShaderName.world3d_main,
+            highlighted: false,
+            showHighlight: true,
+            selected: false,
+            showSelection: true,
+            drawFog: false,
+            fullBrightness,
+            classicRendering,
+            thingSectorHasFog: false,
+            lightInternal: lightIsSun,
+            lightIsSun,
+            drawLights,
+            hasDynamicLights,
+            litColorNonZero);
+
+        Assert.Equal(ShaderName.world3d_main, plan.WantedShader);
+        Assert.Equal(Renderer3DThingVertexColorSource.None, plan.VertexColorSource);
+    }
+
+    [Fact]
     public void Renderer3DStartGeometryExpressionsMatchUdbWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -1028,6 +1143,12 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("if(General.Settings.GZDrawFog && !fullbrightness && !General.Settings.ClassicRendering && sector.Sector.FogMode != SectorFogMode.NONE)", source, StringComparison.Ordinal);
         Assert.Contains("wantedshaderpass += 8;", source, StringComparison.Ordinal);
         Assert.Contains("if(wantedshaderpass > ShaderName.world3d_p7)", source, StringComparison.Ordinal);
+        Assert.Contains("ShaderName wantedshaderpass = (((t == highlighted) && showhighlight) || (t.Selected && showselection)) ? highshaderpass : shaderpass;", source, StringComparison.Ordinal);
+        Assert.Contains("if(General.Settings.GZDrawFog && !fullbrightness && !General.Settings.ClassicRendering && t.Thing.Sector != null && t.Thing.Sector.FogMode != SectorFogMode.NONE)", source, StringComparison.Ordinal);
+        Assert.Contains("if(t.LightType != null && t.LightType.LightInternal && t.LightType.LightType != GZGeneral.LightType.SUN && !fullbrightness && !General.Settings.ClassicRendering)", source, StringComparison.Ordinal);
+        Assert.Contains("wantedshaderpass += 4; // Render using one of passes, which uses World3D.VertexColor", source, StringComparison.Ordinal);
+        Assert.Contains("else if(General.Settings.GZDrawLightsMode != LightRenderMode.NONE && !fullbrightness && !General.Settings.ClassicRendering && lightthings.Count > 0)", source, StringComparison.Ordinal);
+        Assert.Contains("if(litcolor.ToArgb() != 0)", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);

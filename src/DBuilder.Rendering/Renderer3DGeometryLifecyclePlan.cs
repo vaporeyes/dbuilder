@@ -257,6 +257,22 @@ public sealed record Renderer3DShaderPassPlan(
     bool UsesFogShader,
     bool AppliesFogUniforms);
 
+public enum Renderer3DThingVertexColorSource
+{
+    None,
+    InternalLight,
+    DynamicLight,
+}
+
+public sealed record Renderer3DThingShaderPassPlan(
+    ShaderName BaseShader,
+    ShaderName HighlightShader,
+    ShaderName WantedShader,
+    bool UsesHighlightShader,
+    bool UsesFogShader,
+    Renderer3DThingVertexColorSource VertexColorSource,
+    bool AppliesFogUniforms);
+
 public static class Renderer3DGeometryLifecyclePlan
 {
     public const float EventLineArrowheadLength = 20.0f;
@@ -672,6 +688,53 @@ public static class Renderer3DGeometryLifecyclePlan
             wantedShader,
             useHighlightShader,
             useFogShader,
+            AppliesFogUniforms: wantedShader > ShaderName.world3d_p7);
+    }
+
+    public static Renderer3DThingShaderPassPlan BuildThingShaderPassPlan(
+        ShaderName baseShader,
+        bool highlighted,
+        bool showHighlight,
+        bool selected,
+        bool showSelection,
+        bool drawFog,
+        bool fullBrightness,
+        bool classicRendering,
+        bool thingSectorHasFog,
+        bool lightInternal,
+        bool lightIsSun,
+        bool drawLights,
+        bool hasDynamicLights,
+        bool litColorNonZero)
+    {
+        ShaderName highlightShader = (ShaderName)(baseShader + 2);
+        bool useHighlightShader = highlighted && showHighlight || selected && showSelection;
+        ShaderName wantedShader = useHighlightShader ? highlightShader : baseShader;
+        bool useFogShader = drawFog && !fullBrightness && !classicRendering && thingSectorHasFog;
+        if (useFogShader)
+        {
+            wantedShader += 8;
+        }
+
+        Renderer3DThingVertexColorSource vertexColorSource = Renderer3DThingVertexColorSource.None;
+        if (lightInternal && !lightIsSun && !fullBrightness && !classicRendering)
+        {
+            wantedShader += 4;
+            vertexColorSource = Renderer3DThingVertexColorSource.InternalLight;
+        }
+        else if (drawLights && !fullBrightness && !classicRendering && hasDynamicLights && litColorNonZero)
+        {
+            wantedShader += 4;
+            vertexColorSource = Renderer3DThingVertexColorSource.DynamicLight;
+        }
+
+        return new Renderer3DThingShaderPassPlan(
+            baseShader,
+            highlightShader,
+            wantedShader,
+            useHighlightShader,
+            useFogShader,
+            vertexColorSource,
             AppliesFogUniforms: wantedShader > ShaderName.world3d_p7);
     }
 
