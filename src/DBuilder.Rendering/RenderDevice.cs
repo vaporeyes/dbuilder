@@ -147,6 +147,7 @@ public sealed class RenderDevice : IDisposable
     private VertexBuffer? _boundVb;
     private IndexBuffer? _boundIb;
     private Shader? _boundShader;
+    private RenderShaderOperationPlan? _lastShaderOperation;
     private int _viewportW;
     private int _viewportH;
     private bool _alphaTestEnabled;
@@ -163,6 +164,7 @@ public sealed class RenderDevice : IDisposable
     public bool AlphaTestEnabled => _alphaTestEnabled;
     public bool MultisampleAntialiasEnabled => _multisampleAntialiasEnabled;
     public int RegisteredResourceCount => _resources.Count;
+    public RenderShaderOperationPlan? LastShaderOperation => _lastShaderOperation;
 
     public void SetViewport(int width, int height)
     {
@@ -424,6 +426,63 @@ public sealed class RenderDevice : IDisposable
         _boundShader = shader;
         _gl.UseProgram(shader.Program);
     }
+
+    public void DeclareUniform(UniformName name, string variableName, UniformType type)
+        => _lastShaderOperation = BuildDeclareUniformPlan(name, variableName, type);
+
+    public void DeclareShader(ShaderName name, string vertexResourceName, string fragmentResourceName)
+        => _lastShaderOperation = BuildDeclareShaderPlan(name, vertexResourceName, fragmentResourceName);
+
+    public void CompileShader(ShaderName internalName, string groupName, string shaderName)
+        => _lastShaderOperation = BuildCompileShaderPlan(internalName, groupName, shaderName);
+
+    public void SetShader(ShaderName shader)
+        => _lastShaderOperation = BuildSetShaderPlan(shader);
+
+    public void SetUniform(UniformName uniform, bool value)
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Float);
+
+    public void SetUniform(UniformName uniform, float value)
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Float);
+
+    public void SetUniform(UniformName uniform, Vector2f value)
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Vec2f);
+
+    public void SetUniform(UniformName uniform, Vector3f value)
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Vec3f);
+
+    public void SetUniform(UniformName uniform, Vector4f value)
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Vec4f);
+
+    public void SetUniform(UniformName uniform, Color4 value)
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Vec4f);
+
+    public void SetUniform(UniformName uniform, Matrix matrix)
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Mat4);
+
+    public void SetUniform(UniformName uniform, ref Matrix matrix)
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Mat4);
+
+    public void SetUniform(UniformName uniform, int value)
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Int);
+
+    public void SetUniform(UniformName uniform, Vector2i value)
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Vec2i);
+
+    public void SetUniform(UniformName uniform, Vector3i value)
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Vec3i);
+
+    public void SetUniform(UniformName uniform, Vector4i value)
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Vec4i);
+
+    public void SetUniform(UniformName uniform, Vector2f[] value)
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Vec2fArray, value.Length);
+
+    public void SetUniform(UniformName uniform, Vector3f[] value)
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Vec3fArray, value.Length);
+
+    public void SetUniform(UniformName uniform, Vector4f[] value)
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Vec4fArray, value.Length);
 
     public void SetUniform(string name, Matrix4x4 m)
     {

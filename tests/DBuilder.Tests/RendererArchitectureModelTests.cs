@@ -49,6 +49,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Render-device inline vertex draw planning and overload", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device finish and present frame handoff planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device named shader and uniform operation planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device named shader and uniform source-compatible method surface", replacement.CoveredResponsibilities);
         Assert.Contains("Index-buffer binding and primitive draw dispatch", replacement.CoveredResponsibilities);
         Assert.Contains("Length-based vertex-buffer allocation", replacement.CoveredResponsibilities);
         Assert.Contains("Flat and world vertex-buffer subdata updates", replacement.CoveredResponsibilities);
@@ -424,6 +425,37 @@ public class RendererArchitectureModelTests
         Assert.Equal(1, scalarUniform.ValueCount);
         Assert.Equal(3, arrayUniform.ValueCount);
         Assert.Equal(48, arrayUniform.ValueByteSize);
+    }
+
+    [Fact]
+    public void RenderDeviceExposesUdbNamedShaderAndUniformMethods()
+    {
+        Assert.NotNull(typeof(RenderDevice).GetProperty(nameof(RenderDevice.LastShaderOperation)));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(
+            nameof(RenderDevice.DeclareUniform),
+            new[] { typeof(UniformName), typeof(string), typeof(UniformType) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(
+            nameof(RenderDevice.DeclareShader),
+            new[] { typeof(ShaderName), typeof(string), typeof(string) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(
+            nameof(RenderDevice.CompileShader),
+            new[] { typeof(ShaderName), typeof(string), typeof(string) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetShader), new[] { typeof(ShaderName) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetUniform), new[] { typeof(UniformName), typeof(bool) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetUniform), new[] { typeof(UniformName), typeof(float) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetUniform), new[] { typeof(UniformName), typeof(Vector2f) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetUniform), new[] { typeof(UniformName), typeof(Vector3f) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetUniform), new[] { typeof(UniformName), typeof(Vector4f) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetUniform), new[] { typeof(UniformName), typeof(Color4) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetUniform), new[] { typeof(UniformName), typeof(Matrix) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetUniform), new[] { typeof(UniformName), typeof(Matrix).MakeByRefType() }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetUniform), new[] { typeof(UniformName), typeof(int) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetUniform), new[] { typeof(UniformName), typeof(Vector2i) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetUniform), new[] { typeof(UniformName), typeof(Vector3i) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetUniform), new[] { typeof(UniformName), typeof(Vector4i) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetUniform), new[] { typeof(UniformName), typeof(Vector2f[]) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetUniform), new[] { typeof(UniformName), typeof(Vector3f[]) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetUniform), new[] { typeof(UniformName), typeof(Vector4f[]) }));
     }
 
     [Fact]
