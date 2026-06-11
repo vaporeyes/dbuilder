@@ -108,6 +108,7 @@ public sealed class RenderingMetadataTests
         RenderBufferOperationPlan flat = RenderDevice.BuildSetBufferSubdataPlan(4, new FlatVertex[3]);
         RenderBufferOperationPlan world = RenderDevice.BuildSetBufferSubdataPlan(2, new WorldVertex[5]);
         RenderBufferOperationPlan flatPrefix = RenderDevice.BuildSetBufferSubdataPlan(new FlatVertex[6], size: 4);
+        RenderBufferOperationPlan index = RenderDevice.BuildSetIndexBufferSubdataPlan(7, new int[6]);
 
         Assert.Equal(new RenderBufferOperationPlan(
             RenderBufferOperationKind.SetFlatVertexSubdata,
@@ -130,6 +131,13 @@ public sealed class RenderingMetadataTests
             ElementOffset: 0,
             ByteOffset: 0,
             ByteCount: 4 * FlatVertex.Stride), flatPrefix);
+        Assert.Equal(new RenderBufferOperationPlan(
+            RenderBufferOperationKind.SetIndexSubdata,
+            VertexFormat: null,
+            ElementCount: 6,
+            ElementOffset: 7,
+            ByteOffset: 7 * sizeof(int),
+            ByteCount: 6 * sizeof(int)), index);
     }
 
     [Fact]
@@ -141,6 +149,8 @@ public sealed class RenderingMetadataTests
             RenderDevice.BuildSetBufferSubdataPlan(-1, Array.Empty<WorldVertex>()));
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             RenderDevice.BuildSetBufferSubdataPlan(new FlatVertex[1], size: 2));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildSetIndexBufferSubdataPlan(-1, Array.Empty<int>()));
     }
 
     [Fact]

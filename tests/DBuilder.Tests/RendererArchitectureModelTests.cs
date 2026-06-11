@@ -55,6 +55,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Index-buffer binding and primitive draw dispatch", replacement.CoveredResponsibilities);
         Assert.Contains("Length-based vertex-buffer allocation", replacement.CoveredResponsibilities);
         Assert.Contains("Flat and world vertex-buffer subdata updates", replacement.CoveredResponsibilities);
+        Assert.Contains("Index-buffer subdata updates", replacement.CoveredResponsibilities);
         Assert.Contains("Vertex and index buffer upload byte-size planning", replacement.CoveredResponsibilities);
         Assert.Contains("Vertex and index buffer disposed-state reporting", replacement.CoveredResponsibilities);
         Assert.Contains("Length-based index-buffer allocation", replacement.CoveredResponsibilities);
@@ -170,6 +171,14 @@ public class RendererArchitectureModelTests
         Assert.NotNull(typeof(RenderDevice).GetMethod(
             nameof(RenderDevice.SetBufferSubdata),
             new[] { typeof(VertexBuffer), typeof(FlatVertex[]), typeof(long) }));
+    }
+
+    [Fact]
+    public void RenderDeviceExposesUdbIndexBufferSubdataUpload()
+    {
+        Assert.NotNull(typeof(RenderDevice).GetMethod(
+            nameof(RenderDevice.SetBufferSubdata),
+            new[] { typeof(IndexBuffer), typeof(long), typeof(int[]) }));
     }
 
     [Fact]

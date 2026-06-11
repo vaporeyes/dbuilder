@@ -50,6 +50,7 @@ public enum RenderBufferOperationKind
     SetIndexLength,
     SetFlatVertexSubdata,
     SetWorldVertexSubdata,
+    SetIndexSubdata,
 }
 
 public enum RenderShaderOperationKind
@@ -403,6 +404,21 @@ public sealed class RenderDevice : IDisposable
         }
     }
 
+    public unsafe void SetBufferSubdata(IndexBuffer buffer, long destOffset, int[] data)
+    {
+        if (destOffset < 0) throw new ArgumentOutOfRangeException(nameof(destOffset));
+
+        _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, buffer.Handle);
+        fixed (int* p = data)
+        {
+            _gl.BufferSubData(
+                BufferTargetARB.ElementArrayBuffer,
+                checked((nint)(destOffset * sizeof(int))),
+                (nuint)checked((long)data.Length * sizeof(int)),
+                p);
+        }
+    }
+
     public unsafe void SetVertexBuffer(VertexBuffer? buffer)
     {
         _boundVb = buffer;
@@ -539,6 +555,19 @@ public sealed class RenderDevice : IDisposable
             ElementOffset: 0,
             ByteOffset: 0,
             ByteCount: checked(size * FlatVertex.Stride));
+    }
+
+    public static RenderBufferOperationPlan BuildSetIndexBufferSubdataPlan(long destOffset, int[] data)
+    {
+        if (destOffset < 0) throw new ArgumentOutOfRangeException(nameof(destOffset));
+
+        return new RenderBufferOperationPlan(
+            RenderBufferOperationKind.SetIndexSubdata,
+            VertexFormat: null,
+            data.Length,
+            destOffset,
+            ByteOffset: checked(destOffset * sizeof(int)),
+            ByteCount: checked((long)data.Length * sizeof(int)));
     }
 
     private static int VertexStride(VertexFormat format)

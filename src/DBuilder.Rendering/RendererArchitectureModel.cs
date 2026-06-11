@@ -61,6 +61,7 @@ public static class RendererArchitectureModel
             "Flat and world vertex-buffer attribute binding",
             "Length-based vertex-buffer allocation",
             "Flat and world vertex-buffer subdata updates",
+            "Index-buffer subdata updates",
             "Vertex and index buffer upload byte-size planning",
             "Vertex and index buffer disposed-state reporting",
             "Length-based index-buffer allocation",
