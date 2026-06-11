@@ -99,10 +99,12 @@ public static class SectorBuilder
 
     private static void AssignSide(MapSet map, Linedef line, bool front, Sector sector)
     {
+        bool wasSingleSided = line.Front == null || line.Back == null;
         var side = front ? line.Front : line.Back;
         if (side != null)
         {
             side.Sector = sector;
+            ApplySidedFlagsIfSidednessChanged(line, wasSingleSided);
             return;
         }
 
@@ -117,6 +119,15 @@ public static class SectorBuilder
         side.Sector = sector;
         side.Marked = true;
         other.Marked = true;
+        ApplySidedFlagsIfSidednessChanged(line, wasSingleSided);
+    }
+
+    private static void ApplySidedFlagsIfSidednessChanged(Linedef line, bool wasSingleSided)
+    {
+        bool isSingleSided = line.Front == null || line.Back == null;
+        if (wasSingleSided == isSingleSided) return;
+
+        line.ApplySidedFlags();
     }
 
     private static double SignedArea(IReadOnlyList<Vertex> verts)
