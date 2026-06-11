@@ -327,9 +327,11 @@ public static class Tools
         sourceSide = TakeSidedefDefaults(sourceSide, options);
 
         Sector newSector = map.AddSector();
+        newSector.Marked = true;
         if (sourceSector != null)
         {
             sourceSector.CopyPropertiesTo(newSector);
+            newSector.Marked = true;
         }
         else if (nearestSector != null)
         {
@@ -373,6 +375,7 @@ public static class Tools
                 target = map.AddSidedef(lineSide.Line, lineSide.Front, newSector);
                 LinkOppositeSidedef(target);
                 targetWasCreated = true;
+                target.Marked = true;
             }
             else if (!ReferenceEquals(target.Sector, newSector))
             {

@@ -600,6 +600,7 @@ public class ToolsTraceTests
 
         Assert.NotNull(sector);
         Assert.Equal(192, sector!.Brightness);
+        Assert.True(sector.Marked);
     }
 
     [Fact]
@@ -629,6 +630,7 @@ public class ToolsTraceTests
         Assert.Equal("CEIL", sector.CeilTexture);
         Assert.Equal(4, sector.Sidedefs.Count);
         Assert.All(lines, line => Assert.Same(sector, line.Front!.Sector));
+        Assert.All(lines, line => Assert.True(line.Front!.Marked));
         Assert.All(lines, line => Assert.Equal("WALL", line.Front!.MidTexture));
     }
 
@@ -659,7 +661,8 @@ public class ToolsTraceTests
 
         Assert.NotNull(sector);
         Assert.NotSame(source, sector);
-        Assert.Equal(24, sector!.FloorHeight);
+        Assert.True(sector!.Marked);
+        Assert.Equal(24, sector.FloorHeight);
         Assert.Equal(96, sector.CeilHeight);
         Assert.Equal(144, sector.Brightness);
         Assert.Equal("SRCFLAT", sector.FloorTexture);
