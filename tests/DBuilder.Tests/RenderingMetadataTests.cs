@@ -51,6 +51,24 @@ public sealed class RenderingMetadataTests
     }
 
     [Fact]
+    public void UniformTypeValuesMatchUdbOrdering()
+    {
+        Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(UniformType)));
+        Assert.Equal(0, (int)UniformType.Vec4f);
+        Assert.Equal(1, (int)UniformType.Vec3f);
+        Assert.Equal(2, (int)UniformType.Vec2f);
+        Assert.Equal(3, (int)UniformType.Float);
+        Assert.Equal(4, (int)UniformType.Mat4);
+        Assert.Equal(5, (int)UniformType.Vec4i);
+        Assert.Equal(6, (int)UniformType.Vec3i);
+        Assert.Equal(7, (int)UniformType.Vec2i);
+        Assert.Equal(8, (int)UniformType.Int);
+        Assert.Equal(9, (int)UniformType.Vec4fArray);
+        Assert.Equal(10, (int)UniformType.Vec3fArray);
+        Assert.Equal(11, (int)UniformType.Vec2fArray);
+    }
+
+    [Fact]
     public void TextAlignmentXValuesMatchUdbOrdering()
     {
         Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(TextAlignmentX)));

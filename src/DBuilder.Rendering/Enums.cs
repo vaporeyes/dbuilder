@@ -88,7 +88,7 @@ public readonly struct CommentType
     public static readonly string[] Types = [Regular, Info, Question, Problem, Smile];
 }
 
-public enum UniformType
+public enum UniformType : int
 {
     Vec4f, Vec3f, Vec2f, Float,
     Mat4,
