@@ -213,6 +213,8 @@ public sealed class RenderDevice : IDisposable
 
     public RenderDevice(GL gl)
     {
+        ArgumentNullException.ThrowIfNull(gl);
+
         _gl = gl;
         _streamVao = _gl.GenVertexArray();
     }
