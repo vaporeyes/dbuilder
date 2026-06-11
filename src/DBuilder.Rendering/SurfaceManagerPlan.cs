@@ -15,6 +15,11 @@ public sealed record SurfaceBufferUpload(int VertexOffset, SurfaceBufferUploadPl
 
 public sealed record SurfaceBufferReloadPlan(int BufferIndex, int BufferSize, IReadOnlyList<SurfaceBufferUpload> Uploads);
 
+public sealed record SurfaceEntryUpdateUploadPlan(
+    int VerticesPerEntry,
+    int BufferIndex,
+    IReadOnlyList<SurfaceBufferUpload> Uploads);
+
 public sealed record SurfaceBufferUnloadPlan(IReadOnlyList<int> DisposedBufferIndexes);
 
 public struct SurfaceBufferSet
@@ -388,6 +393,36 @@ public static class SurfaceManagerPlan
             resourcesUnloaded,
             clearLockedBuffers,
             clearLockedBuffers ? 0 : lockedBufferCount);
+    }
+
+    public static IReadOnlyList<SurfaceEntryUpdateUploadPlan> BuildUpdateUploadPlan(
+        IEnumerable<SurfaceEntry> entries,
+        bool resourcesUnloaded)
+    {
+        if (resourcesUnloaded) return Array.Empty<SurfaceEntryUpdateUploadPlan>();
+
+        var plans = new List<SurfaceEntryUpdateUploadPlan>();
+        foreach (SurfaceEntry entry in entries)
+        {
+            if (entry.NumVertices <= 0 || entry.BufferIndex < 0) continue;
+
+            plans.Add(new SurfaceEntryUpdateUploadPlan(
+                entry.NumVertices,
+                entry.BufferIndex,
+                new[]
+                {
+                    new SurfaceBufferUpload(
+                        entry.VertexOffset,
+                        SurfaceBufferUploadPlane.Floor,
+                        entry.FloorVertices.Length),
+                    new SurfaceBufferUpload(
+                        entry.VertexOffset + entry.FloorVertices.Length,
+                        SurfaceBufferUploadPlane.Ceiling,
+                        entry.CeilingVertices.Length),
+                }));
+        }
+
+        return plans;
     }
 
     public static SurfaceManagerLifecyclePlan BuildLifecyclePlan(SurfaceManagerLifecycleOperation operation)

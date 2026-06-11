@@ -422,6 +422,80 @@ public sealed class SurfaceManagerPlanTests
     }
 
     [Fact]
+    public void UpdateUploadPlanTargetsEachSurfaceEntryBufferSlice()
+    {
+        var manager = new SurfaceManagerState();
+        var entries = new SurfaceEntryCollection();
+        manager.UpdateSurfaces(entries, Update(
+            vertices: 6001,
+            floorStart: 10,
+            ceilingStart: 1000,
+            floorTexture: 11,
+            ceilingTexture: 22));
+
+        IReadOnlyList<SurfaceEntryUpdateUploadPlan> plans =
+            SurfaceManagerPlan.BuildUpdateUploadPlan(entries, resourcesUnloaded: false);
+
+        Assert.Equal(new[] { 6000, 1 }, plans.Select(plan => plan.VerticesPerEntry).ToArray());
+        Assert.Equal(new[] { 0, 0 }, plans.Select(plan => plan.BufferIndex).ToArray());
+        Assert.Equal(
+            new[]
+            {
+                new SurfaceBufferUpload(0, SurfaceBufferUploadPlane.Floor, 6000),
+                new SurfaceBufferUpload(6000, SurfaceBufferUploadPlane.Ceiling, 6000),
+            },
+            plans[0].Uploads);
+        Assert.Equal(
+            new[]
+            {
+                new SurfaceBufferUpload(0, SurfaceBufferUploadPlane.Floor, 1),
+                new SurfaceBufferUpload(1, SurfaceBufferUploadPlane.Ceiling, 1),
+            },
+            plans[1].Uploads);
+    }
+
+    [Fact]
+    public void UpdateUploadPlanSkipsUploadsWhileResourcesAreUnloaded()
+    {
+        var manager = new SurfaceManagerState();
+        var entries = new SurfaceEntryCollection();
+        manager.UpdateSurfaces(entries, Update(vertices: 3, floorStart: 0, ceilingStart: 100, floorTexture: 1, ceilingTexture: 2));
+
+        IReadOnlyList<SurfaceEntryUpdateUploadPlan> plans =
+            SurfaceManagerPlan.BuildUpdateUploadPlan(entries, resourcesUnloaded: true);
+
+        Assert.Empty(plans);
+    }
+
+    [Fact]
+    public void UpdateUploadPlanIgnoresInvalidatedEntries()
+    {
+        var entries = new[]
+        {
+            new SurfaceEntry(numVertices: -1, bufferIndex: -1, vertexOffset: 0),
+            new SurfaceEntry(numVertices: 3, bufferIndex: 0, vertexOffset: 6)
+            {
+                FloorVertices = Vertices(3),
+                CeilingVertices = Vertices(3),
+            },
+        };
+
+        IReadOnlyList<SurfaceEntryUpdateUploadPlan> plans =
+            SurfaceManagerPlan.BuildUpdateUploadPlan(entries, resourcesUnloaded: false);
+
+        SurfaceEntryUpdateUploadPlan plan = Assert.Single(plans);
+        Assert.Equal(3, plan.VerticesPerEntry);
+        Assert.Equal(0, plan.BufferIndex);
+        Assert.Equal(
+            new[]
+            {
+                new SurfaceBufferUpload(6, SurfaceBufferUploadPlane.Floor, 3),
+                new SurfaceBufferUpload(9, SurfaceBufferUploadPlane.Ceiling, 3),
+            },
+            plan.Uploads);
+    }
+
+    [Fact]
     public void ManagerStateReusesSurfaceEntriesWhenVertexCountMatches()
     {
         var manager = new SurfaceManagerState();

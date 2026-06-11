@@ -81,6 +81,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Surface locked-buffer unlock lifecycle planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface manager resource registration and lifecycle planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface manager map-analysis allocation planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Surface manager update buffer upload planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface manager update and free surface-entry lifecycle planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text font byte-indexed glyph table planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text font Font.cfg resource discovery and glyph-source parsing", replacement.CoveredResponsibilities);
