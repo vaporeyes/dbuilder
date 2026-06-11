@@ -1327,6 +1327,7 @@ public class MapSet : IDisposable
             {
                 var side = AddSidedef(line, true, containingSector);
                 CopySidedefProperties(source, side);
+                RemoveUnneededTexturesFromCorrectedOuterLine(line);
                 line.ApplySidedFlags();
                 created++;
             }
@@ -1335,12 +1336,21 @@ public class MapSet : IDisposable
             {
                 var side = AddSidedef(line, false, containingSector);
                 CopySidedefProperties(source, side);
+                RemoveUnneededTexturesFromCorrectedOuterLine(line);
                 line.ApplySidedFlags();
                 created++;
             }
         }
 
         return created;
+    }
+
+    private static void RemoveUnneededTexturesFromCorrectedOuterLine(Linedef line)
+    {
+        if (line.Front != null) line.Front.Other = line.Back;
+        if (line.Back != null) line.Back.Other = line.Front;
+        line.Front?.RemoveUnneededTextures(line.Back != null, force: false, shiftMiddle: true);
+        line.Back?.RemoveUnneededTextures(line.Front != null, force: false, shiftMiddle: true);
     }
 
     /// <summary>

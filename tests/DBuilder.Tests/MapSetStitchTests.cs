@@ -438,7 +438,8 @@ public class MapSetStitchTests
         Assert.Equal(1, created);
         Assert.NotNull(line.Back);
         Assert.Same(sector, line.Back!.Sector);
-        Assert.Equal("STONE", line.Back.MidTexture);
+        Assert.Equal("-", front.MidTexture);
+        Assert.Equal("-", line.Back.MidTexture);
         Assert.Equal(12, line.Back.OffsetX);
         Assert.True(line.IsFlagSet("twosided"));
         Assert.False(line.IsFlagSet("blocking"));
@@ -459,7 +460,8 @@ public class MapSetStitchTests
         Assert.Equal(1, created);
         Assert.NotNull(line.Front);
         Assert.Same(sector, line.Front!.Sector);
-        Assert.Equal("BRICK", line.Front.MidTexture);
+        Assert.Equal("-", back.MidTexture);
+        Assert.Equal("-", line.Front.MidTexture);
         Assert.True(line.IsFlagSet("twosided"));
         Assert.False(line.IsFlagSet("blocking"));
         Assert.Equal(Linedef.TwoSidedFlagBit, line.Flags);
