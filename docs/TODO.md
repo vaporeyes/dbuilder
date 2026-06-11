@@ -1548,6 +1548,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port rendering color helpers.
   - [x] Add UDB-style ColorSetting helper.
   - [x] Add UDB-style PixelColor conversion aliases.
+  - [x] Add UDB-style ColorCollection constant aliases.
 - [ ] Port surface manager behavior.
   - [x] Add UDB-style surface vertex chunk and buffer allocation planning.
   - [x] Add UDB-style surface update entry application behavior.

@@ -64,6 +64,24 @@ public sealed class ColorCollectionTests
     }
 
     [Fact]
+    public void UdbColorCollectionConstantsMatchIndexAliases()
+    {
+        Assert.Equal(ColorCollection.NumThingColors, ColorCollection.NUM_THING_COLORS);
+        Assert.Equal(ColorCollection.ThingColorsOffset, ColorCollection.THING_COLORS_OFFSET);
+        Assert.Equal(ColorCollection.BackgroundIndex, ColorCollection.BACKGROUND);
+        Assert.Equal(ColorCollection.VerticesIndex, ColorCollection.VERTICES);
+        Assert.Equal(ColorCollection.LinedefsIndex, ColorCollection.LINEDEFS);
+        Assert.Equal(ColorCollection.ModelWireColorIndex, ColorCollection.MODELWIRECOLOR);
+        Assert.Equal(ColorCollection.InfoLineColorIndex, ColorCollection.INFOLINECOLOR);
+        Assert.Equal(ColorCollection.HighlightIndex, ColorCollection.HIGHLIGHT);
+        Assert.Equal(ColorCollection.SelectionIndex, ColorCollection.SELECTION);
+        Assert.Equal(ColorCollection.ThingColor00Index, ColorCollection.THINGCOLOR00);
+        Assert.Equal(ColorCollection.ThingColor00Index + 19, ColorCollection.THINGCOLOR19);
+        Assert.Equal(ColorCollection.ThreeDFloorColorIndex, ColorCollection.THREEDFLOORCOLOR);
+        Assert.Equal(ColorCollection.GuidelineColorIndex, ColorCollection.GUIDELINECOLOR);
+    }
+
+    [Fact]
     public void ThingColorsMatchUdbNamedColorDefaults()
     {
         var colors = new ColorCollection();
