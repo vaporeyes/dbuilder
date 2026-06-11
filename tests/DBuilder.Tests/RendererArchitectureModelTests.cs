@@ -41,6 +41,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("2D presentation per-layer draw operation sequence planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device alpha-test compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device multisample antialias compatibility state planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device blend-operation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device sampler-filter overload planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device sampler address-state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device setup settings planning", replacement.CoveredResponsibilities);
@@ -246,6 +247,20 @@ public class RendererArchitectureModelTests
 
         Assert.Equal(RenderStateToggleKind.MultisampleAntialias, plan.Kind);
         Assert.True(plan.Enabled);
+    }
+
+    [Fact]
+    public void RenderDeviceBuildsUdbBlendOperationPlans()
+    {
+        Assert.NotNull(typeof(RenderDevice).GetMethod(
+            nameof(RenderDevice.SetBlendOperation),
+            new[] { typeof(BlendOperation) }));
+
+        BlendOperationPlan add = RenderDevice.BuildBlendOperationPlan(BlendOperation.Add);
+        BlendOperationPlan reverseSubtract = RenderDevice.BuildBlendOperationPlan(BlendOperation.ReverseSubtract);
+
+        Assert.Equal(BlendOperation.Add, add.Operation);
+        Assert.Equal(BlendOperation.ReverseSubtract, reverseSubtract.Operation);
     }
 
     [Fact]

@@ -99,6 +99,9 @@ public sealed record RenderStateTogglePlan(
     RenderStateToggleKind Kind,
     bool Enabled);
 
+public sealed record BlendOperationPlan(
+    BlendOperation Operation);
+
 public sealed record SamplerFilterPlan(
     TextureFilter MinFilter,
     TextureFilter MagFilter,
@@ -842,6 +845,9 @@ public sealed class RenderDevice : IDisposable
 
     public static RenderStateTogglePlan BuildMultisampleAntialiasPlan(bool enabled)
         => new(RenderStateToggleKind.MultisampleAntialias, enabled);
+
+    public static BlendOperationPlan BuildBlendOperationPlan(BlendOperation operation)
+        => new(operation);
 
     public static RenderDeviceSetupSettingsPlan BuildSetupSettingsPlan(
         bool visualBilinear,
