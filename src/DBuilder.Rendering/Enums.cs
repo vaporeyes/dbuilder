@@ -13,7 +13,7 @@ public enum PrimitiveType : int { LineList = 0, TriangleList = 1, TriangleStrip 
 public enum TextureFilter : int { Nearest = 0, Linear = 1 }
 public enum MipmapFilter : int { None = 0, Nearest = 1, Linear = 2 }
 
-public enum RenderPass
+public enum RenderPass : int
 {
     Solid = 0,
     Mask = 1,

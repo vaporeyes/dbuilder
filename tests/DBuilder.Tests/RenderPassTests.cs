@@ -25,6 +25,12 @@ public sealed class RenderPassTests
     }
 
     [Fact]
+    public void RenderPassUsesUdbUnderlyingType()
+    {
+        Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(RenderPass)));
+    }
+
+    [Fact]
     public void RenderLayersValuesMatchUdbOrdering()
     {
         Assert.Equal(0, (int)RenderLayers.None);
