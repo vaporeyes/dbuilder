@@ -1509,6 +1509,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style 2D presentation layer texture binding planning.
   - [x] Add UDB-style 2D presentation per-layer draw operation sequence planning.
   - [x] Add UDB-style core visual render pass enum ordering.
+  - [x] Add UDB-style core render layer enum ordering.
   - [x] Add UDB-style text alignment enums and comment type prefixes.
   - [x] Add UDB-style flat quad vertex, UV, and color mapping helper.
   - [x] Add UDB-style rendering Vector2f and Vector2i structs.

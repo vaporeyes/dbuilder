@@ -21,6 +21,16 @@ public enum RenderPass
     Additive = 3,
 }
 
+public enum RenderLayers : int
+{
+    None = 0,
+    Background = 1,
+    Plotter = 2,
+    Things = 3,
+    Overlay = 4,
+    Surface = 5,
+}
+
 public enum TextAlignmentX : int
 {
     Left = 0,
