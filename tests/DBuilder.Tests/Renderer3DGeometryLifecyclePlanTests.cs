@@ -479,6 +479,77 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
     }
 
     [Fact]
+    public void BuildThingCageRenderPlanMatchesUdbRenderStateSetup()
+    {
+        Renderer3DThingCageRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingCageRenderPlan(
+            [],
+            showSelection: true,
+            selectionColor: unchecked((int)0xffff4000));
+
+        Assert.Equal(
+            [
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetAlphaBlend, Enabled: true),
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetAlphaTest, Enabled: false),
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetZWrite, Enabled: false),
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetSourceBlend, Blend: Blend.SourceAlpha),
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetDestinationBlend, Blend: Blend.SourceAlpha),
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetShader, Shader: ShaderName.world3d_constant_color),
+            ],
+            plan.StateOperations);
+        Assert.Empty(plan.Draws);
+    }
+
+    [Fact]
+    public void BuildThingCageRenderPlanMatchesUdbColorAndDrawRules()
+    {
+        Renderer3DThingCageRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingCageRenderPlan(
+            [
+                new Renderer3DThingCageCandidate(1, unchecked((int)0xff010203), Selected: true, Highlighted: false, CageLength: 12),
+                new Renderer3DThingCageCandidate(2, unchecked((int)0xff102030), Selected: false, Highlighted: true, CageLength: 8),
+                new Renderer3DThingCageCandidate(3, unchecked((int)0xffa0b0c0), Selected: false, Highlighted: false, CageLength: 4),
+            ],
+            showSelection: true,
+            selectionColor: unchecked((int)0xffff4000));
+
+        Assert.Equal(
+            [
+                new Renderer3DThingCageDrawPlan(1, unchecked((int)0xffff4000), 1.0f, PrimitiveType.LineList, StartIndex: 0, PrimitiveCount: 12),
+                new Renderer3DThingCageDrawPlan(2, unchecked((int)0xff102030), 1.0f, PrimitiveType.LineList, StartIndex: 0, PrimitiveCount: 8),
+                new Renderer3DThingCageDrawPlan(3, unchecked((int)0xffa0b0c0), 0.6f, PrimitiveType.LineList, StartIndex: 0, PrimitiveCount: 4),
+            ],
+            plan.Draws);
+    }
+
+    [Fact]
+    public void BuildThingCageRenderPlanUsesCageColorWhenSelectionDisplayIsDisabled()
+    {
+        Renderer3DThingCageRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingCageRenderPlan(
+            [
+                new Renderer3DThingCageCandidate(1, unchecked((int)0xff010203), Selected: true, Highlighted: false, CageLength: 12),
+            ],
+            showSelection: false,
+            selectionColor: unchecked((int)0xffff4000));
+
+        Assert.Equal(
+            [
+                new Renderer3DThingCageDrawPlan(1, unchecked((int)0xff010203), 0.6f, PrimitiveType.LineList, StartIndex: 0, PrimitiveCount: 12),
+            ],
+            plan.Draws);
+    }
+
+    [Fact]
+    public void BuildThingCageRenderPlanRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentNullException>(() => Renderer3DGeometryLifecyclePlan.BuildThingCageRenderPlan(null!, showSelection: true, selectionColor: 0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildThingCageRenderPlan(
+            [
+                new Renderer3DThingCageCandidate(1, unchecked((int)0xff010203), Selected: false, Highlighted: false, CageLength: -1),
+            ],
+            showSelection: true,
+            selectionColor: 0));
+    }
+
+    [Fact]
     public void Renderer3DStartGeometryExpressionsMatchUdbWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -542,6 +613,13 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("case GZGeneral.LightRenderStyle.ADDITIVE: lightOffsets[2]++; break;", source, StringComparison.Ordinal);
         Assert.Contains("case GZGeneral.LightRenderStyle.SUBTRACTIVE: lightOffsets[3]++; break;", source, StringComparison.Ordinal);
         Assert.Contains("default: lightOffsets[1]++; break;", source, StringComparison.Ordinal);
+        Assert.Contains("private void RenderThingCages()", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetDestinationBlend(Blend.SourceAlpha);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetShader(ShaderName.world3d_constant_color);", source, StringComparison.Ordinal);
+        Assert.Contains("thingcolor = General.Colors.Selection3D.ToColorValue();", source, StringComparison.Ordinal);
+        Assert.Contains("thingcolor = t.CageColor;", source, StringComparison.Ordinal);
+        Assert.Contains("if(t != highlighted) thingcolor.Alpha = 0.6f;", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.Draw(PrimitiveType.LineList, 0, t.CageLength);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);

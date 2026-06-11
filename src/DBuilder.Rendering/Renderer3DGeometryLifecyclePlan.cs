@@ -149,6 +149,41 @@ public sealed record Renderer3DDynamicLightUpdatePlan(
     IReadOnlyList<int> SelectedLightIds,
     IReadOnlyList<int> LightOffsets);
 
+public enum Renderer3DThingCageRenderOperationKind
+{
+    SetAlphaBlend,
+    SetAlphaTest,
+    SetZWrite,
+    SetSourceBlend,
+    SetDestinationBlend,
+    SetShader,
+}
+
+public sealed record Renderer3DThingCageRenderOperation(
+    Renderer3DThingCageRenderOperationKind Kind,
+    bool? Enabled = null,
+    Blend? Blend = null,
+    ShaderName? Shader = null);
+
+public sealed record Renderer3DThingCageCandidate(
+    int Id,
+    int CageColor,
+    bool Selected,
+    bool Highlighted,
+    int CageLength);
+
+public sealed record Renderer3DThingCageDrawPlan(
+    int ThingId,
+    int Color,
+    float Alpha,
+    PrimitiveType PrimitiveType,
+    int StartIndex,
+    int PrimitiveCount);
+
+public sealed record Renderer3DThingCageRenderPlan(
+    IReadOnlyList<Renderer3DThingCageRenderOperation> StateOperations,
+    IReadOnlyList<Renderer3DThingCageDrawPlan> Draws);
+
 public static class Renderer3DGeometryLifecyclePlan
 {
     public static Renderer3DStartGeometryPlan BuildStartGeometryPlan()
@@ -384,6 +419,35 @@ public static class Renderer3DGeometryLifecyclePlan
             Renderer3DDynamicLightRenderStyle.Attenuated => 1,
             _ => throw new ArgumentOutOfRangeException(nameof(renderStyle)),
         };
+
+    public static Renderer3DThingCageRenderPlan BuildThingCageRenderPlan(
+        IReadOnlyList<Renderer3DThingCageCandidate> things,
+        bool showSelection,
+        int selectionColor)
+    {
+        ArgumentNullException.ThrowIfNull(things);
+        foreach (Renderer3DThingCageCandidate thing in things)
+        {
+            if (thing.CageLength < 0) throw new ArgumentOutOfRangeException(nameof(things));
+        }
+
+        return new Renderer3DThingCageRenderPlan(
+            [
+                new(Renderer3DThingCageRenderOperationKind.SetAlphaBlend, Enabled: true),
+                new(Renderer3DThingCageRenderOperationKind.SetAlphaTest, Enabled: false),
+                new(Renderer3DThingCageRenderOperationKind.SetZWrite, Enabled: false),
+                new(Renderer3DThingCageRenderOperationKind.SetSourceBlend, Blend: Blend.SourceAlpha),
+                new(Renderer3DThingCageRenderOperationKind.SetDestinationBlend, Blend: Blend.SourceAlpha),
+                new(Renderer3DThingCageRenderOperationKind.SetShader, Shader: ShaderName.world3d_constant_color),
+            ],
+            things.Select(thing => new Renderer3DThingCageDrawPlan(
+                thing.Id,
+                thing.Selected && showSelection ? selectionColor : thing.CageColor,
+                thing.Selected && showSelection || thing.Highlighted ? 1.0f : 0.6f,
+                PrimitiveType.LineList,
+                StartIndex: 0,
+                PrimitiveCount: thing.CageLength)).ToArray());
+    }
 
     public static Renderer3DFinishGeometryCleanupPlan BuildFinishGeometryCleanupPlan()
         => new(
