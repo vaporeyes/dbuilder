@@ -115,6 +115,8 @@ public static class SectorBuilder
         dst.CeilSlopeOffset = src.CeilSlopeOffset;
         dst.Tags.Clear();
         dst.Tags.AddRange(src.Tags);
+        dst.UdmfFlags.Clear();
+        foreach (var flag in src.UdmfFlags) dst.UdmfFlags.Add(flag);
         dst.Fields.Clear();
         foreach (var kv in src.Fields) dst.Fields[kv.Key] = kv.Value;
     }

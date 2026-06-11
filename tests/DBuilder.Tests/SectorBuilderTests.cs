@@ -150,6 +150,8 @@ public class SectorBuilderTests
             CeilSlopeOffset = 128,
         };
         src.Tags.AddRange(new[] { 5, 7 });
+        src.SetFlag("secret", true);
+        src.SetFlag("damagehazard", true);
         src.SetIntegerField("lightcolor", 16711680);
         src.SetStringField("comment", "copied");
 
@@ -160,6 +162,8 @@ public class SectorBuilderTests
         Assert.Equal(src.CeilSlope, sector.CeilSlope);
         Assert.Equal(128, sector.CeilSlopeOffset);
         Assert.Equal(new[] { 5, 7 }, sector.Tags);
+        Assert.True(sector.IsFlagSet("secret"));
+        Assert.True(sector.IsFlagSet("damagehazard"));
         Assert.Equal(16711680, sector.GetIntegerField("lightcolor"));
         Assert.Equal("copied", sector.GetStringField("comment"));
     }
