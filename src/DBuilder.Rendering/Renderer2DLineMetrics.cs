@@ -33,6 +33,13 @@ public readonly record struct Renderer2DPlotLinePlan(
     int EndY,
     PixelColor Color);
 
+public readonly record struct Renderer2DPlotVertexPlan(
+    bool ShouldDraw,
+    int X,
+    int Y,
+    int Size,
+    int ColorIndex);
+
 public static class Renderer2DLineMetricPlanner
 {
     public const double LineNormalScreenSize = 10.0;
@@ -102,6 +109,39 @@ public static class Renderer2DLineMetricPlanner
 
         int size = (int)(VertexSizeBaseScale * vertexScale2D * scale + VertexSizeRoundBias);
         return Math.Clamp(size, MinVertexSize, MaxVertexSize);
+    }
+
+    public static Renderer2DPlotVertexPlan BuildPlotVertexPlan(
+        Vector2D position,
+        int colorIndex,
+        bool checkMode,
+        bool shouldRenderVertices,
+        double translateX,
+        double translateY,
+        double scale,
+        int viewportHeight,
+        double vertexScale2D)
+    {
+        if (viewportHeight < 0) throw new ArgumentOutOfRangeException(nameof(viewportHeight));
+
+        int vertexSize = BuildVertexSize(scale, vertexScale2D);
+        if (checkMode && !shouldRenderVertices)
+        {
+            return new Renderer2DPlotVertexPlan(
+                ShouldDraw: false,
+                X: 0,
+                Y: 0,
+                vertexSize,
+                colorIndex);
+        }
+
+        Vector2D transformed = position.GetTransformed(translateX, translateY, scale, -scale);
+        return new Renderer2DPlotVertexPlan(
+            ShouldDraw: true,
+            (int)transformed.x,
+            TransformY((int)transformed.y, viewportHeight),
+            vertexSize,
+            colorIndex);
     }
 
     public static IReadOnlyList<Renderer2DLinedefSegment> BuildLinedefSegments(

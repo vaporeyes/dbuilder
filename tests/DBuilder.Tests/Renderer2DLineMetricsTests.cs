@@ -149,12 +149,74 @@ public sealed class Renderer2DLineMetricsTests
     }
 
     [Fact]
+    public void BuildPlotVertexPlanMatchesUdbTransformedPlotterCoordinates()
+    {
+        Renderer2DPlotVertexPlan plan = Renderer2DLineMetricPlanner.BuildPlotVertexPlan(
+            new Vector2D(3, 4),
+            colorIndex: 7,
+            checkMode: true,
+            shouldRenderVertices: true,
+            translateX: 1,
+            translateY: 2,
+            scale: 2,
+            viewportHeight: 100,
+            vertexScale2D: 1);
+
+        Assert.True(plan.ShouldDraw);
+        Assert.Equal(8, plan.X);
+        Assert.Equal(112, plan.Y);
+        Assert.Equal(3, plan.Size);
+        Assert.Equal(7, plan.ColorIndex);
+    }
+
+    [Fact]
+    public void BuildPlotVertexPlanUsesUdbCheckModeGate()
+    {
+        Renderer2DPlotVertexPlan gated = Renderer2DLineMetricPlanner.BuildPlotVertexPlan(
+            new Vector2D(3, 4),
+            colorIndex: 7,
+            checkMode: true,
+            shouldRenderVertices: false,
+            translateX: 1,
+            translateY: 2,
+            scale: 2,
+            viewportHeight: 100,
+            vertexScale2D: 1);
+        Renderer2DPlotVertexPlan forced = Renderer2DLineMetricPlanner.BuildPlotVertexPlan(
+            new Vector2D(3, 4),
+            colorIndex: 7,
+            checkMode: false,
+            shouldRenderVertices: false,
+            translateX: 1,
+            translateY: 2,
+            scale: 2,
+            viewportHeight: 100,
+            vertexScale2D: 1);
+
+        Assert.False(gated.ShouldDraw);
+        Assert.Equal(3, gated.Size);
+        Assert.True(forced.ShouldDraw);
+        Assert.Equal(8, forced.X);
+        Assert.Equal(112, forced.Y);
+    }
+
+    [Fact]
     public void BuildVertexSizeRejectsInvalidScaleInputs()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => Renderer2DLineMetricPlanner.BuildVertexSize(0, 1));
         Assert.Throws<ArgumentOutOfRangeException>(() => Renderer2DLineMetricPlanner.BuildVertexSize(-1, 1));
         Assert.Throws<ArgumentOutOfRangeException>(() => Renderer2DLineMetricPlanner.BuildVertexSize(double.NaN, 1));
         Assert.Throws<ArgumentOutOfRangeException>(() => Renderer2DLineMetricPlanner.BuildVertexSize(1, double.NaN));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer2DLineMetricPlanner.BuildPlotVertexPlan(
+            new Vector2D(0, 0),
+            colorIndex: 0,
+            checkMode: true,
+            shouldRenderVertices: true,
+            translateX: 0,
+            translateY: 0,
+            scale: 1,
+            viewportHeight: -1,
+            vertexScale2D: 1));
     }
 
     [Fact]
@@ -240,6 +302,11 @@ public sealed class Renderer2DLineMetricsTests
         Assert.Contains("vertexsize = (int)(1.7f * General.Settings.GZVertexScale2D * scale + 0.5f);", source, StringComparison.Ordinal);
         Assert.Contains("if(vertexsize < 0) vertexsize = 0;", source, StringComparison.Ordinal);
         Assert.Contains("if(vertexsize > 4) vertexsize = 4;", source, StringComparison.Ordinal);
+        Assert.Contains("public void PlotVertex(Vertex v, int colorindex, bool checkMode = true)", source, StringComparison.Ordinal);
+        Assert.Contains("public void PlotVertexAt(Vector2D v, int colorindex, bool checkMode = true)", source, StringComparison.Ordinal);
+        Assert.Contains("public void PlotVerticesSet(ICollection<Vertex> vertices, bool checkMode = true)", source, StringComparison.Ordinal);
+        Assert.Contains("if (checkMode && !ShouldRenderVertices)", source, StringComparison.Ordinal);
+        Assert.Contains("plotter.DrawVertexSolid((int)nv.x, TransformY((int)nv.y), vertexsize, ref General.Colors.Colors[colorindex], ref General.Colors.BrightColors[colorindex], ref General.Colors.DarkColors[colorindex]);", source, StringComparison.Ordinal);
         Assert.Contains("public void PlotLine(Vector2D start, Vector2D end, PixelColor c, float lengthscaler)", source, StringComparison.Ordinal);
         Assert.Contains("if((v2 - v1).GetLengthSq() < linenormalsize * lengthscaler) return;", source, StringComparison.Ordinal);
         Assert.Contains("plotter.DrawLineSolid((int)v1.x, TransformY((int)v1.y), (int)v2.x, TransformY((int)v2.y), ref c);", source, StringComparison.Ordinal);
