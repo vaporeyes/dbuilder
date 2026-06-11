@@ -687,6 +687,33 @@ public sealed class TextLabelPlanTests
     }
 
     [Fact]
+    public void ResourceUpdatePlanRecreatesMissingTextureForVisibleCleanLabel()
+    {
+        TextLabelLayout layout = TextLabelPlan.Build(
+            "Visible",
+            new TextLabelSize(24, 10),
+            new TextLabelPoint(8, 8),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+
+        TextLabelResourceUpdatePlan plan = TextLabelPlan.BuildResourceUpdatePlan(
+            TextLabelInvalidation.Clean,
+            layout,
+            hasTexture: false,
+            hasVertexBuffer: true,
+            vertexBufferDisposed: false);
+
+        Assert.False(plan.DisposeTexture);
+        Assert.True(plan.CreateLabelImage);
+        Assert.True(plan.CreateTexture);
+        Assert.True(plan.UploadTexture);
+        Assert.False(plan.CreateVertexBuffer);
+        Assert.False(plan.UploadQuadBuffer);
+        Assert.Equal(TextLabelInvalidation.Clean, plan.ResultInvalidation);
+    }
+
+    [Fact]
     public void ResourceUpdatePlanReusesCleanTextureAndBuffer()
     {
         TextLabelLayout layout = TextLabelPlan.Build(

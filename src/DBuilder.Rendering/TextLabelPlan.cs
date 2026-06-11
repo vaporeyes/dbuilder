@@ -544,8 +544,8 @@ public static class TextLabelPlan
                 resultInvalidation);
         }
 
-        bool updateTexture = invalidation.TextureUpdateNeeded;
-        bool createTexture = updateTexture && !hasTexture;
+        bool createTexture = !hasTexture;
+        bool updateTexture = invalidation.TextureUpdateNeeded || createTexture;
         bool createVertexBuffer = !hasVertexBuffer || vertexBufferDisposed;
         return new TextLabelResourceUpdatePlan(
             DisposeTexture: false,

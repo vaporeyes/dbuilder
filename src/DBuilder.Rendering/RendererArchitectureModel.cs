@@ -128,6 +128,7 @@ public static class RendererArchitectureModel
             "Text label skipped-resource invalidation planning",
             "Text label texture and vertex-buffer update planning",
             "Text label texture upload reuse planning",
+            "Text label missing-texture recovery planning",
             "Text label viewport inclusion planning",
             "Runtime shader compile, link, disposal, and uniform lookup caching",
             "Shader disposed-state reporting",

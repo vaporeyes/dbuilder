@@ -1635,6 +1635,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style text label transform-cache invalidation planning.
   - [x] Add UDB-style text label texture and vertex-buffer update planning.
   - [x] Add UDB-style text label texture upload reuse planning.
+  - [x] Add UDB-style text label missing-texture recovery planning.
   - [x] Add UDB-style text label viewport inclusion planning.
   - [x] Add UDB-style text label skipped-resource invalidation distinction.
 - [x] Port visual vertex handles.
