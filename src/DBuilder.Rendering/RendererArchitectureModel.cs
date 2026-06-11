@@ -87,6 +87,7 @@ public static class RendererArchitectureModel
             "Surface buffer unload and reload resource-state planning",
             "Surface locked-buffer unlock lifecycle planning",
             "Surface manager resource registration and lifecycle planning",
+            "Surface manager update and free surface-entry lifecycle planning",
             "Text font byte-indexed glyph table planning",
             "Text font configuration metric normalization",
             "Text font glyph metrics and vertex planning",
@@ -105,7 +106,7 @@ public static class RendererArchitectureModel
         RemainingGaps: new[]
         {
             "Full UDB render-pass graph",
-            "Surface manager and surface-entry lifecycle",
+            "Live surface manager GL execution",
             "Full mesh behavior",
             "Live text font texture generation and GL execution",
             "Complete visual-mode rendering parity",

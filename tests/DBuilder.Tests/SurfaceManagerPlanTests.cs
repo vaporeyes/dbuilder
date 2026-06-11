@@ -388,8 +388,138 @@ public sealed class SurfaceManagerPlanTests
         Assert.Equal(new[] { 3, 3 }, plan.Uploads.Select(upload => upload.VertexCount).ToArray());
     }
 
+    [Fact]
+    public void ManagerStateAllocatesChunkedSurfaceEntriesIntoBufferSets()
+    {
+        var manager = new SurfaceManagerState();
+        var entries = new SurfaceEntryCollection();
+        SurfaceUpdate update = Update(
+            vertices: 6001,
+            floorStart: 10,
+            ceilingStart: 1000,
+            floorTexture: 11,
+            ceilingTexture: 22,
+            hidden: true,
+            desaturation: 0.5);
+
+        manager.UpdateSurfaces(entries, update);
+
+        Assert.Equal(6001, entries.TotalVertices);
+        Assert.Equal(new[] { 6000, 1 }, entries.Select(entry => entry.NumVertices).ToArray());
+        Assert.Equal(new[] { 1, 6000 }, manager.Sets.Keys.OrderBy(key => key).ToArray());
+        Assert.Equal(0, entries[0].BufferIndex);
+        Assert.Equal(0, entries[1].BufferIndex);
+        Assert.Equal(10, entries[0].FloorVertices[0].x);
+        Assert.Equal(6009, entries[0].FloorVertices[^1].x);
+        Assert.Equal(6010, entries[1].FloorVertices[0].x);
+        Assert.Equal(1000, entries[0].CeilingVertices[0].x);
+        Assert.Equal(11, entries[0].FloorTexture);
+        Assert.Equal(22, entries[0].CeilingTexture);
+        Assert.True(entries[0].Hidden);
+        Assert.Equal(0.5, entries[0].Desaturation);
+        Assert.Equal(10, entries[0].Bounds.Left);
+        Assert.Equal(10, entries[0].Bounds.Top);
+    }
+
+    [Fact]
+    public void ManagerStateReusesSurfaceEntriesWhenVertexCountMatches()
+    {
+        var manager = new SurfaceManagerState();
+        var entries = new SurfaceEntryCollection();
+        manager.UpdateSurfaces(entries, Update(vertices: 3, floorStart: 0, ceilingStart: 100, floorTexture: 1, ceilingTexture: 2));
+        SurfaceEntry existing = entries[0];
+
+        manager.UpdateSurfaces(entries, Update(vertices: 3, floorStart: 10, ceilingStart: 200, floorTexture: 7, ceilingTexture: 8));
+
+        Assert.Same(existing, entries[0]);
+        Assert.Equal(0, entries[0].BufferIndex);
+        Assert.Equal(0, entries[0].VertexOffset);
+        Assert.Equal(new[] { 10f, 11f, 12f }, entries[0].FloorVertices.Select(vertex => vertex.x).ToArray());
+        Assert.Equal(new[] { 200f, 201f, 202f }, entries[0].CeilingVertices.Select(vertex => vertex.x).ToArray());
+        Assert.Equal(7, entries[0].FloorTexture);
+        Assert.Equal(8, entries[0].CeilingTexture);
+        Assert.Single(manager.GetSet(3).Entries);
+        Assert.Empty(manager.GetSet(3).Holes);
+    }
+
+    [Fact]
+    public void ManagerStateFreesEntriesIntoOwningSetHoles()
+    {
+        var manager = new SurfaceManagerState();
+        var entries = new SurfaceEntryCollection();
+        manager.UpdateSurfaces(entries, Update(vertices: 3, floorStart: 0, ceilingStart: 100, floorTexture: 1, ceilingTexture: 2));
+        SurfaceEntry entry = entries[0];
+
+        manager.FreeSurfaces(entries);
+
+        SurfaceBufferSetState set = manager.GetSet(3);
+        Assert.Empty(set.Entries);
+        SurfaceEntry hole = Assert.Single(set.Holes);
+        Assert.NotSame(entry, hole);
+        Assert.Equal(3, hole.NumVertices);
+        Assert.Equal(0, hole.BufferIndex);
+        Assert.Equal(0, hole.VertexOffset);
+        Assert.Equal(-1, entry.NumVertices);
+        Assert.Equal(-1, entry.BufferIndex);
+    }
+
+    [Fact]
+    public void ManagerStateReallocatesWhenSurfaceVertexCountChanges()
+    {
+        var manager = new SurfaceManagerState();
+        var entries = new SurfaceEntryCollection();
+        manager.UpdateSurfaces(entries, Update(vertices: 3, floorStart: 0, ceilingStart: 100, floorTexture: 1, ceilingTexture: 2));
+        SurfaceEntry oldEntry = entries[0];
+
+        manager.UpdateSurfaces(entries, Update(vertices: 4, floorStart: 10, ceilingStart: 200, floorTexture: 3, ceilingTexture: 4));
+
+        Assert.NotSame(oldEntry, entries[0]);
+        Assert.Equal(-1, oldEntry.NumVertices);
+        Assert.Equal(-1, oldEntry.BufferIndex);
+        Assert.Equal(4, entries.TotalVertices);
+        Assert.Single(manager.GetSet(3).Holes);
+        Assert.Single(manager.GetSet(4).Entries);
+        Assert.Equal(new[] { 10f, 11f, 12f, 13f }, entries[0].FloorVertices.Select(vertex => vertex.x).ToArray());
+    }
+
+    [Fact]
+    public void ManagerStateRequiresBothSurfacesWhenCreatingEntries()
+    {
+        var manager = new SurfaceManagerState();
+        var entries = new SurfaceEntryCollection();
+        var update = new SurfaceUpdate(numVertices: 3, updateFloor: true, updateCeiling: false)
+        {
+            FloorVertices = Vertices(3),
+        };
+
+        Assert.Throws<InvalidOperationException>(() => manager.UpdateSurfaces(entries, update));
+    }
+
     private static FlatVertex[] Vertices(int count)
         => Enumerable.Range(0, count)
             .Select(i => new FlatVertex { x = i, y = i })
+            .ToArray();
+
+    private static SurfaceUpdate Update(
+        int vertices,
+        float floorStart,
+        float ceilingStart,
+        long floorTexture,
+        long ceilingTexture,
+        bool hidden = false,
+        double desaturation = 0)
+        => new(vertices, updateFloor: true, updateCeiling: true)
+        {
+            FloorVertices = Vertices(vertices, floorStart),
+            CeilingVertices = Vertices(vertices, ceilingStart),
+            FloorTexture = floorTexture,
+            CeilingTexture = ceilingTexture,
+            Hidden = hidden,
+            Desaturation = desaturation,
+        };
+
+    private static FlatVertex[] Vertices(int count, float start)
+        => Enumerable.Range(0, count)
+            .Select(i => new FlatVertex { x = start + i, y = start + i })
             .ToArray();
 }

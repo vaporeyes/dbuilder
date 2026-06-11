@@ -209,6 +209,118 @@ public sealed class SurfaceBufferSetState
     }
 }
 
+public sealed class SurfaceManagerState
+{
+    private readonly Dictionary<int, SurfaceBufferSetState> _sets = new();
+
+    public IReadOnlyDictionary<int, SurfaceBufferSetState> Sets => _sets;
+
+    public SurfaceBufferSetState GetSet(int numVertices)
+    {
+        if (!_sets.TryGetValue(numVertices, out SurfaceBufferSetState? set))
+        {
+            set = new SurfaceBufferSetState(numVertices);
+            _sets.Add(numVertices, set);
+        }
+
+        return set;
+    }
+
+    public void UpdateSurfaces(SurfaceEntryCollection entries, SurfaceUpdate update)
+    {
+        if (entries.Count > 0 && entries.TotalVertices != update.NumVertices)
+        {
+            FreeSurfaces(entries);
+            entries.Clear();
+        }
+
+        if (entries.Count == 0 && update.NumVertices > 0)
+        {
+            if (update.FloorVertices == null || update.CeilingVertices == null)
+                throw new InvalidOperationException("Surface creation requires floor and ceiling vertices.");
+
+            int verticesRemaining = update.NumVertices;
+            while (verticesRemaining > 0)
+            {
+                int verticesInEntry = verticesRemaining > SurfaceManagerPlan.MaxVerticesPerSector
+                    ? SurfaceManagerPlan.MaxVerticesPerSector
+                    : verticesRemaining;
+                int sourceOffset = update.NumVertices - verticesRemaining;
+                SurfaceEntry entry = GetSet(verticesInEntry).AllocateEntry();
+                CopyNewEntryData(entry, update, verticesInEntry, sourceOffset);
+                entries.Add(entry);
+                verticesRemaining -= verticesInEntry;
+            }
+        }
+        else
+        {
+            int verticesRemaining = update.NumVertices;
+            foreach (SurfaceEntry entry in entries)
+            {
+                int sourceOffset = update.NumVertices - verticesRemaining;
+                CopyReusableEntryData(entry, update, sourceOffset);
+                verticesRemaining -= entry.NumVertices;
+            }
+        }
+
+        entries.TotalVertices = update.NumVertices;
+        foreach (SurfaceEntry entry in entries)
+            entry.UpdateBounds();
+    }
+
+    public void FreeSurfaces(SurfaceEntryCollection entries)
+    {
+        foreach (SurfaceEntry entry in entries)
+        {
+            if (entry.NumVertices > 0
+                && entry.BufferIndex > -1
+                && _sets.TryGetValue(entry.NumVertices, out SurfaceBufferSetState? set))
+            {
+                set.FreeEntry(entry);
+            }
+            else
+            {
+                entry.NumVertices = -1;
+                entry.BufferIndex = -1;
+            }
+        }
+    }
+
+    private static void CopyNewEntryData(
+        SurfaceEntry entry,
+        SurfaceUpdate update,
+        int verticesInEntry,
+        int sourceOffset)
+    {
+        entry.FloorVertices = new FlatVertex[verticesInEntry];
+        entry.CeilingVertices = new FlatVertex[verticesInEntry];
+        Array.Copy(update.FloorVertices!, sourceOffset, entry.FloorVertices, 0, verticesInEntry);
+        Array.Copy(update.CeilingVertices!, sourceOffset, entry.CeilingVertices, 0, verticesInEntry);
+        entry.FloorTexture = update.FloorTexture;
+        entry.CeilingTexture = update.CeilingTexture;
+        entry.Hidden = update.Hidden;
+        entry.Desaturation = update.Desaturation;
+    }
+
+    private static void CopyReusableEntryData(SurfaceEntry entry, SurfaceUpdate update, int sourceOffset)
+    {
+        if (update.FloorVertices != null)
+        {
+            Array.Copy(update.FloorVertices, sourceOffset, entry.FloorVertices, 0, entry.NumVertices);
+            entry.FloorTexture = update.FloorTexture;
+        }
+
+        if (update.CeilingVertices != null)
+        {
+            Array.Copy(update.CeilingVertices, sourceOffset, entry.CeilingVertices, 0, entry.NumVertices);
+            entry.CeilingTexture = update.CeilingTexture;
+        }
+
+        entry.Hidden = update.Hidden;
+        entry.Desaturation = update.Desaturation;
+    }
+}
+
 public static class SurfaceManagerPlan
 {
     public const int MaxVerticesPerBuffer = 30000;

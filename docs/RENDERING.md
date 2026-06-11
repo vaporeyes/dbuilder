@@ -25,7 +25,7 @@ There is no separate offline shader compiler in the current DBuilder renderer. T
 ## Remaining Gaps
 
 - Full UDB render-pass graph.
-- Surface manager and surface-entry lifecycle.
+- Live surface manager GL execution.
 - Full mesh behavior.
 - Text font and label rendering.
 - Complete visual-mode rendering parity.

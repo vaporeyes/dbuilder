@@ -79,6 +79,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Surface buffer unload and reload resource-state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface locked-buffer unlock lifecycle planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface manager resource registration and lifecycle planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Surface manager update and free surface-entry lifecycle planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text font byte-indexed glyph table planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text font configuration metric normalization", replacement.CoveredResponsibilities);
         Assert.Contains("Text font glyph metrics and vertex planning", replacement.CoveredResponsibilities);
@@ -110,6 +111,7 @@ public class RendererArchitectureModelTests
         RendererArchitectureReplacement replacement = RendererArchitectureModel.Current;
 
         Assert.Contains("Full UDB render-pass graph", replacement.RemainingGaps);
+        Assert.Contains("Live surface manager GL execution", replacement.RemainingGaps);
         Assert.Contains("Live text font texture generation and GL execution", replacement.RemainingGaps);
         Assert.Contains("Complete visual-mode rendering parity", replacement.RemainingGaps);
     }
