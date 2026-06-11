@@ -65,6 +65,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Render-device 2D texture clear and pixel upload application", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device unsafe plotter pixel upload surface", replacement.CoveredResponsibilities);
         Assert.Contains("Cube texture resource and render-device cube operation surface", replacement.CoveredResponsibilities);
+        Assert.Contains("Mesh construction, draw, and dispose operation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Mesh disposal and finalizer lifecycle", replacement.CoveredResponsibilities);
         Assert.Contains("Surface-entry chunk metadata and bounds model", replacement.CoveredResponsibilities);
         Assert.Contains("Surface manager vertex chunk and buffer allocation planning", replacement.CoveredResponsibilities);

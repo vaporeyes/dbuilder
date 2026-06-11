@@ -73,6 +73,7 @@ public static class RendererArchitectureModel
             "Render-device unsafe plotter pixel upload surface",
             "Cube texture resource and render-device cube operation surface",
             "Owned indexed-triangle mesh wrapper",
+            "Mesh construction, draw, and dispose operation planning",
             "Mesh disposal and finalizer lifecycle",
             "Surface-entry chunk metadata and bounds model",
             "Surface manager vertex chunk and buffer allocation planning",
