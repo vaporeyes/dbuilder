@@ -8,6 +8,17 @@ namespace DBuilder.Tests;
 public sealed class RenderDeviceTextureOperationTests
 {
     [Fact]
+    public void CubeMapFaceValuesMatchUdbTextureSurface()
+    {
+        Assert.Equal(0, (int)CubeMapFace.PositiveX);
+        Assert.Equal(1, (int)CubeMapFace.PositiveY);
+        Assert.Equal(2, (int)CubeMapFace.PositiveZ);
+        Assert.Equal(3, (int)CubeMapFace.NegativeX);
+        Assert.Equal(4, (int)CubeMapFace.NegativeY);
+        Assert.Equal(5, (int)CubeMapFace.NegativeZ);
+    }
+
+    [Fact]
     public void RenderDeviceExposesUdbTextureOperationSurface()
     {
         Assert.NotNull(typeof(RenderDevice).GetMethod(

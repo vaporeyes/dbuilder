@@ -7,14 +7,14 @@ using Silk.NET.OpenGL;
 
 namespace DBuilder.Rendering;
 
-public enum CubeMapFace
+public enum CubeMapFace : int
 {
-    PositiveX,
-    PositiveY,
-    PositiveZ,
-    NegativeX,
-    NegativeY,
-    NegativeZ,
+    PositiveX = 0,
+    PositiveY = 1,
+    PositiveZ = 2,
+    NegativeX = 3,
+    NegativeY = 4,
+    NegativeZ = 5,
 }
 
 public enum TextureOperationKind
