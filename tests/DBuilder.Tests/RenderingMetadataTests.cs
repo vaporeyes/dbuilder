@@ -154,6 +154,50 @@ public sealed class RenderingMetadataTests
     }
 
     [Fact]
+    public void BufferBindingPlansTrackBindAndReleaseRequests()
+    {
+        RenderBufferBindingPlan flat = RenderDevice.BuildSetVertexBufferPlan(VertexFormat.Flat, vertexCount: 8);
+        RenderBufferBindingPlan world = RenderDevice.BuildSetVertexBufferPlan(VertexFormat.World, vertexCount: 4);
+        RenderBufferBindingPlan vertexRelease = RenderDevice.BuildReleaseVertexBufferPlan();
+        RenderBufferBindingPlan index = RenderDevice.BuildSetIndexBufferPlan(indexCount: 12);
+        RenderBufferBindingPlan indexRelease = RenderDevice.BuildReleaseIndexBufferPlan();
+
+        Assert.Equal(new RenderBufferBindingPlan(
+            RenderBufferBindingKind.SetVertexBuffer,
+            HasBuffer: true,
+            VertexFormat.Flat,
+            ElementCount: 8), flat);
+        Assert.Equal(VertexFormat.World, world.VertexFormat);
+        Assert.Equal(4, world.ElementCount);
+        Assert.Equal(new RenderBufferBindingPlan(
+            RenderBufferBindingKind.SetVertexBuffer,
+            HasBuffer: false,
+            VertexFormat: null,
+            ElementCount: 0), vertexRelease);
+        Assert.Equal(new RenderBufferBindingPlan(
+            RenderBufferBindingKind.SetIndexBuffer,
+            HasBuffer: true,
+            VertexFormat: null,
+            ElementCount: 12), index);
+        Assert.Equal(new RenderBufferBindingPlan(
+            RenderBufferBindingKind.SetIndexBuffer,
+            HasBuffer: false,
+            VertexFormat: null,
+            ElementCount: 0), indexRelease);
+    }
+
+    [Fact]
+    public void BufferBindingPlansRejectInvalidMetadata()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildSetVertexBufferPlan(VertexFormat.Flat, vertexCount: -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildSetVertexBufferPlan((VertexFormat)99, vertexCount: 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildSetIndexBufferPlan(indexCount: -1));
+    }
+
+    [Fact]
     public void UniformTypeValuesMatchUdbOrdering()
     {
         Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(UniformType)));

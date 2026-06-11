@@ -53,6 +53,12 @@ public enum RenderBufferOperationKind
     SetIndexSubdata,
 }
 
+public enum RenderBufferBindingKind
+{
+    SetVertexBuffer,
+    SetIndexBuffer,
+}
+
 public enum RenderShaderOperationKind
 {
     DeclareUniform,
@@ -163,6 +169,12 @@ public sealed record RenderBufferOperationPlan(
     long ElementOffset,
     long ByteOffset,
     long ByteCount);
+
+public sealed record RenderBufferBindingPlan(
+    RenderBufferBindingKind Kind,
+    bool HasBuffer,
+    VertexFormat? VertexFormat,
+    int ElementCount);
 
 public sealed record RenderShaderOperationPlan(
     RenderShaderOperationKind Kind,
@@ -593,6 +605,43 @@ public sealed class RenderDevice : IDisposable
             ByteOffset: checked(destOffset * sizeof(int)),
             ByteCount: checked((long)data.Length * sizeof(int)));
     }
+
+    public static RenderBufferBindingPlan BuildSetVertexBufferPlan(VertexFormat format, int vertexCount)
+    {
+        if (vertexCount < 0) throw new ArgumentOutOfRangeException(nameof(vertexCount));
+        _ = VertexStride(format);
+
+        return new RenderBufferBindingPlan(
+            RenderBufferBindingKind.SetVertexBuffer,
+            HasBuffer: true,
+            VertexFormat: format,
+            ElementCount: vertexCount);
+    }
+
+    public static RenderBufferBindingPlan BuildReleaseVertexBufferPlan()
+        => new(
+            RenderBufferBindingKind.SetVertexBuffer,
+            HasBuffer: false,
+            VertexFormat: null,
+            ElementCount: 0);
+
+    public static RenderBufferBindingPlan BuildSetIndexBufferPlan(int indexCount)
+    {
+        if (indexCount < 0) throw new ArgumentOutOfRangeException(nameof(indexCount));
+
+        return new RenderBufferBindingPlan(
+            RenderBufferBindingKind.SetIndexBuffer,
+            HasBuffer: true,
+            VertexFormat: null,
+            ElementCount: indexCount);
+    }
+
+    public static RenderBufferBindingPlan BuildReleaseIndexBufferPlan()
+        => new(
+            RenderBufferBindingKind.SetIndexBuffer,
+            HasBuffer: false,
+            VertexFormat: null,
+            ElementCount: 0);
 
     private static int VertexStride(VertexFormat format)
         => format switch

@@ -66,6 +66,7 @@ public static class RendererArchitectureModel
             "Render-device named uniform payload conversion planning",
             "Cull, depth, fill, blend, sampler, and texture state",
             "Flat and world vertex-buffer attribute binding",
+            "Vertex and index buffer binding planning",
             "Length-based vertex-buffer allocation",
             "Flat and world vertex-buffer subdata updates",
             "Index-buffer subdata updates",
