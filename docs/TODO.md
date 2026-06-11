@@ -1553,6 +1553,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style 3D thing geometry collection planning.
   - [x] Add UDB-style 3D bounding-box intersection planning.
   - [x] Add UDB-style 3D geometry dynamic light uniform planning.
+  - [x] Add UDB-style 3D geometry draw-state planning.
   - [x] Add UDB-style 3D geometry finish cleanup planning.
 - [ ] Port render passes and layers.
   - [x] Add UDB-style 2D presentation layer stack planning.

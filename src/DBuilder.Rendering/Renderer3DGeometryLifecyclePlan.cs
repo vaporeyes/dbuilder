@@ -146,6 +146,54 @@ public sealed record Renderer3DSkyRenderPlan(
     bool SetCameraUniform,
     IReadOnlyList<Renderer3DSkyGeometryDrawPlan> Draws);
 
+public sealed record Renderer3DGeometryDrawStateCandidate(
+    int Id,
+    int SectorId,
+    bool SectorNeedsUpdate,
+    bool SectorHasGeometryBuffer,
+    bool SectorHasMap,
+    bool Highlighted,
+    bool Selected,
+    bool SectorHasFog,
+    int SectorBrightness,
+    int SectorFogColor,
+    double SectorDesaturation,
+    double FogFactor,
+    Vector2f Skew,
+    int VertexOffset,
+    int Triangles);
+
+public sealed record Renderer3DGeometryDrawStatePlan(
+    int GeometryId,
+    int SectorId,
+    bool ClearDesaturation,
+    bool UpdateSectorGeometry,
+    bool BindSectorGeometryBuffer,
+    bool ClearCurrentSector,
+    ShaderName? WantedShader,
+    bool SwitchShader,
+    bool SetModelNormalForFog,
+    bool SetSectorLightLevel,
+    int? SectorBrightness,
+    bool SetFogUniforms,
+    double FogFactor,
+    int? SectorFogColor,
+    bool SetHighlightColor,
+    bool SetDesaturation,
+    double SectorDesaturation,
+    bool SetSkew,
+    Vector2f Skew,
+    bool Draw,
+    PrimitiveType PrimitiveType,
+    int VertexOffset,
+    int Triangles);
+
+public sealed record Renderer3DGeometryDrawStatePlanSet(
+    ShaderName InitialShader,
+    IReadOnlyList<Renderer3DGeometryDrawStatePlan> Draws,
+    bool ResetSkewAfterGeometry,
+    bool DisableLightsAfterGeometry);
+
 public sealed record Renderer3DModelPassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations)
 {
     public bool ShouldRender => Operations.Count > 0;
@@ -1104,6 +1152,95 @@ public static class Renderer3DGeometryLifecyclePlan
             AppliesFogUniforms: wantedShader > ShaderName.world3d_p7);
     }
 
+    public static Renderer3DGeometryDrawStatePlanSet BuildGeometryDrawStatePlan(
+        ShaderName baseShader,
+        IReadOnlyList<Renderer3DGeometryDrawStateCandidate> geometry,
+        bool drawFog,
+        bool fullBrightness,
+        bool classicRendering,
+        bool showHighlight,
+        bool showSelection)
+    {
+        ArgumentNullException.ThrowIfNull(geometry);
+
+        ShaderName currentShader = baseShader;
+        int? currentSectorId = null;
+        var draws = new List<Renderer3DGeometryDrawStatePlan>(geometry.Count);
+        foreach (Renderer3DGeometryDrawStateCandidate candidate in geometry)
+        {
+            if (!double.IsFinite(candidate.SectorDesaturation)) throw new ArgumentOutOfRangeException(nameof(geometry));
+            if (!double.IsFinite(candidate.FogFactor)) throw new ArgumentOutOfRangeException(nameof(geometry));
+            if (!IsFinite(candidate.Skew)) throw new ArgumentOutOfRangeException(nameof(geometry));
+            if (candidate.VertexOffset < 0) throw new ArgumentOutOfRangeException(nameof(geometry));
+            if (candidate.Triangles < 0) throw new ArgumentOutOfRangeException(nameof(geometry));
+
+            bool sectorChanged = currentSectorId != candidate.SectorId;
+            bool sectorAvailable = candidate.SectorHasGeometryBuffer && candidate.SectorHasMap;
+            bool updateSectorGeometry = sectorChanged && candidate.SectorNeedsUpdate;
+            bool bindSectorGeometryBuffer = sectorChanged && sectorAvailable;
+            bool clearCurrentSector = sectorChanged && !sectorAvailable;
+            if (sectorChanged)
+            {
+                currentSectorId = sectorAvailable ? candidate.SectorId : null;
+            }
+
+            bool draw = currentSectorId.HasValue;
+            ShaderName? wantedShader = null;
+            bool switchShader = false;
+            bool setModelNormalForFog = false;
+            bool setFogUniforms = false;
+            if (draw)
+            {
+                Renderer3DShaderPassPlan shaderPlan = BuildGeometryShaderPassPlan(
+                    baseShader,
+                    candidate.Highlighted,
+                    showHighlight,
+                    candidate.Selected,
+                    showSelection,
+                    drawFog,
+                    fullBrightness,
+                    classicRendering,
+                    candidate.SectorHasFog);
+                wantedShader = shaderPlan.WantedShader;
+                switchShader = currentShader != wantedShader.Value;
+                setModelNormalForFog = switchShader && shaderPlan.AppliesFogUniforms;
+                setFogUniforms = shaderPlan.AppliesFogUniforms;
+                currentShader = wantedShader.Value;
+            }
+
+            draws.Add(new Renderer3DGeometryDrawStatePlan(
+                candidate.Id,
+                candidate.SectorId,
+                ClearDesaturation: true,
+                updateSectorGeometry,
+                bindSectorGeometryBuffer,
+                clearCurrentSector,
+                wantedShader,
+                switchShader,
+                setModelNormalForFog,
+                SetSectorLightLevel: draw,
+                SectorBrightness: draw ? candidate.SectorBrightness : null,
+                setFogUniforms,
+                FogFactor: draw ? candidate.FogFactor : 0.0,
+                SectorFogColor: draw && setFogUniforms ? candidate.SectorFogColor : null,
+                SetHighlightColor: draw,
+                SetDesaturation: draw,
+                SectorDesaturation: draw ? candidate.SectorDesaturation : 0.0,
+                SetSkew: draw,
+                Skew: draw ? candidate.Skew : new Vector2f(),
+                draw,
+                PrimitiveType.TriangleList,
+                candidate.VertexOffset,
+                draw ? candidate.Triangles : 0));
+        }
+
+        return new Renderer3DGeometryDrawStatePlanSet(
+            baseShader,
+            draws,
+            ResetSkewAfterGeometry: true,
+            DisableLightsAfterGeometry: true);
+    }
+
     public static Renderer3DThingShaderPassPlan BuildThingShaderPassPlan(
         ShaderName baseShader,
         bool highlighted,
@@ -1705,6 +1842,9 @@ public static class Renderer3DGeometryLifecyclePlan
 
     private static bool IsFinite(Vector3f vector)
         => float.IsFinite(vector.X) && float.IsFinite(vector.Y) && float.IsFinite(vector.Z);
+
+    private static bool IsFinite(Vector2f vector)
+        => float.IsFinite(vector.X) && float.IsFinite(vector.Y);
 
     private static bool IsFinite(Vector3D vector)
         => double.IsFinite(vector.x) && double.IsFinite(vector.y) && double.IsFinite(vector.z);
