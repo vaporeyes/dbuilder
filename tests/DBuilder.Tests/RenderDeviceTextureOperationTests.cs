@@ -10,6 +10,7 @@ public sealed class RenderDeviceTextureOperationTests
     [Fact]
     public void CubeMapFaceValuesMatchUdbTextureSurface()
     {
+        Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(CubeMapFace)));
         Assert.Equal(0, (int)CubeMapFace.PositiveX);
         Assert.Equal(1, (int)CubeMapFace.PositiveY);
         Assert.Equal(2, (int)CubeMapFace.PositiveZ);
