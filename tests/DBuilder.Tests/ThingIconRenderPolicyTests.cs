@@ -341,6 +341,24 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
+    public void DeepOverviewCullCellsAreWideEnoughToPreventThingIconPileups()
+    {
+        double cellPixels = ThingIconRenderPolicy.OverviewCullCellPixelsFor(
+            viewScale: 0.8,
+            thingArrows: false);
+
+        Assert.Equal(640.0, cellPixels);
+        Assert.Equal(0, ThingIconRenderPolicy.OverviewCullCell(
+            screenCoordinate: 120,
+            viewScale: 0.8,
+            thingArrows: false));
+        Assert.Equal(0, ThingIconRenderPolicy.OverviewCullCell(
+            screenCoordinate: 600,
+            viewScale: 0.8,
+            thingArrows: false));
+    }
+
+    [Fact]
     public void OverviewCellsGroupNearbyScreenThings()
     {
         Assert.Equal(0, ThingIconRenderPolicy.OverviewCullCell(

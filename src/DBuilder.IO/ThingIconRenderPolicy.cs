@@ -20,7 +20,7 @@ public static class ThingIconRenderPolicy
     public const double OverviewMarkerBaseSize = 0.75;
     public const double OverviewCullCellPixels = 48.0;
     public const double FarOverviewCullCellPixels = 192.0;
-    public const double MaxFarOverviewCullCellPixels = 320.0;
+    public const double MaxFarOverviewCullCellPixels = 640.0;
     public const double CompactMarkerBaseSize = 4.0;
     public const double RegularMarkerBaseSize = 10.0;
     public const double CompactDirectionTickBaseSize = 7.0;
