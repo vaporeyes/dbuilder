@@ -63,10 +63,18 @@ public sealed class UdbScriptApiSurfaceTests
             "getSelectedOrHighlightedVertices", "getSelectedThings", "getHighlightedThing",
             "getSelectedOrHighlightedThings", "getSelectedSectors", "getHighlightedSector",
             "getSelectedOrHighlightedSectors", "getSelectedLinedefs", "getHighlightedLinedef",
+            "getSelectedSidedefs", "getHighlightedSidedef", "getSelectedOrHighlightedSidedefs",
             "getSelectedOrHighlightedLinedefs", "getSidedefsFromSelectedLinedefs",
             "getSidedefsFromSelectedOrHighlightedLinedefs", "clearAllSelected",
             "clearSelectedVertices", "clearSelectedThings", "clearSelectedSectors",
-            "createVertex", "createThing", "joinSectors", "mergeSectors");
+            "clearSelectedLinedefs", "clearSelectedSidedefs", "selectAllVertices",
+            "selectAllLinedefs", "selectAllSidedefs", "selectAllSectors", "selectAllThings",
+            "invertSelectedVertices", "invertSelectedLinedefs", "invertSelectedSidedefs",
+            "invertSelectedSectors", "invertSelectedThings", "addSelectionToGroup",
+            "clearGroup", "selectVerticesByGroup", "selectLinedefsByGroup", "selectSectorsByGroup",
+            "selectThingsByGroup", "moveSelectedVerticesBy", "moveSelectedThingsBy",
+            "flipSelectedLinedefs", "flipSelectedSidedefs", "createVertex", "createThing",
+            "joinSectors", "mergeSectors");
         Add(data, typeof(UdbScriptPlaneWrapper),
             "getIntersection", "distance", "closestOnPlane", "getZ");
         Add(data, typeof(UdbScriptSectorWrapper),
