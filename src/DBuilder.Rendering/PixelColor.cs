@@ -123,6 +123,15 @@ public struct PixelColor : IEquatable<PixelColor>
             (byte)((left.G * ByteToFloat * right.G * ByteToFloat) * 255.0f),
             (byte)((left.B * ByteToFloat * right.B * ByteToFloat) * 255.0f));
 
+    public PixelColor Add(PixelColor color)
+        => Add(this, color);
+
+    public PixelColor Subtract(PixelColor color)
+        => Subtract(this, color);
+
+    public PixelColor Modulate(PixelColor color)
+        => Modulate(this, color);
+
     public PixelColor Blend(PixelColor foreground, PixelColor background)
     {
         float alpha = foreground.A * ByteToFloat;

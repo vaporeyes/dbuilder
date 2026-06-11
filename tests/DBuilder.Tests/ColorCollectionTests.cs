@@ -204,6 +204,19 @@ public sealed class ColorCollectionTests
     }
 
     [Fact]
+    public void PixelColorArithmeticInstanceHelpersMatchStaticMath()
+    {
+        var left = new PixelColor(200, 220, 100, 30);
+        var right = new PixelColor(100, 90, 120, 250);
+
+        Assert.Equal(new PixelColor(255, 255, 220, 255), PixelColor.Add(left, right));
+        Assert.Equal(PixelColor.Add(left, right), left.Add(right));
+        Assert.Equal(new PixelColor(200, 130, 0, 0), PixelColor.Subtract(left, right));
+        Assert.Equal(PixelColor.Subtract(left, right), left.Subtract(right));
+        Assert.Equal(PixelColor.Modulate(left, right), left.Modulate(right));
+    }
+
+    [Fact]
     public void CorrectionTableUsesUdbImageBrightnessFormula()
     {
         byte[] darker = ColorCollection.CreateCorrectionTable(-5);

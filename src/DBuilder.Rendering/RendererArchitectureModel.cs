@@ -75,6 +75,7 @@ public static class RendererArchitectureModel
             "Render-device 2D texture clear and pixel upload application",
             "Render-device unsafe plotter pixel upload surface",
             "Cube texture resource and render-device cube operation surface",
+            "PixelColor arithmetic helper surface",
             "Owned indexed-triangle mesh wrapper",
             "Mesh construction, draw, and dispose operation planning",
             "Mesh disposal and finalizer lifecycle",
