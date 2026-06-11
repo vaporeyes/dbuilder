@@ -1541,6 +1541,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style index-buffer finalizer lifecycle.
 - [ ] Port texture handling and lifecycle.
   - [x] Add UDB-style texture disposed-state reporting and allocation failure guard.
+  - [x] Add UDB-style base texture finalizer lifecycle.
   - [x] Add UDB-style base texture lifecycle and render-device binding surface.
   - [x] Add UDB-style texture format metadata and 2D/cube allocation planning.
   - [x] Add UDB-style texture 2D format allocation application.

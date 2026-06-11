@@ -2,6 +2,7 @@
 // ABOUTME: Keeps texture lifecycle parity testable without creating a live GL context.
 
 using DBuilder.Rendering;
+using System.Reflection;
 
 namespace DBuilder.Tests;
 
@@ -32,6 +33,11 @@ public sealed class TextureLifecycleTests
         Assert.Contains(typeof(IDisposable), typeof(BaseTexture).GetInterfaces());
         Assert.True(typeof(Texture).IsSubclassOf(typeof(BaseTexture)));
         Assert.True(typeof(CubeTexture).IsSubclassOf(typeof(BaseTexture)));
+
+        MethodInfo? finalizer = typeof(BaseTexture).GetMethod("Finalize", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        Assert.NotNull(finalizer);
+        Assert.Equal(typeof(BaseTexture), finalizer.DeclaringType);
     }
 
     [Fact]

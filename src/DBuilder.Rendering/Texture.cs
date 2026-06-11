@@ -46,6 +46,11 @@ public abstract class BaseTexture : IDisposable
         if (Handle == 0) throw new InvalidOperationException("Texture allocation failed.");
     }
 
+    ~BaseTexture()
+    {
+        Dispose();
+    }
+
     public void Dispose()
     {
         if (!Disposed)
