@@ -1427,6 +1427,7 @@ public partial class MainWindow : Window
         _settings.AlphaBasedTextureHighlighting = dlg.AlphaBasedTextureHighlighting;
         _settings.EnhancedRenderingEffects = dlg.EnhancedRenderingEffects;
         _settings.ClassicRendering = dlg.ClassicRendering;
+        _settings.ImageBrightness = dlg.ImageBrightness;
         _settings.QualityDisplay = dlg.QualityDisplay;
         _settings.ClassicBilinear = dlg.ClassicBilinear;
         _settings.VisualBilinear = dlg.VisualBilinear;

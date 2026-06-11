@@ -164,6 +164,12 @@ public class SettingsTests
     {
         var settings = new Settings();
 
+        Assert.Equal(3, settings.NormalizedImageBrightness);
+        Assert.Equal(0, new Settings { ImageBrightness = -5 }.NormalizedImageBrightness);
+        Assert.Equal(10, new Settings { ImageBrightness = 30 }.NormalizedImageBrightness);
+        Assert.Equal(0, Settings.AcceptImageBrightnessText("-5"));
+        Assert.Equal(10, Settings.AcceptImageBrightnessText("30"));
+        Assert.Null(Settings.AcceptImageBrightnessText("bad"));
         Assert.True(settings.QualityDisplay);
         Assert.False(settings.ClassicBilinear);
         Assert.False(settings.VisualBilinear);
@@ -377,6 +383,7 @@ public class SettingsTests
                 LightRenderMode = (int)ThingLightRenderMode.Animated,
                 EnhancedRenderingEffects = false,
                 ClassicRendering = true,
+                ImageBrightness = 7,
                 QualityDisplay = false,
                 ClassicBilinear = true,
                 VisualBilinear = true,
@@ -550,6 +557,8 @@ public class SettingsTests
             Assert.Equal(ThingLightRenderMode.Animated, loaded.NormalizedLightRenderMode);
             Assert.False(loaded.EnhancedRenderingEffects);
             Assert.True(loaded.ClassicRendering);
+            Assert.Equal(7, loaded.ImageBrightness);
+            Assert.Equal(7, loaded.NormalizedImageBrightness);
             Assert.False(loaded.QualityDisplay);
             Assert.True(loaded.ClassicBilinear);
             Assert.True(loaded.VisualBilinear);

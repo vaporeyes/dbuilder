@@ -139,6 +139,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Persist and apply UDB-style default sector floor, ceiling, and brightness preferences.
   - [x] Persist and apply UDB-style fixed thing scale and always-show-vertices preferences.
   - [x] Persist UDB-style render quality and bilinear filtering preferences.
+  - [x] Persist UDB-style image brightness preference.
 - [x] Port pre-command and post-command support.
   - [x] Execute configured before/after Test Map commands.
   - [x] Pass the temporary Test Map WAD path to before/after Test Map commands.

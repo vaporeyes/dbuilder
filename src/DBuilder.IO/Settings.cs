@@ -31,6 +31,9 @@ public sealed class Settings
     public const int DefaultSectorFloorHeight = 0;
     public const int DefaultSectorCeilingHeight = 128;
     public const int DefaultSectorBrightness = 192;
+    public const int DefaultImageBrightness = 3;
+    public const int MinImageBrightness = 0;
+    public const int MaxImageBrightness = 10;
 
     public string? ConfigDir { get; set; }
     public string? LastUsedConfigName { get; set; }
@@ -66,6 +69,7 @@ public sealed class Settings
     public int? LightRenderMode { get; set; }
     public bool EnhancedRenderingEffects { get; set; } = true;
     public bool ClassicRendering { get; set; }
+    public int? ImageBrightness { get; set; }
     public bool QualityDisplay { get; set; } = true;
     public bool ClassicBilinear { get; set; }
     public bool VisualBilinear { get; set; }
@@ -140,6 +144,9 @@ public sealed class Settings
     public int NormalizedDefaultSectorBrightness =>
         Math.Clamp(DefaultSectorBrightnessSetting ?? DefaultSectorBrightness, 0, 255);
 
+    public int NormalizedImageBrightness =>
+        Math.Clamp(ImageBrightness ?? DefaultImageBrightness, MinImageBrightness, MaxImageBrightness);
+
     public ToastAnchor NormalizedToastAnchor =>
         ToastPreferences.NormalizeAnchor(ToastAnchor);
 
@@ -182,6 +189,9 @@ public sealed class Settings
     public static int? AcceptSectorBrightnessText(string? text)
         => int.TryParse(text, out int value) ? Math.Clamp(value, 0, 255) : null;
 
+    public static int? AcceptImageBrightnessText(string? text)
+        => int.TryParse(text, out int value) ? Math.Clamp(value, MinImageBrightness, MaxImageBrightness) : null;
+
     public static string MaxRecentFilesText(Settings settings)
         => settings.NormalizedMaxRecentFiles.ToString(CultureInfo.InvariantCulture);
 
@@ -205,6 +215,9 @@ public sealed class Settings
 
     public static string DefaultSectorBrightnessText(Settings settings)
         => settings.NormalizedDefaultSectorBrightness.ToString(CultureInfo.InvariantCulture);
+
+    public static string ImageBrightnessText(Settings settings)
+        => settings.NormalizedImageBrightness.ToString(CultureInfo.InvariantCulture);
 
     public int NormalizedDefaultViewMode =>
         Math.Clamp(DefaultViewMode ?? 0, 0, 3);
