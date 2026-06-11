@@ -11,8 +11,65 @@ public sealed record RendererArchitectureReplacement(
     IReadOnlyList<string> CoveredResponsibilities,
     IReadOnlyList<string> RemainingGaps);
 
+public sealed record Renderer2DContractSurface(
+    IReadOnlyList<string> Properties,
+    IReadOnlyList<string> Methods);
+
 public static class RendererArchitectureModel
 {
+    public static Renderer2DContractSurface Renderer2DContract { get; } = new(
+        Properties: new[]
+        {
+            "float OffsetX",
+            "float OffsetY",
+            "float TranslateX",
+            "float TranslateY",
+            "float Scale",
+            "int VertexSize",
+            "bool DrawMapCenter",
+            "ViewMode ViewMode",
+        },
+        Methods: new[]
+        {
+            "Vector2D DisplayToMap(Vector2D mousepos)",
+            "Vector2D MapToDisplay(Vector2D mappos)",
+            "PixelColor DetermineLinedefColor(Linedef l)",
+            "PixelColor DetermineThingColor(Thing t)",
+            "int DetermineVertexColor(Vertex v)",
+            "int CalculateBrightness(int level)",
+            "void UpdateExtraFloorFlag()",
+            "bool StartPlotter(bool clear)",
+            "bool StartThings(bool clear)",
+            "bool StartOverlay(bool clear, int layernum = 0)",
+            "void Finish()",
+            "void SetPresentation(Presentation present)",
+            "void Present()",
+            "void PlotLine(Vector2D start, Vector2D end, PixelColor c)",
+            "void PlotLine(Vector2D start, Vector2D end, PixelColor c, float lengthscaler)",
+            "void PlotLinedef(Linedef l, PixelColor c)",
+            "void PlotLinedefSet(ICollection<Linedef> linedefs)",
+            "void PlotSector(Sector s)",
+            "void PlotSector(Sector s, PixelColor c)",
+            "void PlotVertex(Vertex v, int colorindex, bool checkMode = true)",
+            "void PlotVertexAt(Vector2D v, int colorindex, bool checkMode = true)",
+            "void PlotVerticesSet(ICollection<Vertex> vertices, bool checkMode = true)",
+            "void RenderThing(Thing t, PixelColor c, float alpha)",
+            "void RenderThingSet(ICollection<Thing> things, float alpha)",
+            "void RenderThingSet(ICollection<Thing> things, PixelColor c, float alpha)",
+            "void RenderRectangle(RectangleF rect, float bordersize, PixelColor c, bool transformrect)",
+            "void RenderRectangleFilled(RectangleF rect, PixelColor c, bool transformrect)",
+            "void RenderRectangleFilled(RectangleF rect, PixelColor c, bool transformrect, ImageData texture)",
+            "void RenderLine(Vector2D start, Vector2D end, float thickness, PixelColor c, bool transformcoords)",
+            "void RenderArrows(ICollection<Line3D> line)",
+            "void RenderArrows(ICollection<Line3D> line, bool transformcoords)",
+            "void RenderText(TextLabel text)",
+            "void RenderText(ITextLabel text)",
+            "void RenderText(IList<ITextLabel> labels)",
+            "void RenderGeometry(FlatVertex[] vertices, ImageData texture, bool transformcoords)",
+            "void RenderHighlight(FlatVertex[] vertices, int color)",
+            "void RedrawSurface()",
+        });
+
     public static RendererArchitectureReplacement Current { get; } = new(
         DeviceApi: "Silk.NET OpenGL through Avalonia GL contexts and standalone Silk window hosts",
         ShaderCompilerStrategy: "Runtime GLSL compilation through DBuilder.Rendering.Shader",
@@ -47,6 +104,7 @@ public static class RendererArchitectureModel
             "2D presentation layer texture binding planning",
             "2D presentation per-layer draw operation sequence planning",
             "2D presentation planner input validation planning",
+            "Renderer2D contract surface model",
             "Render-device alpha-blend state planning",
             "Render-device alpha-test compatibility state planning",
             "Render-device multisample antialias compatibility state planning",

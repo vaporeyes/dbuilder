@@ -188,6 +188,80 @@ public class RendererArchitectureModelTests
     }
 
     [Fact]
+    public void Renderer2DContractSurfacePinsUdbInterfaceShape()
+    {
+        Renderer2DContractSurface surface = RendererArchitectureModel.Renderer2DContract;
+
+        Assert.Equal(new[]
+        {
+            "float OffsetX",
+            "float OffsetY",
+            "float TranslateX",
+            "float TranslateY",
+            "float Scale",
+            "int VertexSize",
+            "bool DrawMapCenter",
+            "ViewMode ViewMode",
+        }, surface.Properties);
+        Assert.Contains("Vector2D DisplayToMap(Vector2D mousepos)", surface.Methods);
+        Assert.Contains("Vector2D MapToDisplay(Vector2D mappos)", surface.Methods);
+        Assert.Contains("PixelColor DetermineLinedefColor(Linedef l)", surface.Methods);
+        Assert.Contains("PixelColor DetermineThingColor(Thing t)", surface.Methods);
+        Assert.Contains("int DetermineVertexColor(Vertex v)", surface.Methods);
+        Assert.Contains("int CalculateBrightness(int level)", surface.Methods);
+        Assert.Contains("void UpdateExtraFloorFlag()", surface.Methods);
+        Assert.Contains("bool StartPlotter(bool clear)", surface.Methods);
+        Assert.Contains("bool StartThings(bool clear)", surface.Methods);
+        Assert.Contains("bool StartOverlay(bool clear, int layernum = 0)", surface.Methods);
+        Assert.Contains("void Finish()", surface.Methods);
+        Assert.Contains("void SetPresentation(Presentation present)", surface.Methods);
+        Assert.Contains("void Present()", surface.Methods);
+        Assert.Contains("void PlotLine(Vector2D start, Vector2D end, PixelColor c)", surface.Methods);
+        Assert.Contains("void PlotLine(Vector2D start, Vector2D end, PixelColor c, float lengthscaler)", surface.Methods);
+        Assert.Contains("void PlotLinedef(Linedef l, PixelColor c)", surface.Methods);
+        Assert.Contains("void PlotLinedefSet(ICollection<Linedef> linedefs)", surface.Methods);
+        Assert.Contains("void PlotSector(Sector s)", surface.Methods);
+        Assert.Contains("void PlotSector(Sector s, PixelColor c)", surface.Methods);
+        Assert.Contains("void PlotVertex(Vertex v, int colorindex, bool checkMode = true)", surface.Methods);
+        Assert.Contains("void PlotVertexAt(Vector2D v, int colorindex, bool checkMode = true)", surface.Methods);
+        Assert.Contains("void PlotVerticesSet(ICollection<Vertex> vertices, bool checkMode = true)", surface.Methods);
+        Assert.Contains("void RenderThing(Thing t, PixelColor c, float alpha)", surface.Methods);
+        Assert.Contains("void RenderThingSet(ICollection<Thing> things, float alpha)", surface.Methods);
+        Assert.Contains("void RenderThingSet(ICollection<Thing> things, PixelColor c, float alpha)", surface.Methods);
+        Assert.Contains("void RenderRectangle(RectangleF rect, float bordersize, PixelColor c, bool transformrect)", surface.Methods);
+        Assert.Contains("void RenderRectangleFilled(RectangleF rect, PixelColor c, bool transformrect)", surface.Methods);
+        Assert.Contains("void RenderRectangleFilled(RectangleF rect, PixelColor c, bool transformrect, ImageData texture)", surface.Methods);
+        Assert.Contains("void RenderLine(Vector2D start, Vector2D end, float thickness, PixelColor c, bool transformcoords)", surface.Methods);
+        Assert.Contains("void RenderArrows(ICollection<Line3D> line)", surface.Methods);
+        Assert.Contains("void RenderArrows(ICollection<Line3D> line, bool transformcoords)", surface.Methods);
+        Assert.Contains("void RenderText(TextLabel text)", surface.Methods);
+        Assert.Contains("void RenderText(ITextLabel text)", surface.Methods);
+        Assert.Contains("void RenderText(IList<ITextLabel> labels)", surface.Methods);
+        Assert.Contains("void RenderGeometry(FlatVertex[] vertices, ImageData texture, bool transformcoords)", surface.Methods);
+        Assert.Contains("void RenderHighlight(FlatVertex[] vertices, int color)", surface.Methods);
+        Assert.Contains("void RedrawSurface()", surface.Methods);
+        Assert.Equal(37, surface.Methods.Count);
+        Assert.Contains("Renderer2D contract surface model", RendererArchitectureModel.Current.CoveredResponsibilities);
+    }
+
+    [Fact]
+    public void Renderer2DContractSurfaceMatchesUdbInterfaceWhenCloneIsAvailable()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "."));
+        string udbPath = Path.GetFullPath(Path.Combine(repositoryRoot, "..", "UltimateDoomBuilder", "Source", "Core", "Rendering", "IRenderer2D.cs"));
+        if (!File.Exists(udbPath)) return;
+
+        string source = File.ReadAllText(udbPath);
+        Renderer2DContractSurface surface = RendererArchitectureModel.Renderer2DContract;
+
+        foreach (string property in surface.Properties)
+            Assert.Contains(property, source, StringComparison.Ordinal);
+
+        foreach (string method in surface.Methods)
+            Assert.Contains(method, source, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void RenderDeviceExposesUdbLengthFormatVertexBufferUpload()
     {
         var overload = typeof(RenderDevice).GetMethod(

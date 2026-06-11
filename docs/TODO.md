@@ -1591,6 +1591,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style 2D presentation layer texture binding planning.
   - [x] Add UDB-style 2D presentation per-layer draw operation sequence planning.
   - [x] Add UDB-style 2D presentation planner input validation planning.
+  - [x] Add UDB-style Renderer2D contract surface model.
   - [x] Add UDB-style core visual render pass enum ordering.
   - [x] Add UDB-style core visual render pass enum underlying type.
   - [x] Add UDB-style core render layer enum ordering.
