@@ -207,6 +207,8 @@ public sealed class SurfaceUpdate
 {
     public SurfaceUpdate(int numVertices, bool updateFloor, bool updateCeiling)
     {
+        if (numVertices < 0) throw new ArgumentOutOfRangeException(nameof(numVertices));
+
         NumVertices = numVertices;
         FloorVertices = updateFloor ? new FlatVertex[numVertices] : null;
         CeilingVertices = updateCeiling ? new FlatVertex[numVertices] : null;

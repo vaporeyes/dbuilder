@@ -95,6 +95,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Surface buffer entry-size validation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface buffer hole allocation and free-entry planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface update entry application and chunk reuse planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Surface update vertex-count validation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface render pass visibility filtering and texture grouping", replacement.CoveredResponsibilities);
         Assert.Contains("Surface render texture fallback resolution planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface render draw-command and vertex-buffer binding planning", replacement.CoveredResponsibilities);

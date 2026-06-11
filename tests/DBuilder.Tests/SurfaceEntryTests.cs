@@ -110,6 +110,13 @@ public sealed class SurfaceEntryTests
     }
 
     [Fact]
+    public void SurfaceUpdateRejectsNegativeVertexCount()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new SurfaceUpdate(numVertices: -1, updateFloor: true, updateCeiling: true));
+    }
+
+    [Fact]
     public void SurfaceUpdateUdbFieldAliasesStayInSyncWithProperties()
     {
         var update = new SurfaceUpdate(numVertices: 3, updateFloor: false, updateCeiling: false);
