@@ -81,6 +81,35 @@ public sealed record Renderer3DGeometryPassOperation(
 
 public sealed record Renderer3DSkySolidPassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations);
 
+public sealed record Renderer3DSkyGeometryCandidate(
+    int Id,
+    int SectorId,
+    bool SectorNeedsUpdate,
+    bool SectorHasGeometryBuffer,
+    bool SectorHasMap,
+    bool Highlighted,
+    bool Selected,
+    int VertexOffset,
+    int Triangles);
+
+public sealed record Renderer3DSkyGeometryDrawPlan(
+    int GeometryId,
+    int SectorId,
+    bool UpdateSectorGeometry,
+    bool BindSectorGeometryBuffer,
+    bool ClearCurrentSector,
+    bool SetHighlightColor,
+    bool Draw,
+    PrimitiveType PrimitiveType,
+    int VertexOffset,
+    int Triangles);
+
+public sealed record Renderer3DSkyRenderPlan(
+    ShaderName Shader,
+    bool SetSkyTexture,
+    bool SetCameraUniform,
+    IReadOnlyList<Renderer3DSkyGeometryDrawPlan> Draws);
+
 public sealed record Renderer3DModelPassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations)
 {
     public bool ShouldRender => Operations.Count > 0;
@@ -466,6 +495,48 @@ public static class Renderer3DGeometryLifecyclePlan
             LightBucket: Renderer3DGeometryBucketKind.LightThings));
 
         return new Renderer3DSkySolidPassPlan(operations);
+    }
+
+    public static Renderer3DSkyRenderPlan BuildSkyRenderPlan(IReadOnlyList<Renderer3DSkyGeometryCandidate> geometry)
+    {
+        ArgumentNullException.ThrowIfNull(geometry);
+
+        var draws = new List<Renderer3DSkyGeometryDrawPlan>(geometry.Count);
+        int? currentSectorId = null;
+        foreach (Renderer3DSkyGeometryCandidate item in geometry)
+        {
+            if (item.VertexOffset < 0) throw new ArgumentOutOfRangeException(nameof(geometry));
+            if (item.Triangles < 0) throw new ArgumentOutOfRangeException(nameof(geometry));
+
+            bool sectorChanged = currentSectorId != item.SectorId;
+            bool sectorAvailable = item.SectorHasGeometryBuffer && item.SectorHasMap;
+            bool updateSectorGeometry = sectorChanged && item.SectorNeedsUpdate;
+            bool bindSectorGeometryBuffer = sectorChanged && sectorAvailable;
+            bool clearCurrentSector = sectorChanged && !sectorAvailable;
+            if (sectorChanged)
+            {
+                currentSectorId = sectorAvailable ? item.SectorId : null;
+            }
+
+            bool draw = currentSectorId.HasValue;
+            draws.Add(new Renderer3DSkyGeometryDrawPlan(
+                item.Id,
+                item.SectorId,
+                updateSectorGeometry,
+                bindSectorGeometryBuffer,
+                clearCurrentSector,
+                SetHighlightColor: draw,
+                draw,
+                PrimitiveType.TriangleList,
+                item.VertexOffset,
+                draw ? item.Triangles : 0));
+        }
+
+        return new Renderer3DSkyRenderPlan(
+            ShaderName.world3d_skybox,
+            SetSkyTexture: true,
+            SetCameraUniform: true,
+            draws);
     }
 
     public static Renderer3DModelPassPlan BuildMaskedModelPassPlan(int maskedModelThingCount)

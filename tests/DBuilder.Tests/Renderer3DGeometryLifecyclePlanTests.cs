@@ -125,6 +125,63 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
             Renderer3DGeometryLifecyclePlan.BuildSkySolidPassPlan(skyGeometryCount: -1));
 
     [Fact]
+    public void BuildSkyRenderPlanSetsUdbSkyStateAndDrawsValidSectors()
+    {
+        Renderer3DSkyRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildSkyRenderPlan(
+            [
+                new Renderer3DSkyGeometryCandidate(1, SectorId: 10, SectorNeedsUpdate: true, SectorHasGeometryBuffer: true, SectorHasMap: true, Highlighted: false, Selected: false, VertexOffset: 2, Triangles: 4),
+                new Renderer3DSkyGeometryCandidate(2, SectorId: 10, SectorNeedsUpdate: true, SectorHasGeometryBuffer: true, SectorHasMap: true, Highlighted: true, Selected: false, VertexOffset: 6, Triangles: 8),
+                new Renderer3DSkyGeometryCandidate(3, SectorId: 20, SectorNeedsUpdate: false, SectorHasGeometryBuffer: true, SectorHasMap: true, Highlighted: false, Selected: true, VertexOffset: 14, Triangles: 16),
+            ]);
+
+        Assert.Equal(ShaderName.world3d_skybox, plan.Shader);
+        Assert.True(plan.SetSkyTexture);
+        Assert.True(plan.SetCameraUniform);
+        Assert.Equal(
+            [
+                new Renderer3DSkyGeometryDrawPlan(1, SectorId: 10, UpdateSectorGeometry: true, BindSectorGeometryBuffer: true, ClearCurrentSector: false, SetHighlightColor: true, Draw: true, PrimitiveType.TriangleList, VertexOffset: 2, Triangles: 4),
+                new Renderer3DSkyGeometryDrawPlan(2, SectorId: 10, UpdateSectorGeometry: false, BindSectorGeometryBuffer: false, ClearCurrentSector: false, SetHighlightColor: true, Draw: true, PrimitiveType.TriangleList, VertexOffset: 6, Triangles: 8),
+                new Renderer3DSkyGeometryDrawPlan(3, SectorId: 20, UpdateSectorGeometry: false, BindSectorGeometryBuffer: true, ClearCurrentSector: false, SetHighlightColor: true, Draw: true, PrimitiveType.TriangleList, VertexOffset: 14, Triangles: 16),
+            ],
+            plan.Draws);
+    }
+
+    [Fact]
+    public void BuildSkyRenderPlanClearsCurrentSectorForUnavailableSectorAndResumesWhenValid()
+    {
+        Renderer3DSkyRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildSkyRenderPlan(
+            [
+                new Renderer3DSkyGeometryCandidate(1, SectorId: 10, SectorNeedsUpdate: false, SectorHasGeometryBuffer: true, SectorHasMap: true, Highlighted: false, Selected: false, VertexOffset: 2, Triangles: 4),
+                new Renderer3DSkyGeometryCandidate(2, SectorId: 20, SectorNeedsUpdate: true, SectorHasGeometryBuffer: false, SectorHasMap: true, Highlighted: false, Selected: false, VertexOffset: 6, Triangles: 8),
+                new Renderer3DSkyGeometryCandidate(3, SectorId: 20, SectorNeedsUpdate: true, SectorHasGeometryBuffer: true, SectorHasMap: true, Highlighted: false, Selected: false, VertexOffset: 14, Triangles: 16),
+                new Renderer3DSkyGeometryCandidate(4, SectorId: 30, SectorNeedsUpdate: false, SectorHasGeometryBuffer: true, SectorHasMap: false, Highlighted: false, Selected: false, VertexOffset: 30, Triangles: 32),
+            ]);
+
+        Assert.Equal(
+            [
+                new Renderer3DSkyGeometryDrawPlan(1, SectorId: 10, UpdateSectorGeometry: false, BindSectorGeometryBuffer: true, ClearCurrentSector: false, SetHighlightColor: true, Draw: true, PrimitiveType.TriangleList, VertexOffset: 2, Triangles: 4),
+                new Renderer3DSkyGeometryDrawPlan(2, SectorId: 20, UpdateSectorGeometry: true, BindSectorGeometryBuffer: false, ClearCurrentSector: true, SetHighlightColor: false, Draw: false, PrimitiveType.TriangleList, VertexOffset: 6, Triangles: 0),
+                new Renderer3DSkyGeometryDrawPlan(3, SectorId: 20, UpdateSectorGeometry: true, BindSectorGeometryBuffer: true, ClearCurrentSector: false, SetHighlightColor: true, Draw: true, PrimitiveType.TriangleList, VertexOffset: 14, Triangles: 16),
+                new Renderer3DSkyGeometryDrawPlan(4, SectorId: 30, UpdateSectorGeometry: false, BindSectorGeometryBuffer: false, ClearCurrentSector: true, SetHighlightColor: false, Draw: false, PrimitiveType.TriangleList, VertexOffset: 30, Triangles: 0),
+            ],
+            plan.Draws);
+    }
+
+    [Fact]
+    public void BuildSkyRenderPlanRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentNullException>(() => Renderer3DGeometryLifecyclePlan.BuildSkyRenderPlan(null!));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildSkyRenderPlan(
+            [
+                new Renderer3DSkyGeometryCandidate(1, SectorId: 10, SectorNeedsUpdate: false, SectorHasGeometryBuffer: true, SectorHasMap: true, Highlighted: false, Selected: false, VertexOffset: -1, Triangles: 4),
+            ]));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildSkyRenderPlan(
+            [
+                new Renderer3DSkyGeometryCandidate(1, SectorId: 10, SectorNeedsUpdate: false, SectorHasGeometryBuffer: true, SectorHasMap: true, Highlighted: false, Selected: false, VertexOffset: 2, Triangles: -1),
+            ]));
+    }
+
+    [Fact]
     public void BuildMaskedModelPassPlanSkipsWhenNoMaskedModelsExist()
     {
         Renderer3DModelPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildMaskedModelPassPlan(maskedModelThingCount: 0);
@@ -1784,6 +1841,17 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("graphics.SetAlphaTestEnable(false);", source, StringComparison.Ordinal);
         Assert.Contains("if (skygeo.Count > 0)", source, StringComparison.Ordinal);
         Assert.Contains("RenderSky(skygeo);", source, StringComparison.Ordinal);
+        Assert.Contains("private void RenderSky(IEnumerable<VisualGeometry> geo)", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetShader(ShaderName.world3d_skybox);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetTexture(General.Map.Data.SkyBox);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.campos, new Vector4f((float)cameraposition.x, (float)cameraposition.y, (float)cameraposition.z, 0f));", source, StringComparison.Ordinal);
+        Assert.Contains("if(!object.ReferenceEquals(g.Sector, sector))", source, StringComparison.Ordinal);
+        Assert.Contains("if(g.Sector.NeedsUpdateGeo) g.Sector.Update(graphics);", source, StringComparison.Ordinal);
+        Assert.Contains("if(g.Sector.GeometryBuffer != null && g.Sector.Sector.Map != null)", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetVertexBuffer(sector.GeometryBuffer);", source, StringComparison.Ordinal);
+        Assert.Contains("sector = null;", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.highlightcolor, CalculateHighlightColor((g == highlighted) && showhighlight, (g.Selected && showselection)));", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.Draw(PrimitiveType.TriangleList, g.VertexOffset, g.Triangles);", source, StringComparison.Ordinal);
         Assert.Contains("RenderSinglePass(solidgeo, solidthings, lightthings);", source, StringComparison.Ordinal);
         Assert.Contains("if(maskedmodelthings.Count > 0)", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetAlphaTestEnable(true);", source, StringComparison.Ordinal);
