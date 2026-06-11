@@ -123,6 +123,25 @@ public sealed record TextLabelFontPlan(
     bool Bold,
     bool UsedFallback);
 
+public sealed record TextLabelInitializationPlan(
+    string Text,
+    TextLabelPoint Location,
+    PixelColor Color,
+    PixelColor BackColor,
+    TextLabelAlignmentX AlignX,
+    TextLabelAlignmentY AlignY,
+    bool DrawBackground,
+    bool TransformCoordinates,
+    TextLabelInvalidation Invalidation,
+    bool RegisterRenderResource,
+    bool SuppressFinalizer);
+
+public sealed record TextLabelDisposePlan(
+    bool UnloadResource,
+    bool DisposeFont,
+    bool UnregisterRenderResource,
+    bool MarkDisposed);
+
 public enum TextLabelPropertyChangeKind
 {
     None,
@@ -145,6 +164,33 @@ public static class TextLabelPlan
     public const double TextOriginY = 3.0;
     public const double BackgroundBorderWidth = 1.0;
     public const string Display2DNormalShaderName = "display2d_normal";
+
+    public static TextLabelInitializationPlan BuildInitializationPlan()
+        => new(
+            Text: "",
+            Location: new TextLabelPoint(0.0, 0.0),
+            Color: new PixelColor(255, 255, 255, 255),
+            BackColor: new PixelColor(128, 0, 0, 0),
+            AlignX: TextLabelAlignmentX.Center,
+            AlignY: TextLabelAlignmentY.Top,
+            DrawBackground: false,
+            TransformCoordinates: false,
+            TextLabelInvalidation.Initial,
+            RegisterRenderResource: true,
+            SuppressFinalizer: true);
+
+    public static TextLabelDisposePlan BuildDisposePlan(bool isDisposed)
+        => isDisposed
+            ? new TextLabelDisposePlan(
+                UnloadResource: false,
+                DisposeFont: false,
+                UnregisterRenderResource: false,
+                MarkDisposed: false)
+            : new TextLabelDisposePlan(
+                UnloadResource: true,
+                DisposeFont: true,
+                UnregisterRenderResource: true,
+                MarkDisposed: true);
 
     public static TextLabelFontPlan BuildDefaultFontPlan(
         IReadOnlyCollection<string>? availableFamilies = null,

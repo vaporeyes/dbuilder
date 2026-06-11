@@ -1600,6 +1600,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style text font resource and containment helpers.
   - [x] Add UDB-style text font configuration metric normalization.
   - [x] Add UDB-style text font glyph metrics and vertex planning.
+  - [x] Add UDB-style text label constructor and dispose lifecycle planning.
   - [x] Add UDB-style text label font selection and legacy scale planning.
   - [x] Add UDB-style text label compatibility property mutation planning.
   - [x] Add UDB-style text label setter invalidation planning.

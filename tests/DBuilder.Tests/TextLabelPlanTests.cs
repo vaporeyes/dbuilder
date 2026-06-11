@@ -8,6 +8,40 @@ namespace DBuilder.Tests;
 public sealed class TextLabelPlanTests
 {
     [Fact]
+    public void BuildInitializationPlanMatchesUdbConstructorDefaults()
+    {
+        TextLabelInitializationPlan plan = TextLabelPlan.BuildInitializationPlan();
+
+        Assert.Equal("", plan.Text);
+        Assert.Equal(new TextLabelPoint(0, 0), plan.Location);
+        Assert.Equal(new PixelColor(255, 255, 255, 255), plan.Color);
+        Assert.Equal(new PixelColor(128, 0, 0, 0), plan.BackColor);
+        Assert.Equal(TextLabelAlignmentX.Center, plan.AlignX);
+        Assert.Equal(TextLabelAlignmentY.Top, plan.AlignY);
+        Assert.False(plan.DrawBackground);
+        Assert.False(plan.TransformCoordinates);
+        Assert.Equal(TextLabelInvalidation.Initial, plan.Invalidation);
+        Assert.True(plan.RegisterRenderResource);
+        Assert.True(plan.SuppressFinalizer);
+    }
+
+    [Fact]
+    public void BuildDisposePlanMatchesUdbDisposeLifecycle()
+    {
+        TextLabelDisposePlan active = TextLabelPlan.BuildDisposePlan(isDisposed: false);
+        TextLabelDisposePlan disposed = TextLabelPlan.BuildDisposePlan(isDisposed: true);
+
+        Assert.True(active.UnloadResource);
+        Assert.True(active.DisposeFont);
+        Assert.True(active.UnregisterRenderResource);
+        Assert.True(active.MarkDisposed);
+        Assert.False(disposed.UnloadResource);
+        Assert.False(disposed.DisposeFont);
+        Assert.False(disposed.UnregisterRenderResource);
+        Assert.False(disposed.MarkDisposed);
+    }
+
+    [Fact]
     public void BuildDefaultFontPlanMatchesUdbConfigurationDefaults()
     {
         TextLabelFontPlan plan = TextLabelPlan.BuildDefaultFontPlan(
