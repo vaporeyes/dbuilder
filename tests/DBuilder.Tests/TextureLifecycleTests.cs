@@ -64,6 +64,19 @@ public sealed class TextureLifecycleTests
     }
 
     [Fact]
+    public void AllocationPlansRejectInvalidDimensionsAndFormats()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Texture.Build2DAllocationPlan(width: 0, height: 1, TextureFormat.Rgba8));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Texture.Build2DAllocationPlan(width: 1, height: 0, TextureFormat.Rgba8));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Texture.Build2DAllocationPlan(width: 1, height: 1, (TextureFormat)99));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Texture.BuildCubeAllocationPlan(size: 0));
+    }
+
+    [Fact]
     public void Build2DPixelUploadPlanTracksRgbaByteCounts()
     {
         TexturePixelUploadPlan plan = Texture.BuildRgba8UploadPlan(

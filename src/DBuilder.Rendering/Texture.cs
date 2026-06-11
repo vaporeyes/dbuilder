@@ -101,10 +101,19 @@ public sealed class Texture : BaseTexture
     }
 
     public static TextureAllocationPlan Build2DAllocationPlan(int width, int height, TextureFormat format)
-        => new(TextureAllocationKind.Texture2D, width, height, format);
+    {
+        ValidateDimensions(width, height);
+        _ = MapFormat(format);
+
+        return new TextureAllocationPlan(TextureAllocationKind.Texture2D, width, height, format);
+    }
 
     public static TextureAllocationPlan BuildCubeAllocationPlan(int size)
-        => new(TextureAllocationKind.Cube, size, size, TextureFormat.Bgra8);
+    {
+        ValidateDimensions(size, size);
+
+        return new TextureAllocationPlan(TextureAllocationKind.Cube, size, size, TextureFormat.Bgra8);
+    }
 
     public static TexturePixelUploadPlan BuildRgba8UploadPlan(
         int width,

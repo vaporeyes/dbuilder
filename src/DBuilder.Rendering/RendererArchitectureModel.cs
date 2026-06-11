@@ -67,6 +67,7 @@ public static class RendererArchitectureModel
             "Texture disposed-state reporting",
             "Base texture lifecycle and render-device binding surface",
             "Texture format metadata and 2D/cube allocation planning",
+            "Texture allocation validation planning",
             "Texture 2D format allocation application",
             "Texture pixel upload byte-size planning",
             "Render-device texture operation planning",

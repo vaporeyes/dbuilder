@@ -60,6 +60,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Texture disposed-state reporting", replacement.CoveredResponsibilities);
         Assert.Contains("Base texture lifecycle and render-device binding surface", replacement.CoveredResponsibilities);
         Assert.Contains("Texture format metadata and 2D/cube allocation planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Texture allocation validation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Texture 2D format allocation application", replacement.CoveredResponsibilities);
         Assert.Contains("Texture pixel upload byte-size planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device texture operation planning", replacement.CoveredResponsibilities);
