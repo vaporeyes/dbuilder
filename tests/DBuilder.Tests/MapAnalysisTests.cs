@@ -2584,6 +2584,21 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void CloseParallelLinedefsDoNotOverlapUnlessEndpointsMatchExactly()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(10, 0));
+        var c = map.AddVertex(new Vector2D(0.0004, 0));
+        var d = map.AddVertex(new Vector2D(10.0004, 0));
+        map.AddLinedef(a, b);
+        map.AddLinedef(c, d);
+        map.BuildIndexes();
+
+        Assert.False(Has(map, new MapCheckContext(), MapIssueKind.OverlappingLinedefs));
+    }
+
+    [Fact]
     public void CrossingLinedefsFlagged()
     {
         var map = new MapSet();

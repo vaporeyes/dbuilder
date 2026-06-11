@@ -1580,13 +1580,13 @@ public static class MapAnalysis
     // Two linedefs sharing both endpoints or crossing through their interiors overlap; report each extra one once.
     private static void CheckOverlappingLinedefs(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
     {
-        var seen = new Dictionary<(long, long, long, long), Linedef>();
+        var seen = new Dictionary<(Vector2D, Vector2D), Linedef>();
         for (int i = 0; i < map.Linedefs.Count; i++)
         {
             var l = map.Linedefs[i];
-            var a = Key(l.Start.Position);
-            var b = Key(l.End.Position);
-            var key = Compare(a, b) <= 0 ? (a.Item1, a.Item2, b.Item1, b.Item2) : (b.Item1, b.Item2, a.Item1, a.Item2);
+            var a = l.Start.Position;
+            var b = l.End.Position;
+            var key = Compare(a, b) <= 0 ? (a, b) : (b, a);
             if (seen.TryGetValue(key, out var matchingLine))
                 issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.OverlappingLinedefs,
                     $"Linedefs {i} and {map.IndexOfLinedef(matchingLine)} are overlapping and reference different sectors")
@@ -1623,8 +1623,7 @@ public static class MapAnalysis
             }
         }
 
-        static (long, long) Key(Vector2D p) => ((long)Math.Round(p.x * 1000), (long)Math.Round(p.y * 1000));
-        static int Compare((long, long) a, (long, long) b) => a.Item1 != b.Item1 ? a.Item1.CompareTo(b.Item1) : a.Item2.CompareTo(b.Item2);
+        static int Compare(Vector2D a, Vector2D b) => a.x != b.x ? a.x.CompareTo(b.x) : a.y.CompareTo(b.y);
     }
 
     private static bool ReferencesSameSectorOnAllSides(Linedef a, Linedef b)

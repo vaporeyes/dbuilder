@@ -2362,6 +2362,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match UDB off-grid vertex checks to fractional map coordinates.
   - [x] Match UDB exact integer-cast semantics for off-grid vertex checks.
   - [x] Round overlapping-line intersection offsets using UDB vertex decimal precision.
+  - [x] Match UDB exact endpoint checks for duplicate overlapping linedefs.
   - [x] Match UDB exact-position checks for overlapping vertices.
   - [x] Match UDB stuck-line box intersection behavior for contained linedef endpoints.
   - [x] Run UDB off-grid vertex checks without resource context.
