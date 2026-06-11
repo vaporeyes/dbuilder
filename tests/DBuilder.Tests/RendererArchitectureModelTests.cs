@@ -39,6 +39,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("2D presentation layer draw dispatch argument planning", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation layer texture binding planning", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation per-layer draw operation sequence planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device alpha-blend state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device alpha-test compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device multisample antialias compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device depth and depth-write state planning", replacement.CoveredResponsibilities);
@@ -226,6 +227,17 @@ public class RendererArchitectureModelTests
     public void RenderDeviceExposesUdbDisposedState()
     {
         Assert.NotNull(typeof(RenderDevice).GetProperty(nameof(RenderDevice.Disposed)));
+    }
+
+    [Fact]
+    public void RenderDeviceBuildsUdbAlphaBlendStatePlans()
+    {
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetAlphaBlendEnable), new[] { typeof(bool) }));
+
+        RenderStateTogglePlan plan = RenderDevice.BuildAlphaBlendPlan(enabled: true);
+
+        Assert.Equal(RenderStateToggleKind.AlphaBlend, plan.Kind);
+        Assert.True(plan.Enabled);
     }
 
     [Fact]

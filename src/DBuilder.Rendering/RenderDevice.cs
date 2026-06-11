@@ -848,6 +848,9 @@ public sealed class RenderDevice : IDisposable
         return new(kind, wasRegistered, willBeRegistered, wasRegistered != willBeRegistered);
     }
 
+    public static RenderStateTogglePlan BuildAlphaBlendPlan(bool enabled)
+        => new(RenderStateToggleKind.AlphaBlend, enabled);
+
     public static RenderStateTogglePlan BuildAlphaTestPlan(bool enabled)
         => new(RenderStateToggleKind.AlphaTest, enabled);
 
@@ -878,7 +881,7 @@ public sealed class RenderDevice : IDisposable
         MipmapFilter mipFilter = visualBilinear ? MipmapFilter.Linear : MipmapFilter.Nearest;
 
         return new(
-            AlphaBlend: new(RenderStateToggleKind.AlphaBlend, Enabled: false),
+            AlphaBlend: BuildAlphaBlendPlan(enabled: false),
             AlphaTest: BuildAlphaTestPlan(enabled: false),
             CullMode: Cull.None,
             DestinationBlend: Blend.InverseSourceAlpha,

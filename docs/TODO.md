@@ -1522,6 +1522,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style SurfaceEntry field and UpdateBBox aliases.
   - [x] Add UDB-style SurfaceUpdate field aliases.
   - [x] Add UDB-style render-device enum values.
+  - [x] Add UDB-style render-device alpha-blend state planning.
   - [x] Add UDB-style render-device blend-operation planning.
   - [x] Add UDB-style render-device blend-factor planning.
   - [x] Add UDB-style render-device cull and fill raster-state planning.
