@@ -217,6 +217,90 @@ public sealed class ThingBatchRenderPlannerTests
     }
 
     [Fact]
+    public void BatchItemDecisionSkipsHighlightedThingsOutsideFixedColorRendering()
+    {
+        ThingBatchItemDecision decision = ThingBatchRenderPlanner.BuildItemDecision(
+            ThingRenderMode.MODEL,
+            fixedColor: false,
+            highlighted: true,
+            selected: false,
+            thingsMode: true,
+            alpha: 1.0f);
+
+        Assert.True(decision.SkipHighlighted);
+        Assert.False(decision.CollectModel);
+        Assert.Equal(128, decision.BoundingBoxAlpha);
+    }
+
+    [Fact]
+    public void BatchItemDecisionKeepsHighlightedThingsInFixedColorRendering()
+    {
+        ThingBatchItemDecision decision = ThingBatchRenderPlanner.BuildItemDecision(
+            ThingRenderMode.MODEL,
+            fixedColor: true,
+            highlighted: true,
+            selected: false,
+            thingsMode: true,
+            alpha: 1.0f);
+
+        Assert.False(decision.SkipHighlighted);
+        Assert.True(decision.CollectModel);
+        Assert.Equal(255, decision.BoundingBoxAlpha);
+    }
+
+    [Theory]
+    [InlineData(ThingRenderMode.MODEL, true)]
+    [InlineData(ThingRenderMode.VOXEL, true)]
+    [InlineData(ThingRenderMode.NORMAL, false)]
+    [InlineData(ThingRenderMode.WALLSPRITE, false)]
+    public void BatchItemDecisionCollectsModelsAndVoxelsOnly(ThingRenderMode renderMode, bool expected)
+    {
+        ThingBatchItemDecision decision = ThingBatchRenderPlanner.BuildItemDecision(
+            renderMode,
+            fixedColor: false,
+            highlighted: false,
+            selected: false,
+            thingsMode: false,
+            alpha: 1.0f);
+
+        Assert.Equal(expected, decision.CollectModel);
+    }
+
+    [Fact]
+    public void BatchItemDecisionDimsUnselectedThingModeBoundingBoxAlphaLikeUdb()
+    {
+        ThingBatchItemDecision unselected = ThingBatchRenderPlanner.BuildItemDecision(
+            ThingRenderMode.NORMAL,
+            fixedColor: false,
+            highlighted: false,
+            selected: false,
+            thingsMode: true,
+            alpha: 0.5f);
+        ThingBatchItemDecision selected = ThingBatchRenderPlanner.BuildItemDecision(
+            ThingRenderMode.NORMAL,
+            fixedColor: false,
+            highlighted: false,
+            selected: true,
+            thingsMode: true,
+            alpha: 0.5f);
+
+        Assert.Equal(64, unselected.BoundingBoxAlpha);
+        Assert.Equal(127, selected.BoundingBoxAlpha);
+    }
+
+    [Fact]
+    public void BatchItemDecisionRejectsInvalidAlpha()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildItemDecision(
+            ThingRenderMode.NORMAL,
+            fixedColor: false,
+            highlighted: false,
+            selected: false,
+            thingsMode: false,
+            alpha: float.NaN));
+    }
+
+    [Fact]
     public void ArrowTextureBoundsMatchUdbSpriteState()
     {
         Assert.Equal(new ThingArrowTextureBounds(0.501f, 0.999f, 0.001f, 0.999f),
@@ -398,6 +482,9 @@ public sealed class ThingBatchRenderPlannerTests
         Assert.Contains("float spritesize = Math.Max(spritewidth, spriteheight);", source, StringComparison.Ordinal);
         Assert.Contains("if(!forcespriterendering && spritesize < MINIMUM_SPRITE_RADIUS)", source, StringComparison.Ordinal);
         Assert.Contains("v.z = -1;", source, StringComparison.Ordinal);
+        Assert.Contains("if(!fixedcolor && t.Highlighted) continue;", source, StringComparison.Ordinal);
+        Assert.Contains("if(t.RenderMode == ThingRenderMode.MODEL || t.RenderMode == ThingRenderMode.VOXEL)", source, StringComparison.Ordinal);
+        Assert.Contains("byte bboxalpha = (byte)(alpha * ((!fixedcolor && !t.Selected && isthingsmode) ? 128 : 255));", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetBufferSubdata(thingsvertices, verts, buffercount * 6);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.Draw(PrimitiveType.TriangleList, 0, buffercount * 2);", source, StringComparison.Ordinal);
         Assert.Contains("locksize = ((things.Count - totalcount) > THING_BUFFER_SIZE) ? THING_BUFFER_SIZE : (things.Count - totalcount);", source, StringComparison.Ordinal);

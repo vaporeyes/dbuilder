@@ -43,6 +43,11 @@ public readonly record struct ThingSpriteRenderDecision(
     bool RenderSprite,
     bool MarkArrowLarge);
 
+public readonly record struct ThingBatchItemDecision(
+    bool SkipHighlighted,
+    bool CollectModel,
+    byte BoundingBoxAlpha);
+
 public static class ThingBatchRenderPlanner
 {
     public const int VerticesPerThing = 6;
@@ -139,6 +144,25 @@ public static class ThingBatchRenderPlanner
             SkipForModelRender: false,
             RenderSprite: !spriteTooSmall,
             MarkArrowLarge: spriteTooSmall);
+    }
+
+    public static ThingBatchItemDecision BuildItemDecision(
+        ThingRenderMode renderMode,
+        bool fixedColor,
+        bool highlighted,
+        bool selected,
+        bool thingsMode,
+        float alpha)
+    {
+        if (float.IsNaN(alpha)) throw new ArgumentOutOfRangeException(nameof(alpha));
+
+        bool skipHighlighted = !fixedColor && highlighted;
+        bool collectModel = !skipHighlighted && renderMode is ThingRenderMode.MODEL or ThingRenderMode.VOXEL;
+        float alphaScale = !fixedColor && !selected && thingsMode ? 128.0f : 255.0f;
+        return new ThingBatchItemDecision(
+            skipHighlighted,
+            collectModel,
+            (byte)(alpha * alphaScale));
     }
 
     public static ThingArrowTextureBounds ArrowTextureBounds(bool spriteSkipped)
