@@ -1523,6 +1523,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style render-device enum values.
   - [x] Add UDB-style text alignment enum underlying types.
 - [x] Port render modes and view modes.
+  - [x] Add UDB-style rendering render mode enum surfaces.
   - [x] Add UDB-style classic 2D view mode action ids and renderer switching for wireframe, brightness, floor textures, and ceiling textures.
   - [x] Add raw UDB classic view mode and highlight action aliases.
   - [x] Persist UDB-style default classic 2D view mode setting and apply it on startup.

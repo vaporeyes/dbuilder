@@ -8140,7 +8140,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
 
         bool hasEligible = things.Any(thing =>
-            ThingWallAlignment.IsAlignable(_gameConfig.GetThing(thing.Type)?.RenderMode ?? ThingRenderMode.Normal));
+            ThingWallAlignment.IsAlignable(_gameConfig.GetThing(thing.Type)?.RenderMode ?? DBuilder.IO.ThingRenderMode.Normal));
         if (!hasEligible)
         {
             const string message = "This action only works for models or things with FLATSPRITE/WALLSPRITE flags!";

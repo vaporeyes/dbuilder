@@ -31,6 +31,30 @@ public enum RenderLayers : int
     Surface = 5,
 }
 
+public enum ModelRenderMode
+{
+    NONE = 0,
+    SELECTION = 1,
+    ACTIVE_THINGS_FILTER = 2,
+    ALL = 3,
+}
+
+public enum LightRenderMode
+{
+    NONE = 0,
+    ALL = 1,
+    ALL_ANIMATED = 2,
+}
+
+public enum ThingRenderMode
+{
+    NORMAL = 0,
+    MODEL = 1,
+    VOXEL = 2,
+    WALLSPRITE = 3,
+    FLATSPRITE = 4,
+}
+
 public enum TextAlignmentX : int
 {
     Left = 0,
