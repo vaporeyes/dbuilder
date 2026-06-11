@@ -431,6 +431,7 @@ public class MapSetStitchTests
         var front = map.AddSidedef(line, true, sector);
         front.MidTexture = "STONE";
         front.OffsetX = 12;
+        line.ApplySidedFlags();
 
         int created = map.CorrectOuterSidedefs(new[] { line });
 
@@ -439,6 +440,9 @@ public class MapSetStitchTests
         Assert.Same(sector, line.Back!.Sector);
         Assert.Equal("STONE", line.Back.MidTexture);
         Assert.Equal(12, line.Back.OffsetX);
+        Assert.True(line.IsFlagSet("twosided"));
+        Assert.False(line.IsFlagSet("blocking"));
+        Assert.Equal(Linedef.TwoSidedFlagBit, line.Flags);
     }
 
     [Fact]
@@ -448,6 +452,7 @@ public class MapSetStitchTests
         var line = map.AddLinedef(map.AddVertex(new Vector2D(32, 32)), map.AddVertex(new Vector2D(96, 32)));
         var back = map.AddSidedef(line, false, sector);
         back.MidTexture = "BRICK";
+        line.ApplySidedFlags();
 
         int created = map.CorrectOuterSidedefs(new[] { line });
 
@@ -455,6 +460,9 @@ public class MapSetStitchTests
         Assert.NotNull(line.Front);
         Assert.Same(sector, line.Front!.Sector);
         Assert.Equal("BRICK", line.Front.MidTexture);
+        Assert.True(line.IsFlagSet("twosided"));
+        Assert.False(line.IsFlagSet("blocking"));
+        Assert.Equal(Linedef.TwoSidedFlagBit, line.Flags);
     }
 
     [Fact]

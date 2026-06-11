@@ -474,6 +474,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style overlapping linedef joining to stitch cleanup.
   - [x] Add UDB-style sector lookup for contained linedefs.
   - [x] Add UDB-style outer sidedef correction for lines inside sectors.
+  - [x] Apply UDB-style sidedness flags when outer sidedef correction creates shared sides.
   - [x] Add UDB-style merge geometry mode surface for selected stitching.
   - [x] Persist and apply UDB-style merge geometry mode setting.
   - [x] Remove fully contained interior linedefs during replace-mode stitching.

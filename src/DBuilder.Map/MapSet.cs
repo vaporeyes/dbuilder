@@ -1327,6 +1327,7 @@ public class MapSet : IDisposable
             {
                 var side = AddSidedef(line, true, containingSector);
                 CopySidedefProperties(source, side);
+                line.ApplySidedFlags();
                 created++;
             }
 
@@ -1334,6 +1335,7 @@ public class MapSet : IDisposable
             {
                 var side = AddSidedef(line, false, containingSector);
                 CopySidedefProperties(source, side);
+                line.ApplySidedFlags();
                 created++;
             }
         }
