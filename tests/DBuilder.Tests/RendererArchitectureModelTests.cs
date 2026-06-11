@@ -42,6 +42,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Render-device alpha-test compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device multisample antialias compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device blend-operation planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device blend-factor planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device sampler-filter overload planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device sampler address-state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device setup settings planning", replacement.CoveredResponsibilities);
@@ -261,6 +262,23 @@ public class RendererArchitectureModelTests
 
         Assert.Equal(BlendOperation.Add, add.Operation);
         Assert.Equal(BlendOperation.ReverseSubtract, reverseSubtract.Operation);
+    }
+
+    [Fact]
+    public void RenderDeviceBuildsUdbBlendFactorPlans()
+    {
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetSourceBlend), new[] { typeof(Blend) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetDestinationBlend), new[] { typeof(Blend) }));
+
+        BlendFactorPlan alpha = RenderDevice.BuildBlendFactorPlan(
+            Blend.SourceAlpha,
+            Blend.InverseSourceAlpha);
+        BlendFactorPlan additive = RenderDevice.BuildBlendFactorPlan(Blend.One, Blend.One);
+
+        Assert.Equal(Blend.SourceAlpha, alpha.SourceBlend);
+        Assert.Equal(Blend.InverseSourceAlpha, alpha.DestinationBlend);
+        Assert.Equal(Blend.One, additive.SourceBlend);
+        Assert.Equal(Blend.One, additive.DestinationBlend);
     }
 
     [Fact]

@@ -1523,6 +1523,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style SurfaceUpdate field aliases.
   - [x] Add UDB-style render-device enum values.
   - [x] Add UDB-style render-device blend-operation planning.
+  - [x] Add UDB-style render-device blend-factor planning.
   - [x] Add UDB-style render-device Color4 start-rendering overload planning.
   - [x] Add UDB-style render-device named shader and uniform operation planning.
   - [x] Add UDB-style render-device named shader and uniform method surface.

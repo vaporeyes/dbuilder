@@ -102,6 +102,10 @@ public sealed record RenderStateTogglePlan(
 public sealed record BlendOperationPlan(
     BlendOperation Operation);
 
+public sealed record BlendFactorPlan(
+    Blend SourceBlend,
+    Blend DestinationBlend);
+
 public sealed record SamplerFilterPlan(
     TextureFilter MinFilter,
     TextureFilter MagFilter,
@@ -848,6 +852,9 @@ public sealed class RenderDevice : IDisposable
 
     public static BlendOperationPlan BuildBlendOperationPlan(BlendOperation operation)
         => new(operation);
+
+    public static BlendFactorPlan BuildBlendFactorPlan(Blend sourceBlend, Blend destinationBlend)
+        => new(sourceBlend, destinationBlend);
 
     public static RenderDeviceSetupSettingsPlan BuildSetupSettingsPlan(
         bool visualBilinear,
