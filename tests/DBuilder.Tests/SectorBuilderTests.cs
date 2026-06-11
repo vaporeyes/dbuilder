@@ -285,6 +285,22 @@ public class SectorBuilderTests
     }
 
     [Fact]
+    public void ExistingTracedSideIsMarkedWhenAssignedToCreatedSector()
+    {
+        var map = new MapSet();
+        Vertex a = map.AddVertex(new Vector2D(0, 0));
+        Vertex b = map.AddVertex(new Vector2D(64, 0));
+        Linedef line = map.AddLinedef(a, b);
+        Sector source = map.AddSector();
+        Sidedef existing = map.AddSidedef(line, true, source);
+
+        Sector sector = SectorBuilder.CreateSectorFromSides(map, new[] { new LinedefSide(line, true) })!;
+
+        Assert.Same(sector, existing.Sector);
+        Assert.True(existing.Marked);
+    }
+
+    [Fact]
     public void CopyFromPreservesTagsSlopesAndFields()
     {
         var map = new MapSet();

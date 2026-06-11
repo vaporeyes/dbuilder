@@ -104,6 +104,7 @@ public static class SectorBuilder
         if (side != null)
         {
             side.Sector = sector;
+            side.Marked = true;
             ApplySidedFlagsIfSidednessChanged(line, wasSingleSided);
             return;
         }
