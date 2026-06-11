@@ -1505,6 +1505,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style 2D linedef segment and normal indicator planning.
   - [x] Add UDB-style 2D vertex marker size planning.
   - [x] Add UDB-style 2D plot vertex draw planning.
+  - [x] Add UDB-style 2D vertex set plotting planning.
   - [x] Add UDB-style 2D thing screen-size planning.
   - [x] Add UDB-style 2D thing batch draw planning.
   - [x] Add UDB-style 2D thing arrow quad planning.

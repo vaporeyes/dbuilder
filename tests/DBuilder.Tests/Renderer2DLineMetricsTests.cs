@@ -288,6 +288,45 @@ public sealed class Renderer2DLineMetricsTests
     }
 
     [Fact]
+    public void BuildPlotVerticesSetPlansSkipsWholeSetLikeUdb()
+    {
+        IReadOnlyList<Renderer2DPlotVertexPlan> plans = Renderer2DLineMetricPlanner.BuildPlotVerticesSetPlans(
+            [new Renderer2DPlotVertexInput(new Vector2D(1, 1), Selected: false)],
+            translateX: 0,
+            translateY: 0,
+            scale: 1,
+            viewportHeight: 100,
+            vertexScale2D: 1,
+            shouldRenderVertices: false,
+            checkMode: true);
+
+        Assert.Empty(plans);
+    }
+
+    [Fact]
+    public void BuildPlotVerticesSetPlansTransformsAndColorsEachVertex()
+    {
+        IReadOnlyList<Renderer2DPlotVertexPlan> plans = Renderer2DLineMetricPlanner.BuildPlotVerticesSetPlans(
+            [
+                new Renderer2DPlotVertexInput(new Vector2D(1, 2), Selected: false),
+                new Renderer2DPlotVertexInput(new Vector2D(3, 4), Selected: true),
+            ],
+            translateX: 1,
+            translateY: 2,
+            scale: 2,
+            viewportHeight: 100,
+            vertexScale2D: 1,
+            shouldRenderVertices: false,
+            checkMode: false);
+
+        Assert.Equal(new[]
+        {
+            new Renderer2DPlotVertexPlan(true, 4, 108, 3, ColorCollection.VerticesIndex),
+            new Renderer2DPlotVertexPlan(true, 8, 112, 3, ColorCollection.SelectionIndex),
+        }, plans);
+    }
+
+    [Fact]
     public void BuildVertexSizeRejectsInvalidScaleInputs()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => Renderer2DLineMetricPlanner.BuildVertexSize(0, 1));

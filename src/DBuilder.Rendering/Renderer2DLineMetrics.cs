@@ -58,6 +58,8 @@ public readonly record struct Renderer2DPlotVertexPlan(
     int Size,
     int ColorIndex);
 
+public readonly record struct Renderer2DPlotVertexInput(Vector2D Position, bool Selected);
+
 public readonly record struct Renderer2DExtraFloorSide(int SectorTag, IReadOnlySet<int> SectorTags);
 
 public readonly record struct Renderer2DExtraFloorLine(
@@ -231,6 +233,37 @@ public static class Renderer2DLineMetricPlanner
             TransformY((int)transformed.y, viewportHeight),
             vertexSize,
             colorIndex);
+    }
+
+    public static IReadOnlyList<Renderer2DPlotVertexPlan> BuildPlotVerticesSetPlans(
+        IEnumerable<Renderer2DPlotVertexInput> vertices,
+        double translateX,
+        double translateY,
+        double scale,
+        int viewportHeight,
+        double vertexScale2D,
+        bool shouldRenderVertices,
+        bool checkMode = true)
+    {
+        ArgumentNullException.ThrowIfNull(vertices);
+        if (checkMode && !shouldRenderVertices) return Array.Empty<Renderer2DPlotVertexPlan>();
+
+        var plans = new List<Renderer2DPlotVertexPlan>();
+        foreach (Renderer2DPlotVertexInput vertex in vertices)
+        {
+            plans.Add(BuildPlotVertexPlan(
+                vertex.Position,
+                Renderer2DColorPlanner.DetermineVertexColor(vertex.Selected),
+                checkMode: false,
+                shouldRenderVertices: true,
+                translateX,
+                translateY,
+                scale,
+                viewportHeight,
+                vertexScale2D));
+        }
+
+        return plans;
     }
 
     public static IReadOnlyList<Renderer2DLinedefSegment> BuildLinedefSegments(
