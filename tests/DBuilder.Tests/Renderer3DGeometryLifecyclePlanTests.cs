@@ -362,6 +362,65 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
     }
 
     [Fact]
+    public void BuildFpsUpdatePlanSkipsWhenFpsDisplayIsDisabled()
+    {
+        Renderer3DFpsUpdatePlan plan = Renderer3DGeometryLifecyclePlan.BuildFpsUpdatePlan(
+            showFps: false,
+            currentFps: 12,
+            elapsedMilliseconds: 1500);
+
+        Assert.False(plan.ShouldUpdate);
+        Assert.Empty(plan.Operations);
+    }
+
+    [Theory]
+    [InlineData(999)]
+    [InlineData(1000)]
+    public void BuildFpsUpdatePlanOnlyIncrementsBeforeUdbElapsedThreshold(long elapsedMilliseconds)
+    {
+        Renderer3DFpsUpdatePlan plan = Renderer3DGeometryLifecyclePlan.BuildFpsUpdatePlan(
+            showFps: true,
+            currentFps: 4,
+            elapsedMilliseconds);
+
+        Assert.True(plan.ShouldUpdate);
+        Assert.Equal(
+            [
+                new Renderer3DFpsUpdateOperation(Renderer3DFpsUpdateOperationKind.IncrementFrameCounter, FrameCount: 5),
+            ],
+            plan.Operations);
+    }
+
+    [Fact]
+    public void BuildFpsUpdatePlanMatchesUdbLabelAndResetSequenceAfterElapsedThreshold()
+    {
+        Renderer3DFpsUpdatePlan plan = Renderer3DGeometryLifecyclePlan.BuildFpsUpdatePlan(
+            showFps: true,
+            currentFps: 4,
+            elapsedMilliseconds: 1001);
+
+        Assert.True(plan.ShouldUpdate);
+        Assert.Equal(
+            [
+                new Renderer3DFpsUpdateOperation(Renderer3DFpsUpdateOperationKind.IncrementFrameCounter, FrameCount: 5),
+                new Renderer3DFpsUpdateOperation(Renderer3DFpsUpdateOperationKind.SetFpsLabelText, LabelText: "5 FPS"),
+                new Renderer3DFpsUpdateOperation(Renderer3DFpsUpdateOperationKind.ResetFrameCounter, FrameCount: 0),
+                new Renderer3DFpsUpdateOperation(Renderer3DFpsUpdateOperationKind.RestartStopwatch),
+            ],
+            plan.Operations);
+    }
+
+    [Theory]
+    [InlineData(-1, 0)]
+    [InlineData(0, -1)]
+    public void BuildFpsUpdatePlanRejectsInvalidCounts(int currentFps, long elapsedMilliseconds)
+        => Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Renderer3DGeometryLifecyclePlan.BuildFpsUpdatePlan(
+                showFps: true,
+                currentFps,
+                elapsedMilliseconds));
+
+    [Fact]
     public void Renderer3DStartGeometryExpressionsMatchUdbWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -410,6 +469,12 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("if (General.Map.UDMF /* && General.Settings.ShowVisualSlopeHandles */)", source, StringComparison.Ordinal);
         Assert.Contains("RenderSlopeHandles();", source, StringComparison.Ordinal);
         Assert.Contains("if (General.Settings.GZShowEventLines) RenderArrows(eventlines);", source, StringComparison.Ordinal);
+        Assert.Contains("if (General.Settings.ShowFPS)", source, StringComparison.Ordinal);
+        Assert.Contains("fps++;", source, StringComparison.Ordinal);
+        Assert.Contains("if (fpsWatch.ElapsedMilliseconds > 1000)", source, StringComparison.Ordinal);
+        Assert.Contains("fpsLabel.Text = string.Format(\"{0} FPS\", fps);", source, StringComparison.Ordinal);
+        Assert.Contains("fps = 0;", source, StringComparison.Ordinal);
+        Assert.Contains("fpsWatch.Restart();", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);

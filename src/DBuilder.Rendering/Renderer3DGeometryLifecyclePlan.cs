@@ -111,6 +111,24 @@ public sealed record Renderer3DEventLinesPassPlan(IReadOnlyList<Renderer3DGeomet
     public bool ShouldRender => Operations.Count > 0;
 }
 
+public enum Renderer3DFpsUpdateOperationKind
+{
+    IncrementFrameCounter,
+    SetFpsLabelText,
+    ResetFrameCounter,
+    RestartStopwatch,
+}
+
+public sealed record Renderer3DFpsUpdateOperation(
+    Renderer3DFpsUpdateOperationKind Kind,
+    int? FrameCount = null,
+    string? LabelText = null);
+
+public sealed record Renderer3DFpsUpdatePlan(IReadOnlyList<Renderer3DFpsUpdateOperation> Operations)
+{
+    public bool ShouldUpdate => Operations.Count > 0;
+}
+
 public static class Renderer3DGeometryLifecyclePlan
 {
     public static Renderer3DStartGeometryPlan BuildStartGeometryPlan()
@@ -271,6 +289,28 @@ public static class Renderer3DGeometryLifecyclePlan
                     new(Renderer3DGeometryPassOperationKind.RenderArrows),
                 ])
             : new Renderer3DEventLinesPassPlan([]);
+
+    public static Renderer3DFpsUpdatePlan BuildFpsUpdatePlan(bool showFps, int currentFps, long elapsedMilliseconds)
+    {
+        if (currentFps < 0) throw new ArgumentOutOfRangeException(nameof(currentFps));
+        if (elapsedMilliseconds < 0) throw new ArgumentOutOfRangeException(nameof(elapsedMilliseconds));
+        if (!showFps) return new Renderer3DFpsUpdatePlan([]);
+
+        int incrementedFps = currentFps + 1;
+        var operations = new List<Renderer3DFpsUpdateOperation>
+        {
+            new(Renderer3DFpsUpdateOperationKind.IncrementFrameCounter, FrameCount: incrementedFps),
+        };
+
+        if (elapsedMilliseconds > 1000)
+        {
+            operations.Add(new Renderer3DFpsUpdateOperation(Renderer3DFpsUpdateOperationKind.SetFpsLabelText, LabelText: $"{incrementedFps} FPS"));
+            operations.Add(new Renderer3DFpsUpdateOperation(Renderer3DFpsUpdateOperationKind.ResetFrameCounter, FrameCount: 0));
+            operations.Add(new Renderer3DFpsUpdateOperation(Renderer3DFpsUpdateOperationKind.RestartStopwatch));
+        }
+
+        return new Renderer3DFpsUpdatePlan(operations);
+    }
 
     public static Renderer3DFinishGeometryCleanupPlan BuildFinishGeometryCleanupPlan()
         => new(
