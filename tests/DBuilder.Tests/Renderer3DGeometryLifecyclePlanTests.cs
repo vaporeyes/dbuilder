@@ -421,6 +421,64 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
                 elapsedMilliseconds));
 
     [Fact]
+    public void BuildDynamicLightUpdatePlanSelectsVisibleClosestLightsThenSortsByRenderStyle()
+    {
+        Renderer3DDynamicLightUpdatePlan plan = Renderer3DGeometryLifecyclePlan.BuildDynamicLightUpdatePlan(
+            [
+                new Renderer3DDynamicLightCandidate(1, CameraDistance: 40.0, Visible: true, Renderer3DDynamicLightRenderStyle.Normal),
+                new Renderer3DDynamicLightCandidate(2, CameraDistance: 10.0, Visible: true, Renderer3DDynamicLightRenderStyle.Subtractive),
+                new Renderer3DDynamicLightCandidate(3, CameraDistance: 20.0, Visible: false, Renderer3DDynamicLightRenderStyle.Additive),
+                new Renderer3DDynamicLightCandidate(4, CameraDistance: 30.0, Visible: true, Renderer3DDynamicLightRenderStyle.Additive),
+                new Renderer3DDynamicLightCandidate(5, CameraDistance: 50.0, Visible: true, Renderer3DDynamicLightRenderStyle.Vavoom),
+            ],
+            maxDynamicLights: 3);
+
+        Assert.Equal([4, 1, 2], plan.SelectedLightIds);
+        Assert.Equal([1, 0, 1, 1], plan.LightOffsets);
+    }
+
+    [Fact]
+    public void BuildDynamicLightUpdatePlanBucketsVavoomWithNormalAndLightmapWithAttenuated()
+    {
+        Renderer3DDynamicLightUpdatePlan plan = Renderer3DGeometryLifecyclePlan.BuildDynamicLightUpdatePlan(
+            [
+                new Renderer3DDynamicLightCandidate(1, CameraDistance: 10.0, Visible: true, Renderer3DDynamicLightRenderStyle.Lightmap),
+                new Renderer3DDynamicLightCandidate(2, CameraDistance: 20.0, Visible: true, Renderer3DDynamicLightRenderStyle.Vavoom),
+                new Renderer3DDynamicLightCandidate(3, CameraDistance: 30.0, Visible: true, Renderer3DDynamicLightRenderStyle.Attenuated),
+                new Renderer3DDynamicLightCandidate(4, CameraDistance: 40.0, Visible: true, Renderer3DDynamicLightRenderStyle.Normal),
+            ],
+            maxDynamicLights: 4);
+
+        Assert.Equal([2, 1, 3, 4], plan.SelectedLightIds);
+        Assert.Equal([2, 2, 0, 0], plan.LightOffsets);
+    }
+
+    [Fact]
+    public void BuildDynamicLightUpdatePlanAllowsZeroMaxLights()
+    {
+        Renderer3DDynamicLightUpdatePlan plan = Renderer3DGeometryLifecyclePlan.BuildDynamicLightUpdatePlan(
+            [
+                new Renderer3DDynamicLightCandidate(1, CameraDistance: 10.0, Visible: true, Renderer3DDynamicLightRenderStyle.Normal),
+            ],
+            maxDynamicLights: 0);
+
+        Assert.Empty(plan.SelectedLightIds);
+        Assert.Equal([0, 0, 0, 0], plan.LightOffsets);
+    }
+
+    [Fact]
+    public void BuildDynamicLightUpdatePlanRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentNullException>(() => Renderer3DGeometryLifecyclePlan.BuildDynamicLightUpdatePlan(null!, maxDynamicLights: 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildDynamicLightUpdatePlan([], maxDynamicLights: -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildDynamicLightUpdatePlan(
+            [
+                new Renderer3DDynamicLightCandidate(1, double.NaN, Visible: true, Renderer3DDynamicLightRenderStyle.Normal),
+            ],
+            maxDynamicLights: 1));
+    }
+
+    [Fact]
     public void Renderer3DStartGeometryExpressionsMatchUdbWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -475,6 +533,15 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("fpsLabel.Text = string.Format(\"{0} FPS\", fps);", source, StringComparison.Ordinal);
         Assert.Contains("fps = 0;", source, StringComparison.Ordinal);
         Assert.Contains("fpsWatch.Restart();", source, StringComparison.Ordinal);
+        Assert.Contains("lightthings.Sort((t1, t2) => Math.Sign(t1.CameraDistance - t2.CameraDistance));", source, StringComparison.Ordinal);
+        Assert.Contains("tl.Count < General.Settings.GZMaxDynamicLights", source, StringComparison.Ordinal);
+        Assert.Contains("if (!CullLight(lightthings[i]))", source, StringComparison.Ordinal);
+        Assert.Contains("lightthings.Sort((t1, t2) => Math.Sign(t1.LightType.LightRenderStyle - t2.LightType.LightRenderStyle));", source, StringComparison.Ordinal);
+        Assert.Contains("lightOffsets = new int[4];", source, StringComparison.Ordinal);
+        Assert.Contains("case GZGeneral.LightRenderStyle.VAVOOM: lightOffsets[0]++; break;", source, StringComparison.Ordinal);
+        Assert.Contains("case GZGeneral.LightRenderStyle.ADDITIVE: lightOffsets[2]++; break;", source, StringComparison.Ordinal);
+        Assert.Contains("case GZGeneral.LightRenderStyle.SUBTRACTIVE: lightOffsets[3]++; break;", source, StringComparison.Ordinal);
+        Assert.Contains("default: lightOffsets[1]++; break;", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);

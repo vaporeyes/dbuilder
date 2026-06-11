@@ -129,6 +129,26 @@ public sealed record Renderer3DFpsUpdatePlan(IReadOnlyList<Renderer3DFpsUpdateOp
     public bool ShouldUpdate => Operations.Count > 0;
 }
 
+public enum Renderer3DDynamicLightRenderStyle
+{
+    Normal,
+    Vavoom,
+    Attenuated,
+    Additive,
+    Subtractive,
+    Lightmap,
+}
+
+public sealed record Renderer3DDynamicLightCandidate(
+    int Id,
+    double CameraDistance,
+    bool Visible,
+    Renderer3DDynamicLightRenderStyle RenderStyle);
+
+public sealed record Renderer3DDynamicLightUpdatePlan(
+    IReadOnlyList<int> SelectedLightIds,
+    IReadOnlyList<int> LightOffsets);
+
 public static class Renderer3DGeometryLifecyclePlan
 {
     public static Renderer3DStartGeometryPlan BuildStartGeometryPlan()
@@ -311,6 +331,59 @@ public static class Renderer3DGeometryLifecyclePlan
 
         return new Renderer3DFpsUpdatePlan(operations);
     }
+
+    public static Renderer3DDynamicLightUpdatePlan BuildDynamicLightUpdatePlan(
+        IReadOnlyList<Renderer3DDynamicLightCandidate> lightCandidates,
+        int maxDynamicLights)
+    {
+        ArgumentNullException.ThrowIfNull(lightCandidates);
+        if (maxDynamicLights < 0) throw new ArgumentOutOfRangeException(nameof(maxDynamicLights));
+        foreach (Renderer3DDynamicLightCandidate light in lightCandidates)
+        {
+            if (!double.IsFinite(light.CameraDistance)) throw new ArgumentOutOfRangeException(nameof(lightCandidates));
+        }
+
+        Renderer3DDynamicLightCandidate[] selected = lightCandidates
+            .OrderBy(light => light.CameraDistance)
+            .Where(light => light.Visible)
+            .Take(maxDynamicLights)
+            .OrderBy(light => DynamicLightRenderStyleSortValue(light.RenderStyle))
+            .ToArray();
+
+        int[] lightOffsets = new int[4];
+        foreach (Renderer3DDynamicLightCandidate light in selected)
+        {
+            lightOffsets[DynamicLightOffsetIndex(light.RenderStyle)]++;
+        }
+
+        return new Renderer3DDynamicLightUpdatePlan(
+            selected.Select(light => light.Id).ToArray(),
+            lightOffsets);
+    }
+
+    private static int DynamicLightRenderStyleSortValue(Renderer3DDynamicLightRenderStyle renderStyle)
+        => renderStyle switch
+        {
+            Renderer3DDynamicLightRenderStyle.Additive => 25,
+            Renderer3DDynamicLightRenderStyle.Vavoom => 50,
+            Renderer3DDynamicLightRenderStyle.Attenuated => 98,
+            Renderer3DDynamicLightRenderStyle.Lightmap => 98,
+            Renderer3DDynamicLightRenderStyle.Normal => 99,
+            Renderer3DDynamicLightRenderStyle.Subtractive => 100,
+            _ => throw new ArgumentOutOfRangeException(nameof(renderStyle)),
+        };
+
+    private static int DynamicLightOffsetIndex(Renderer3DDynamicLightRenderStyle renderStyle)
+        => renderStyle switch
+        {
+            Renderer3DDynamicLightRenderStyle.Normal => 0,
+            Renderer3DDynamicLightRenderStyle.Vavoom => 0,
+            Renderer3DDynamicLightRenderStyle.Additive => 2,
+            Renderer3DDynamicLightRenderStyle.Subtractive => 3,
+            Renderer3DDynamicLightRenderStyle.Lightmap => 1,
+            Renderer3DDynamicLightRenderStyle.Attenuated => 1,
+            _ => throw new ArgumentOutOfRangeException(nameof(renderStyle)),
+        };
 
     public static Renderer3DFinishGeometryCleanupPlan BuildFinishGeometryCleanupPlan()
         => new(
