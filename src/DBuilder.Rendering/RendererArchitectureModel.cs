@@ -62,6 +62,7 @@ public static class RendererArchitectureModel
             "Render-device target start-rendering planning",
             "Render-device Color4 start-rendering overload planning",
             "Render-device inline vertex draw planning and overload",
+            "Render-device draw plan input validation planning",
             "Render-device finish and present frame handoff planning",
             "Render-device named shader and uniform operation planning",
             "Render-device named shader and uniform source-compatible method surface",

@@ -1482,6 +1482,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style render-device resource registration lifecycle planning.
   - [x] Add UDB-style render-device target start-rendering planning.
   - [x] Add UDB-style render-device inline vertex draw planning and overload.
+  - [x] Add UDB-style render-device draw plan input validation planning.
   - [x] Add UDB-style render-device finish and present frame handoff planning.
 - [ ] Port renderer 2D parity.
 - [ ] Port renderer 3D parity.

@@ -57,6 +57,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Render-device target start-rendering planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device Color4 start-rendering overload planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device inline vertex draw planning and overload", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device draw plan input validation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device finish and present frame handoff planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device named shader and uniform operation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device named shader and uniform source-compatible method surface", replacement.CoveredResponsibilities);
@@ -554,6 +555,16 @@ public class RendererArchitectureModelTests
         Assert.Equal(DrawOperationKind.DrawIndexed, indexed.Kind);
         Assert.Equal(DrawOperationKind.DrawData, data.Kind);
         Assert.Equal(3, data.InlineVertexCount);
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildDrawPlan((PrimitiveType)99, startIndex: 0, primitiveCount: 0));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildDrawPlan(PrimitiveType.LineList, startIndex: -1, primitiveCount: 0));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildDrawPlan(PrimitiveType.LineList, startIndex: 0, primitiveCount: -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildDrawIndexedPlan((PrimitiveType)99, startIndex: 0, primitiveCount: 0));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildDrawDataPlan((PrimitiveType)99, startIndex: 0, primitiveCount: 0, data: Array.Empty<FlatVertex>()));
         Assert.Throws<ArgumentNullException>(() =>
             RenderDevice.BuildDrawDataPlan(PrimitiveType.LineList, startIndex: 0, primitiveCount: 0, data: null!));
     }

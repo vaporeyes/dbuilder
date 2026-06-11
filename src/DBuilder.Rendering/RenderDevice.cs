@@ -999,16 +999,32 @@ public sealed class RenderDevice : IDisposable
         => BuildStartRenderingPlan(clear, (uint)backColor.ToArgb(), target, useDepthBuffer);
 
     public static DrawOperationPlan BuildDrawPlan(PrimitiveType type, int startIndex, int primitiveCount)
-        => new(DrawOperationKind.Draw, type, startIndex, primitiveCount);
+    {
+        ValidateDrawPlanInputs(type, startIndex, primitiveCount);
+
+        return new DrawOperationPlan(DrawOperationKind.Draw, type, startIndex, primitiveCount);
+    }
 
     public static DrawOperationPlan BuildDrawIndexedPlan(PrimitiveType type, int startIndex, int primitiveCount)
-        => new(DrawOperationKind.DrawIndexed, type, startIndex, primitiveCount);
+    {
+        ValidateDrawPlanInputs(type, startIndex, primitiveCount);
+
+        return new DrawOperationPlan(DrawOperationKind.DrawIndexed, type, startIndex, primitiveCount);
+    }
 
     public static DrawOperationPlan BuildDrawDataPlan(PrimitiveType type, int startIndex, int primitiveCount, FlatVertex[] data)
     {
         ArgumentNullException.ThrowIfNull(data);
+        ValidateDrawPlanInputs(type, startIndex, primitiveCount);
 
         return new DrawOperationPlan(DrawOperationKind.DrawData, type, startIndex, primitiveCount, data.Length);
+    }
+
+    private static void ValidateDrawPlanInputs(PrimitiveType type, int startIndex, int primitiveCount)
+    {
+        _ = MapPrim(type);
+        if (startIndex < 0) throw new ArgumentOutOfRangeException(nameof(startIndex));
+        if (primitiveCount < 0) throw new ArgumentOutOfRangeException(nameof(primitiveCount));
     }
 
     public static RenderFrameOperationPlan BuildFinishRenderingPlan()
