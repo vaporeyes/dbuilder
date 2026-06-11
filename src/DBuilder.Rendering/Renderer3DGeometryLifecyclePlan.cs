@@ -359,6 +359,32 @@ public sealed record Renderer3DModelDrawStatePlan(
     ShaderName InitialShader,
     IReadOnlyList<Renderer3DModelThingDrawStatePlan> Draws);
 
+public sealed record Renderer3DModelLightCandidate(
+    int Id,
+    bool BoundingBoxesIntersect,
+    bool SpotLight,
+    double SpotRadius1Degrees,
+    double SpotRadius2Degrees,
+    double Radius,
+    double Linearity);
+
+public sealed record Renderer3DModelLightSlotPlan(
+    int LightId,
+    bool SpotLight,
+    float SpotRadius1Cosine,
+    float SpotRadius2Cosine,
+    float Strength,
+    float Linearity);
+
+public sealed record Renderer3DModelLightUniformPlan(
+    int ThingIndex,
+    IReadOnlyList<Renderer3DModelLightSlotPlan> Lights,
+    int ClearedLightColorSlots,
+    bool SetLightColorUniform,
+    bool SetLightDetailUniforms);
+
+public sealed record Renderer3DModelLightUniformsPlan(IReadOnlyList<Renderer3DModelLightUniformPlan> Things);
+
 public enum Renderer3DThingPositionMatrixStrategy
 {
     Billboard,
@@ -1052,6 +1078,54 @@ public static class Renderer3DGeometryLifecyclePlan
         return new Renderer3DModelDrawStatePlan(shaderPass, draws);
     }
 
+    public static Renderer3DModelLightUniformsPlan BuildModelLightUniformsPlan(
+        IReadOnlyList<IReadOnlyList<Renderer3DModelLightCandidate>> thingLightCandidates,
+        int maxDynamicLightsPerSurface)
+    {
+        ArgumentNullException.ThrowIfNull(thingLightCandidates);
+        if (maxDynamicLightsPerSurface < 0) throw new ArgumentOutOfRangeException(nameof(maxDynamicLightsPerSurface));
+
+        bool hadLights = false;
+        var things = new List<Renderer3DModelLightUniformPlan>(thingLightCandidates.Count);
+        for (int thingIndex = 0; thingIndex < thingLightCandidates.Count; thingIndex++)
+        {
+            IReadOnlyList<Renderer3DModelLightCandidate> candidates = thingLightCandidates[thingIndex];
+            ArgumentNullException.ThrowIfNull(candidates);
+
+            var lights = new List<Renderer3DModelLightSlotPlan>(maxDynamicLightsPerSurface);
+            foreach (Renderer3DModelLightCandidate candidate in candidates)
+            {
+                if (!double.IsFinite(candidate.SpotRadius1Degrees)) throw new ArgumentOutOfRangeException(nameof(thingLightCandidates));
+                if (!double.IsFinite(candidate.SpotRadius2Degrees)) throw new ArgumentOutOfRangeException(nameof(thingLightCandidates));
+                if (!double.IsFinite(candidate.Radius) || candidate.Radius < 0.0) throw new ArgumentOutOfRangeException(nameof(thingLightCandidates));
+                if (!double.IsFinite(candidate.Linearity)) throw new ArgumentOutOfRangeException(nameof(thingLightCandidates));
+                if (!candidate.BoundingBoxesIntersect) continue;
+                if (lights.Count >= maxDynamicLightsPerSurface) break;
+
+                double diameter = candidate.Radius * 2.0;
+                lights.Add(new Renderer3DModelLightSlotPlan(
+                    candidate.Id,
+                    candidate.SpotLight,
+                    candidate.SpotLight ? CosDegrees(candidate.SpotRadius1Degrees) : 0.0f,
+                    candidate.SpotLight ? CosDegrees(candidate.SpotRadius2Degrees) : 0.0f,
+                    (float)Math.Min(1500.0, diameter * diameter / 10.0),
+                    (float)candidate.Linearity));
+            }
+
+            bool haveLights = lights.Count > 0;
+            bool setUniforms = hadLights != haveLights || haveLights;
+            things.Add(new Renderer3DModelLightUniformPlan(
+                thingIndex,
+                lights,
+                maxDynamicLightsPerSurface - lights.Count,
+                SetLightColorUniform: setUniforms,
+                SetLightDetailUniforms: setUniforms && haveLights));
+            hadLights = haveLights;
+        }
+
+        return new Renderer3DModelLightUniformsPlan(things);
+    }
+
     public static Renderer3DThingPositionMatrixPlan BuildThingPositionMatrixPlan(
         ThingRenderMode renderMode,
         ModelRenderMode modelRenderMode,
@@ -1125,4 +1199,7 @@ public static class Renderer3DGeometryLifecyclePlan
 
     private static bool IsPlaneGeometry(Renderer3DVisualGeometryType geometryType)
         => geometryType is Renderer3DVisualGeometryType.Floor or Renderer3DVisualGeometryType.Ceiling;
+
+    private static float CosDegrees(double angleDegrees)
+        => (float)Math.Cos(angleDegrees * Math.PI / 180.0);
 }
