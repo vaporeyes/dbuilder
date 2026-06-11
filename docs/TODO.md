@@ -1494,6 +1494,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match UDB 2D thing arrow scale metadata.
   - [x] Match UDB 2D render target sizing constants.
   - [x] Match UDB 2D view mode count metadata.
+  - [x] Add UDB-style map center crosshair render planning.
 - [ ] Port renderer 3D parity.
 - [ ] Port render passes and layers.
   - [x] Add UDB-style 2D presentation layer stack planning.

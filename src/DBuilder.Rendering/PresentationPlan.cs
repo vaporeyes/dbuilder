@@ -328,6 +328,13 @@ public sealed record PresentationFrameReleasePlan(
     string TextureBindingAfter,
     string VertexBufferBindingAfter);
 
+public readonly record struct PresentationMapCenterLine(
+    int StartX,
+    int StartY,
+    int EndX,
+    int EndY,
+    string ColorName);
+
 public sealed record PresentationRenderTargetPlan(
     int Width,
     int Height,
@@ -346,6 +353,23 @@ public sealed record PresentationRenderTargetPlan(
     public const int ThingVerticesPerBufferItem = 12;
     public const int MapCenterSize = 16;
     public const float FsaaFactor = 0.6f;
+
+    public static IReadOnlyList<PresentationMapCenterLine> BuildMapCenterLines(
+        bool drawMapCenter,
+        double translateX,
+        double translateY,
+        double scale)
+    {
+        if (!drawMapCenter) return Array.Empty<PresentationMapCenterLine>();
+
+        int cx = (int)(translateX * scale);
+        int cy = (int)(translateY * -scale);
+        return new[]
+        {
+            new PresentationMapCenterLine(cx, cy + MapCenterSize, cx, cy - MapCenterSize, "Highlight"),
+            new PresentationMapCenterLine(cx - MapCenterSize, cy, cx + MapCenterSize, cy, "Highlight"),
+        };
+    }
 
     public static PresentationRenderTargetLifecyclePlan BuildLifecyclePlan(
         PresentationRenderTargetLifecycleOperation operation)

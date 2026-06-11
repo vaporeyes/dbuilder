@@ -584,6 +584,44 @@ public sealed class PresentationPlanTests
     }
 
     [Fact]
+    public void MapCenterLinesMatchUdbRenderer2DCrosshair()
+    {
+        IReadOnlyList<PresentationMapCenterLine> lines = PresentationRenderTargetPlan.BuildMapCenterLines(
+            drawMapCenter: true,
+            translateX: 10,
+            translateY: -4,
+            scale: 2);
+
+        Assert.Equal(new[]
+        {
+            new PresentationMapCenterLine(20, 24, 20, -8, "Highlight"),
+            new PresentationMapCenterLine(4, 8, 36, 8, "Highlight"),
+        }, lines);
+    }
+
+    [Fact]
+    public void MapCenterLinesAreSkippedWhenModeDisablesMapCenter()
+    {
+        Assert.Empty(PresentationRenderTargetPlan.BuildMapCenterLines(
+            drawMapCenter: false,
+            translateX: 10,
+            translateY: -4,
+            scale: 2));
+    }
+
+    [Fact]
+    public void MapCenterLineExpressionsMatchUdbRenderer2DWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Source", "Core", "Rendering", "Renderer2D.cs"));
+
+        Assert.Contains("gridplotter.DrawLineSolid(cx, cy + MAP_CENTER_SIZE, cx, cy - MAP_CENTER_SIZE", source, StringComparison.Ordinal);
+        Assert.Contains("gridplotter.DrawLineSolid(cx - MAP_CENTER_SIZE, cy, cx + MAP_CENTER_SIZE, cy", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void RenderTargetPlanCreatesScreenVerticesLikeUdb()
     {
         PresentationRenderTargetPlan plan = PresentationRenderTargetPlan.Create(320, 200, PresentationPlan.Standard(0.4f, 0.25f));
