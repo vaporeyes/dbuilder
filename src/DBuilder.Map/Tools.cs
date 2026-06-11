@@ -32,6 +32,9 @@ public static class Tools
         public string DefaultLowTexture { get; init; } = "-";
         public bool OverrideFloorTexture { get; init; }
         public bool OverrideCeilingTexture { get; init; }
+        public bool OverrideHighTexture { get; init; }
+        public bool OverrideMiddleTexture { get; init; }
+        public bool OverrideLowTexture { get; init; }
         public bool OverrideFloorHeight { get; init; }
         public bool OverrideCeilingHeight { get; init; }
         public bool OverrideBrightness { get; init; }
@@ -422,6 +425,7 @@ public static class Tools
             }
 
             ApplyDefaultsToSidedef(target, sourceSide, targetWasCreated);
+            if (useOverrides) ApplyOverridesToSidedef(target, options);
 
             lineSide.Line.Front?.RemoveUnneededTextures(wasSingleSided, force: false, shiftMiddle: wasSingleSided, autoClearSidedefTextures);
             lineSide.Line.Back?.RemoveUnneededTextures(wasSingleSided, force: false, shiftMiddle: wasSingleSided, autoClearSidedefTextures);
@@ -736,6 +740,13 @@ public static class Tools
             side.SetTextureLow(defaults.Low);
             if (defaults.LongLow.HasValue && side.LowTexture != "-") side.LongLowTexture = defaults.LongLow.Value;
         }
+    }
+
+    private static void ApplyOverridesToSidedef(Sidedef side, SectorCreationOptions options)
+    {
+        if (side.HighRequired() && options.OverrideHighTexture) side.SetTextureHigh(options.DefaultHighTexture);
+        if (side.MiddleRequired() && options.OverrideMiddleTexture) side.SetTextureMid(options.DefaultMiddleTexture);
+        if (side.LowRequired() && options.OverrideLowTexture) side.SetTextureLow(options.DefaultLowTexture);
     }
 
     private static bool IsBlankTexture(string? texture)

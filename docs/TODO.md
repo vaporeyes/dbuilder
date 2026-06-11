@@ -463,6 +463,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style traced-sector validity and reuse helpers.
   - [x] Apply UDB-style sidedness flags when sector drawing creates shared sides.
   - [x] Mark existing traced sides assigned to newly created sectors.
+  - [x] Apply UDB-style upper, middle, and lower texture overrides to sector drawing sides.
 - [x] Port split-line and merge-geometry behavior to full UDB behavior.
   - [x] Add UDB-style linedef center and side-point helpers.
   - [x] Add UDB-style backward linedef flipping helper.

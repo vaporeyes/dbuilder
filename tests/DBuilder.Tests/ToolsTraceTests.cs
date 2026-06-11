@@ -799,6 +799,57 @@ public class ToolsTraceTests
     }
 
     [Fact]
+    public void MakeSectorAppliesSidedefTextureOverridesToRequiredParts()
+    {
+        var map = new MapSet();
+        Sector inner = map.AddSector();
+        inner.FloorHeight = -64;
+        inner.CeilHeight = 192;
+        Sector outer = map.AddSector();
+        outer.FloorHeight = 0;
+        outer.CeilHeight = 96;
+        Vertex a = map.AddVertex(new Vector2D(0, 0));
+        Vertex b = map.AddVertex(new Vector2D(64, 0));
+        Linedef line = map.AddLinedef(a, b);
+        Sidedef front = map.AddSidedef(line, true, inner);
+        map.AddSidedef(line, false, outer);
+        front.SetTextureHigh("SRCUP");
+        front.SetTextureMid("SRCMID");
+        front.SetTextureLow("SRCLOW");
+        Vertex c = map.AddVertex(new Vector2D(96, 0));
+        Vertex d = map.AddVertex(new Vector2D(160, 0));
+        Linedef oneSidedLine = map.AddLinedef(c, d);
+        Sidedef oneSidedFront = map.AddSidedef(oneSidedLine, true, inner);
+        oneSidedFront.SetTextureMid("SRCMID");
+        map.BuildIndexes();
+        var options = new Tools.SectorCreationOptions
+        {
+            DefaultHighTexture = "OVRUP",
+            DefaultMiddleTexture = "OVRMID",
+            DefaultLowTexture = "OVRLOW",
+            OverrideHighTexture = true,
+            OverrideMiddleTexture = true,
+            OverrideLowTexture = true,
+        };
+
+        Sector? sector = Tools.MakeSector(
+            map,
+            new[] { new LinedefSide(line, true), new LinedefSide(oneSidedLine, true) },
+            useOverrides: true,
+            options: options);
+
+        Assert.NotNull(sector);
+        Assert.True(front.HighRequired());
+        Assert.False(front.MiddleRequired());
+        Assert.True(front.LowRequired());
+        Assert.Equal("OVRUP", front.HighTexture);
+        Assert.Equal("SRCMID", front.MidTexture);
+        Assert.Equal("OVRLOW", front.LowTexture);
+        Assert.True(oneSidedFront.MiddleRequired());
+        Assert.Equal("OVRMID", oneSidedFront.MidTexture);
+    }
+
+    [Fact]
     public void MakeSectorUsesNearestSectorWhenOnlyOppositeNearbySideExists()
     {
         var map = new MapSet();
