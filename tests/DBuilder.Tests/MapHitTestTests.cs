@@ -421,6 +421,34 @@ public class MapHitTestTests
     }
 
     [Fact]
+    public void StaticNearestThingSquareRangeUsesDisplayedFixedSize()
+    {
+        var fixedSize = new Thing(new Vector2D(8, 0), 1) { Size = 8, FixedSize = true };
+
+        Assert.Same(fixedSize, MapSet.NearestThingSquareRange(new[] { fixedSize }, new Vector2D(0, 0), maxRange: 5));
+        Assert.Null(MapSet.NearestThingSquareRange(
+            new[] { fixedSize },
+            new Vector2D(0, 0),
+            maxRange: 5,
+            viewScale: 0.25,
+            fixedThingsScale: false));
+    }
+
+    [Fact]
+    public void StaticNearestThingSquareRangeUsesDisplayedFixedThingScale()
+    {
+        var fixedScale = new Thing(new Vector2D(50, 0), 1) { Size = 80 };
+
+        Assert.Same(fixedScale, MapSet.NearestThingSquareRange(new[] { fixedScale }, new Vector2D(0, 0), maxRange: 5));
+        Assert.Null(MapSet.NearestThingSquareRange(
+            new[] { fixedScale },
+            new Vector2D(0, 0),
+            maxRange: 5,
+            viewScale: 0.5,
+            fixedThingsScale: true));
+    }
+
+    [Fact]
     public void NearestThingSquareRangeSearchesMapThings()
     {
         var map = new MapSet();

@@ -2713,8 +2713,19 @@ public class MapSet : IDisposable
         return closest;
     }
 
+    private const double FixedThingScreenRadius = 48.0;
+
     /// <summary>Nearest thing inside a square range, ranked by Manhattan distance and then smaller display size.</summary>
     public static Thing? NearestThingSquareRange(ICollection<Thing> selection, Vector2D pos, double maxRange)
+        => NearestThingSquareRange(selection, pos, maxRange, viewScale: 1.0, fixedThingsScale: false);
+
+    /// <summary>Nearest thing inside a square range using UDB's displayed-size adjustment for fixed-scale things.</summary>
+    public static Thing? NearestThingSquareRange(
+        ICollection<Thing> selection,
+        Vector2D pos,
+        double maxRange,
+        double viewScale,
+        bool fixedThingsScale)
     {
         var range = RectangleF.FromLTRB(
             (float)(pos.x - maxRange),
@@ -2728,7 +2739,7 @@ public class MapSet : IDisposable
         {
             double x = t.Position.x;
             double y = t.Position.y;
-            double size = t.Size;
+            double size = DisplayedThingSize(t, viewScale, fixedThingsScale);
             if (x < range.Left - size || x > range.Right + size || y < range.Top - size || y > range.Bottom + size) continue;
 
             double d = Math.Abs(x - pos.x) + Math.Abs(y - pos.y);
@@ -2740,6 +2751,18 @@ public class MapSet : IDisposable
     /// <summary>Nearest map thing inside a square range, ranked by Manhattan distance and then smaller display size.</summary>
     public Thing? NearestThingSquareRange(Vector2D pos, double maxRange)
         => NearestThingSquareRange(Things, pos, maxRange);
+
+    /// <summary>Nearest map thing inside a square range using UDB's displayed-size adjustment for fixed-scale things.</summary>
+    public Thing? NearestThingSquareRange(Vector2D pos, double maxRange, double viewScale, bool fixedThingsScale)
+        => NearestThingSquareRange(Things, pos, maxRange, viewScale, fixedThingsScale);
+
+    private static double DisplayedThingSize(Thing thing, double viewScale, bool fixedThingsScale)
+    {
+        double scale = Math.Max(0.001, viewScale);
+        if (thing.FixedSize && scale < 1.0) return thing.Size * scale;
+        if (fixedThingsScale && thing.Size / scale > FixedThingScreenRadius) return FixedThingScreenRadius * scale;
+        return thing.Size;
+    }
 
     /// <summary>Nearest linedef to <paramref name="pos"/> (bounded segment distance) within <paramref name="maxRange"/>, or null.</summary>
     public Linedef? NearestLinedef(Vector2D pos, double maxRange = double.MaxValue)

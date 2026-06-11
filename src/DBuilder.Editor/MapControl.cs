@@ -9286,7 +9286,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
         else if (_editMode == EditMode.Things)
         {
-            var t = _map.NearestThing(world, 12 * _zoom);
+            var t = _map.NearestThingSquareRange(world, 12 * _zoom, _zoom, _fixedThingsScale);
             if (t != null)
             {
                 if (additive) t.Selected = !t.Selected;
