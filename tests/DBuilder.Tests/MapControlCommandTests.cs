@@ -1210,6 +1210,8 @@ public sealed class MapControlCommandTests
     [InlineData("map3d.clearselection", "ClearSelection3D()")]
     [InlineData("map3d.toggleslope", "ToggleSlope3D()")]
     [InlineData("map3d.resetslope", "ResetSlope3D()")]
+    [InlineData("map3d.raiseslopehandletonearest", "ApplyVisualSlopeHandleNearestHeight3D(raise: true)")]
+    [InlineData("map3d.lowerslopehandletonearest", "ApplyVisualSlopeHandleNearestHeight3D(raise: false)")]
     [InlineData("map3d.togglevisualslopepicking", "ToggleVisualSidedefSlopePicking()")]
     [InlineData("map3d.togglevisualvertexslopepicking", "ToggleVisualVertexSlopePicking()")]
     [InlineData("map3d.togglevisualvertexslopeadjacentselection", "ToggleVisualVertexSlopeAdjacentSelection()")]
@@ -2058,18 +2060,30 @@ public sealed class MapControlCommandTests
         Assert.Contains("case \"map3d.arch-between-handles\":", body, StringComparison.Ordinal);
         Assert.Contains("case \"map3d.archbetweenhandles\":", body, StringComparison.Ordinal);
         Assert.Contains("ApplyVisualArchBetweenHandles3D();", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map3d.raise-slope-handle-to-nearest\":", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map3d.raiseslopehandletonearest\":", body, StringComparison.Ordinal);
+        Assert.Contains("ApplyVisualSlopeHandleNearestHeight3D(raise: true);", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map3d.lower-slope-handle-to-nearest\":", body, StringComparison.Ordinal);
+        Assert.Contains("case \"map3d.lowerslopehandletonearest\":", body, StringComparison.Ordinal);
+        Assert.Contains("ApplyVisualSlopeHandleNearestHeight3D(raise: false);", body, StringComparison.Ordinal);
 
         int slopeIndex = body.IndexOf("private void ApplyVisualSlopeBetweenHandles3D()", StringComparison.Ordinal);
         int archIndex = body.IndexOf("private void ApplyVisualArchBetweenHandles3D()", StringComparison.Ordinal);
+        int nearestIndex = body.IndexOf("private void ApplyVisualSlopeHandleNearestHeight3D(bool raise)", StringComparison.Ordinal);
+        int nearestResultIndex = body.IndexOf("private void ApplyVisualSlopeNearestHeightResult(VisualSlopeNearestHandleApplyResult result)", StringComparison.Ordinal);
         int levelsIndex = body.IndexOf("private IReadOnlyList<VisualSlopeLevel> SelectedVisualSlopeLevels3D()", StringComparison.Ordinal);
         int handlesIndex = body.IndexOf("private IReadOnlyList<VisualSlopeHandle> SelectedVisualSlopeLineHandles3D()", StringComparison.Ordinal);
 
         Assert.True(slopeIndex >= 0);
         Assert.True(archIndex > slopeIndex);
-        Assert.True(levelsIndex > archIndex);
+        Assert.True(nearestIndex > archIndex);
+        Assert.True(nearestResultIndex > nearestIndex);
+        Assert.True(levelsIndex > nearestResultIndex);
         Assert.True(handlesIndex > levelsIndex);
         Assert.Contains("VisualSlopeHandles.ApplySlopeBetweenHandles(", body[slopeIndex..archIndex], StringComparison.Ordinal);
-        Assert.Contains("VisualSlopeHandles.ApplyArchBetweenHandles(", body[archIndex..levelsIndex], StringComparison.Ordinal);
+        Assert.Contains("VisualSlopeHandles.ApplyArchBetweenHandles(", body[archIndex..nearestIndex], StringComparison.Ordinal);
+        Assert.Contains("VisualSlopeHandles.RaiseSelectedSlopeHandleToNearest(handles, affectedLevels: levels)", body[nearestIndex..nearestResultIndex], StringComparison.Ordinal);
+        Assert.Contains("VisualSlopeHandles.LowerSelectedSlopeHandleToNearest(handles, affectedLevels: levels)", body[nearestIndex..nearestResultIndex], StringComparison.Ordinal);
         Assert.Contains("VisualSlopeLevel.Floor(floor)", body[levelsIndex..handlesIndex], StringComparison.Ordinal);
         Assert.Contains("VisualSlopeLevel.Ceiling(ceiling)", body[levelsIndex..handlesIndex], StringComparison.Ordinal);
         Assert.Contains("VisualSlopeHandles.CreateSidedef(side, level, up) with { Selected = true }", body[handlesIndex..], StringComparison.Ordinal);

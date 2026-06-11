@@ -3334,6 +3334,32 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         ApplyVisualSlopeBetweenHandlesResult(result);
     }
 
+    private void ApplyVisualSlopeHandleNearestHeight3D(bool raise)
+    {
+        IReadOnlyList<VisualSlopeLevel> levels = SelectedVisualSlopeLevels3D();
+        IReadOnlyList<VisualSlopeHandle> handles = SelectedVisualSlopeLineHandles3D();
+        if (handles.Count == 1)
+            EditBegun?.Invoke(raise ? "Raise slope handle to nearest" : "Lower slope handle to nearest");
+
+        VisualSlopeNearestHandleApplyResult result = raise
+            ? VisualSlopeHandles.RaiseSelectedSlopeHandleToNearest(handles, affectedLevels: levels)
+            : VisualSlopeHandles.LowerSelectedSlopeHandleToNearest(handles, affectedLevels: levels);
+        ApplyVisualSlopeNearestHeightResult(result);
+    }
+
+    private void ApplyVisualSlopeNearestHeightResult(VisualSlopeNearestHandleApplyResult result)
+    {
+        if (result.Result == VisualSlopeNearestHandleResult.Changed && result.ChangedLevels > 0)
+        {
+            _geo3DDirty = true;
+            MarkGeometryDirty();
+            Changed?.Invoke();
+            RequestNextFrameRendering();
+        }
+
+        Target3DChanged?.Invoke(result.StatusMessage);
+    }
+
     private static bool IsVisualSlopeLineHandlePair(IReadOnlyList<VisualSlopeHandle> handles)
         => handles.Count == 2
             && handles[0].Kind == VisualSlopeHandleKind.Line
@@ -6924,6 +6950,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map3d.reset-slope":
             case "map3d.resetslope":
                 ResetSlope3D();
+                return true;
+            case "map3d.raise-slope-handle-to-nearest":
+            case "map3d.raiseslopehandletonearest":
+                ApplyVisualSlopeHandleNearestHeight3D(raise: true);
+                return true;
+            case "map3d.lower-slope-handle-to-nearest":
+            case "map3d.lowerslopehandletonearest":
+                ApplyVisualSlopeHandleNearestHeight3D(raise: false);
                 return true;
             case "map3d.slope-between-handles":
             case "map3d.slopebetweenhandles":

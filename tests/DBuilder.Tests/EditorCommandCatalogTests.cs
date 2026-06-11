@@ -2188,6 +2188,10 @@ public class EditorCommandCatalogTests
             ["map3d.togglevisualvertexslopeadjacentselection"] = ("Toggle Adjacent Visual Vertex Slope Selection", "Toggles selection of adjacent visual vertex slopes, so that selecting one visual vertex slope handle will select all adjacent visual vertex slope handles."),
             ["map3d.reset-slope"] = ("Reset Plane Slope", "Resets UDMF slope applied to a floor/ceiling."),
             ["map3d.resetslope"] = ("Reset Plane Slope", "Resets UDMF slope applied to a floor/ceiling."),
+            ["map3d.raise-slope-handle-to-nearest"] = ("Raise Slope Handle to Nearest", "Raises the selected visual slope handle to the nearest matching slope handle height."),
+            ["map3d.raiseslopehandletonearest"] = ("Raise Slope Handle to Nearest", "Raises the selected visual slope handle to the nearest matching slope handle height."),
+            ["map3d.lower-slope-handle-to-nearest"] = ("Lower Slope Handle to Nearest", "Lowers the selected visual slope handle to the nearest matching slope handle height."),
+            ["map3d.lowerslopehandletonearest"] = ("Lower Slope Handle to Nearest", "Lowers the selected visual slope handle to the nearest matching slope handle height."),
             ["map3d.slope-between-handles"] = ("Slope Between Handles", "Slopes the selected floors and ceilings between the selected slope handles."),
             ["map3d.slopebetweenhandles"] = ("Slope Between Handles", "Slopes the selected floors and ceilings between the selected slope handles."),
             ["map3d.arch-between-handles"] = ("Arch Between Slope Handles", "Arches the selected floors and ceilings between the selected slope handles."),
@@ -2230,6 +2234,10 @@ public class EditorCommandCatalogTests
     [Theory]
     [InlineData("map3d.reset-slope", "Resets UDMF slope applied to a floor/ceiling.")]
     [InlineData("map3d.resetslope", "Resets UDMF slope applied to a floor/ceiling.")]
+    [InlineData("map3d.raise-slope-handle-to-nearest", "Raises the selected visual slope handle to the nearest matching slope handle height.")]
+    [InlineData("map3d.raiseslopehandletonearest", "Raises the selected visual slope handle to the nearest matching slope handle height.")]
+    [InlineData("map3d.lower-slope-handle-to-nearest", "Lowers the selected visual slope handle to the nearest matching slope handle height.")]
+    [InlineData("map3d.lowerslopehandletonearest", "Lowers the selected visual slope handle to the nearest matching slope handle height.")]
     [InlineData("map3d.slope-between-handles", "Slopes the selected floors and ceilings between the selected slope handles.")]
     [InlineData("map3d.slopebetweenhandles", "Slopes the selected floors and ceilings between the selected slope handles.")]
     [InlineData("map3d.arch-between-handles", "Arches the selected floors and ceilings between the selected slope handles.")]
@@ -3573,6 +3581,8 @@ public class EditorCommandCatalogTests
     [InlineData("map3d.toggle-visual-vertices", "map3d.togglevisualvertices")]
     [InlineData("map3d.toggle-visual-vertices", "map3d.gztogglevisualvertices")]
     [InlineData("map3d.reset-slope", "map3d.resetslope")]
+    [InlineData("map3d.raise-slope-handle-to-nearest", "map3d.raiseslopehandletonearest")]
+    [InlineData("map3d.lower-slope-handle-to-nearest", "map3d.lowerslopehandletonearest")]
     [InlineData("map3d.slope-between-handles", "map3d.slopebetweenhandles")]
     [InlineData("map3d.arch-between-handles", "map3d.archbetweenhandles")]
     public void VisualRenderingToggleAliasesShareCanonicalMetadata(string canonicalId, string aliasId)
