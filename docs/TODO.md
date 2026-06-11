@@ -1779,6 +1779,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style visual slope handle nearest-height action metadata and dispatch.
   - [x] Add UDB-style selected-plus-highlighted visual slope handle pairing in 3D slope actions.
   - [x] Match selected and highlighted visual slope handles by sidedef anchor instead of wrapper identity.
+  - [x] Build same-sector candidate handles for highlighted-only visual slope actions.
 - [x] Port model and voxel display.
   - [x] Add UDB-style thing display-source resolution for MODELDEF models, VOXELDEF voxels, sprites, and marker fallbacks.
   - [x] Match MODELDEF model display to actor sprite frames and disabled frame indexes.

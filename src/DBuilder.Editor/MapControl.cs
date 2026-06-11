@@ -3311,9 +3311,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private void ApplyVisualSlopeBetweenHandles3D()
     {
         IReadOnlyList<VisualSlopeLevel> levels = SelectedVisualSlopeLevels3D();
-        IReadOnlyList<VisualSlopeHandle> handles = SelectedVisualSlopeLineHandles3D();
+        IReadOnlyList<VisualSlopeHandle> selectedHandles = SelectedVisualSlopeLineHandles3D();
         VisualSlopeHandle? highlightedHandle = HighlightedVisualSlopeLineHandle3D();
-        if (levels.Count > 0 && CanResolveVisualSlopeLineHandlePair(handles, highlightedHandle))
+        IReadOnlyList<VisualSlopeHandle> handles = VisualSlopeLineHandlesForActions3D(selectedHandles, highlightedHandle);
+        if (levels.Count > 0 && CanResolveVisualSlopeLineHandlePair(selectedHandles, highlightedHandle, handles))
             EditBegun?.Invoke("Slope between handles");
 
         VisualSlopeBetweenHandlesApplyResult result = VisualSlopeHandles.ApplySlopeBetweenSelectedHandles(
@@ -3326,9 +3327,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private void ApplyVisualArchBetweenHandles3D()
     {
         IReadOnlyList<VisualSlopeLevel> levels = SelectedVisualSlopeLevels3D();
-        IReadOnlyList<VisualSlopeHandle> handles = SelectedVisualSlopeLineHandles3D();
+        IReadOnlyList<VisualSlopeHandle> selectedHandles = SelectedVisualSlopeLineHandles3D();
         VisualSlopeHandle? highlightedHandle = HighlightedVisualSlopeLineHandle3D();
-        if (levels.Count >= 2 && CanResolveVisualSlopeLineHandlePair(handles, highlightedHandle))
+        IReadOnlyList<VisualSlopeHandle> handles = VisualSlopeLineHandlesForActions3D(selectedHandles, highlightedHandle);
+        if (levels.Count >= 2 && CanResolveVisualSlopeLineHandlePair(selectedHandles, highlightedHandle, handles))
             EditBegun?.Invoke("Arch between slope handles");
 
         VisualSlopeBetweenHandlesApplyResult result = VisualSlopeHandles.ApplyArchBetweenSelectedHandles(
@@ -3366,9 +3368,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private static bool CanResolveVisualSlopeLineHandlePair(
         IReadOnlyList<VisualSlopeHandle> handles,
-        VisualSlopeHandle? highlightedHandle)
+        VisualSlopeHandle? highlightedHandle,
+        IReadOnlyList<VisualSlopeHandle> actionHandles)
         => handles.Count == 2
-           || (handles.Count == 1 && highlightedHandle != null && !ReferenceEquals(handles[0].Sidedef, highlightedHandle.Sidedef));
+           || (handles.Count == 1 && highlightedHandle != null && !ReferenceEquals(handles[0].Sidedef, highlightedHandle.Sidedef))
+           || (handles.Count == 0 && highlightedHandle != null && actionHandles.Count > 1);
 
     private void ApplyVisualSlopeBetweenHandlesResult(VisualSlopeBetweenHandlesApplyResult result)
     {
@@ -3415,6 +3419,40 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         => _target3D is { } target
             ? VisualSlopeLineHandleFromHit(target, selected: false)
             : null;
+
+    private static IReadOnlyList<VisualSlopeHandle> VisualSlopeLineHandlesForActions3D(
+        IReadOnlyList<VisualSlopeHandle> selectedHandles,
+        VisualSlopeHandle? highlightedHandle)
+    {
+        var handles = new List<VisualSlopeHandle>();
+        var seen = new HashSet<Sidedef>(ReferenceEqualityComparer.Instance);
+
+        foreach (VisualSlopeHandle handle in selectedHandles)
+            AddVisualSlopeActionHandle(handle, handles, seen);
+
+        if (highlightedHandle != null)
+            AddVisualSlopeActionHandle(highlightedHandle, handles, seen);
+
+        foreach (VisualSlopeHandle handle in handles.ToArray())
+        {
+            foreach (Sidedef side in handle.Level.Sector.Sidedefs)
+                AddVisualSlopeActionHandle(
+                    VisualSlopeHandles.CreateSidedef(side, handle.Level, up: true),
+                    handles,
+                    seen);
+        }
+
+        return handles;
+    }
+
+    private static void AddVisualSlopeActionHandle(
+        VisualSlopeHandle handle,
+        List<VisualSlopeHandle> handles,
+        HashSet<Sidedef> seen)
+    {
+        if (handle.Kind != VisualSlopeHandleKind.Line || handle.Sidedef == null || !seen.Add(handle.Sidedef)) return;
+        handles.Add(handle);
+    }
 
     private static VisualSlopeHandle? VisualSlopeLineHandleFromHit(VisualHit hit, bool selected)
     {
