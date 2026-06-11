@@ -175,6 +175,11 @@ public sealed class CubeTexture : BaseTexture
         }
     }
 
+    public CubeTexture(RenderDevice device, int size)
+        : this(device.GL, size)
+    {
+    }
+
     public unsafe void SetPixelsRgba8(CubeMapFace face, ReadOnlySpan<byte> rgba, bool generateMipmaps = true)
     {
         if (rgba.Length < Size * Size * 4)

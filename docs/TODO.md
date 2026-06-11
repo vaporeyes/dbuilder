@@ -1561,6 +1561,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style render-device 2D texture clear and pixel upload application.
   - [x] Add UDB-style render-device unsafe plotter pixel upload surface.
   - [x] Add UDB-style cube texture resource and render-device cube operation surface.
+  - [x] Add UDB-style cube texture render-device constructor surface.
   - [x] Add UDB-style cube map face enum values.
 - [ ] Port rendering color helpers.
   - [x] Add UDB-style ColorSetting helper.
