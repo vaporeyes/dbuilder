@@ -64,6 +64,7 @@ public static class RendererArchitectureModel
             "Render-device named shader and uniform operation planning",
             "Render-device named shader and uniform source-compatible method surface",
             "Render-device named uniform payload conversion planning",
+            "Render-device uniform array input validation planning",
             "Render-device constructor input validation planning",
             "Cull, depth, fill, blend, sampler, and texture state",
             "Flat and world vertex-buffer attribute binding",

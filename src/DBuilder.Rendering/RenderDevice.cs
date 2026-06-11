@@ -1109,6 +1109,8 @@ public sealed class RenderDevice : IDisposable
 
     public static RenderShaderOperationPlan BuildSetUniformPlan(UniformName uniform, Vector2f[] value)
     {
+        ArgumentNullException.ThrowIfNull(value);
+
         float[] values = new float[value.Length * 2];
         for (int i = 0; i < value.Length; i++)
         {
@@ -1122,6 +1124,8 @@ public sealed class RenderDevice : IDisposable
 
     public static RenderShaderOperationPlan BuildSetUniformPlan(UniformName uniform, Vector3f[] value)
     {
+        ArgumentNullException.ThrowIfNull(value);
+
         float[] values = new float[value.Length * 3];
         for (int i = 0; i < value.Length; i++)
         {
@@ -1136,6 +1140,8 @@ public sealed class RenderDevice : IDisposable
 
     public static RenderShaderOperationPlan BuildSetUniformPlan(UniformName uniform, Vector4f[] value)
     {
+        ArgumentNullException.ThrowIfNull(value);
+
         float[] values = new float[value.Length * 4];
         for (int i = 0; i < value.Length; i++)
         {
