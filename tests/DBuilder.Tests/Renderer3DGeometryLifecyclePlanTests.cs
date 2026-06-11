@@ -188,6 +188,165 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
     }
 
     [Fact]
+    public void BuildThingGeometryCollectionPlanCollectsAnimatedLightsBeforeThingBuckets()
+    {
+        Renderer3DThingGeometryCollectionPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingGeometryCollectionPlan(
+            new Renderer3DThingGeometryCandidate(
+                1,
+                ThingRenderMode.NORMAL,
+                ModelRenderMode.NONE,
+                RenderPass.Mask,
+                HasTexture: true,
+                Selected: false,
+                FullBrightness: false,
+                LightRenderMode.ALL,
+                HasLightType: true,
+                LightAnimated: true,
+                LightRadius: 64.0,
+                VertexColorOpaque: true));
+
+        Assert.True(plan.UpdateThing);
+        Assert.True(plan.UpdateLightRadius);
+        Assert.True(plan.UpdateBoundingBox);
+        Assert.True(plan.UpdateSpriteFrame);
+        Assert.Equal(
+            [
+                Renderer3DGeometryBucketKind.LightThings,
+                Renderer3DGeometryBucketKind.MaskedThings,
+                Renderer3DGeometryBucketKind.AllThings,
+            ],
+            plan.Buckets);
+        Assert.Null(plan.UnsupportedRenderPassMessage);
+    }
+
+    [Theory]
+    [InlineData(ThingRenderMode.MODEL, ModelRenderMode.ALL, false, RenderPass.Solid, true, Renderer3DGeometryBucketKind.MaskedModelThings)]
+    [InlineData(ThingRenderMode.VOXEL, ModelRenderMode.ACTIVE_THINGS_FILTER, false, RenderPass.Mask, true, Renderer3DGeometryBucketKind.MaskedModelThings)]
+    [InlineData(ThingRenderMode.MODEL, ModelRenderMode.SELECTION, true, RenderPass.Alpha, true, Renderer3DGeometryBucketKind.MaskedModelThings)]
+    [InlineData(ThingRenderMode.MODEL, ModelRenderMode.ALL, false, RenderPass.Alpha, false, Renderer3DGeometryBucketKind.TranslucentModelThings)]
+    [InlineData(ThingRenderMode.VOXEL, ModelRenderMode.ALL, false, RenderPass.Additive, true, Renderer3DGeometryBucketKind.TranslucentModelThings)]
+    public void BuildThingGeometryCollectionPlanRoutesModelBuckets(
+        ThingRenderMode renderMode,
+        ModelRenderMode modelRenderMode,
+        bool selected,
+        RenderPass renderPass,
+        bool vertexColorOpaque,
+        Renderer3DGeometryBucketKind bucket)
+    {
+        Renderer3DThingGeometryCollectionPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingGeometryCollectionPlan(
+            new Renderer3DThingGeometryCandidate(
+                2,
+                renderMode,
+                modelRenderMode,
+                renderPass,
+                HasTexture: false,
+                Selected: selected,
+                FullBrightness: false,
+                LightRenderMode.NONE,
+                HasLightType: false,
+                LightAnimated: false,
+                LightRadius: 0.0,
+                VertexColorOpaque: vertexColorOpaque));
+
+        Assert.False(plan.UpdateSpriteFrame);
+        Assert.Equal([bucket, Renderer3DGeometryBucketKind.AllThings], plan.Buckets);
+        Assert.Null(plan.UnsupportedRenderPassMessage);
+    }
+
+    [Theory]
+    [InlineData(RenderPass.Solid, Renderer3DGeometryBucketKind.SolidThings)]
+    [InlineData(RenderPass.Mask, Renderer3DGeometryBucketKind.MaskedThings)]
+    [InlineData(RenderPass.Alpha, Renderer3DGeometryBucketKind.TranslucentThings)]
+    [InlineData(RenderPass.Additive, Renderer3DGeometryBucketKind.TranslucentThings)]
+    public void BuildThingGeometryCollectionPlanRoutesSpriteBuckets(RenderPass renderPass, Renderer3DGeometryBucketKind bucket)
+    {
+        Renderer3DThingGeometryCollectionPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingGeometryCollectionPlan(
+            new Renderer3DThingGeometryCandidate(
+                3,
+                ThingRenderMode.NORMAL,
+                ModelRenderMode.ALL,
+                renderPass,
+                HasTexture: true,
+                Selected: false,
+                FullBrightness: false,
+                LightRenderMode.NONE,
+                HasLightType: false,
+                LightAnimated: false,
+                LightRadius: 0.0,
+                VertexColorOpaque: false));
+
+        Assert.True(plan.UpdateSpriteFrame);
+        Assert.Equal([bucket, Renderer3DGeometryBucketKind.AllThings], plan.Buckets);
+        Assert.Null(plan.UnsupportedRenderPassMessage);
+    }
+
+    [Fact]
+    public void BuildThingGeometryCollectionPlanFallsBackToSpriteRulesWhenModelDisplayIsDisabled()
+    {
+        Renderer3DThingGeometryCollectionPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingGeometryCollectionPlan(
+            new Renderer3DThingGeometryCandidate(
+                4,
+                ThingRenderMode.MODEL,
+                ModelRenderMode.NONE,
+                RenderPass.Solid,
+                HasTexture: true,
+                Selected: true,
+                FullBrightness: false,
+                LightRenderMode.NONE,
+                HasLightType: false,
+                LightAnimated: false,
+                LightRadius: 0.0,
+                VertexColorOpaque: true));
+
+        Assert.True(plan.UpdateSpriteFrame);
+        Assert.Equal([Renderer3DGeometryBucketKind.SolidThings, Renderer3DGeometryBucketKind.AllThings], plan.Buckets);
+    }
+
+    [Fact]
+    public void BuildThingGeometryCollectionPlanAddsTexturelessThingsOnlyToAllThings()
+    {
+        Renderer3DThingGeometryCollectionPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingGeometryCollectionPlan(
+            new Renderer3DThingGeometryCandidate(
+                5,
+                ThingRenderMode.NORMAL,
+                ModelRenderMode.ALL,
+                RenderPass.Solid,
+                HasTexture: false,
+                Selected: false,
+                FullBrightness: false,
+                LightRenderMode.ALL,
+                HasLightType: true,
+                LightAnimated: false,
+                LightRadius: 0.0,
+                VertexColorOpaque: true));
+
+        Assert.True(plan.UpdateLightRadius);
+        Assert.False(plan.UpdateBoundingBox);
+        Assert.Equal([Renderer3DGeometryBucketKind.AllThings], plan.Buckets);
+    }
+
+    [Fact]
+    public void BuildThingGeometryCollectionPlanRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Renderer3DGeometryLifecyclePlan.BuildThingGeometryCollectionPlan(
+                new Renderer3DThingGeometryCandidate(1, ThingRenderMode.NORMAL, ModelRenderMode.NONE, RenderPass.Solid, HasTexture: true, Selected: false, FullBrightness: false, LightRenderMode.NONE, HasLightType: false, LightAnimated: false, LightRadius: -1.0, VertexColorOpaque: true)));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Renderer3DGeometryLifecyclePlan.BuildThingGeometryCollectionPlan(
+                new Renderer3DThingGeometryCandidate(1, ThingRenderMode.NORMAL, ModelRenderMode.NONE, RenderPass.Solid, HasTexture: true, Selected: false, FullBrightness: false, LightRenderMode.NONE, HasLightType: false, LightAnimated: false, LightRadius: double.NaN, VertexColorOpaque: true)));
+
+        Renderer3DThingGeometryCollectionPlan unsupportedModel = Renderer3DGeometryLifecyclePlan.BuildThingGeometryCollectionPlan(
+            new Renderer3DThingGeometryCandidate(6, ThingRenderMode.MODEL, ModelRenderMode.ALL, (RenderPass)99, HasTexture: true, Selected: false, FullBrightness: false, LightRenderMode.NONE, HasLightType: false, LightAnimated: false, LightRadius: 0.0, VertexColorOpaque: true));
+        Renderer3DThingGeometryCollectionPlan unsupportedSprite = Renderer3DGeometryLifecyclePlan.BuildThingGeometryCollectionPlan(
+            new Renderer3DThingGeometryCandidate(7, ThingRenderMode.NORMAL, ModelRenderMode.ALL, (RenderPass)99, HasTexture: true, Selected: false, FullBrightness: false, LightRenderMode.NONE, HasLightType: false, LightAnimated: false, LightRadius: 0.0, VertexColorOpaque: true));
+
+        Assert.Equal([Renderer3DGeometryBucketKind.AllThings], unsupportedModel.Buckets);
+        Assert.Equal("Thing model rendering of 99 render pass is not implemented!", unsupportedModel.UnsupportedRenderPassMessage);
+        Assert.Equal([Renderer3DGeometryBucketKind.AllThings], unsupportedSprite.Buckets);
+        Assert.Equal("Thing rendering of 99 render pass is not implemented!", unsupportedSprite.UnsupportedRenderPassMessage);
+    }
+
+    [Fact]
     public void BuildSkyRenderPlanSetsUdbSkyStateAndDrawsValidSectors()
     {
         Renderer3DSkyRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildSkyRenderPlan(
@@ -2018,6 +2177,26 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("maskedgeo[g.Texture].Add(g);", source, StringComparison.Ordinal);
         Assert.Contains("translucentgeo.Add(g);", source, StringComparison.Ordinal);
         Assert.Contains("throw new NotImplementedException(\"Geometry rendering of \" + g.RenderPass + \" render pass is not implemented!\");", source, StringComparison.Ordinal);
+        Assert.Contains("public void AddThingGeometry(VisualThing t)", source, StringComparison.Ordinal);
+        Assert.Contains("t.Update();", source, StringComparison.Ordinal);
+        Assert.Contains("if (General.Settings.GZDrawLightsMode != LightRenderMode.NONE && !fullbrightness && t.LightType != null)", source, StringComparison.Ordinal);
+        Assert.Contains("t.UpdateLightRadius();", source, StringComparison.Ordinal);
+        Assert.Contains("if (t.LightRadius > 0)", source, StringComparison.Ordinal);
+        Assert.Contains("if (t.LightType != null && t.LightType.LightAnimated)", source, StringComparison.Ordinal);
+        Assert.Contains("lightthings.Add(t);", source, StringComparison.Ordinal);
+        Assert.Contains("(t.Thing.RenderMode == ThingRenderMode.MODEL || t.Thing.RenderMode == ThingRenderMode.VOXEL)", source, StringComparison.Ordinal);
+        Assert.Contains("General.Settings.GZDrawModelsMode == ModelRenderMode.SELECTION && t.Selected", source, StringComparison.Ordinal);
+        Assert.Contains("(t.RenderPass == RenderPass.Alpha && (t.VertexColor & 0xFF000000) == 0xFF000000)", source, StringComparison.Ordinal);
+        Assert.Contains("maskedmodelthings[mde].Add(t);", source, StringComparison.Ordinal);
+        Assert.Contains("translucentmodelthings.Add(t);", source, StringComparison.Ordinal);
+        Assert.Contains("throw new NotImplementedException(\"Thing model rendering of \" + t.RenderPass + \" render pass is not implemented!\");", source, StringComparison.Ordinal);
+        Assert.Contains("t.UpdateSpriteFrame();", source, StringComparison.Ordinal);
+        Assert.Contains("if(t.Texture != null)", source, StringComparison.Ordinal);
+        Assert.Contains("solidthings[t.Texture].Add(t);", source, StringComparison.Ordinal);
+        Assert.Contains("maskedthings[t.Texture].Add(t);", source, StringComparison.Ordinal);
+        Assert.Contains("translucentthings.Add(t);", source, StringComparison.Ordinal);
+        Assert.Contains("throw new NotImplementedException(\"Thing rendering of \" + t.RenderPass + \" render pass is not implemented!\");", source, StringComparison.Ordinal);
+        Assert.Contains("allthings.Add(t);", source, StringComparison.Ordinal);
         Assert.Contains("private void RenderSky(IEnumerable<VisualGeometry> geo)", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetShader(ShaderName.world3d_skybox);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(General.Map.Data.SkyBox);", source, StringComparison.Ordinal);

@@ -94,6 +94,29 @@ public sealed record Renderer3DSectorGeometryCollectionPlan(
     Renderer3DGeometryBucketKind? Bucket,
     string? UnsupportedRenderPassMessage);
 
+public sealed record Renderer3DThingGeometryCandidate(
+    int Id,
+    ThingRenderMode RenderMode,
+    ModelRenderMode ModelRenderMode,
+    RenderPass RenderPass,
+    bool HasTexture,
+    bool Selected,
+    bool FullBrightness,
+    LightRenderMode LightRenderMode,
+    bool HasLightType,
+    bool LightAnimated,
+    double LightRadius,
+    bool VertexColorOpaque);
+
+public sealed record Renderer3DThingGeometryCollectionPlan(
+    int ThingId,
+    bool UpdateThing,
+    bool UpdateLightRadius,
+    bool UpdateBoundingBox,
+    bool UpdateSpriteFrame,
+    IReadOnlyList<Renderer3DGeometryBucketKind> Buckets,
+    string? UnsupportedRenderPassMessage);
+
 public sealed record Renderer3DSkyGeometryCandidate(
     int Id,
     int SectorId,
@@ -578,6 +601,75 @@ public static class Renderer3DGeometryLifecyclePlan
                 Accepted: false,
                 Bucket: null,
                 UnsupportedRenderPassMessage: "Geometry rendering of " + geometry.RenderPass + " render pass is not implemented!");
+    }
+
+    public static Renderer3DThingGeometryCollectionPlan BuildThingGeometryCollectionPlan(Renderer3DThingGeometryCandidate thing)
+    {
+        if (double.IsNaN(thing.LightRadius) || thing.LightRadius < 0.0) throw new ArgumentOutOfRangeException(nameof(thing));
+
+        var buckets = new List<Renderer3DGeometryBucketKind>();
+        bool updateLightRadius = thing.LightRenderMode != LightRenderMode.NONE && !thing.FullBrightness && thing.HasLightType;
+        bool updateBoundingBox = false;
+        if (updateLightRadius && thing.LightRadius > 0.0)
+        {
+            updateBoundingBox = thing.LightAnimated;
+            buckets.Add(Renderer3DGeometryBucketKind.LightThings);
+        }
+
+        bool usesModelBucket =
+            (thing.RenderMode == ThingRenderMode.MODEL || thing.RenderMode == ThingRenderMode.VOXEL) &&
+            (thing.ModelRenderMode == ModelRenderMode.ALL ||
+             thing.ModelRenderMode == ModelRenderMode.ACTIVE_THINGS_FILTER ||
+             (thing.ModelRenderMode == ModelRenderMode.SELECTION && thing.Selected));
+
+        string? unsupportedRenderPassMessage = null;
+        bool updateSpriteFrame = !usesModelBucket;
+        if (usesModelBucket)
+        {
+            if (thing.RenderPass == RenderPass.Mask ||
+                thing.RenderPass == RenderPass.Solid ||
+                (thing.RenderPass == RenderPass.Alpha && thing.VertexColorOpaque))
+            {
+                buckets.Add(Renderer3DGeometryBucketKind.MaskedModelThings);
+            }
+            else if (thing.RenderPass == RenderPass.Alpha || thing.RenderPass == RenderPass.Additive)
+            {
+                buckets.Add(Renderer3DGeometryBucketKind.TranslucentModelThings);
+            }
+            else
+            {
+                unsupportedRenderPassMessage = "Thing model rendering of " + thing.RenderPass + " render pass is not implemented!";
+            }
+        }
+        else if (thing.HasTexture)
+        {
+            Renderer3DGeometryBucketKind? thingBucket = thing.RenderPass switch
+            {
+                RenderPass.Solid => Renderer3DGeometryBucketKind.SolidThings,
+                RenderPass.Mask => Renderer3DGeometryBucketKind.MaskedThings,
+                RenderPass.Additive or RenderPass.Alpha => Renderer3DGeometryBucketKind.TranslucentThings,
+                _ => null,
+            };
+
+            if (thingBucket.HasValue)
+            {
+                buckets.Add(thingBucket.Value);
+            }
+            else
+            {
+                unsupportedRenderPassMessage = "Thing rendering of " + thing.RenderPass + " render pass is not implemented!";
+            }
+        }
+
+        buckets.Add(Renderer3DGeometryBucketKind.AllThings);
+        return new Renderer3DThingGeometryCollectionPlan(
+            thing.Id,
+            UpdateThing: true,
+            updateLightRadius,
+            updateBoundingBox,
+            updateSpriteFrame,
+            buckets,
+            unsupportedRenderPassMessage);
     }
 
     public static Renderer3DSkyRenderPlan BuildSkyRenderPlan(IReadOnlyList<Renderer3DSkyGeometryCandidate> geometry)
