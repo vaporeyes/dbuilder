@@ -431,6 +431,22 @@ public class RendererArchitectureModelTests
     }
 
     [Fact]
+    public void RenderDeviceSamplerPlansRejectInvalidUnits()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildSamplerFilterPlan(TextureFilter.Linear, unit: -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildSamplerFilterPlan(
+                TextureFilter.Nearest,
+                TextureFilter.Linear,
+                MipmapFilter.Nearest,
+                maxAnisotropy: 4.0f,
+                unit: -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildSamplerStatePlan(TextureAddress.Clamp, unit: -1));
+    }
+
+    [Fact]
     public void RenderDeviceBuildsUdbSetupSettingsPlan()
     {
         Assert.NotNull(typeof(RenderDevice).GetMethod(

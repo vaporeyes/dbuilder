@@ -67,6 +67,13 @@ public sealed class RenderDeviceTextureOperationTests
     }
 
     [Fact]
+    public void BuildSetTexturePlanRejectsInvalidUnits()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildSetTexturePlan(texture: null, unit: -1));
+    }
+
+    [Fact]
     public void BuildClearTexturePlanTracksColorAndTarget()
     {
         TextureOperationPlan plan = RenderDevice.BuildClearTexturePlan(0xff112233, texture: null);

@@ -768,6 +768,7 @@ public sealed class RenderDevice : IDisposable
 
     public void SetTexture(int unit, BaseTexture? texture)
     {
+        ValidateTextureUnit(unit);
         _gl.ActiveTexture(TextureUnit.Texture0 + unit);
         TextureTarget target = texture is CubeTexture ? TextureTarget.TextureCubeMap : TextureTarget.Texture2D;
         _gl.BindTexture(target, texture?.Handle ?? 0);
@@ -843,7 +844,10 @@ public sealed class RenderDevice : IDisposable
         => texture.SetPixelsRgba8(face, rgba, generateMipmaps);
 
     public static TextureOperationPlan BuildSetTexturePlan(Texture? texture, int unit = 0)
-        => new(TextureOperationKind.Bind, unit, texture != null);
+    {
+        ValidateTextureUnit(unit);
+        return new(TextureOperationKind.Bind, unit, texture != null);
+    }
 
     public static TextureOperationPlan BuildClearTexturePlan(uint colorArgb, Texture? texture)
         => new(TextureOperationKind.Clear, 0, texture != null, ColorArgb: colorArgb);
@@ -982,7 +986,10 @@ public sealed class RenderDevice : IDisposable
         => BuildSamplerFilterPlan(filter, filter, MipmapFilter.None, 0.0f, unit);
 
     public static SamplerStatePlan BuildSamplerStatePlan(TextureAddress address, int unit = 0)
-        => new(address, unit);
+    {
+        ValidateTextureUnit(unit);
+        return new(address, unit);
+    }
 
     public static ViewportPlan BuildViewportPlan(int width, int height)
     {
@@ -1183,7 +1190,10 @@ public sealed class RenderDevice : IDisposable
         MipmapFilter mip,
         float maxAnisotropy,
         int unit = 0)
-        => new(min, mag, mip, maxAnisotropy, unit);
+    {
+        ValidateTextureUnit(unit);
+        return new(min, mag, mip, maxAnisotropy, unit);
+    }
 
     private static RenderShaderOperationPlan BuildSetUniformPlan(
         UniformName uniform,
@@ -1235,6 +1245,7 @@ public sealed class RenderDevice : IDisposable
 
     public void SetSamplerFilter(TextureFilter min, TextureFilter mag, MipmapFilter mip, int unit = 0)
     {
+        ValidateTextureUnit(unit);
         // Per-texture parameter state; matches GLTexture semantics in UDB for the spike subset.
         _gl.ActiveTexture(TextureUnit.Texture0 + unit);
         GLEnum minFilter = (min, mip) switch
@@ -1254,6 +1265,7 @@ public sealed class RenderDevice : IDisposable
 
     public void SetSamplerState(TextureAddress address, int unit = 0)
     {
+        ValidateTextureUnit(unit);
         _gl.ActiveTexture(TextureUnit.Texture0 + unit);
         int wrap = address == TextureAddress.Wrap ? (int)GLEnum.Repeat : (int)GLEnum.ClampToEdge;
         _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, wrap);
@@ -1354,6 +1366,11 @@ public sealed class RenderDevice : IDisposable
             CubeMapFace.NegativeZ => TextureTarget.TextureCubeMapNegativeZ,
             _ => throw new ArgumentOutOfRangeException(nameof(face)),
         };
+
+    private static void ValidateTextureUnit(int unit)
+    {
+        if (unit < 0) throw new ArgumentOutOfRangeException(nameof(unit));
+    }
 
     private static int PrimToVerts(PrimitiveType type, int primCount) => type switch
     {
