@@ -45,6 +45,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("2D presentation render-session start and finish planning", replacement.CoveredResponsibilities);
         Assert.Contains("2D presentation surface redraw operation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Renderer2D coordinate transform planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Renderer2D color selection planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device alpha-blend state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device alpha-test compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device multisample antialias compatibility state planning", replacement.CoveredResponsibilities);
