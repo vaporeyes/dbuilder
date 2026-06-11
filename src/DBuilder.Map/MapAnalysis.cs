@@ -1666,7 +1666,7 @@ public static class MapAnalysis
     }
 
     private static bool IsWholeMapUnit(double value)
-        => Math.Abs(value - Math.Round(value)) < 1e-9;
+        => value == (int)value;
 
     private static MapIssue OffGridVertexIssue(Vertex vertex, string message)
         => new(MapIssueSeverity.Warning, MapIssueKind.OffGridVertex, message)

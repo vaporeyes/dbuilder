@@ -2711,6 +2711,15 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void OffGridVertexFlagsTinyFractionalCoordinatesLikeUdb()
+    {
+        var map = new MapSet();
+        map.AddVertex(new Vector2D(7.0000000001, 3));
+
+        Assert.Contains(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.OffGridVertex);
+    }
+
+    [Fact]
     public void OffGridVertexIgnoresWholeCoordinatesOutsideCurrentGrid()
     {
         var map = new MapSet();
