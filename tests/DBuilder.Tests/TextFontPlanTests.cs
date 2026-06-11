@@ -10,6 +10,10 @@ public sealed class TextFontPlanTests
     [Fact]
     public void BuildGlyphNormalizesFontCfgMetricsLikeUdb()
     {
+        Assert.Equal("Font.cfg", TextFontPlan.FontResource);
+        Assert.Equal(TextFontPlan.FontResource, TextFontPlan.FONT_RESOURCE);
+        Assert.Equal(TextFontPlan.AdjustSpacing, TextFontPlan.ADJUST_SPACING);
+
         TextFontGlyph glyph = TextFontPlan.BuildGlyph(new TextFontGlyphSource(
             Width: 80,
             Height: 45,
@@ -50,13 +54,28 @@ public sealed class TextFontPlanTests
     }
 
     [Fact]
+    public void ContainsChecksByteIndexedGlyphTableLikeUdb()
+    {
+        TextFontGlyph[] glyphs = TextFontPlan.BuildGlyphTable(new Dictionary<int, TextFontGlyphSource>
+        {
+            [(byte)'A'] = new(80, 45, 0, 0, 0, 0),
+            [(byte)'?'] = new(20, 30, 0, 0, 0, 0),
+        });
+
+        Assert.True(TextFontPlan.Contains(glyphs, (byte)'A'));
+        Assert.True(TextFontPlan.Contains(glyphs, 'A'));
+        Assert.True(TextFontPlan.Contains(glyphs, 'é'));
+        Assert.False(TextFontPlan.Contains(glyphs, (byte)'B'));
+    }
+
+    [Fact]
     public void GetTextSizeSumsWidthsAndUsesLastCharacterHeightLikeUdb()
     {
-        var glyphs = new Dictionary<byte, TextFontGlyph>
+        TextFontGlyph[] glyphs = TextFontPlan.BuildGlyphTable(new Dictionary<int, TextFontGlyphSource>
         {
-            [(byte)'A'] = new(1.5f, 2.0f, 0, 0, 0, 0),
-            [(byte)'B'] = new(2.5f, 3.0f, 0, 0, 0, 0),
-        };
+            [(byte)'A'] = new(60, 60, 0, 0, 0, 0),
+            [(byte)'B'] = new(100, 90, 0, 0, 0, 0),
+        });
 
         TextLabelSize size = TextFontPlan.GetTextSize("AB", 4.0f, glyphs);
 

@@ -13,7 +13,10 @@ public sealed record TextFontGlyphVertexPlan(FlatVertex[] Vertices, float NextTe
 
 public static class TextFontPlan
 {
+    public const string FontResource = "Font.cfg";
+    public const string FONT_RESOURCE = FontResource;
     public const float AdjustSpacing = -0.08f;
+    public const float ADJUST_SPACING = AdjustSpacing;
     public const float VScale = 0.5f;
     public const float WidthNormalization = 40.0f;
     public const float HeightNormalization = 30.0f;
@@ -42,6 +45,30 @@ public static class TextFontPlan
 
     public static bool Contains(TextFontGlyph glyph)
         => glyph.Width > 0.000000001f || glyph.Height > 0.000000001f;
+
+    public static bool Contains(IReadOnlyList<TextFontGlyph> glyphs, char c)
+    {
+        byte[] keyBytes = Encoding.ASCII.GetBytes(c.ToString());
+        return Contains(glyphs, keyBytes[0]);
+    }
+
+    public static bool Contains(IReadOnlyList<TextFontGlyph> glyphs, byte b)
+        => b < glyphs.Count && Contains(glyphs[b]);
+
+    public static TextLabelSize GetTextSize(string text, float scale, IReadOnlyList<TextFontGlyph> glyphs)
+    {
+        float sizeX = 0.0f;
+        float sizeY = 0.0f;
+
+        foreach (byte b in Encoding.ASCII.GetBytes(text))
+        {
+            TextFontGlyph glyph = b < glyphs.Count ? glyphs[b] : new TextFontGlyph(0, 0, 0, 0, 0, 0);
+            sizeX += glyph.Width * scale;
+            sizeY = glyph.Height * scale;
+        }
+
+        return new TextLabelSize(sizeX, sizeY);
+    }
 
     public static TextLabelSize GetTextSize(string text, float scale, IReadOnlyDictionary<byte, TextFontGlyph> glyphs)
     {
