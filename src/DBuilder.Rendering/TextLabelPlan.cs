@@ -112,6 +112,7 @@ public sealed record TextLabelResourceUpdatePlan(
     bool DisposeTexture,
     bool CreateLabelImage,
     bool CreateTexture,
+    bool UploadTexture,
     bool CreateVertexBuffer,
     bool UploadQuadBuffer,
     TextLabelInvalidation ResultInvalidation);
@@ -537,17 +538,20 @@ public static class TextLabelPlan
                 DisposeTexture: false,
                 CreateLabelImage: false,
                 CreateTexture: false,
+                UploadTexture: false,
                 CreateVertexBuffer: false,
                 UploadQuadBuffer: false,
                 resultInvalidation);
         }
 
         bool updateTexture = invalidation.TextureUpdateNeeded;
+        bool createTexture = updateTexture && !hasTexture;
         bool createVertexBuffer = !hasVertexBuffer || vertexBufferDisposed;
         return new TextLabelResourceUpdatePlan(
-            DisposeTexture: updateTexture && hasTexture,
+            DisposeTexture: false,
             CreateLabelImage: updateTexture,
-            CreateTexture: updateTexture,
+            CreateTexture: createTexture,
+            UploadTexture: updateTexture,
             CreateVertexBuffer: createVertexBuffer,
             UploadQuadBuffer: invalidation.LayoutUpdateNeeded || createVertexBuffer,
             TextLabelInvalidation.Clean);

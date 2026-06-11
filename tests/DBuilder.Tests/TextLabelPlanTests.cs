@@ -633,7 +633,7 @@ public sealed class TextLabelPlanTests
     }
 
     [Fact]
-    public void ResourceUpdatePlanRefreshesTextureAndUploadsQuadForVisibleDirtyLabel()
+    public void ResourceUpdatePlanRefreshesLabelImageAndUploadsQuadForVisibleDirtyLabel()
     {
         TextLabelLayout layout = TextLabelPlan.Build(
             "Visible",
@@ -650,11 +650,39 @@ public sealed class TextLabelPlanTests
             hasVertexBuffer: true,
             vertexBufferDisposed: false);
 
-        Assert.True(plan.DisposeTexture);
+        Assert.False(plan.DisposeTexture);
         Assert.True(plan.CreateLabelImage);
-        Assert.True(plan.CreateTexture);
+        Assert.False(plan.CreateTexture);
+        Assert.True(plan.UploadTexture);
         Assert.False(plan.CreateVertexBuffer);
         Assert.True(plan.UploadQuadBuffer);
+        Assert.Equal(TextLabelInvalidation.Clean, plan.ResultInvalidation);
+    }
+
+    [Fact]
+    public void ResourceUpdatePlanCreatesTextureOnlyWhenMissing()
+    {
+        TextLabelLayout layout = TextLabelPlan.Build(
+            "Visible",
+            new TextLabelSize(24, 10),
+            new TextLabelPoint(8, 8),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+
+        TextLabelResourceUpdatePlan plan = TextLabelPlan.BuildResourceUpdatePlan(
+            new TextLabelInvalidation(LayoutUpdateNeeded: false, TextureUpdateNeeded: true),
+            layout,
+            hasTexture: false,
+            hasVertexBuffer: true,
+            vertexBufferDisposed: false);
+
+        Assert.False(plan.DisposeTexture);
+        Assert.True(plan.CreateLabelImage);
+        Assert.True(plan.CreateTexture);
+        Assert.True(plan.UploadTexture);
+        Assert.False(plan.CreateVertexBuffer);
+        Assert.False(plan.UploadQuadBuffer);
         Assert.Equal(TextLabelInvalidation.Clean, plan.ResultInvalidation);
     }
 
@@ -679,6 +707,7 @@ public sealed class TextLabelPlanTests
         Assert.False(plan.DisposeTexture);
         Assert.False(plan.CreateLabelImage);
         Assert.False(plan.CreateTexture);
+        Assert.False(plan.UploadTexture);
         Assert.False(plan.CreateVertexBuffer);
         Assert.False(plan.UploadQuadBuffer);
         Assert.Equal(TextLabelInvalidation.Clean, plan.ResultInvalidation);
@@ -735,6 +764,7 @@ public sealed class TextLabelPlanTests
         Assert.False(plan.DisposeTexture);
         Assert.False(plan.CreateLabelImage);
         Assert.False(plan.CreateTexture);
+        Assert.False(plan.UploadTexture);
         Assert.False(plan.CreateVertexBuffer);
         Assert.False(plan.UploadQuadBuffer);
         Assert.Equal(TextLabelInvalidation.Initial, plan.ResultInvalidation);
@@ -763,6 +793,7 @@ public sealed class TextLabelPlanTests
         Assert.False(plan.DisposeTexture);
         Assert.False(plan.CreateLabelImage);
         Assert.False(plan.CreateTexture);
+        Assert.False(plan.UploadTexture);
         Assert.False(plan.CreateVertexBuffer);
         Assert.False(plan.UploadQuadBuffer);
         Assert.Equal(TextLabelInvalidation.Clean, plan.ResultInvalidation);
