@@ -50,7 +50,7 @@ public sealed class ThingIconRenderPolicyTests
     [Fact]
     public void CompactThresholdStartsWhenSpriteIconsCollapse()
     {
-        Assert.Equal(0.025, ThingIconRenderPolicy.CompactMarkerScaleThreshold);
+        Assert.Equal(0.0225, ThingIconRenderPolicy.CompactMarkerScaleThreshold);
         Assert.Equal(0.02, ThingIconRenderPolicy.MinimumInteractiveViewScale);
         Assert.False(ThingIconRenderPolicy.UseCompactMarkers(
             viewScale: ThingIconRenderPolicy.MinimumInteractiveViewScale,
@@ -67,6 +67,24 @@ public sealed class ThingIconRenderPolicyTests
         Assert.True(ThingIconRenderPolicy.UseOverviewMarkers(
             viewScale: ThingIconRenderPolicy.SpriteIconScaleThreshold,
             thingArrows: false));
+    }
+
+    [Fact]
+    public void FirstZoomedOutStepUsesOverviewMarkers()
+    {
+        const double firstZoomOutStepFromMinimum = 0.02 / 0.85;
+
+        Assert.True(ThingIconRenderPolicy.UseCompactMarkers(
+            viewScale: firstZoomOutStepFromMinimum,
+            fixedThingsScale: false,
+            thingArrows: false));
+        Assert.True(ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(
+            viewScale: firstZoomOutStepFromMinimum,
+            thingArrows: false));
+        Assert.False(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
+            mapRadius: 20,
+            viewScale: firstZoomOutStepFromMinimum,
+            fixedThingsScale: false));
     }
 
     [Fact]
@@ -214,7 +232,7 @@ public sealed class ThingIconRenderPolicyTests
     [Fact]
     public void SpriteIconsRenderOnlyWhenScreenFootprintStaysReadable()
     {
-        Assert.Equal(0.025, ThingIconRenderPolicy.SpriteIconScaleThreshold);
+        Assert.Equal(0.0225, ThingIconRenderPolicy.SpriteIconScaleThreshold);
         Assert.Equal(8.0, ThingIconRenderPolicy.MinimumSpriteScreenRadius);
         Assert.False(ThingIconRenderPolicy.ShouldRenderSpriteIcon(
             mapRadius: 20,
