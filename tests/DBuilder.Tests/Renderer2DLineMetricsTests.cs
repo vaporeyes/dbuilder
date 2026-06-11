@@ -452,6 +452,31 @@ public sealed class Renderer2DLineMetricsTests
     }
 
     [Fact]
+    public void BuildPlotSectorOperationsMatchesUdbSideLoop()
+    {
+        IReadOnlyList<Renderer2DPlotSectorOperation> operations =
+            Renderer2DLineMetricPlanner.BuildPlotSectorOperations(
+            [
+                new Renderer2DPlotSectorSide(10, 1, 2),
+                new Renderer2DPlotSectorSide(11, 2, 3),
+            ]);
+
+        Assert.Equal(new[]
+        {
+            new Renderer2DPlotSectorOperation(Renderer2DPlotSectorOperationKind.PlotLinedef, 10),
+            new Renderer2DPlotSectorOperation(Renderer2DPlotSectorOperationKind.PlotVertex, 1),
+            new Renderer2DPlotSectorOperation(Renderer2DPlotSectorOperationKind.PlotVertex, 2),
+            new Renderer2DPlotSectorOperation(Renderer2DPlotSectorOperationKind.PlotLinedef, 11),
+            new Renderer2DPlotSectorOperation(Renderer2DPlotSectorOperationKind.PlotVertex, 2),
+            new Renderer2DPlotSectorOperation(Renderer2DPlotSectorOperationKind.PlotVertex, 3),
+        }, operations);
+    }
+
+    [Fact]
+    public void BuildPlotSectorOperationsRejectsNullSides()
+        => Assert.Throws<ArgumentNullException>(() => Renderer2DLineMetricPlanner.BuildPlotSectorOperations(null!));
+
+    [Fact]
     public void BuildLinedefSegmentsRejectsInvalidViewport()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => Renderer2DLineMetricPlanner.BuildLinedefSegments(

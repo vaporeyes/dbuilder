@@ -67,6 +67,18 @@ public readonly record struct Renderer2DExtraFloorLine(
     Renderer2DExtraFloorSide? Front,
     Renderer2DExtraFloorSide? Back);
 
+public enum Renderer2DPlotSectorOperationKind
+{
+    PlotLinedef,
+    PlotVertex,
+}
+
+public readonly record struct Renderer2DPlotSectorSide(int LinedefIndex, int StartVertexIndex, int EndVertexIndex);
+
+public readonly record struct Renderer2DPlotSectorOperation(
+    Renderer2DPlotSectorOperationKind Kind,
+    int ElementIndex);
+
 public static class Renderer2DLineMetricPlanner
 {
     public const double LineNormalScreenSize = 10.0;
@@ -292,6 +304,22 @@ public static class Renderer2DLineMetricPlanner
         }
 
         return flagged;
+    }
+
+    public static IReadOnlyList<Renderer2DPlotSectorOperation> BuildPlotSectorOperations(
+        IEnumerable<Renderer2DPlotSectorSide> sides)
+    {
+        ArgumentNullException.ThrowIfNull(sides);
+
+        var operations = new List<Renderer2DPlotSectorOperation>();
+        foreach (Renderer2DPlotSectorSide side in sides)
+        {
+            operations.Add(new Renderer2DPlotSectorOperation(Renderer2DPlotSectorOperationKind.PlotLinedef, side.LinedefIndex));
+            operations.Add(new Renderer2DPlotSectorOperation(Renderer2DPlotSectorOperationKind.PlotVertex, side.StartVertexIndex));
+            operations.Add(new Renderer2DPlotSectorOperation(Renderer2DPlotSectorOperationKind.PlotVertex, side.EndVertexIndex));
+        }
+
+        return operations;
     }
 
     private static bool IsExtraFloorSide(Renderer2DExtraFloorSide? side, HashSet<int> tags)
