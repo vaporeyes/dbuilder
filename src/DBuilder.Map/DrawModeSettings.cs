@@ -295,3 +295,42 @@ public sealed record DrawGridModeSettings(
             VerticalInterpolation = Enum.IsDefined(VerticalInterpolation) ? VerticalInterpolation : InterpolationTools.Mode.LINEAR,
         };
 }
+
+public sealed record DrawGridOptionsPanelState(
+    bool HorizontalSlicesEnabled,
+    bool VerticalSlicesEnabled,
+    bool HorizontalInterpolationEnabled,
+    bool VerticalInterpolationEnabled,
+    bool ResetEnabled,
+    InterpolationTools.Mode HorizontalInterpolation,
+    InterpolationTools.Mode VerticalInterpolation)
+{
+    public static DrawGridOptionsPanelState FromSettings(DrawGridModeSettings settings)
+    {
+        DrawGridModeSettings normalized = settings.Normalized();
+        bool horizontalEnabled = normalized.GridLockMode is DrawGridLockMode.None or DrawGridLockMode.Vertical;
+        bool verticalEnabled = normalized.GridLockMode is DrawGridLockMode.None or DrawGridLockMode.Horizontal;
+
+        return new DrawGridOptionsPanelState(
+            horizontalEnabled,
+            verticalEnabled,
+            horizontalEnabled,
+            verticalEnabled,
+            normalized.GridLockMode != DrawGridLockMode.Both,
+            horizontalEnabled ? normalized.HorizontalInterpolation : InterpolationTools.Mode.LINEAR,
+            verticalEnabled ? normalized.VerticalInterpolation : InterpolationTools.Mode.LINEAR);
+    }
+
+    public static DrawGridModeSettings ResetSlices(DrawGridModeSettings settings)
+    {
+        DrawGridModeSettings normalized = settings.Normalized();
+        return normalized.GridLockMode switch
+        {
+            DrawGridLockMode.None => normalized with { HorizontalSlices = 3, VerticalSlices = 3 },
+            DrawGridLockMode.Horizontal => normalized with { VerticalSlices = 3 },
+            DrawGridLockMode.Vertical => normalized with { HorizontalSlices = 3 },
+            DrawGridLockMode.Both => normalized,
+            _ => normalized,
+        };
+    }
+}

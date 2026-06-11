@@ -310,4 +310,65 @@ public class DrawModeSettingsTests
         Assert.Equal(3, verticalLocked.IncreaseHorizontalSlices().HorizontalSlices);
         Assert.Equal(2, verticalLocked.IncreaseVerticalSlices().VerticalSlices);
     }
+
+    [Theory]
+    [InlineData(DrawGridLockMode.None, true, true, true, true)]
+    [InlineData(DrawGridLockMode.Horizontal, false, true, false, true)]
+    [InlineData(DrawGridLockMode.Vertical, true, false, true, false)]
+    [InlineData(DrawGridLockMode.Both, false, false, false, false)]
+    public void DrawGridOptionsPanelStateMatchesUdbLockModeEnablement(
+        DrawGridLockMode lockMode,
+        bool horizontalEnabled,
+        bool verticalEnabled,
+        bool horizontalInterpolationEnabled,
+        bool verticalInterpolationEnabled)
+    {
+        DrawGridOptionsPanelState state = DrawGridOptionsPanelState.FromSettings(new DrawGridModeSettings(
+            GridLockMode: lockMode,
+            HorizontalInterpolation: InterpolationTools.Mode.EASE_IN_SINE,
+            VerticalInterpolation: InterpolationTools.Mode.EASE_OUT_SINE));
+
+        Assert.Equal(horizontalEnabled, state.HorizontalSlicesEnabled);
+        Assert.Equal(verticalEnabled, state.VerticalSlicesEnabled);
+        Assert.Equal(horizontalInterpolationEnabled, state.HorizontalInterpolationEnabled);
+        Assert.Equal(verticalInterpolationEnabled, state.VerticalInterpolationEnabled);
+        Assert.Equal(lockMode != DrawGridLockMode.Both, state.ResetEnabled);
+    }
+
+    [Fact]
+    public void DrawGridOptionsPanelStateForcesLockedAxisInterpolationToLinear()
+    {
+        DrawGridOptionsPanelState horizontalLocked = DrawGridOptionsPanelState.FromSettings(new DrawGridModeSettings(
+            GridLockMode: DrawGridLockMode.Horizontal,
+            HorizontalInterpolation: InterpolationTools.Mode.EASE_IN_SINE,
+            VerticalInterpolation: InterpolationTools.Mode.EASE_OUT_SINE));
+        DrawGridOptionsPanelState verticalLocked = DrawGridOptionsPanelState.FromSettings(new DrawGridModeSettings(
+            GridLockMode: DrawGridLockMode.Vertical,
+            HorizontalInterpolation: InterpolationTools.Mode.EASE_IN_SINE,
+            VerticalInterpolation: InterpolationTools.Mode.EASE_OUT_SINE));
+
+        Assert.Equal(InterpolationTools.Mode.LINEAR, horizontalLocked.HorizontalInterpolation);
+        Assert.Equal(InterpolationTools.Mode.EASE_OUT_SINE, horizontalLocked.VerticalInterpolation);
+        Assert.Equal(InterpolationTools.Mode.EASE_IN_SINE, verticalLocked.HorizontalInterpolation);
+        Assert.Equal(InterpolationTools.Mode.LINEAR, verticalLocked.VerticalInterpolation);
+    }
+
+    [Theory]
+    [InlineData(DrawGridLockMode.None, 3, 3)]
+    [InlineData(DrawGridLockMode.Horizontal, 8, 3)]
+    [InlineData(DrawGridLockMode.Vertical, 3, 9)]
+    [InlineData(DrawGridLockMode.Both, 8, 9)]
+    public void DrawGridOptionsPanelResetMatchesUdbLockModeRules(
+        DrawGridLockMode lockMode,
+        int expectedHorizontalSlices,
+        int expectedVerticalSlices)
+    {
+        DrawGridModeSettings settings = DrawGridOptionsPanelState.ResetSlices(new DrawGridModeSettings(
+            GridLockMode: lockMode,
+            HorizontalSlices: 8,
+            VerticalSlices: 9));
+
+        Assert.Equal(expectedHorizontalSlices, settings.HorizontalSlices);
+        Assert.Equal(expectedVerticalSlices, settings.VerticalSlices);
+    }
 }

@@ -2423,6 +2423,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Apply UDB-style continuous drawing accept lifecycle to line, sector, curve, rectangle, ellipse, and grid drawing.
   - [x] Add UDB-style singular and plural labels to draw-grid completion status.
   - [x] Normalize persisted draw-grid planner options before shape creation.
+  - [x] Add UDB-style draw-grid options panel state for lock-mode enablement, reset, and interpolation fallback.
 - [x] Port sector drawing options.
   - [x] Apply UDB-style map drawing overrides to newly drawn sectors.
   - [x] Cover UDB-style upper and lower texture overrides for two-sided drawn sectors.
