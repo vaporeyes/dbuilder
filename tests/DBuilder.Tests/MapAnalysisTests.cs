@@ -3,7 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using DBuilder.Geometry;
 using DBuilder.Map;
 
@@ -52,6 +55,26 @@ public class MapAnalysisTests
 
     private static bool Has(MapSet map, MapIssueKind kind)
         => MapAnalysis.Check(map).Any(i => i.Kind == kind);
+
+    private sealed record UdbCheckerAttribute(string ClassName, string DisplayName, bool DefaultChecked, int Cost);
+
+    private static Regex ErrorCheckerAttributeRegex()
+        => new(@"\[ErrorChecker\(""(?<name>[^""]+)"",\s*(?<default>true|false),\s*(?<cost>\d+)\)\]\s*public\s+class\s+(?<class>\w+)",
+            RegexOptions.Singleline);
+
+    private static string? FindUdbRoot()
+    {
+        string repositoryRoot = RepositoryPath(".");
+        string sibling = Path.GetFullPath(Path.Combine(repositoryRoot, "..", "UltimateDoomBuilder"));
+        if (Directory.Exists(Path.Combine(sibling, "Source", "Plugins", "BuilderModes", "ErrorChecks"))) return sibling;
+
+        string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string root = Path.Combine(home, "dev", "repos", "UltimateDoomBuilder");
+        return Directory.Exists(Path.Combine(root, "Source", "Plugins", "BuilderModes", "ErrorChecks")) ? root : null;
+    }
+
+    private static string RepositoryPath(string relativePath)
+        => Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", relativePath));
 
     [Fact]
     public void ModeDescriptorMatchesUdbErrorCheckModeAttribute()
@@ -134,6 +157,34 @@ public class MapAnalysisTests
         Assert.Contains(MapIssueKind.LinedefMissingFront, descriptors.Single(descriptor => descriptor.DisplayName == "Check line references").IssueKinds);
         Assert.Contains(MapIssueKind.UnknownThingAction, descriptors.Single(descriptor => descriptor.DisplayName == "Check unknown actions/effects").IssueKinds);
         Assert.DoesNotContain(MapIssueKind.ZeroLengthLinedef, descriptors.SelectMany(descriptor => descriptor.IssueKinds));
+    }
+
+    [Fact]
+    public void CheckerDescriptorsMatchUdbErrorCheckerAttributesWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        var expected = Directory.EnumerateFiles(
+                Path.Combine(udbRoot, "Source", "Plugins", "BuilderModes", "ErrorChecks"),
+                "Check*.cs")
+            .Select(File.ReadAllText)
+            .SelectMany(text => ErrorCheckerAttributeRegex().Matches(text).Cast<Match>())
+            .Select(match => new UdbCheckerAttribute(
+                match.Groups["class"].Value,
+                match.Groups["name"].Value,
+                bool.Parse(match.Groups["default"].Value),
+                int.Parse(match.Groups["cost"].Value, CultureInfo.InvariantCulture)))
+            .ToDictionary(attribute => attribute.ClassName, StringComparer.Ordinal);
+
+        Assert.Equal(expected.Count, MapAnalysis.CheckerDescriptors.Count);
+        foreach (var descriptor in MapAnalysis.CheckerDescriptors)
+        {
+            UdbCheckerAttribute attribute = Assert.Contains(descriptor.ClassName, expected);
+            Assert.Equal(attribute.DisplayName, descriptor.DisplayName);
+            Assert.Equal(attribute.DefaultChecked, descriptor.DefaultChecked);
+            Assert.Equal(attribute.Cost, descriptor.Cost);
+        }
     }
 
     [Fact]
