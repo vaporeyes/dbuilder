@@ -122,6 +122,27 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void AcsScriptActionSpecialsMatchUdbGzGeneralWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string path = Path.Combine(udbRoot, "Source", "Core", "GZBuilder", "GZGeneral.cs");
+        Assert.True(File.Exists(path), $"Expected UDB GZGeneral.cs at {path}.");
+
+        string source = File.ReadAllText(path);
+        var match = Regex.Match(source, @"private\s+static\s+readonly\s+int\[\]\s+acsSpecials\s*=\s*\{\s*(?<values>[^}]+)\s*\}");
+        Assert.True(match.Success, "Expected UDB acsSpecials declaration.");
+
+        int[] expected = match.Groups["values"].Value
+            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Select(value => int.Parse(value, CultureInfo.InvariantCulture))
+            .ToArray();
+
+        Assert.Equal(expected, MapAnalysis.AcsScriptActionSpecials);
+    }
+
+    [Fact]
     public void ModeRedrawPlanMatchesUdbLayerSequence()
     {
         MapAnalysisModeRedrawPlan plan = MapAnalysis.RedrawPlan;

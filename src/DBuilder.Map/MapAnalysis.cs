@@ -376,6 +376,8 @@ public static class MapAnalysis
     private const string InvalidSectorDescription =
         "This sector has invalid geometry (it has less than 3 sidedefs or linedefs, or it's area is 0). This could cause problems with clipping and rendering in the game.";
 
+    public static IReadOnlyList<int> AcsScriptActionSpecials { get; } = [80, 81, 82, 83, 84, 85, 226];
+
     public static MapAnalysisModeDescriptor ModeDescriptor { get; } = new(
         "Map Analysis Mode",
         "errorcheckmode",
@@ -920,11 +922,10 @@ public static class MapAnalysis
     {
         if (!ctx.CheckScripts || (ctx.ScriptNumberExists == null && ctx.ScriptNameExists == null)) return;
 
-        var acsSpecials = new HashSet<int> { 80, 81, 82, 83, 84, 85, 226 };
         for (int i = 0; i < map.Linedefs.Count; i++)
         {
             var line = map.Linedefs[i];
-            if (!acsSpecials.Contains(line.Action)) continue;
+            if (!AcsScriptActionSpecials.Contains(line.Action)) continue;
 
             bool named = false;
             string scriptName = "";
@@ -948,7 +949,7 @@ public static class MapAnalysis
         for (int i = 0; i < map.Things.Count; i++)
         {
             var thing = map.Things[i];
-            if (!acsSpecials.Contains(thing.Action)) continue;
+            if (!AcsScriptActionSpecials.Contains(thing.Action)) continue;
 
             bool named = false;
             string scriptName = "";
