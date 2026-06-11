@@ -77,6 +77,7 @@ public static class RendererArchitectureModel
             "Index-buffer binding and primitive draw dispatch",
             "Texture disposed-state reporting",
             "Base texture lifecycle and render-device binding surface",
+            "Texture constructor input validation planning",
             "Texture format metadata and 2D/cube allocation planning",
             "Texture allocation validation planning",
             "Texture 2D format allocation application",

@@ -77,6 +77,15 @@ public sealed class TextureLifecycleTests
     }
 
     [Fact]
+    public void TextureConstructorsRejectNullGlAndDevice()
+    {
+        Assert.Throws<ArgumentNullException>(() => new Texture((Silk.NET.OpenGL.GL)null!));
+        Assert.Throws<ArgumentNullException>(() => new Texture((RenderDevice)null!, 1, 1, TextureFormat.Rgba8));
+        Assert.Throws<ArgumentNullException>(() => new CubeTexture((Silk.NET.OpenGL.GL)null!, 1));
+        Assert.Throws<ArgumentNullException>(() => new CubeTexture((RenderDevice)null!, 1));
+    }
+
+    [Fact]
     public void Build2DPixelUploadPlanTracksRgbaByteCounts()
     {
         TexturePixelUploadPlan plan = Texture.BuildRgba8UploadPlan(

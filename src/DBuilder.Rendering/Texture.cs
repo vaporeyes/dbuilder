@@ -57,6 +57,8 @@ public abstract class BaseTexture : IDisposable
 
     protected BaseTexture(GL gl)
     {
+        ArgumentNullException.ThrowIfNull(gl);
+
         Gl = gl;
         Handle = Gl.GenTexture();
         if (Handle == 0) throw new InvalidOperationException("Texture allocation failed.");
@@ -96,7 +98,7 @@ public sealed class Texture : BaseTexture
     }
 
     public Texture(RenderDevice device, int width, int height, TextureFormat format)
-        : this(device.GL, width, height, format)
+        : this(GlFromDevice(device), width, height, format)
     {
     }
 
@@ -205,6 +207,13 @@ public sealed class Texture : BaseTexture
 
     internal static int RequiredRgba8ByteCount(int width, int height)
         => checked(width * height * 4);
+
+    private static GL GlFromDevice(RenderDevice device)
+    {
+        ArgumentNullException.ThrowIfNull(device);
+
+        return device.GL;
+    }
 }
 
 public sealed class CubeTexture : BaseTexture
@@ -236,7 +245,7 @@ public sealed class CubeTexture : BaseTexture
     }
 
     public CubeTexture(RenderDevice device, int size)
-        : this(device.GL, size)
+        : this(GlFromDevice(device), size)
     {
     }
 
@@ -298,4 +307,10 @@ public sealed class CubeTexture : BaseTexture
             _ => throw new ArgumentOutOfRangeException(nameof(face)),
         };
 
+    private static GL GlFromDevice(RenderDevice device)
+    {
+        ArgumentNullException.ThrowIfNull(device);
+
+        return device.GL;
+    }
 }
