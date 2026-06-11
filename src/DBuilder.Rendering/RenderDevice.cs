@@ -41,6 +41,15 @@ public enum RenderFrameOperationKind
     Present,
 }
 
+public enum RenderShaderOperationKind
+{
+    DeclareUniform,
+    DeclareShader,
+    CompileShader,
+    SetShader,
+    SetUniform,
+}
+
 public enum RenderStateToggleKind
 {
     AlphaBlend,
@@ -110,6 +119,19 @@ public sealed record DrawOperationPlan(
 public sealed record RenderFrameOperationPlan(
     RenderFrameOperationKind Kind,
     bool FlushCommands);
+
+public sealed record RenderShaderOperationPlan(
+    RenderShaderOperationKind Kind,
+    ShaderName? ShaderName = null,
+    UniformName? UniformName = null,
+    UniformType? UniformType = null,
+    string? UniformVariableName = null,
+    string? VertexResourceName = null,
+    string? FragmentResourceName = null,
+    string? ShaderGroupName = null,
+    string? ShaderEntryName = null,
+    int ValueCount = 0,
+    int ValueByteSize = 0);
 
 public sealed record RenderResourceRegistrationPlan(
     RenderResourceRegistrationKind Kind,
@@ -600,6 +622,54 @@ public sealed class RenderDevice : IDisposable
     public static RenderFrameOperationPlan BuildPresentPlan()
         => new(RenderFrameOperationKind.Present, FlushCommands: true);
 
+    public static RenderShaderOperationPlan BuildDeclareUniformPlan(
+        UniformName name,
+        string variableName,
+        UniformType type)
+        => new(
+            RenderShaderOperationKind.DeclareUniform,
+            UniformName: name,
+            UniformType: type,
+            UniformVariableName: variableName);
+
+    public static RenderShaderOperationPlan BuildDeclareShaderPlan(
+        ShaderName name,
+        string vertexResourceName,
+        string fragmentResourceName)
+        => new(
+            RenderShaderOperationKind.DeclareShader,
+            ShaderName: name,
+            VertexResourceName: vertexResourceName,
+            FragmentResourceName: fragmentResourceName);
+
+    public static RenderShaderOperationPlan BuildCompileShaderPlan(
+        ShaderName internalName,
+        string groupName,
+        string shaderName)
+        => new(
+            RenderShaderOperationKind.CompileShader,
+            ShaderName: internalName,
+            ShaderGroupName: groupName,
+            ShaderEntryName: shaderName);
+
+    public static RenderShaderOperationPlan BuildSetShaderPlan(ShaderName shader)
+        => new(RenderShaderOperationKind.SetShader, ShaderName: shader);
+
+    public static RenderShaderOperationPlan BuildSetUniformPlan(
+        UniformName uniform,
+        UniformType type,
+        int valueCount = 1)
+    {
+        if (valueCount <= 0) throw new ArgumentOutOfRangeException(nameof(valueCount));
+
+        return new(
+            RenderShaderOperationKind.SetUniform,
+            UniformName: uniform,
+            UniformType: type,
+            ValueCount: valueCount,
+            ValueByteSize: checked(GetUniformValueByteSize(type, valueCount)));
+    }
+
     public static SamplerFilterPlan BuildSamplerFilterPlan(
         TextureFilter min,
         TextureFilter mag,
@@ -607,6 +677,29 @@ public sealed class RenderDevice : IDisposable
         float maxAnisotropy,
         int unit = 0)
         => new(min, mag, mip, maxAnisotropy, unit);
+
+    private static int GetUniformValueByteSize(UniformType type, int valueCount)
+    {
+        const int FloatSize = sizeof(float);
+        const int IntSize = sizeof(int);
+
+        return type switch
+        {
+            UniformType.Vec4f => 4 * FloatSize,
+            UniformType.Vec3f => 3 * FloatSize,
+            UniformType.Vec2f => 2 * FloatSize,
+            UniformType.Float => FloatSize,
+            UniformType.Mat4 => 16 * FloatSize,
+            UniformType.Vec4i => 4 * IntSize,
+            UniformType.Vec3i => 3 * IntSize,
+            UniformType.Vec2i => 2 * IntSize,
+            UniformType.Int => IntSize,
+            UniformType.Vec4fArray => checked(valueCount * 4 * FloatSize),
+            UniformType.Vec3fArray => checked(valueCount * 3 * FloatSize),
+            UniformType.Vec2fArray => checked(valueCount * 2 * FloatSize),
+            _ => throw new ArgumentOutOfRangeException(nameof(type)),
+        };
+    }
 
     public void SetSamplerFilter(TextureFilter filter, int unit = 0)
         => SetSamplerFilter(filter, filter, MipmapFilter.None, unit);

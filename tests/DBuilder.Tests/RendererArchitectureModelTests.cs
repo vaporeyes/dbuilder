@@ -48,6 +48,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Render-device target start-rendering planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device inline vertex draw planning and overload", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device finish and present frame handoff planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device named shader and uniform operation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Index-buffer binding and primitive draw dispatch", replacement.CoveredResponsibilities);
         Assert.Contains("Length-based vertex-buffer allocation", replacement.CoveredResponsibilities);
         Assert.Contains("Flat and world vertex-buffer subdata updates", replacement.CoveredResponsibilities);
@@ -380,6 +381,49 @@ public class RendererArchitectureModelTests
         Assert.False(finish.FlushCommands);
         Assert.Equal(RenderFrameOperationKind.Present, present.Kind);
         Assert.True(present.FlushCommands);
+    }
+
+    [Fact]
+    public void RenderDeviceBuildsUdbNamedShaderAndUniformOperationPlans()
+    {
+        RenderShaderOperationPlan uniformDeclaration = RenderDevice.BuildDeclareUniformPlan(
+            UniformName.projection,
+            "projection",
+            UniformType.Mat4);
+        RenderShaderOperationPlan shaderDeclaration = RenderDevice.BuildDeclareShaderPlan(
+            ShaderName.display2d_normal,
+            "display2d.vert",
+            "display2d.frag");
+        RenderShaderOperationPlan shaderCompilation = RenderDevice.BuildCompileShaderPlan(
+            ShaderName.world3d_main,
+            "world3d.shader",
+            "world3d_main");
+        RenderShaderOperationPlan shaderBinding = RenderDevice.BuildSetShaderPlan(ShaderName.world3d_skybox);
+        RenderShaderOperationPlan scalarUniform = RenderDevice.BuildSetUniformPlan(UniformName.desaturation, UniformType.Float);
+        RenderShaderOperationPlan arrayUniform = RenderDevice.BuildSetUniformPlan(
+            UniformName.lightPosAndRadius,
+            UniformType.Vec4fArray,
+            valueCount: 3);
+
+        Assert.Equal(RenderShaderOperationKind.DeclareUniform, uniformDeclaration.Kind);
+        Assert.Equal(UniformName.projection, uniformDeclaration.UniformName);
+        Assert.Equal(UniformType.Mat4, uniformDeclaration.UniformType);
+        Assert.Equal("projection", uniformDeclaration.UniformVariableName);
+        Assert.Equal(RenderShaderOperationKind.DeclareShader, shaderDeclaration.Kind);
+        Assert.Equal(ShaderName.display2d_normal, shaderDeclaration.ShaderName);
+        Assert.Equal("display2d.vert", shaderDeclaration.VertexResourceName);
+        Assert.Equal("display2d.frag", shaderDeclaration.FragmentResourceName);
+        Assert.Equal(RenderShaderOperationKind.CompileShader, shaderCompilation.Kind);
+        Assert.Equal("world3d.shader", shaderCompilation.ShaderGroupName);
+        Assert.Equal("world3d_main", shaderCompilation.ShaderEntryName);
+        Assert.Equal(RenderShaderOperationKind.SetShader, shaderBinding.Kind);
+        Assert.Equal(ShaderName.world3d_skybox, shaderBinding.ShaderName);
+        Assert.Equal(RenderShaderOperationKind.SetUniform, scalarUniform.Kind);
+        Assert.Equal(UniformName.desaturation, scalarUniform.UniformName);
+        Assert.Equal(4, scalarUniform.ValueByteSize);
+        Assert.Equal(1, scalarUniform.ValueCount);
+        Assert.Equal(3, arrayUniform.ValueCount);
+        Assert.Equal(48, arrayUniform.ValueByteSize);
     }
 
     [Fact]
