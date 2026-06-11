@@ -57,6 +57,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Flat and world vertex-buffer subdata updates", replacement.CoveredResponsibilities);
         Assert.Contains("Vertex and index buffer upload byte-size planning", replacement.CoveredResponsibilities);
         Assert.Contains("Vertex and index buffer disposed-state reporting", replacement.CoveredResponsibilities);
+        Assert.Contains("Length-based index-buffer allocation", replacement.CoveredResponsibilities);
         Assert.Contains("Texture disposed-state reporting", replacement.CoveredResponsibilities);
         Assert.Contains("Base texture lifecycle and render-device binding surface", replacement.CoveredResponsibilities);
         Assert.Contains("Texture format metadata and 2D/cube allocation planning", replacement.CoveredResponsibilities);
@@ -143,6 +144,16 @@ public class RendererArchitectureModelTests
         var overload = typeof(RenderDevice).GetMethod(
             nameof(RenderDevice.SetBufferData),
             new[] { typeof(VertexBuffer), typeof(int), typeof(VertexFormat) });
+
+        Assert.NotNull(overload);
+    }
+
+    [Fact]
+    public void RenderDeviceExposesUdbLengthIndexBufferUpload()
+    {
+        var overload = typeof(RenderDevice).GetMethod(
+            nameof(RenderDevice.SetBufferData),
+            new[] { typeof(IndexBuffer), typeof(int) });
 
         Assert.NotNull(overload);
     }

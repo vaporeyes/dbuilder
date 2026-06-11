@@ -63,6 +63,7 @@ public static class RendererArchitectureModel
             "Flat and world vertex-buffer subdata updates",
             "Vertex and index buffer upload byte-size planning",
             "Vertex and index buffer disposed-state reporting",
+            "Length-based index-buffer allocation",
             "Index-buffer binding and primitive draw dispatch",
             "Texture disposed-state reporting",
             "Base texture lifecycle and render-device binding surface",

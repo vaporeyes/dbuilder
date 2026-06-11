@@ -85,13 +85,19 @@ public sealed class RenderingMetadataTests
     {
         RenderBufferOperationPlan flat = RenderDevice.BuildSetBufferDataPlan(8, VertexFormat.Flat);
         RenderBufferOperationPlan world = RenderDevice.BuildSetBufferDataPlan(8, VertexFormat.World);
+        RenderBufferOperationPlan index = RenderDevice.BuildSetIndexBufferDataPlan(8);
 
         Assert.Equal(8 * FlatVertex.Stride, flat.ByteCount);
         Assert.Equal(8 * WorldVertex.Stride, world.ByteCount);
+        Assert.Equal(8 * sizeof(int), index.ByteCount);
         Assert.Equal(VertexFormat.Flat, flat.VertexFormat);
         Assert.Equal(VertexFormat.World, world.VertexFormat);
+        Assert.Null(index.VertexFormat);
+        Assert.Equal(RenderBufferOperationKind.SetIndexLength, index.Kind);
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             RenderDevice.BuildSetBufferDataPlan(-1, VertexFormat.Flat));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildSetIndexBufferDataPlan(-1));
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             RenderDevice.BuildSetBufferDataPlan(1, (VertexFormat)99));
     }

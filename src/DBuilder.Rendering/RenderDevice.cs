@@ -47,6 +47,7 @@ public enum RenderBufferOperationKind
     SetWorldVertexData,
     SetIndexData,
     SetVertexLength,
+    SetIndexLength,
     SetFlatVertexSubdata,
     SetWorldVertexSubdata,
 }
@@ -336,6 +337,15 @@ public sealed class RenderDevice : IDisposable
         }
     }
 
+    public unsafe void SetBufferData(IndexBuffer buffer, int length)
+    {
+        if (length < 0) throw new ArgumentOutOfRangeException(nameof(length));
+
+        buffer.IndexCount = length;
+        _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, buffer.Handle);
+        _gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint)checked((long)length * sizeof(int)), null, BufferUsageARB.StaticDraw);
+    }
+
     public unsafe void SetBufferData(VertexBuffer buffer, int length, VertexFormat format)
     {
         if (length < 0) throw new ArgumentOutOfRangeException(nameof(length));
@@ -465,6 +475,19 @@ public sealed class RenderDevice : IDisposable
             ElementOffset: 0,
             ByteOffset: 0,
             ByteCount: checked((long)data.Length * sizeof(int)));
+
+    public static RenderBufferOperationPlan BuildSetIndexBufferDataPlan(int length)
+    {
+        if (length < 0) throw new ArgumentOutOfRangeException(nameof(length));
+
+        return new RenderBufferOperationPlan(
+            RenderBufferOperationKind.SetIndexLength,
+            VertexFormat: null,
+            length,
+            ElementOffset: 0,
+            ByteOffset: 0,
+            ByteCount: checked((long)length * sizeof(int)));
+    }
 
     public static RenderBufferOperationPlan BuildSetBufferDataPlan(int length, VertexFormat format)
     {
