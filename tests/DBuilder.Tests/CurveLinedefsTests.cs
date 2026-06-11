@@ -3,11 +3,34 @@
 
 using DBuilder.Geometry;
 using DBuilder.Map;
+using System.Text.RegularExpressions;
 
 namespace DBuilder.Tests;
 
 public class CurveLinedefsTests
 {
+    private static string? FindUdbRoot()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "."));
+        string sibling = Path.GetFullPath(Path.Combine(repositoryRoot, "..", "UltimateDoomBuilder"));
+        if (File.Exists(Path.Combine(sibling, "Source", "Plugins", "BuilderModes", "Interface", "CurveLinedefsOptionsPanel.Designer.cs"))) return sibling;
+
+        string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string root = Path.Combine(home, "dev", "repos", "UltimateDoomBuilder");
+        return File.Exists(Path.Combine(root, "Source", "Plugins", "BuilderModes", "Interface", "CurveLinedefsOptionsPanel.Designer.cs")) ? root : null;
+    }
+
+    private static int DesignerNumericValue(string source, string control, string property)
+    {
+        Match match = Regex.Match(
+            source,
+            @"this\." + Regex.Escape(control) + @"\." + Regex.Escape(property) + @"\s*=\s*new\s+decimal\(new\s+int\[\]\s*\{\s*(?<value>-?\d+),",
+            RegexOptions.Singleline);
+
+        Assert.True(match.Success, "Expected UDB CurveLinedefsOptionsPanel " + control + "." + property + ".");
+        return int.Parse(match.Groups["value"].Value);
+    }
+
     [Fact]
     public void DefaultOptionsMatchUdbCurveLinedefsMode()
     {
@@ -48,6 +71,19 @@ public class CurveLinedefsTests
         Assert.Equal(350, target[CurveLinedefsOptions.AngleKey]);
         Assert.Equal(true, target[CurveLinedefsOptions.FixedCurveKey]);
         Assert.Equal(false, target[CurveLinedefsOptions.FixedCurveOutwardsKey]);
+    }
+
+    [Fact]
+    public void OptionsPanelIncrementsMatchUdbDesignerWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Source", "Plugins", "BuilderModes", "Interface", "CurveLinedefsOptionsPanel.Designer.cs"));
+
+        Assert.Equal(CurveLinedefsOptions.VerticesIncrement, DesignerNumericValue(source, "verts", "Increment"));
+        Assert.Equal(CurveLinedefsOptions.DistanceIncrement, DesignerNumericValue(source, "distance", "Increment"));
+        Assert.Equal(CurveLinedefsOptions.AngleIncrement, DesignerNumericValue(source, "angle", "Increment"));
     }
 
     [Fact]

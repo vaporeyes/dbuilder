@@ -21,6 +21,9 @@ public sealed record CurveLinedefsOptions(
     public const int MaxDistance = 10000;
     public const int MinAngle = 0;
     public const int MaxAngle = 350;
+    public const int VerticesIncrement = 1;
+    public const int DistanceIncrement = 8;
+    public const int AngleIncrement = 5;
     public const string VerticesKey = "curvelinedefsmode.vertices";
     public const string DistanceKey = "curvelinedefsmode.distance";
     public const string AngleKey = "curvelinedefsmode.angle";
