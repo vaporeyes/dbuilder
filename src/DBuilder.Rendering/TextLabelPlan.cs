@@ -538,7 +538,7 @@ public static class TextLabelPlan
                 : invalidation;
 
             return new TextLabelResourceUpdatePlan(
-                DisposeTexture: false,
+                DisposeTexture: layout.SkipReason == TextLabelSkipReason.Offscreen && hasTexture,
                 CreateLabelImage: false,
                 CreateTexture: false,
                 UploadTexture: false,

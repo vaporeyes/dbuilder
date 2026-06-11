@@ -788,11 +788,40 @@ public sealed class TextLabelPlanTests
         TextLabelResourceUpdatePlan plan = TextLabelPlan.BuildResourceUpdatePlan(
             TextLabelInvalidation.Initial,
             layout,
-            hasTexture: true,
+            hasTexture: false,
             hasVertexBuffer: true,
             vertexBufferDisposed: false);
 
         Assert.False(plan.DisposeTexture);
+        Assert.False(plan.CreateLabelImage);
+        Assert.False(plan.CreateTexture);
+        Assert.False(plan.UploadTexture);
+        Assert.False(plan.CreateVertexBuffer);
+        Assert.False(plan.UploadQuadBuffer);
+        Assert.Equal(TextLabelInvalidation.Initial, plan.ResultInvalidation);
+    }
+
+    [Fact]
+    public void ResourceUpdatePlanDisposesOffscreenTextureAndKeepsInvalidation()
+    {
+        TextLabelLayout layout = TextLabelPlan.Build(
+            "Skipped",
+            new TextLabelSize(24, 10),
+            new TextLabelPoint(400, 8),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+
+        TextLabelResourceUpdatePlan plan = TextLabelPlan.BuildResourceUpdatePlan(
+            TextLabelInvalidation.Initial,
+            layout,
+            hasTexture: true,
+            hasVertexBuffer: true,
+            vertexBufferDisposed: false);
+
+        Assert.True(layout.SkipRendering);
+        Assert.Equal(TextLabelSkipReason.Offscreen, layout.SkipReason);
+        Assert.True(plan.DisposeTexture);
         Assert.False(plan.CreateLabelImage);
         Assert.False(plan.CreateTexture);
         Assert.False(plan.UploadTexture);

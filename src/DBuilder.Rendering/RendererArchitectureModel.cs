@@ -135,6 +135,7 @@ public static class RendererArchitectureModel
             "Text label dirty-state and resource invalidation planning",
             "Text label unload-resource disposal planning",
             "Text label skipped-resource invalidation planning",
+            "Text label offscreen texture disposal planning",
             "Text label texture and vertex-buffer update planning",
             "Text label texture upload reuse planning",
             "Text label missing-texture recovery planning",
