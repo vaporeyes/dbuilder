@@ -1514,6 +1514,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style rendering Vector2f and Vector2i structs.
   - [x] Add UDB-style rendering Vector4f and Vector4i structs.
   - [x] Add UDB-style rendering Vector3f, Vector3i, and Matrix math structs.
+  - [x] Add UDB-style rendering Color3 and Color4 structs.
 - [x] Port render modes and view modes.
   - [x] Add UDB-style classic 2D view mode action ids and renderer switching for wireframe, brightness, floor textures, and ceiling textures.
   - [x] Add raw UDB classic view mode and highlight action aliases.
