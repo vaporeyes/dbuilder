@@ -1510,6 +1510,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style 2D thing model wireframe pass planning.
   - [x] Add UDB-style 2D thing model transform planning.
   - [x] Add UDB-style 2D thing bounding-box line pass planning.
+  - [x] Add UDB-style 2D overlay geometry draw planning.
   - [x] Add UDB-style 2D arrow line draw planning.
   - [x] Add UDB-style 2D thick line draw planning.
   - [x] Add UDB-style 2D rectangle border draw planning.
