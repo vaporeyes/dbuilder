@@ -40,6 +40,13 @@ public sealed record Renderer3DFinishGeometryCleanupPlan(
     bool UnbindTexture,
     IReadOnlyList<Renderer3DGeometryBucketKind> ClearedBuckets);
 
+public sealed record Renderer3DFinishGeometryInitialStatePlan(
+    Cull CullMode,
+    bool DepthEnabled,
+    bool DepthWriteEnabled,
+    bool AlphaBlendEnabled,
+    bool AlphaTestEnabled);
+
 public static class Renderer3DGeometryLifecyclePlan
 {
     public static Renderer3DStartGeometryPlan BuildStartGeometryPlan()
@@ -57,6 +64,14 @@ public static class Renderer3DGeometryLifecyclePlan
                 new(Renderer3DGeometryBucketKind.LightThings, Renderer3DGeometryCollectionKind.List, InitializedEmpty: true),
                 new(Renderer3DGeometryBucketKind.AllThings, Renderer3DGeometryCollectionKind.List, InitializedEmpty: true),
             ]);
+
+    public static Renderer3DFinishGeometryInitialStatePlan BuildFinishGeometryInitialStatePlan()
+        => new(
+            Cull.Clockwise,
+            DepthEnabled: true,
+            DepthWriteEnabled: true,
+            AlphaBlendEnabled: false,
+            AlphaTestEnabled: false);
 
     public static Renderer3DFinishGeometryCleanupPlan BuildFinishGeometryCleanupPlan()
         => new(

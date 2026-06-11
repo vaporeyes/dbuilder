@@ -66,6 +66,18 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
     }
 
     [Fact]
+    public void BuildFinishGeometryInitialStatePlanMatchesUdbRenderStates()
+    {
+        Renderer3DFinishGeometryInitialStatePlan plan = Renderer3DGeometryLifecyclePlan.BuildFinishGeometryInitialStatePlan();
+
+        Assert.Equal(Cull.Clockwise, plan.CullMode);
+        Assert.True(plan.DepthEnabled);
+        Assert.True(plan.DepthWriteEnabled);
+        Assert.False(plan.AlphaBlendEnabled);
+        Assert.False(plan.AlphaTestEnabled);
+    }
+
+    [Fact]
     public void Renderer3DStartGeometryExpressionsMatchUdbWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -85,6 +97,11 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("translucentmodelthings = new List<VisualThing>();", source, StringComparison.Ordinal);
         Assert.Contains("lightthings = new List<VisualThing>();", source, StringComparison.Ordinal);
         Assert.Contains("allthings = new List<VisualThing>();", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetCullMode(Cull.Clockwise);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetZEnable(true);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetZWriteEnable(true);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetAlphaBlendEnable(false);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetAlphaTestEnable(false);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);

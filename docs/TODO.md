@@ -1522,6 +1522,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style 2D textured filled rectangle draw planning.
 - [ ] Port renderer 3D parity.
   - [x] Add UDB-style 3D geometry start bucket lifecycle planning.
+  - [x] Add UDB-style 3D geometry initial render-state planning.
   - [x] Add UDB-style 3D geometry finish cleanup planning.
 - [ ] Port render passes and layers.
   - [x] Add UDB-style 2D presentation layer stack planning.
