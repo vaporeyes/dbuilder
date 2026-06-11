@@ -138,6 +138,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("uniform-location caching", replacement.ShaderManagerReplacement);
         Assert.Contains("Runtime shader compile, link, disposal, and uniform lookup caching", replacement.CoveredResponsibilities);
         Assert.Contains("Shader disposed-state reporting", replacement.CoveredResponsibilities);
+        Assert.Contains("Shader constructor input validation planning", replacement.CoveredResponsibilities);
     }
 
     [Fact]
@@ -677,5 +678,11 @@ public class RendererArchitectureModelTests
     public void ShaderWrapperExposesDisposedState()
     {
         Assert.NotNull(typeof(Shader).GetProperty(nameof(Shader.Disposed)));
+    }
+
+    [Fact]
+    public void ShaderRejectsNullGl()
+    {
+        Assert.Throws<ArgumentNullException>(() => new Shader(null!, "", ""));
     }
 }

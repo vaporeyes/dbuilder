@@ -14,6 +14,8 @@ public sealed class Shader : IDisposable
 
     public Shader(GL gl, string vertexSource, string fragmentSource)
     {
+        ArgumentNullException.ThrowIfNull(gl);
+
         _gl = gl;
         uint vs = Compile(ShaderType.VertexShader, vertexSource);
         uint fs = Compile(ShaderType.FragmentShader, fragmentSource);

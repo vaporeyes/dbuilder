@@ -137,6 +137,7 @@ public static class RendererArchitectureModel
             "Text label viewport inclusion planning",
             "Runtime shader compile, link, disposal, and uniform lookup caching",
             "Shader disposed-state reporting",
+            "Shader constructor input validation planning",
         },
         RemainingGaps: new[]
         {

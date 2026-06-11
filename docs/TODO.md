@@ -1665,6 +1665,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style image brightness color-correction table generation and pixel-block correction behavior.
 - [x] Port shader compiler behavior or a documented replacement.
   - [x] Document and test runtime GLSL shader compilation as the current UDB shader-manager replacement.
+  - [x] Add UDB-style shader constructor input validation planning.
 - [ ] Add screenshot and pixel-level regression tests for key render states.
 
 ## Visual Modes And 3D Editing
