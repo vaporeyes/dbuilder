@@ -761,6 +761,28 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void EmptySectorUsesInvalidSectorSuppressionLikeUdbResultClass()
+    {
+        var map = Square(true);
+        var sector = map.AddSector();
+        map.BuildIndexes();
+        var issue = Assert.Single(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.EmptySector);
+
+        Assert.Equal(MapIssueKind.InvalidSector, issue.SuppressionKind);
+
+        issue.SetIgnored(true);
+
+        Assert.Contains(MapIssueKind.InvalidSector, sector.IgnoredErrorChecks);
+        Assert.DoesNotContain(MapIssueKind.EmptySector, sector.IgnoredErrorChecks);
+        Assert.DoesNotContain(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.EmptySector);
+
+        issue.SetIgnored(false);
+
+        Assert.DoesNotContain(MapIssueKind.InvalidSector, sector.IgnoredErrorChecks);
+        Assert.Contains(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.EmptySector);
+    }
+
+    [Fact]
     public void MapIssueListModelHidesSelectedAndShowAllClearsIgnoredChecks()
     {
         var vertex = new Vertex(new Vector2D(0, 0));

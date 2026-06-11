@@ -138,7 +138,7 @@ public sealed class MapIssueListModel
     private static bool IsIgnored(MapIssue issue)
     {
         var elements = issue.SuppressionTargets;
-        return elements.Count > 0 && elements.All(element => element.IgnoredErrorChecks.Contains(issue.Kind));
+        return elements.Count > 0 && elements.All(element => element.IgnoredErrorChecks.Contains(issue.SuppressionKind));
     }
 
     private static string Label(int count, string singular)

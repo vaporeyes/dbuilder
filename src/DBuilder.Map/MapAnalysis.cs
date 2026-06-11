@@ -294,6 +294,9 @@ public sealed record MapIssue(MapIssueSeverity Severity, MapIssueKind Kind, stri
     /// <summary>Additional map elements tied to this result, used for UDB-style ignored-error suppression.</summary>
     public IReadOnlyList<IMapElement> RelatedTargets { get; init; } = Array.Empty<IMapElement>();
 
+    /// <summary>Error kind stored on map elements when this result is hidden.</summary>
+    public MapIssueKind SuppressionKind { get; init; } = Kind;
+
     /// <summary>A representative world location to center the view on (null when unknown).</summary>
     public Vector2D? Focus { get; init; }
 
@@ -317,8 +320,8 @@ public sealed record MapIssue(MapIssueSeverity Severity, MapIssueKind Kind, stri
     {
         foreach (var element in SuppressionTargets)
         {
-            if (ignored) element.IgnoredErrorChecks.Add(Kind);
-            else element.IgnoredErrorChecks.Remove(Kind);
+            if (ignored) element.IgnoredErrorChecks.Add(SuppressionKind);
+            else element.IgnoredErrorChecks.Remove(SuppressionKind);
         }
     }
 }
@@ -548,7 +551,7 @@ public static class MapAnalysis
     private static bool IsIgnored(MapIssue issue)
     {
         var elements = issue.SuppressionTargets;
-        return elements.Count > 0 && elements.All(element => element.IgnoredErrorChecks.Contains(issue.Kind));
+        return elements.Count > 0 && elements.All(element => element.IgnoredErrorChecks.Contains(issue.SuppressionKind));
     }
 
     // A two-sided line needs an upper/lower texture where its sector is taller/lower than the neighbor; a
@@ -2290,6 +2293,7 @@ public static class MapAnalysis
         {
             Description = InvalidSectorDescription,
             Target = sector,
+            SuppressionKind = MapIssueKind.InvalidSector,
             Fixes = new[]
             {
                 new MapIssueFix("Dissolve", map => DissolveInvalidSector(map, sector)),
