@@ -476,6 +476,32 @@ public sealed record Renderer3DModelLightUniformPlan(
 
 public sealed record Renderer3DModelLightUniformsPlan(IReadOnlyList<Renderer3DModelLightUniformPlan> Things);
 
+public sealed record Renderer3DGeometryLightCandidate(
+    int Id,
+    bool BoundingBoxesIntersect,
+    bool SpotLight,
+    double SpotRadius1Degrees,
+    double SpotRadius2Degrees,
+    double Radius,
+    double Linearity);
+
+public sealed record Renderer3DGeometryLightSlotPlan(
+    int LightId,
+    bool SpotLight,
+    float SpotRadius1Cosine,
+    float SpotRadius2Cosine,
+    float Strength,
+    float Linearity);
+
+public sealed record Renderer3DGeometryLightUniformPlan(
+    int GeometryIndex,
+    IReadOnlyList<Renderer3DGeometryLightSlotPlan> Lights,
+    int ClearedLightColorSlots,
+    bool SetLightColorUniform,
+    bool SetLightDetailUniforms);
+
+public sealed record Renderer3DGeometryLightUniformsPlan(IReadOnlyList<Renderer3DGeometryLightUniformPlan> Geometry);
+
 public sealed record Renderer3DModelMeshCandidate(
     int ThingId,
     int MeshCount,
@@ -1485,6 +1511,54 @@ public static class Renderer3DGeometryLifecyclePlan
         }
 
         return new Renderer3DModelLightUniformsPlan(things);
+    }
+
+    public static Renderer3DGeometryLightUniformsPlan BuildGeometryLightUniformsPlan(
+        IReadOnlyList<IReadOnlyList<Renderer3DGeometryLightCandidate>> geometryLightCandidates,
+        int maxDynamicLightsPerSurface)
+    {
+        ArgumentNullException.ThrowIfNull(geometryLightCandidates);
+        if (maxDynamicLightsPerSurface < 0) throw new ArgumentOutOfRangeException(nameof(maxDynamicLightsPerSurface));
+
+        bool hadLights = false;
+        var geometry = new List<Renderer3DGeometryLightUniformPlan>(geometryLightCandidates.Count);
+        for (int geometryIndex = 0; geometryIndex < geometryLightCandidates.Count; geometryIndex++)
+        {
+            IReadOnlyList<Renderer3DGeometryLightCandidate> candidates = geometryLightCandidates[geometryIndex];
+            ArgumentNullException.ThrowIfNull(candidates);
+
+            var lights = new List<Renderer3DGeometryLightSlotPlan>(maxDynamicLightsPerSurface);
+            foreach (Renderer3DGeometryLightCandidate candidate in candidates)
+            {
+                if (!double.IsFinite(candidate.SpotRadius1Degrees)) throw new ArgumentOutOfRangeException(nameof(geometryLightCandidates));
+                if (!double.IsFinite(candidate.SpotRadius2Degrees)) throw new ArgumentOutOfRangeException(nameof(geometryLightCandidates));
+                if (!double.IsFinite(candidate.Radius) || candidate.Radius < 0.0) throw new ArgumentOutOfRangeException(nameof(geometryLightCandidates));
+                if (!double.IsFinite(candidate.Linearity)) throw new ArgumentOutOfRangeException(nameof(geometryLightCandidates));
+                if (!candidate.BoundingBoxesIntersect) continue;
+                if (lights.Count >= maxDynamicLightsPerSurface) break;
+
+                double diameter = candidate.Radius * 2.0;
+                lights.Add(new Renderer3DGeometryLightSlotPlan(
+                    candidate.Id,
+                    candidate.SpotLight,
+                    candidate.SpotLight ? CosDegrees(candidate.SpotRadius1Degrees) : 0.0f,
+                    candidate.SpotLight ? CosDegrees(candidate.SpotRadius2Degrees) : 0.0f,
+                    (float)Math.Min(1500.0, diameter * diameter / 10.0),
+                    (float)candidate.Linearity));
+            }
+
+            bool haveLights = lights.Count > 0;
+            bool setUniforms = hadLights != haveLights || haveLights;
+            geometry.Add(new Renderer3DGeometryLightUniformPlan(
+                geometryIndex,
+                lights,
+                maxDynamicLightsPerSurface - lights.Count,
+                SetLightColorUniform: setUniforms,
+                SetLightDetailUniforms: setUniforms && haveLights));
+            hadLights = haveLights;
+        }
+
+        return new Renderer3DGeometryLightUniformsPlan(geometry);
     }
 
     public static Renderer3DModelMeshRenderPlan BuildModelMeshRenderPlan(

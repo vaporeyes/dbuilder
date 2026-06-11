@@ -2007,6 +2007,108 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
             maxDynamicLightsPerSurface: 1));
     }
 
+    [Fact]
+    public void BuildGeometryLightUniformsPlanSelectsIntersectingLightsUntilSurfaceLimit()
+    {
+        Renderer3DGeometryLightUniformsPlan plan = Renderer3DGeometryLifecyclePlan.BuildGeometryLightUniformsPlan(
+            [
+                [
+                    new Renderer3DGeometryLightCandidate(1, BoundingBoxesIntersect: false, SpotLight: false, SpotRadius1Degrees: 0.0, SpotRadius2Degrees: 0.0, Radius: 20.0, Linearity: 0.1),
+                    new Renderer3DGeometryLightCandidate(2, BoundingBoxesIntersect: true, SpotLight: true, SpotRadius1Degrees: 60.0, SpotRadius2Degrees: 120.0, Radius: 10.0, Linearity: 0.25),
+                    new Renderer3DGeometryLightCandidate(3, BoundingBoxesIntersect: true, SpotLight: false, SpotRadius1Degrees: 0.0, SpotRadius2Degrees: 0.0, Radius: 100.0, Linearity: 0.5),
+                    new Renderer3DGeometryLightCandidate(4, BoundingBoxesIntersect: true, SpotLight: false, SpotRadius1Degrees: 0.0, SpotRadius2Degrees: 0.0, Radius: 5.0, Linearity: 0.75),
+                ],
+            ],
+            maxDynamicLightsPerSurface: 2);
+
+        Renderer3DGeometryLightUniformPlan geometry = Assert.Single(plan.Geometry);
+        Assert.True(geometry.SetLightColorUniform);
+        Assert.True(geometry.SetLightDetailUniforms);
+        Assert.Equal(0, geometry.ClearedLightColorSlots);
+        Assert.Equal(
+            [
+                new Renderer3DGeometryLightSlotPlan(2, SpotLight: true, SpotRadius1Cosine: 0.5f, SpotRadius2Cosine: -0.5f, Strength: 40.0f, Linearity: 0.25f),
+                new Renderer3DGeometryLightSlotPlan(3, SpotLight: false, SpotRadius1Cosine: 0.0f, SpotRadius2Cosine: 0.0f, Strength: 1500.0f, Linearity: 0.5f),
+            ],
+            geometry.Lights);
+    }
+
+    [Fact]
+    public void BuildGeometryLightUniformsPlanMatchesUdbHadLightsUniformWriteRule()
+    {
+        Renderer3DGeometryLightUniformsPlan plan = Renderer3DGeometryLifecyclePlan.BuildGeometryLightUniformsPlan(
+            [
+                [],
+                [
+                    new Renderer3DGeometryLightCandidate(1, BoundingBoxesIntersect: true, SpotLight: false, SpotRadius1Degrees: 0.0, SpotRadius2Degrees: 0.0, Radius: 8.0, Linearity: 0.25),
+                ],
+                [
+                    new Renderer3DGeometryLightCandidate(2, BoundingBoxesIntersect: true, SpotLight: false, SpotRadius1Degrees: 0.0, SpotRadius2Degrees: 0.0, Radius: 9.0, Linearity: 0.5),
+                ],
+                [],
+                [],
+            ],
+            maxDynamicLightsPerSurface: 3);
+
+        Assert.Equal([false, true, true, true, false], plan.Geometry.Select(geometry => geometry.SetLightColorUniform).ToArray());
+        Assert.Equal([false, true, true, false, false], plan.Geometry.Select(geometry => geometry.SetLightDetailUniforms).ToArray());
+        Assert.Equal([3, 2, 2, 3, 3], plan.Geometry.Select(geometry => geometry.ClearedLightColorSlots).ToArray());
+    }
+
+    [Fact]
+    public void BuildGeometryLightUniformsPlanAllowsZeroSurfaceLights()
+    {
+        Renderer3DGeometryLightUniformsPlan plan = Renderer3DGeometryLifecyclePlan.BuildGeometryLightUniformsPlan(
+            [
+                [
+                    new Renderer3DGeometryLightCandidate(1, BoundingBoxesIntersect: true, SpotLight: false, SpotRadius1Degrees: 0.0, SpotRadius2Degrees: 0.0, Radius: 8.0, Linearity: 0.25),
+                ],
+            ],
+            maxDynamicLightsPerSurface: 0);
+
+        Renderer3DGeometryLightUniformPlan geometry = Assert.Single(plan.Geometry);
+        Assert.Empty(geometry.Lights);
+        Assert.Equal(0, geometry.ClearedLightColorSlots);
+        Assert.False(geometry.SetLightColorUniform);
+        Assert.False(geometry.SetLightDetailUniforms);
+    }
+
+    [Fact]
+    public void BuildGeometryLightUniformsPlanRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentNullException>(() => Renderer3DGeometryLifecyclePlan.BuildGeometryLightUniformsPlan(null!, maxDynamicLightsPerSurface: 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildGeometryLightUniformsPlan([], maxDynamicLightsPerSurface: -1));
+        Assert.Throws<ArgumentNullException>(() => Renderer3DGeometryLifecyclePlan.BuildGeometryLightUniformsPlan([null!], maxDynamicLightsPerSurface: 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildGeometryLightUniformsPlan(
+            [
+                [
+                    new Renderer3DGeometryLightCandidate(1, BoundingBoxesIntersect: true, SpotLight: false, SpotRadius1Degrees: double.NaN, SpotRadius2Degrees: 0.0, Radius: 8.0, Linearity: 0.25),
+                ],
+            ],
+            maxDynamicLightsPerSurface: 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildGeometryLightUniformsPlan(
+            [
+                [
+                    new Renderer3DGeometryLightCandidate(1, BoundingBoxesIntersect: true, SpotLight: false, SpotRadius1Degrees: 0.0, SpotRadius2Degrees: double.NaN, Radius: 8.0, Linearity: 0.25),
+                ],
+            ],
+            maxDynamicLightsPerSurface: 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildGeometryLightUniformsPlan(
+            [
+                [
+                    new Renderer3DGeometryLightCandidate(1, BoundingBoxesIntersect: true, SpotLight: false, SpotRadius1Degrees: 0.0, SpotRadius2Degrees: 0.0, Radius: -1.0, Linearity: 0.25),
+                ],
+            ],
+            maxDynamicLightsPerSurface: 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildGeometryLightUniformsPlan(
+            [
+                [
+                    new Renderer3DGeometryLightCandidate(1, BoundingBoxesIntersect: true, SpotLight: false, SpotRadius1Degrees: 0.0, SpotRadius2Degrees: 0.0, Radius: 8.0, Linearity: double.NaN),
+                ],
+            ],
+            maxDynamicLightsPerSurface: 1));
+    }
+
     [Theory]
     [InlineData(0.0, 0.0, 0.0, true)]
     [InlineData(10.0, 0.0, 0.0, true)]
@@ -2265,6 +2367,25 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("graphics.SetUniform(UniformName.highlightcolor, CalculateHighlightColor((g == highlighted) && showhighlight, (g.Selected && showselection)));", source, StringComparison.Ordinal);
         Assert.Contains("graphics.Draw(PrimitiveType.TriangleList, g.VertexOffset, g.Triangles);", source, StringComparison.Ordinal);
         Assert.Contains("RenderSinglePass(solidgeo, solidthings, lightthings);", source, StringComparison.Ordinal);
+        Assert.Contains("private void RenderSinglePass(Dictionary<ImageData, List<VisualGeometry>> geopass, Dictionary<ImageData, List<VisualThing>> thingspass, List<VisualThing> lights)", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.lightsEnabled, lights.Count > 0);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.ignoreNormals, false);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.useLightStrength, General.Map.Data.MapInfo.LightAttenuationMode == \"InverseSquare\");", source, StringComparison.Ordinal);
+        Assert.Contains("if (BoundingBoxesIntersect(g.BoundingBox, light.BoundingBox))", source, StringComparison.Ordinal);
+        Assert.Contains("lightColor[lightIndex] = light.LightColor.ToVector();", source, StringComparison.Ordinal);
+        Assert.Contains("lightPosAndRadius[lightIndex] = new Vector4f(light.Center, light.LightRadius);", source, StringComparison.Ordinal);
+        Assert.Contains("lightOrientation[lightIndex] = new Vector4f(light.VectorLookAt, 1f);", source, StringComparison.Ordinal);
+        Assert.Contains("light2Radius[lightIndex] = new Vector2f(CosDeg(light.LightSpotRadius1), CosDeg(light.LightSpotRadius2));", source, StringComparison.Ordinal);
+        Assert.Contains("lightStrengthAndLinearity[lightIndex] = new Vector2f(Math.Min(1500.0f, (diameter * diameter) / 10), light.LightLinearity);", source, StringComparison.Ordinal);
+        Assert.Contains("if (lightIndex >= lightColor.Length)", source, StringComparison.Ordinal);
+        Assert.Contains("for (int i = lightIndex; i < lightColor.Length; i++)", source, StringComparison.Ordinal);
+        Assert.Contains("lightColor[i].W = 0;", source, StringComparison.Ordinal);
+        Assert.Contains("if (havelights != hadlights || havelights)", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.lightColor, lightColor);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.lightPosAndRadius, lightPosAndRadius);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.lightOrientation, lightOrientation);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.light2Radius, light2Radius);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.lightStrengthAndLinearity, lightStrengthAndLinearity);", source, StringComparison.Ordinal);
         Assert.Contains("if(maskedmodelthings.Count > 0)", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetAlphaTestEnable(true);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetCullMode(Cull.None);", source, StringComparison.Ordinal);
