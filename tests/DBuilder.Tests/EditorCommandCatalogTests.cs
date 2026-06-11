@@ -2274,11 +2274,17 @@ public class EditorCommandCatalogTests
             ["map3d.place-thing-at-cursor"] = ("Move Thing to Cursor Location", false, false, "Moves selected Things to cursor location preserving relative offsets in Visual Modes."),
             ["map3d.placethingatcursor"] = ("Move Thing to Cursor Location", false, false, "Moves selected Things to cursor location preserving relative offsets in Visual Modes."),
             ["map3d.rotate-thing-clockwise"] = ("Rotate Thing Clockwise", true, true, "Rotates selected or highlighted things clockwise. Also rotates floor/ceiling textures in UDMF map format, and rotates the selection in Edit Selection mode."),
+            ["map3d.rotatethingclockwise"] = ("Rotate Thing Clockwise", true, true, "Rotates selected or highlighted things clockwise. Also rotates floor/ceiling textures in UDMF map format, and rotates the selection in Edit Selection mode."),
             ["map3d.rotate-thing-counterclockwise"] = ("Rotate Thing Counter-clockwise", true, true, "Rotates selected or highlighted things counterclockwise. Also rotates floor/ceiling textures in UDMF map format, and rotates the selection in Edit Selection mode."),
+            ["map3d.rotatethingcounterclockwise"] = ("Rotate Thing Counter-clockwise", true, true, "Rotates selected or highlighted things counterclockwise. Also rotates floor/ceiling textures in UDMF map format, and rotates the selection in Edit Selection mode."),
             ["map3d.pitch-thing-clockwise"] = ("Pitch Thing Clockwise", true, true, "Increases pitch of selected or highlighted things (UDMF only)."),
+            ["map3d.pitchthingclockwise"] = ("Pitch Thing Clockwise", true, true, "Increases pitch of selected or highlighted things (UDMF only)."),
             ["map3d.pitch-thing-counterclockwise"] = ("Pitch Thing Counter-clockwise", true, true, "Decreases pitch of selected or highlighted things (UDMF only)."),
+            ["map3d.pitchthingcounterclockwise"] = ("Pitch Thing Counter-clockwise", true, true, "Decreases pitch of selected or highlighted things (UDMF only)."),
             ["map3d.roll-thing-clockwise"] = ("Roll Thing Clockwise", true, true, "Increases roll of selected or highlighted things (UDMF only)."),
+            ["map3d.rollthingclockwise"] = ("Roll Thing Clockwise", true, true, "Increases roll of selected or highlighted things (UDMF only)."),
             ["map3d.roll-thing-counterclockwise"] = ("Roll Thing Counter-clockwise", true, true, "Decreases roll of selected or highlighted things (UDMF only)."),
+            ["map3d.rollthingcounterclockwise"] = ("Roll Thing Counter-clockwise", true, true, "Decreases roll of selected or highlighted things (UDMF only)."),
         };
 
         foreach ((string commandId, (string title, bool allowScroll, bool repeat, string description)) in expected)

@@ -1756,6 +1756,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style singular and plural labels to 3D visual surface selection status text.
 - [ ] Port floor, ceiling, wall, and thing editing behavior in 3D.
   - [x] Clamp Visual mode engage camera height to nearby sector floor and ceiling like UDB.
+  - [x] Add raw UDB-style visual thing rotation, pitch, and roll action aliases.
 - [x] Port texture copying, pasting, browsing, and aligning behavior in 3D.
   - [x] Add UDB-style visual Select Texture action metadata and dispatch alias.
   - [x] Add UDB-style visual wall texture offset step action metadata and dispatch.

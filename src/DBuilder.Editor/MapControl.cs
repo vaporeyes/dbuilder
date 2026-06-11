@@ -6774,31 +6774,37 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             case "map3d.rotate-clockwise":
             case "map3d.rotateclockwise":
             case "map3d.rotate-thing-clockwise":
+            case "map3d.rotatethingclockwise":
                 RotateVisualTargets3D(_gameConfig?.DoomThingRotationAngles == true ? 45 : 5, 5);
                 return true;
             case "map3d.rotate-counterclockwise":
             case "map3d.rotatecounterclockwise":
             case "map3d.rotate-thing-counterclockwise":
+            case "map3d.rotatethingcounterclockwise":
                 RotateVisualTargets3D(_gameConfig?.DoomThingRotationAngles == true ? -45 : -5, -5);
                 return true;
             case "map3d.pitch-clockwise":
             case "map3d.pitchclockwise":
             case "map3d.pitch-thing-clockwise":
+            case "map3d.pitchthingclockwise":
                 ChangeThingPitchTargets3D(-5);
                 return true;
             case "map3d.pitch-counterclockwise":
             case "map3d.pitchcounterclockwise":
             case "map3d.pitch-thing-counterclockwise":
+            case "map3d.pitchthingcounterclockwise":
                 ChangeThingPitchTargets3D(5);
                 return true;
             case "map3d.roll-clockwise":
             case "map3d.rollclockwise":
             case "map3d.roll-thing-clockwise":
+            case "map3d.rollthingclockwise":
                 ChangeThingRollTargets3D(-5);
                 return true;
             case "map3d.roll-counterclockwise":
             case "map3d.rollcounterclockwise":
             case "map3d.roll-thing-counterclockwise":
+            case "map3d.rollthingcounterclockwise":
                 ChangeThingRollTargets3D(5);
                 return true;
             case "map3d.apply-camera-rotation":
