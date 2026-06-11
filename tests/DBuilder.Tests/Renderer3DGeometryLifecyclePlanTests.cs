@@ -1494,6 +1494,39 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
     }
 
     [Fact]
+    public void BuildSinglePassThingStatePlanSkipsWhenNoThingsExist()
+    {
+        Renderer3DSinglePassThingStatePlan plan = Renderer3DGeometryLifecyclePlan.BuildSinglePassThingStatePlan(thingCount: 0);
+
+        Assert.False(plan.ShouldRenderThings);
+        Assert.Null(plan.InitialTextureAddress);
+        Assert.Null(plan.InitialCullMode);
+        Assert.False(plan.InitializeVertexColor);
+        Assert.False(plan.ResetStencilAfterThings);
+        Assert.Null(plan.RestoredTextureAddress);
+        Assert.Null(plan.RestoredCullMode);
+    }
+
+    [Fact]
+    public void BuildSinglePassThingStatePlanMatchesUdbThingStateSetupAndRestoration()
+    {
+        Renderer3DSinglePassThingStatePlan plan = Renderer3DGeometryLifecyclePlan.BuildSinglePassThingStatePlan(thingCount: 3);
+
+        Assert.True(plan.ShouldRenderThings);
+        Assert.Equal(TextureAddress.Clamp, plan.InitialTextureAddress);
+        Assert.Equal(Cull.None, plan.InitialCullMode);
+        Assert.True(plan.InitializeVertexColor);
+        Assert.True(plan.ResetStencilAfterThings);
+        Assert.Equal(TextureAddress.Wrap, plan.RestoredTextureAddress);
+        Assert.Equal(Cull.Clockwise, plan.RestoredCullMode);
+    }
+
+    [Fact]
+    public void BuildSinglePassThingStatePlanRejectsInvalidInputs()
+        => Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Renderer3DGeometryLifecyclePlan.BuildSinglePassThingStatePlan(thingCount: -1));
+
+    [Fact]
     public void BuildThingShaderPassPlanKeepsBaseShaderWithoutHighlightFogOrVertexColor()
     {
         Renderer3DThingShaderPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingShaderPassPlan(

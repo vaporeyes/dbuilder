@@ -238,6 +238,15 @@ public sealed record Renderer3DSinglePassGeometryFinishPlan(
     Vector2f Skew,
     bool DisableLights);
 
+public sealed record Renderer3DSinglePassThingStatePlan(
+    bool ShouldRenderThings,
+    TextureAddress? InitialTextureAddress,
+    Cull? InitialCullMode,
+    bool InitializeVertexColor,
+    bool ResetStencilAfterThings,
+    TextureAddress? RestoredTextureAddress,
+    Cull? RestoredCullMode);
+
 public sealed record Renderer3DModelPassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations)
 {
     public bool ShouldRender => Operations.Count > 0;
@@ -1702,6 +1711,31 @@ public static class Renderer3DGeometryLifecyclePlan
             ResetSkew: true,
             Skew: new Vector2f(0.0f, 0.0f),
             DisableLights: true);
+
+    public static Renderer3DSinglePassThingStatePlan BuildSinglePassThingStatePlan(int thingCount)
+    {
+        if (thingCount < 0) throw new ArgumentOutOfRangeException(nameof(thingCount));
+        if (thingCount == 0)
+        {
+            return new Renderer3DSinglePassThingStatePlan(
+                ShouldRenderThings: false,
+                InitialTextureAddress: null,
+                InitialCullMode: null,
+                InitializeVertexColor: false,
+                ResetStencilAfterThings: false,
+                RestoredTextureAddress: null,
+                RestoredCullMode: null);
+        }
+
+        return new Renderer3DSinglePassThingStatePlan(
+            ShouldRenderThings: true,
+            InitialTextureAddress: TextureAddress.Clamp,
+            InitialCullMode: Cull.None,
+            InitializeVertexColor: true,
+            ResetStencilAfterThings: true,
+            RestoredTextureAddress: TextureAddress.Wrap,
+            RestoredCullMode: Cull.Clockwise);
+    }
 
     public static Renderer3DThingDrawStatePlanSet BuildThingDrawStatePlan(
         IReadOnlyList<Renderer3DThingDrawStateCandidate> things,
