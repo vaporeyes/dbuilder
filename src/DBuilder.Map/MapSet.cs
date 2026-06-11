@@ -781,8 +781,8 @@ public class MapSet : IDisposable
     /// <summary>
     /// Splits a linedef at <paramref name="pos"/>: shortens it to start..newVertex and adds a second linedef
     /// newVertex..oldEnd that copies the original's flags/action/tags/args/sidedefs (same sectors/textures).
-    /// Returns the inserted vertex. Call BuildIndexes() afterward. Front-side X offset is advanced by the first
-    /// half's length to keep front textures continuous (back-side and pegging adjustments are a later refinement).
+    /// Returns the inserted vertex. Call BuildIndexes() afterward. Texture X offsets follow UDB's default
+    /// split-line interpolation: new front sides advance by the first half, original back sides by the second half.
     /// </summary>
     public Vertex SplitLinedef(Linedef l, Vector2D pos)
     {
@@ -831,15 +831,21 @@ public class MapSet : IDisposable
         {
             var nf = AddSidedef(newLine, true, l.Front.Sector);
             CopySidedefProperties(l.Front, nf);
-            nf.OffsetX += (int)System.Math.Round(firstHalfLen);
+            if (NeedsSplitOffset(nf)) nf.OffsetX += (int)System.Math.Round(firstHalfLen);
         }
         if (l.Back != null)
         {
             var nb = AddSidedef(newLine, false, l.Back.Sector);
             CopySidedefProperties(l.Back, nb);
+            if (NeedsSplitOffset(l.Back)) l.Back.OffsetX += (int)newLine.Length;
         }
         return newLine;
     }
+
+    private static bool NeedsSplitOffset(Sidedef side)
+        => (side.MiddleRequired() && side.LongMiddleTexture != EmptyLongName)
+            || side.HighRequired()
+            || side.LowRequired();
 
     // ============================================================
     // Geometry cleanup / merging.

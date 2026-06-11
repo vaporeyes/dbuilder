@@ -19,7 +19,10 @@ public class LinedefSplitTests
         var l = map.AddLinedef(v0, v1);
         l.Flags = 0x0001; l.Action = 11; l.Tag = 5;
         var sd = map.AddSidedef(l, true, sector);
-        sd.OffsetX = 4; sd.OffsetY = 8; sd.MidTexture = "WALL";
+        sd.OffsetX = 4;
+        sd.OffsetY = 8;
+        sd.MidTexture = "WALL";
+        sd.LongMiddleTexture = 100;
         map.BuildIndexes();
         return (map, l, sector);
     }
@@ -77,6 +80,29 @@ public class LinedefSplitTests
         map.SplitLinedef(l, new Vector2D(40, 0)); // first half length = 40
         var nl = map.Linedefs[1];
         Assert.Equal(4 + 40, nl.Front!.OffsetX); // original offset 4 + 40
+    }
+
+    [Fact]
+    public void SplitAdvancesBackXOffsetBySecondHalfLength()
+    {
+        var map = new MapSet();
+        var sector = map.AddSector();
+        var v0 = map.AddVertex(new Vector2D(0, 0));
+        var v1 = map.AddVertex(new Vector2D(100, 0));
+        Linedef line = map.AddLinedef(v0, v1);
+        Sidedef back = map.AddSidedef(line, false, sector);
+        back.OffsetX = 6;
+        back.OffsetY = 9;
+        back.MidTexture = "BACKWALL";
+        back.LongMiddleTexture = 200;
+        map.BuildIndexes();
+
+        map.SplitLinedef(line, new Vector2D(40, 0));
+        Linedef split = map.Linedefs[1];
+
+        Assert.Equal(6 + 60, line.Back!.OffsetX);
+        Assert.Equal(6, split.Back!.OffsetX);
+        Assert.Equal(9, split.Back.OffsetY);
     }
 
     [Fact]
