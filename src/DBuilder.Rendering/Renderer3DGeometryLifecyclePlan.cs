@@ -54,8 +54,12 @@ public enum Renderer3DGeometryPassOperationKind
     RenderSky,
     RenderSinglePass,
     SetAlphaTest,
+    SetAlphaBlend,
+    SetZWrite,
+    SetSourceBlend,
     SetCullMode,
     RenderModels,
+    RenderTranslucentPass,
 }
 
 public sealed record Renderer3DGeometryPassOperation(
@@ -66,6 +70,7 @@ public sealed record Renderer3DGeometryPassOperation(
     Renderer3DGeometryBucketKind? ModelBucket = null,
     bool? Enabled = null,
     Cull? CullMode = null,
+    Blend? SourceBlend = null,
     bool? TranslucentModels = null);
 
 public sealed record Renderer3DSkySolidPassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations);
@@ -76,6 +81,11 @@ public sealed record Renderer3DModelPassPlan(IReadOnlyList<Renderer3DGeometryPas
 }
 
 public sealed record Renderer3DMaskPassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations)
+{
+    public bool ShouldRender => Operations.Count > 0;
+}
+
+public sealed record Renderer3DTranslucentPassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations)
 {
     public bool ShouldRender => Operations.Count > 0;
 }
@@ -164,6 +174,28 @@ public static class Renderer3DGeometryLifecyclePlan
                     Renderer3DGeometryPassOperationKind.RenderSinglePass,
                     GeometryBucket: Renderer3DGeometryBucketKind.MaskedGeometry,
                     ThingBucket: Renderer3DGeometryBucketKind.MaskedThings,
+                    LightBucket: Renderer3DGeometryBucketKind.LightThings),
+            ]);
+    }
+
+    public static Renderer3DTranslucentPassPlan BuildTranslucentPassPlan(int translucentGeometryCount, int translucentThingCount)
+    {
+        if (translucentGeometryCount < 0) throw new ArgumentOutOfRangeException(nameof(translucentGeometryCount));
+        if (translucentThingCount < 0) throw new ArgumentOutOfRangeException(nameof(translucentThingCount));
+        if (translucentGeometryCount == 0 && translucentThingCount == 0) return new Renderer3DTranslucentPassPlan([]);
+
+        return new Renderer3DTranslucentPassPlan(
+            [
+                new(Renderer3DGeometryPassOperationKind.SetIdentityWorld),
+                new(Renderer3DGeometryPassOperationKind.SetWorldUniform),
+                new(Renderer3DGeometryPassOperationKind.SetAlphaBlend, Enabled: true),
+                new(Renderer3DGeometryPassOperationKind.SetAlphaTest, Enabled: false),
+                new(Renderer3DGeometryPassOperationKind.SetZWrite, Enabled: false),
+                new(Renderer3DGeometryPassOperationKind.SetSourceBlend, SourceBlend: Blend.SourceAlpha),
+                new(
+                    Renderer3DGeometryPassOperationKind.RenderTranslucentPass,
+                    GeometryBucket: Renderer3DGeometryBucketKind.TranslucentGeometry,
+                    ThingBucket: Renderer3DGeometryBucketKind.TranslucentThings,
                     LightBucket: Renderer3DGeometryBucketKind.LightThings),
             ]);
     }

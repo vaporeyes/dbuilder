@@ -200,6 +200,53 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
             Renderer3DGeometryLifecyclePlan.BuildMaskPassPlan(maskedGeometryCount, maskedThingCount));
 
     [Fact]
+    public void BuildTranslucentPassPlanSkipsWhenNoTranslucentGeometryOrThingsExist()
+    {
+        Renderer3DTranslucentPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildTranslucentPassPlan(
+            translucentGeometryCount: 0,
+            translucentThingCount: 0);
+
+        Assert.False(plan.ShouldRender);
+        Assert.Empty(plan.Operations);
+    }
+
+    [Theory]
+    [InlineData(2, 0)]
+    [InlineData(0, 3)]
+    public void BuildTranslucentPassPlanMatchesUdbAlphaAndAdditiveSequenceWhenTranslucentBucketsExist(
+        int translucentGeometryCount,
+        int translucentThingCount)
+    {
+        Renderer3DTranslucentPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildTranslucentPassPlan(
+            translucentGeometryCount,
+            translucentThingCount);
+
+        Assert.True(plan.ShouldRender);
+        Assert.Equal(
+            [
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetIdentityWorld),
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetWorldUniform),
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetAlphaBlend, Enabled: true),
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetAlphaTest, Enabled: false),
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetZWrite, Enabled: false),
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetSourceBlend, SourceBlend: Blend.SourceAlpha),
+                new Renderer3DGeometryPassOperation(
+                    Renderer3DGeometryPassOperationKind.RenderTranslucentPass,
+                    GeometryBucket: Renderer3DGeometryBucketKind.TranslucentGeometry,
+                    ThingBucket: Renderer3DGeometryBucketKind.TranslucentThings,
+                    LightBucket: Renderer3DGeometryBucketKind.LightThings),
+            ],
+            plan.Operations);
+    }
+
+    [Theory]
+    [InlineData(-1, 0)]
+    [InlineData(0, -1)]
+    public void BuildTranslucentPassPlanRejectsNegativeCounts(int translucentGeometryCount, int translucentThingCount)
+        => Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Renderer3DGeometryLifecyclePlan.BuildTranslucentPassPlan(translucentGeometryCount, translucentThingCount));
+
+    [Fact]
     public void Renderer3DStartGeometryExpressionsMatchUdbWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -234,6 +281,11 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("graphics.SetCullMode(Cull.Clockwise);", source, StringComparison.Ordinal);
         Assert.Contains("if(maskedgeo.Count > 0 || maskedthings.Count > 0)", source, StringComparison.Ordinal);
         Assert.Contains("RenderSinglePass(maskedgeo, maskedthings, lightthings);", source, StringComparison.Ordinal);
+        Assert.Contains("if(translucentgeo.Count > 0 || translucentthings.Count > 0)", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetAlphaBlendEnable(true);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetZWriteEnable(false);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetSourceBlend(Blend.SourceAlpha);", source, StringComparison.Ordinal);
+        Assert.Contains("RenderTranslucentPass(translucentgeo, translucentthings, lightthings);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);
