@@ -42,6 +42,9 @@ public static class ThingBatchRenderPlanner
 {
     public const int VerticesPerThing = 6;
     public const int TrianglesPerThing = 2;
+    public const int SpriteAngleFrameCount = 8;
+    public const int SpriteAngleStep = 45;
+    public const int SpriteAngleOffset = 270;
     public const float FullArrowTextureLeft = 0.501f;
     public const float FullArrowTextureRight = 0.999f;
     public const float FullArrowTextureTop = 0.001f;
@@ -93,6 +96,14 @@ public static class ThingBatchRenderPlanner
             ResetWorldTransformation: true,
             Shader: ShaderName.things2d_thing,
             Alpha: alpha);
+    }
+
+    public static int SpriteFrameAngleIndex(int angleDoom, int spriteFrameCount)
+    {
+        if (spriteFrameCount < 0) throw new ArgumentOutOfRangeException(nameof(spriteFrameCount));
+        if (spriteFrameCount != SpriteAngleFrameCount) return 0;
+
+        return ClampAngle(-angleDoom + SpriteAngleOffset) / SpriteAngleStep;
     }
 
     public static ThingArrowTextureBounds ArrowTextureBounds(bool spriteSkipped)
@@ -211,4 +222,10 @@ public static class ThingBatchRenderPlanner
             u = u,
             v = v,
         };
+
+    private static int ClampAngle(int angle)
+    {
+        int result = angle % 360;
+        return result < 0 ? result + 360 : result;
+    }
 }

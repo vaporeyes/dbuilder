@@ -80,6 +80,36 @@ public sealed class ThingBatchRenderPlannerTests
         Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildSetupPlan(float.NaN));
     }
 
+    [Theory]
+    [InlineData(0, 6)]
+    [InlineData(45, 5)]
+    [InlineData(90, 4)]
+    [InlineData(180, 2)]
+    [InlineData(270, 0)]
+    [InlineData(315, 7)]
+    [InlineData(360, 6)]
+    [InlineData(-45, 7)]
+    public void SpriteFrameAngleIndexMatchesUdbEightAngleFormula(int angleDoom, int expected)
+    {
+        Assert.Equal(expected, ThingBatchRenderPlanner.SpriteFrameAngleIndex(
+            angleDoom,
+            ThingBatchRenderPlanner.SpriteAngleFrameCount));
+    }
+
+    [Fact]
+    public void SpriteFrameAngleIndexUsesZeroForNonEightFrameSprites()
+    {
+        Assert.Equal(0, ThingBatchRenderPlanner.SpriteFrameAngleIndex(90, spriteFrameCount: 0));
+        Assert.Equal(0, ThingBatchRenderPlanner.SpriteFrameAngleIndex(90, spriteFrameCount: 1));
+        Assert.Equal(0, ThingBatchRenderPlanner.SpriteFrameAngleIndex(90, spriteFrameCount: 4));
+    }
+
+    [Fact]
+    public void SpriteFrameAngleIndexRejectsInvalidFrameCount()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.SpriteFrameAngleIndex(0, -1));
+    }
+
     [Fact]
     public void ArrowTextureBoundsMatchUdbSpriteState()
     {
@@ -254,6 +284,9 @@ public sealed class ThingBatchRenderPlannerTests
         Assert.Contains("SetWorldTransformation(false);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetShader(ShaderName.things2d_thing);", source, StringComparison.Ordinal);
         Assert.Contains("SetThings2DSettings(alpha);", source, StringComparison.Ordinal);
+        Assert.Contains("if(info.SpriteFrame.Length == 8)", source, StringComparison.Ordinal);
+        Assert.Contains("int spriteangle = General.ClampAngle(-t.AngleDoom + 270) / 45;", source, StringComparison.Ordinal);
+        Assert.Contains("thingsbyangle[0] = group.Value;", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetBufferSubdata(thingsvertices, verts, buffercount * 6);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.Draw(PrimitiveType.TriangleList, 0, buffercount * 2);", source, StringComparison.Ordinal);
         Assert.Contains("locksize = ((things.Count - totalcount) > THING_BUFFER_SIZE) ? THING_BUFFER_SIZE : (things.Count - totalcount);", source, StringComparison.Ordinal);
