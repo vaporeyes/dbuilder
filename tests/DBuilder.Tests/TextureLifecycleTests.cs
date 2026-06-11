@@ -11,6 +11,7 @@ public sealed class TextureLifecycleTests
     [Fact]
     public void TextureFormatMatchesUdbValues()
     {
+        Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(TextureFormat)));
         Assert.Equal(0, (int)TextureFormat.Rgba8);
         Assert.Equal(1, (int)TextureFormat.Bgra8);
         Assert.Equal(2, (int)TextureFormat.Rg16f);

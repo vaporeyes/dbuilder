@@ -5,7 +5,7 @@ using Silk.NET.OpenGL;
 
 namespace DBuilder.Rendering;
 
-public enum TextureFormat
+public enum TextureFormat : int
 {
     Rgba8,
     Bgra8,
