@@ -21,14 +21,14 @@ public enum RenderPass
     Additive = 3,
 }
 
-public enum TextAlignmentX
+public enum TextAlignmentX : int
 {
     Left = 0,
     Center = 1,
     Right = 2,
 }
 
-public enum TextAlignmentY
+public enum TextAlignmentY : int
 {
     Top = 0,
     Middle = 1,

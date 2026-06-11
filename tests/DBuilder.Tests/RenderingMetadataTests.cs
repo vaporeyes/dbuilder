@@ -53,6 +53,7 @@ public sealed class RenderingMetadataTests
     [Fact]
     public void TextAlignmentXValuesMatchUdbOrdering()
     {
+        Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(TextAlignmentX)));
         Assert.Equal(0, (int)TextAlignmentX.Left);
         Assert.Equal(1, (int)TextAlignmentX.Center);
         Assert.Equal(2, (int)TextAlignmentX.Right);
@@ -61,6 +62,7 @@ public sealed class RenderingMetadataTests
     [Fact]
     public void TextAlignmentYValuesMatchUdbOrdering()
     {
+        Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(TextAlignmentY)));
         Assert.Equal(0, (int)TextAlignmentY.Top);
         Assert.Equal(1, (int)TextAlignmentY.Middle);
         Assert.Equal(2, (int)TextAlignmentY.Bottom);
