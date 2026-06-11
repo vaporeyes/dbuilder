@@ -90,6 +90,7 @@ public static class RendererArchitectureModel
             "Surface manager resource registration and lifecycle planning",
             "Surface manager update and free surface-entry lifecycle planning",
             "Text font byte-indexed glyph table planning",
+            "Text font Font.cfg resource discovery and glyph-source parsing",
             "Text font configuration metric normalization",
             "Text font glyph metrics and vertex planning",
             "Text label font selection and legacy scale planning",

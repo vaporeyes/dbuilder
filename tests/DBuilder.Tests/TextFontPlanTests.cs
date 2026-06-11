@@ -26,6 +26,120 @@ public sealed class TextFontPlanTests
     }
 
     [Fact]
+    public void ResourcePlanFindsFontCfgManifestResourceLikeUdb()
+    {
+        string[] resources =
+        {
+            "DBuilder.Rendering.Other.cfg",
+            "DBuilder.Rendering.Resources.FONT.CFG",
+        };
+
+        TextFontResourcePlan plan = TextFontPlan.BuildResourcePlan(resources, "chars {}");
+
+        Assert.Equal("DBuilder.Rendering.Resources.FONT.CFG", plan.ResourceName);
+        Assert.True(plan.Found);
+        Assert.True(plan.ShouldLoadConfiguration);
+        Assert.True(plan.CanBuildGlyphTable);
+    }
+
+    [Fact]
+    public void ResourcePlanReportsMissingFontCfg()
+    {
+        TextFontResourcePlan plan = TextFontPlan.BuildResourcePlan(
+            new[] { "DBuilder.Rendering.Other.cfg" },
+            "chars {}");
+
+        Assert.Null(plan.ResourceName);
+        Assert.False(plan.Found);
+        Assert.False(plan.ShouldLoadConfiguration);
+        Assert.False(plan.CanBuildGlyphTable);
+    }
+
+    [Fact]
+    public void ResourcePlanRequiresConfigurationTextBeforeGlyphTableBuild()
+    {
+        TextFontResourcePlan plan = TextFontPlan.BuildResourcePlan(
+            new[] { "DBuilder.Rendering.Font.cfg" },
+            configurationText: "");
+
+        Assert.True(plan.Found);
+        Assert.True(plan.ShouldLoadConfiguration);
+        Assert.False(plan.CanBuildGlyphTable);
+    }
+
+    [Fact]
+    public void ParseGlyphSourcesReadsFontCfgCharsSection()
+    {
+        IReadOnlyDictionary<int, TextFontGlyphSource> sources = TextFontPlan.ParseGlyphSources("""
+            chars
+            {
+                65
+                {
+                    width = 80;
+                    height = 45;
+                    u1 = 0.1;
+                    v1 = 0.2;
+                    u2 = 0.3;
+                    v2 = 0.4;
+                }
+            }
+            """);
+
+        TextFontGlyphSource source = Assert.Contains(65, sources);
+        Assert.Equal(new TextFontGlyphSource(80, 45, 0.1f, 0.2f, 0.3f, 0.4f), source);
+    }
+
+    [Fact]
+    public void BuildGlyphTableFromFontConfigNormalizesParsedSources()
+    {
+        TextFontGlyph[] glyphs = TextFontPlan.BuildGlyphTableFromFontConfig("""
+            chars
+            {
+                65
+                {
+                    width = 80;
+                    height = 45;
+                    u1 = 0.1;
+                    v1 = 0.2;
+                    u2 = 0.3;
+                    v2 = 0.4;
+                }
+                256
+                {
+                    width = 100;
+                    height = 100;
+                    u1 = 0;
+                    v1 = 0;
+                    u2 = 1;
+                    v2 = 1;
+                }
+            }
+            """);
+
+        Assert.Equal(256, glyphs.Length);
+        Assert.Equal(new TextFontGlyph(2.0f, 1.5f, 0.1f, 0.2f, 0.3f, 0.4f), glyphs[65]);
+        Assert.Equal(new TextFontGlyph(0, 0, 0, 0, 0, 0), glyphs[0]);
+    }
+
+    [Fact]
+    public void ParseGlyphSourcesSkipsIncompleteGlyphs()
+    {
+        IReadOnlyDictionary<int, TextFontGlyphSource> sources = TextFontPlan.ParseGlyphSources("""
+            chars
+            {
+                65
+                {
+                    width = 80;
+                    height = 45;
+                    u1 = 0.1;
+                }
+            }
+            """);
+
+        Assert.Empty(sources);
+    }
+
+    [Fact]
     public void BuildGlyphTableCreatesUdbByteIndexedCharacterArray()
     {
         var configured = new Dictionary<int, TextFontGlyphSource>

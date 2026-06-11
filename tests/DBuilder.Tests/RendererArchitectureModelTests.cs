@@ -82,6 +82,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Surface manager resource registration and lifecycle planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface manager update and free surface-entry lifecycle planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text font byte-indexed glyph table planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Text font Font.cfg resource discovery and glyph-source parsing", replacement.CoveredResponsibilities);
         Assert.Contains("Text font configuration metric normalization", replacement.CoveredResponsibilities);
         Assert.Contains("Text font glyph metrics and vertex planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label font selection and legacy scale planning", replacement.CoveredResponsibilities);
