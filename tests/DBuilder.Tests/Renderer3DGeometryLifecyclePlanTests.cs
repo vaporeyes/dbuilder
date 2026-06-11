@@ -282,6 +282,30 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
             Renderer3DGeometryLifecyclePlan.BuildTranslucentModelPassPlan(translucentModelThingCount: -1));
 
     [Fact]
+    public void BuildThingCagePassPlanSkipsWhenThingCagesAreDisabled()
+    {
+        Renderer3DThingCagePassPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingCagePassPlan(renderThingCages: false);
+
+        Assert.False(plan.ShouldRender);
+        Assert.Empty(plan.Operations);
+    }
+
+    [Fact]
+    public void BuildThingCagePassPlanMatchesUdbThingCageSequenceWhenEnabled()
+    {
+        Renderer3DThingCagePassPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingCagePassPlan(renderThingCages: true);
+
+        Assert.True(plan.ShouldRender);
+        Assert.Equal(
+            [
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetIdentityWorld),
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetWorldUniform),
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.RenderThingCages),
+            ],
+            plan.Operations);
+    }
+
+    [Fact]
     public void Renderer3DStartGeometryExpressionsMatchUdbWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -323,6 +347,8 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("RenderTranslucentPass(translucentgeo, translucentthings, lightthings);", source, StringComparison.Ordinal);
         Assert.Contains("if(translucentmodelthings.Count > 0)", source, StringComparison.Ordinal);
         Assert.Contains("RenderModels(true, lightthings);", source, StringComparison.Ordinal);
+        Assert.Contains("if (renderthingcages)", source, StringComparison.Ordinal);
+        Assert.Contains("RenderThingCages();", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);

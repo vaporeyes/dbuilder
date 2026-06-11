@@ -60,6 +60,7 @@ public enum Renderer3DGeometryPassOperationKind
     SetCullMode,
     RenderModels,
     RenderTranslucentPass,
+    RenderThingCages,
 }
 
 public sealed record Renderer3DGeometryPassOperation(
@@ -86,6 +87,11 @@ public sealed record Renderer3DMaskPassPlan(IReadOnlyList<Renderer3DGeometryPass
 }
 
 public sealed record Renderer3DTranslucentPassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations)
+{
+    public bool ShouldRender => Operations.Count > 0;
+}
+
+public sealed record Renderer3DThingCagePassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations)
 {
     public bool ShouldRender => Operations.Count > 0;
 }
@@ -218,6 +224,16 @@ public static class Renderer3DGeometryLifecyclePlan
                     TranslucentModels: true),
             ]);
     }
+
+    public static Renderer3DThingCagePassPlan BuildThingCagePassPlan(bool renderThingCages)
+        => renderThingCages
+            ? new Renderer3DThingCagePassPlan(
+                [
+                    new(Renderer3DGeometryPassOperationKind.SetIdentityWorld),
+                    new(Renderer3DGeometryPassOperationKind.SetWorldUniform),
+                    new(Renderer3DGeometryPassOperationKind.RenderThingCages),
+                ])
+            : new Renderer3DThingCagePassPlan([]);
 
     public static Renderer3DFinishGeometryCleanupPlan BuildFinishGeometryCleanupPlan()
         => new(
