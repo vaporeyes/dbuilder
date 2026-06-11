@@ -3312,12 +3312,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         IReadOnlyList<VisualSlopeLevel> levels = SelectedVisualSlopeLevels3D();
         IReadOnlyList<VisualSlopeHandle> handles = SelectedVisualSlopeLineHandles3D();
-        if (levels.Count > 0 && IsVisualSlopeLineHandlePair(handles))
+        VisualSlopeHandle? highlightedHandle = HighlightedVisualSlopeLineHandle3D();
+        if (levels.Count > 0 && CanResolveVisualSlopeLineHandlePair(handles, highlightedHandle))
             EditBegun?.Invoke("Slope between handles");
 
-        VisualSlopeBetweenHandlesApplyResult result = VisualSlopeHandles.ApplySlopeBetweenHandles(
+        VisualSlopeBetweenHandlesApplyResult result = VisualSlopeHandles.ApplySlopeBetweenSelectedHandles(
             levels,
-            handles);
+            handles,
+            highlightedHandle);
         ApplyVisualSlopeBetweenHandlesResult(result);
     }
 
@@ -3325,12 +3327,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         IReadOnlyList<VisualSlopeLevel> levels = SelectedVisualSlopeLevels3D();
         IReadOnlyList<VisualSlopeHandle> handles = SelectedVisualSlopeLineHandles3D();
-        if (levels.Count >= 2 && IsVisualSlopeLineHandlePair(handles))
+        VisualSlopeHandle? highlightedHandle = HighlightedVisualSlopeLineHandle3D();
+        if (levels.Count >= 2 && CanResolveVisualSlopeLineHandlePair(handles, highlightedHandle))
             EditBegun?.Invoke("Arch between slope handles");
 
-        VisualSlopeBetweenHandlesApplyResult result = VisualSlopeHandles.ApplyArchBetweenHandles(
+        VisualSlopeBetweenHandlesApplyResult result = VisualSlopeHandles.ApplyArchBetweenSelectedHandles(
             levels,
-            handles);
+            handles,
+            highlightedHandle);
         ApplyVisualSlopeBetweenHandlesResult(result);
     }
 
@@ -3360,12 +3364,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Target3DChanged?.Invoke(result.StatusMessage);
     }
 
-    private static bool IsVisualSlopeLineHandlePair(IReadOnlyList<VisualSlopeHandle> handles)
+    private static bool CanResolveVisualSlopeLineHandlePair(
+        IReadOnlyList<VisualSlopeHandle> handles,
+        VisualSlopeHandle? highlightedHandle)
         => handles.Count == 2
-            && handles[0].Kind == VisualSlopeHandleKind.Line
-            && handles[1].Kind == VisualSlopeHandleKind.Line
-            && handles[0].Sidedef != null
-            && handles[1].Sidedef != null;
+           || (handles.Count == 1 && highlightedHandle != null && !ReferenceEquals(handles[0].Sidedef, highlightedHandle.Sidedef));
 
     private void ApplyVisualSlopeBetweenHandlesResult(VisualSlopeBetweenHandlesApplyResult result)
     {
@@ -3401,17 +3404,28 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var seen = new HashSet<Sidedef>(ReferenceEqualityComparer.Instance);
         foreach (VisualHit hit in _sel3D)
         {
-            if (hit.Kind != VisualHitKind.Wall || hit.Line == null) continue;
-            Sidedef? side = hit.Front ? hit.Line.Front : hit.Line.Back;
-            Sector? sector = hit.Sector ?? side?.Sector;
-            if (side == null || sector == null || !seen.Add(side)) continue;
-
-            VisualSlopeLevel level = VisualSlopeLevelForWallHit(hit, sector);
-            bool up = hit.Point.z >= WallHitMidpointZ(hit, sector);
-            handles.Add(VisualSlopeHandles.CreateSidedef(side, level, up) with { Selected = true });
+            if (VisualSlopeLineHandleFromHit(hit, selected: true) is { } handle && handle.Sidedef != null && seen.Add(handle.Sidedef))
+                handles.Add(handle);
         }
 
         return handles;
+    }
+
+    private VisualSlopeHandle? HighlightedVisualSlopeLineHandle3D()
+        => _target3D is { } target
+            ? VisualSlopeLineHandleFromHit(target, selected: false)
+            : null;
+
+    private static VisualSlopeHandle? VisualSlopeLineHandleFromHit(VisualHit hit, bool selected)
+    {
+        if (hit.Kind != VisualHitKind.Wall || hit.Line == null) return null;
+        Sidedef? side = hit.Front ? hit.Line.Front : hit.Line.Back;
+        Sector? sector = hit.Sector ?? side?.Sector;
+        if (side == null || sector == null) return null;
+
+        VisualSlopeLevel level = VisualSlopeLevelForWallHit(hit, sector);
+        bool up = hit.Point.z >= WallHitMidpointZ(hit, sector);
+        return VisualSlopeHandles.CreateSidedef(side, level, up) with { Selected = selected };
     }
 
     private static VisualSlopeLevel VisualSlopeLevelForWallHit(VisualHit hit, Sector sector)
