@@ -198,6 +198,20 @@ public sealed class RenderingMetadataTests
     }
 
     [Fact]
+    public void RenderDeviceExposesCurrentBufferBindings()
+    {
+        var vertex = typeof(RenderDevice).GetProperty(nameof(RenderDevice.BoundVertexBuffer));
+        var index = typeof(RenderDevice).GetProperty(nameof(RenderDevice.BoundIndexBuffer));
+
+        Assert.NotNull(vertex);
+        Assert.NotNull(index);
+        Assert.Equal(typeof(VertexBuffer), vertex!.PropertyType);
+        Assert.Equal(typeof(IndexBuffer), index!.PropertyType);
+        Assert.Null(vertex.SetMethod);
+        Assert.Null(index.SetMethod);
+    }
+
+    [Fact]
     public void UniformTypeValuesMatchUdbOrdering()
     {
         Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(UniformType)));

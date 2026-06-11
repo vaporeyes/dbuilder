@@ -223,6 +223,8 @@ public sealed class RenderDevice : IDisposable
     public bool MultisampleAntialiasEnabled => _multisampleAntialiasEnabled;
     public int RegisteredResourceCount => _resources.Count;
     public RenderShaderOperationPlan? LastShaderOperation => _lastShaderOperation;
+    public VertexBuffer? BoundVertexBuffer => _boundVb;
+    public IndexBuffer? BoundIndexBuffer => _boundIb;
 
     public void SetViewport(int width, int height)
     {
