@@ -174,6 +174,25 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void WarningStatusDisplaysTransientToast()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        string xaml = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml"));
+
+        Assert.Contains("x:Name=\"ToastPanel\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"ToastTitleText\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Name=\"ToastMessageText\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("private readonly DispatcherTimer _toastTimer = new();", body, StringComparison.Ordinal);
+        Assert.Contains("_toastTimer.Tick += (_, _) => HideToast();", body, StringComparison.Ordinal);
+        Assert.Contains("ShowStatusToast(text, kind);", body, StringComparison.Ordinal);
+        Assert.Contains("ToastPreferences.ShouldShowStatusToast(_settings, kind)", body, StringComparison.Ordinal);
+        Assert.Contains("ToastPanel.IsVisible = true;", body, StringComparison.Ordinal);
+        Assert.Contains("ToastPanel.IsVisible = false;", body, StringComparison.Ordinal);
+        Assert.Contains("_toastTimer.Interval = TimeSpan.FromMilliseconds(_settings.NormalizedToastDurationMilliseconds);", body, StringComparison.Ordinal);
+        Assert.Contains("ApplyToastAnchor(_settings.NormalizedToastAnchor);", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ModeStatusUsesMapControl2DModeLabel()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));

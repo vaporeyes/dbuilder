@@ -64,6 +64,23 @@ public class ToastPreferencesTests
     }
 
     [Fact]
+    public void ShouldShowStatusToastUsesWarningsAndSettings()
+    {
+        Assert.True(ToastPreferences.ShouldShowStatusToast(new Settings(), StatusHistoryKind.Warning));
+        Assert.False(ToastPreferences.ShouldShowStatusToast(new Settings(), StatusHistoryKind.Info));
+        Assert.False(ToastPreferences.ShouldShowStatusToast(new Settings { ToastsEnabled = false }, StatusHistoryKind.Warning));
+        Assert.False(ToastPreferences.ShouldShowStatusToast(
+            new Settings
+            {
+                ToastActionSettings = new Dictionary<string, bool>(StringComparer.Ordinal)
+                {
+                    ["status.warning"] = false,
+                },
+            },
+            StatusHistoryKind.Warning));
+    }
+
+    [Fact]
     public void NormalizeActionsSortsByTitleAndAppliesPersistedToggles()
     {
         var actions = new[]

@@ -89,6 +89,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Record Test Map guard branches as warning status entries.
   - [x] Record UDBScript preflight abort branches as warning status entries.
   - [x] Persist UDB-style toast enablement, anchor, duration, and action toggles.
+  - [x] Display warning status messages as transient in-window toasts.
   - [x] Add testable Status History header formatting with singular and plural labels.
 - [x] Port recent file and recent map behavior to match UDB.
   - [x] Persist and reopen specific recent maps from WAD and PK3 archives.

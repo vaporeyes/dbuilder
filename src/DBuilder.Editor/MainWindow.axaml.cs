@@ -52,6 +52,7 @@ public partial class MainWindow : Window
     private string _untitledAutosaveId = Guid.NewGuid().ToString("N");
     private AutoSaveKey? _activeAutosaveKey;
     private readonly DispatcherTimer _autosaveTimer = new() { Interval = TimeSpan.FromSeconds(30) };
+    private readonly DispatcherTimer _toastTimer = new();
 
     // Default directory holding the bundled UDB game configurations (the default config lives here too).
     private static string DefaultConfigDir =>
@@ -114,6 +115,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         ShowActivated = true;
         _autosaveTimer.Tick += (_, _) => WriteAutosaveIfPending();
+        _toastTimer.Tick += (_, _) => HideToast();
         MapView.CursorWorldMoved += w => CoordText.Text = StatusBarModel.CoordinateText(w.x, w.y);
         MapView.Picked += _ =>
         {
@@ -7361,6 +7363,41 @@ public partial class MainWindow : Window
     {
         StatusText.Text = text;
         _statusHistory.Add(text, kind);
+        ShowStatusToast(text, kind);
+    }
+
+    private void ShowStatusToast(string text, StatusHistoryKind kind)
+    {
+        if (string.IsNullOrWhiteSpace(text) || !ToastPreferences.ShouldShowStatusToast(_settings, kind))
+        {
+            HideToast();
+            return;
+        }
+
+        ToastTitleText.Text = kind == StatusHistoryKind.Warning ? "Warning" : "Information";
+        ToastMessageText.Text = text.Trim();
+        ApplyToastAnchor(_settings.NormalizedToastAnchor);
+        ToastPanel.IsVisible = true;
+
+        _toastTimer.Stop();
+        _toastTimer.Interval = TimeSpan.FromMilliseconds(_settings.NormalizedToastDurationMilliseconds);
+        _toastTimer.Start();
+    }
+
+    private void HideToast()
+    {
+        _toastTimer.Stop();
+        ToastPanel.IsVisible = false;
+    }
+
+    private void ApplyToastAnchor(ToastAnchor anchor)
+    {
+        ToastPanel.HorizontalAlignment = anchor is ToastAnchor.TopLeft or ToastAnchor.BottomLeft
+            ? HorizontalAlignment.Left
+            : HorizontalAlignment.Right;
+        ToastPanel.VerticalAlignment = anchor is ToastAnchor.TopLeft or ToastAnchor.TopRight
+            ? VerticalAlignment.Top
+            : VerticalAlignment.Bottom;
     }
 
     private string CurrentConfigLabel()

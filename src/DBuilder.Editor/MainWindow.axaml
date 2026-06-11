@@ -498,7 +498,24 @@
         </Border>
 
         <!-- Central map view -->
-        <local:MapControl Grid.Row="2" x:Name="MapView" />
+        <Grid Grid.Row="2">
+            <local:MapControl x:Name="MapView" />
+            <Border x:Name="ToastPanel"
+                    IsVisible="False"
+                    MaxWidth="420"
+                    Margin="16"
+                    Padding="12,10"
+                    Background="#D9262D38"
+                    BorderBrush="#FF7D8DA8"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    IsHitTestVisible="False">
+                <StackPanel Spacing="3">
+                    <TextBlock x:Name="ToastTitleText" Foreground="#FFFFFFFF" FontWeight="SemiBold" />
+                    <TextBlock x:Name="ToastMessageText" Foreground="#FFE4E8EF" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+        </Grid>
 
         <!-- Info panel: text on the left, texture/sprite previews on the right -->
         <Border Grid.Row="3" x:Name="InfoPanel" Background="#1c2028" Padding="8,6" Height="124"

@@ -30,6 +30,12 @@ public static class ToastPreferences
     public static int NormalizeDurationMilliseconds(int? durationMilliseconds)
         => Math.Max(durationMilliseconds ?? DefaultDurationMilliseconds, MinDurationMilliseconds);
 
+    public static bool ShouldShowStatusToast(Settings settings, StatusHistoryKind kind, string actionName = "status.warning")
+    {
+        if (!settings.ToastsEnabled || kind != StatusHistoryKind.Warning) return false;
+        return !settings.ToastActionSettings.TryGetValue(actionName, out bool enabled) || enabled;
+    }
+
     public static int AcceptDurationSecondsText(string? text)
     {
         if (!int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int seconds) || seconds <= 0)
