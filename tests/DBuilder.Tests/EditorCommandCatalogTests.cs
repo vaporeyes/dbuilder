@@ -3,11 +3,45 @@
 
 using DBuilder.IO;
 using DBuilder.Map;
+using System.Text.RegularExpressions;
 
 namespace DBuilder.Tests;
 
 public class EditorCommandCatalogTests
 {
+    private static string? FindUdbRoot()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "."));
+        string sibling = Path.GetFullPath(Path.Combine(repositoryRoot, "..", "UltimateDoomBuilder"));
+        if (File.Exists(Path.Combine(sibling, "Source", "Plugins", "UDBScript", "Resources", "Actions.cfg"))) return sibling;
+
+        string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string root = Path.Combine(home, "dev", "repos", "UltimateDoomBuilder");
+        return File.Exists(Path.Combine(root, "Source", "Plugins", "UDBScript", "Resources", "Actions.cfg")) ? root : null;
+    }
+
+    private static IReadOnlyDictionary<string, (string Title, string Category, string Description)> ReadUdbScriptActions(string source)
+    {
+        var result = new Dictionary<string, (string Title, string Category, string Description)>(StringComparer.Ordinal);
+        foreach (Match match in Regex.Matches(source, @"(?m)^\s*(?<id>udbscriptexecute(?:slot\d+)?)\s*\{(?<body>.*?)^\s*\}", RegexOptions.Singleline))
+        {
+            string body = match.Groups["body"].Value;
+            result[match.Groups["id"].Value] = (
+                ReadActionValue(body, "title"),
+                ReadActionValue(body, "category"),
+                ReadActionValue(body, "description"));
+        }
+
+        return result;
+    }
+
+    private static string ReadActionValue(string body, string key)
+    {
+        Match match = Regex.Match(body, @"(?m)^\s*" + Regex.Escape(key) + @"\s*=\s*""(?<value>[^""]*)""\s*;");
+        Assert.True(match.Success, "Expected UDBScript action value " + key + ".");
+        return match.Groups["value"].Value;
+    }
+
     [Fact]
     public void CommandIdsAreUniqueAndStable()
     {
@@ -1828,6 +1862,25 @@ public class EditorCommandCatalogTests
         var lastSlot = Assert.Single(UdbScriptActions.Slots, action => action.Id == "udbscriptexecuteslot30");
         Assert.Equal("Execute Script Slot 30", lastSlot.Title);
         Assert.Equal("execute script in slot 30", lastSlot.Description);
+    }
+
+    [Fact]
+    public void UdbScriptActionsMatchUpstreamActionsCfgWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Source", "Plugins", "UDBScript", "Resources", "Actions.cfg"));
+        IReadOnlyDictionary<string, (string Title, string Category, string Description)> upstream = ReadUdbScriptActions(source);
+
+        Assert.Equal(UdbScriptActions.All.Count, upstream.Count);
+        foreach (UdbScriptActionDescriptor action in UdbScriptActions.All)
+        {
+            Assert.True(upstream.TryGetValue(action.Id, out var upstreamAction), "Expected upstream UDBScript action " + action.Id + ".");
+            Assert.Equal(action.Title, upstreamAction.Title);
+            Assert.Equal(action.Category, upstreamAction.Category);
+            Assert.Equal(action.Description, upstreamAction.Description);
+        }
     }
 
     [Theory]
