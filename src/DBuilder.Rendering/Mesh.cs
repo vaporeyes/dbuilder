@@ -30,6 +30,11 @@ public sealed record MeshConstructionPlan(
     int PrimitiveCount,
     IReadOnlyList<MeshBufferKind> Uploads);
 
+public sealed record MeshDrawAvailabilityPlan(
+    bool IsDisposed,
+    int PrimitiveCount,
+    bool ShouldDraw);
+
 public sealed record MeshDrawStep(MeshDrawStepKind Kind, PrimitiveType? PrimitiveType = null, int StartIndex = 0, int PrimitiveCount = 0);
 
 public sealed record MeshDisposePlan(IReadOnlyList<MeshDisposeStepKind> Steps);
@@ -60,6 +65,8 @@ public sealed class Mesh : IDisposable
 
     public void Draw(RenderDevice device)
     {
+        if (!BuildDrawAvailabilityPlan(Disposed, PrimitivesCount).ShouldDraw) return;
+
         device.SetVertexBuffer(Vertices);
         device.SetIndexBuffer(Indices);
         device.DrawIndexed(PrimitiveType.TriangleList, 0, PrimitivesCount);
@@ -96,6 +103,16 @@ public sealed class Mesh : IDisposable
             new MeshDrawStep(MeshDrawStepKind.UnbindIndexBuffer),
             new MeshDrawStep(MeshDrawStepKind.UnbindVertexBuffer),
         };
+    }
+
+    public static MeshDrawAvailabilityPlan BuildDrawAvailabilityPlan(bool isDisposed, int primitiveCount)
+    {
+        if (primitiveCount < 0) throw new ArgumentOutOfRangeException(nameof(primitiveCount));
+
+        return new MeshDrawAvailabilityPlan(
+            isDisposed,
+            primitiveCount,
+            ShouldDraw: !isDisposed && primitiveCount > 0);
     }
 
     public static MeshDisposePlan BuildDisposePlan()

@@ -45,6 +45,23 @@ public sealed class MeshTests
     }
 
     [Fact]
+    public void DrawAvailabilitySkipsDisposedAndEmptyMeshes()
+    {
+        Assert.Equal(new MeshDrawAvailabilityPlan(
+            IsDisposed: false,
+            PrimitiveCount: 2,
+            ShouldDraw: true), Mesh.BuildDrawAvailabilityPlan(isDisposed: false, primitiveCount: 2));
+        Assert.Equal(new MeshDrawAvailabilityPlan(
+            IsDisposed: true,
+            PrimitiveCount: 2,
+            ShouldDraw: false), Mesh.BuildDrawAvailabilityPlan(isDisposed: true, primitiveCount: 2));
+        Assert.Equal(new MeshDrawAvailabilityPlan(
+            IsDisposed: false,
+            PrimitiveCount: 0,
+            ShouldDraw: false), Mesh.BuildDrawAvailabilityPlan(isDisposed: false, primitiveCount: 0));
+    }
+
+    [Fact]
     public void DisposePlanReleasesOwnedBuffersInUdbOrder()
     {
         MeshDisposePlan plan = Mesh.BuildDisposePlan();
@@ -76,5 +93,6 @@ public sealed class MeshTests
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => Mesh.PrimitiveCountFor(-1));
         Assert.Throws<ArgumentOutOfRangeException>(() => Mesh.BuildDrawPlan(primitiveCount: -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Mesh.BuildDrawAvailabilityPlan(isDisposed: false, primitiveCount: -1));
     }
 }

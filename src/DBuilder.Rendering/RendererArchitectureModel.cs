@@ -93,6 +93,7 @@ public static class RendererArchitectureModel
             "Mesh disposal and finalizer lifecycle",
             "Mesh disposed-state reporting",
             "Mesh primitive-count validation planning",
+            "Mesh draw availability planning",
             "Surface-entry chunk metadata and bounds model",
             "Surface manager vertex chunk and buffer allocation planning",
             "Surface buffer hole allocation and free-entry planning",

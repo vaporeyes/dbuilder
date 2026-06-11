@@ -85,6 +85,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Mesh disposal and finalizer lifecycle", replacement.CoveredResponsibilities);
         Assert.Contains("Mesh disposed-state reporting", replacement.CoveredResponsibilities);
         Assert.Contains("Mesh primitive-count validation planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Mesh draw availability planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface-entry chunk metadata and bounds model", replacement.CoveredResponsibilities);
         Assert.Contains("Surface manager vertex chunk and buffer allocation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface buffer hole allocation and free-entry planning", replacement.CoveredResponsibilities);
