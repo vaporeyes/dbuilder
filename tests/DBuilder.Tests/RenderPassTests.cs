@@ -48,4 +48,10 @@ public sealed class RenderPassTests
             new[] { "None", "Background", "Plotter", "Things", "Overlay", "Surface" },
             Enum.GetNames<RenderLayers>());
     }
+
+    [Fact]
+    public void RenderLayersUseUdbUnderlyingType()
+    {
+        Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(RenderLayers)));
+    }
 }
