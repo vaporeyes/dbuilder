@@ -1,0 +1,55 @@
+// ABOUTME: Plans UDB-style Renderer3D world-geometry collection lifecycle state.
+// ABOUTME: Keeps StartGeometry render buckets explicit before live 3D rendering is complete.
+
+namespace DBuilder.Rendering;
+
+public enum Renderer3DGeometryBucketKind
+{
+    SolidGeometry,
+    MaskedGeometry,
+    TranslucentGeometry,
+    SkyGeometry,
+    SolidThings,
+    MaskedThings,
+    TranslucentThings,
+    MaskedModelThings,
+    TranslucentModelThings,
+    LightThings,
+    AllThings,
+}
+
+public enum Renderer3DGeometryCollectionKind
+{
+    ImageDictionary,
+    ModelDictionary,
+    List,
+}
+
+public sealed record Renderer3DGeometryBucketPlan(
+    Renderer3DGeometryBucketKind Kind,
+    Renderer3DGeometryCollectionKind CollectionKind,
+    bool InitializedEmpty);
+
+public sealed record Renderer3DStartGeometryPlan(IReadOnlyList<Renderer3DGeometryBucketPlan> Buckets)
+{
+    public bool InitializesAllBuckets => Buckets.All(bucket => bucket.InitializedEmpty);
+}
+
+public static class Renderer3DGeometryLifecyclePlan
+{
+    public static Renderer3DStartGeometryPlan BuildStartGeometryPlan()
+        => new(
+            [
+                new(Renderer3DGeometryBucketKind.SolidGeometry, Renderer3DGeometryCollectionKind.ImageDictionary, InitializedEmpty: true),
+                new(Renderer3DGeometryBucketKind.MaskedGeometry, Renderer3DGeometryCollectionKind.ImageDictionary, InitializedEmpty: true),
+                new(Renderer3DGeometryBucketKind.TranslucentGeometry, Renderer3DGeometryCollectionKind.List, InitializedEmpty: true),
+                new(Renderer3DGeometryBucketKind.SkyGeometry, Renderer3DGeometryCollectionKind.List, InitializedEmpty: true),
+                new(Renderer3DGeometryBucketKind.SolidThings, Renderer3DGeometryCollectionKind.ImageDictionary, InitializedEmpty: true),
+                new(Renderer3DGeometryBucketKind.MaskedThings, Renderer3DGeometryCollectionKind.ImageDictionary, InitializedEmpty: true),
+                new(Renderer3DGeometryBucketKind.TranslucentThings, Renderer3DGeometryCollectionKind.List, InitializedEmpty: true),
+                new(Renderer3DGeometryBucketKind.MaskedModelThings, Renderer3DGeometryCollectionKind.ModelDictionary, InitializedEmpty: true),
+                new(Renderer3DGeometryBucketKind.TranslucentModelThings, Renderer3DGeometryCollectionKind.List, InitializedEmpty: true),
+                new(Renderer3DGeometryBucketKind.LightThings, Renderer3DGeometryCollectionKind.List, InitializedEmpty: true),
+                new(Renderer3DGeometryBucketKind.AllThings, Renderer3DGeometryCollectionKind.List, InitializedEmpty: true),
+            ]);
+}
