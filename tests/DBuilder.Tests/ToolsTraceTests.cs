@@ -702,6 +702,22 @@ public class ToolsTraceTests
     }
 
     [Fact]
+    public void MakeSectorMarksExistingSidesAssignedToCreatedSector()
+    {
+        var map = new MapSet();
+        var lines = BuildSidelessSquare(map);
+        Sector source = map.AddSector();
+        Sidedef existing = map.AddSidedef(lines[0], true, source);
+        map.BuildIndexes();
+
+        Sector? sector = Tools.MakeSector(map, lines.Select(line => new LinedefSide(line, true)).ToList());
+
+        Assert.NotNull(sector);
+        Assert.Same(sector, existing.Sector);
+        Assert.True(existing.Marked);
+    }
+
+    [Fact]
     public void MakeSectorCopiesSourceSectorAndSidedefDefaultsFromExistingSide()
     {
         var map = new MapSet();

@@ -521,6 +521,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style wall texture floodfill helper.
   - [x] Add UDB-style traced-side sector join helper.
   - [x] Add UDB-style traced-side sector creation helper.
+  - [x] Mark existing traced sides assigned by sector creation helpers.
   - [x] Add UDB-style invalid sector merge helper.
   - [x] Add UDB-style multipart outer sector split helper.
   - [x] Add UDB-style loop sector creation through traced sides.

@@ -418,6 +418,7 @@ public static class Tools
             else if (!ReferenceEquals(target.Sector, newSector))
             {
                 target.SetSector(newSector);
+                target.Marked = true;
             }
 
             ApplyDefaultsToSidedef(target, sourceSide, targetWasCreated);
