@@ -2247,43 +2247,83 @@ public static class MapAnalysis
 
     private static void CheckSectors(MapSet map, List<MapIssue> issues)
     {
-        // Which sectors are referenced by a sidedef, and the per-sector edge degree of each vertex.
-        var referenced = new HashSet<Sector>(ReferenceEqualityComparer.Instance);
-        var degrees = new Dictionary<Sector, Dictionary<Vertex, int>>(ReferenceEqualityComparer.Instance);
-
-        foreach (var sd in map.Sidedefs)
+        var sidesBySector = new Dictionary<Sector, List<Sidedef>>(ReferenceEqualityComparer.Instance);
+        foreach (Sidedef side in map.Sidedefs)
         {
-            if (sd.Sector == null || sd.Line == null) continue;
-            referenced.Add(sd.Sector);
-            if (!degrees.TryGetValue(sd.Sector, out var dv))
+            if (side.Sector == null || side.Line == null) continue;
+            if (!sidesBySector.TryGetValue(side.Sector, out List<Sidedef>? sides))
             {
-                dv = new Dictionary<Vertex, int>(ReferenceEqualityComparer.Instance);
-                degrees[sd.Sector] = dv;
+                sides = new List<Sidedef>();
+                sidesBySector[side.Sector] = sides;
             }
-            Bump(dv, sd.Line.Start);
-            Bump(dv, sd.Line.End);
+
+            sides.Add(side);
         }
 
         for (int i = 0; i < map.Sectors.Count; i++)
         {
-            var s = map.Sectors[i];
-            if (!referenced.Contains(s))
+            Sector sector = map.Sectors[i];
+            if (!sidesBySector.TryGetValue(sector, out List<Sidedef>? sides))
             {
                 issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.EmptySector,
-                    $"Sector {i} has no sidedefs") { Target = s });
+                    $"Sector {i} has no sidedefs") { Target = sector });
                 continue;
             }
-            // A closed boundary visits every vertex an even number of times; an odd degree means a gap.
-            bool unclosed = false;
-            foreach (var (_, count) in degrees[s])
-                if ((count & 1) != 0) { unclosed = true; break; }
-            if (unclosed)
+
+            List<Vertex> holes = FindUnclosedSectorVertices(sector, sides);
+            if (holes.Count > 0)
                 issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.UnclosedSector,
                     $"Sector {i} is not closed")
-                    { Target = s, Focus = Centroid(degrees[s].Keys) });
-            else if (IsInvalidSector(s))
-                issues.Add(InvalidSectorIssue(s, i, Centroid(degrees[s].Keys)));
+                    { Target = sector, Focus = Centroid(holes) });
+            else if (IsInvalidSector(sector))
+                issues.Add(InvalidSectorIssue(sector, i, Centroid(sides.SelectMany(side => new[] { side.Line.Start, side.Line.End }))));
         }
+    }
+
+    private static List<Vertex> FindUnclosedSectorVertices(Sector sector, IEnumerable<Sidedef> sides)
+    {
+        var vertices = new Dictionary<Vertex, int>(ReferenceEqualityComparer.Instance);
+        var holes = new List<Vertex>();
+
+        foreach (Sidedef side in sides)
+        {
+            Linedef line = side.Line;
+            if (!vertices.ContainsKey(line.Start)) vertices[line.Start] = 0;
+            if (!vertices.ContainsKey(line.End)) vertices[line.End] = 0;
+
+            if (side.IsFront)
+            {
+                vertices[line.Start] |= 1;
+                vertices[line.End] |= 2;
+            }
+            else
+            {
+                vertices[line.End] |= 1;
+                vertices[line.Start] |= 2;
+            }
+        }
+
+        foreach ((Vertex vertex, int bits) in vertices)
+        {
+            if (bits == 3) continue;
+
+            AddUnique(holes, vertex);
+            foreach (Linedef line in vertex.Linedefs)
+            {
+                if ((line.Front != null && ReferenceEquals(line.Front.Sector, sector)) ||
+                    (line.Back != null && ReferenceEquals(line.Back.Sector, sector)))
+                {
+                    continue;
+                }
+
+                if (vertices.TryGetValue(line.Start, out int startBits) && startBits == 3)
+                    AddUnique(holes, line.Start);
+                if (vertices.TryGetValue(line.End, out int endBits) && endBits == 3)
+                    AddUnique(holes, line.End);
+            }
+        }
+
+        return holes;
     }
 
     private static MapIssue InvalidSectorIssue(Sector sector, int index, Vector2D? focus)
@@ -2362,8 +2402,10 @@ public static class MapAnalysis
         return lines.Count < 3;
     }
 
-    private static void Bump(Dictionary<Vertex, int> d, Vertex v)
-        => d[v] = d.TryGetValue(v, out int c) ? c + 1 : 1;
+    private static void AddUnique<T>(List<T> items, T item)
+    {
+        if (!items.Contains(item)) items.Add(item);
+    }
 
     // Average position of a set of vertices, or null when empty.
     private static Vector2D? Centroid(IEnumerable<Vertex> verts)

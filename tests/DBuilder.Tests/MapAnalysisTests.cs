@@ -273,6 +273,28 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void DetectsUnclosedSectorWhenSideDirectionsDoNotCloseLikeUdb()
+    {
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        Vertex a = map.AddVertex(new Vector2D(0, 0));
+        Vertex b = map.AddVertex(new Vector2D(0, 100));
+        Vertex c = map.AddVertex(new Vector2D(100, 100));
+        Vertex d = map.AddVertex(new Vector2D(100, 0));
+
+        map.AddSidedef(map.AddLinedef(a, b), true, sector);
+        map.AddSidedef(map.AddLinedef(c, b), true, sector);
+        map.AddSidedef(map.AddLinedef(c, d), true, sector);
+        map.AddSidedef(map.AddLinedef(d, a), true, sector);
+        map.BuildIndexes();
+
+        var issue = Assert.Single(MapAnalysis.Check(map), i => i.Kind == MapIssueKind.UnclosedSector);
+
+        Assert.Same(sector, issue.Target);
+        Assert.Equal("Sector 0 is not closed", issue.Message);
+    }
+
+    [Fact]
     public void DetectsZeroLengthLinedef()
     {
         var map = Square(true);
