@@ -64,6 +64,58 @@ public sealed class TextureLifecycleTests
     }
 
     [Fact]
+    public void Build2DPixelUploadPlanTracksRgbaByteCounts()
+    {
+        TexturePixelUploadPlan plan = Texture.BuildRgba8UploadPlan(
+            width: 4,
+            height: 3,
+            pixelBufferByteCount: 52,
+            generateMipmaps: false);
+
+        Assert.Equal(new TexturePixelUploadPlan(
+            TexturePixelUploadKind.Texture2D,
+            Width: 4,
+            Height: 3,
+            TextureFormat.Rgba8,
+            RequiredByteCount: 48,
+            ProvidedByteCount: 52,
+            GenerateMipmaps: false), plan);
+    }
+
+    [Fact]
+    public void BuildCubePixelUploadPlanTracksFaceAndSquareRgbaByteCounts()
+    {
+        TexturePixelUploadPlan plan = CubeTexture.BuildRgba8UploadPlan(
+            CubeMapFace.NegativeY,
+            size: 8,
+            pixelBufferByteCount: 256);
+
+        Assert.Equal(TexturePixelUploadKind.CubeFace, plan.Kind);
+        Assert.Equal(CubeMapFace.NegativeY, plan.CubeFace);
+        Assert.Equal(8, plan.Width);
+        Assert.Equal(8, plan.Height);
+        Assert.Equal(TextureFormat.Rgba8, plan.Format);
+        Assert.Equal(256, plan.RequiredByteCount);
+        Assert.Equal(256, plan.ProvidedByteCount);
+        Assert.True(plan.GenerateMipmaps);
+    }
+
+    [Fact]
+    public void PixelUploadPlansRejectInvalidDimensionsAndShortBuffers()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Texture.BuildRgba8UploadPlan(width: 0, height: 1, pixelBufferByteCount: 4));
+        Assert.Throws<ArgumentException>(() =>
+            Texture.BuildRgba8UploadPlan(width: 2, height: 2, pixelBufferByteCount: 15));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            CubeTexture.BuildRgba8UploadPlan(CubeMapFace.PositiveX, size: 0, pixelBufferByteCount: 4));
+        Assert.Throws<ArgumentException>(() =>
+            CubeTexture.BuildRgba8UploadPlan(CubeMapFace.PositiveX, size: 2, pixelBufferByteCount: 15));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            CubeTexture.BuildRgba8UploadPlan((CubeMapFace)99, size: 2, pixelBufferByteCount: 16));
+    }
+
+    [Fact]
     public void TextureExposesUdbMetadataProperties()
     {
         Assert.NotNull(typeof(Texture).GetConstructor(new[] { typeof(Silk.NET.OpenGL.GL), typeof(int), typeof(int), typeof(TextureFormat) }));

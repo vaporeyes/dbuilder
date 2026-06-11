@@ -25,11 +25,27 @@ public enum TextureAllocationKind
     Cube,
 }
 
+public enum TexturePixelUploadKind
+{
+    Texture2D,
+    CubeFace,
+}
+
 public sealed record TextureAllocationPlan(
     TextureAllocationKind Kind,
     int Width,
     int Height,
     TextureFormat Format);
+
+public sealed record TexturePixelUploadPlan(
+    TexturePixelUploadKind Kind,
+    int Width,
+    int Height,
+    TextureFormat Format,
+    int RequiredByteCount,
+    int ProvidedByteCount,
+    bool GenerateMipmaps,
+    CubeMapFace? CubeFace = null);
 
 public abstract class BaseTexture : IDisposable
 {
@@ -89,6 +105,27 @@ public sealed class Texture : BaseTexture
 
     public static TextureAllocationPlan BuildCubeAllocationPlan(int size)
         => new(TextureAllocationKind.Cube, size, size, TextureFormat.Bgra8);
+
+    public static TexturePixelUploadPlan BuildRgba8UploadPlan(
+        int width,
+        int height,
+        int pixelBufferByteCount,
+        bool generateMipmaps = true)
+    {
+        ValidateDimensions(width, height);
+        int requiredByteCount = RequiredRgba8ByteCount(width, height);
+        if (pixelBufferByteCount < requiredByteCount)
+            throw new ArgumentException("Pixel buffer too small for declared dimensions", nameof(pixelBufferByteCount));
+
+        return new TexturePixelUploadPlan(
+            TexturePixelUploadKind.Texture2D,
+            width,
+            height,
+            TextureFormat.Rgba8,
+            requiredByteCount,
+            pixelBufferByteCount,
+            generateMipmaps);
+    }
 
     public unsafe void Allocate2D(int width, int height, TextureFormat format)
     {
@@ -150,6 +187,15 @@ public sealed class Texture : BaseTexture
             TextureFormat.D24_S8 => (InternalFormat.Depth24Stencil8, PixelFormat.DepthStencil, PixelType.UnsignedInt248),
             _ => throw new ArgumentOutOfRangeException(nameof(format)),
         };
+
+    internal static void ValidateDimensions(int width, int height)
+    {
+        if (width <= 0) throw new ArgumentOutOfRangeException(nameof(width));
+        if (height <= 0) throw new ArgumentOutOfRangeException(nameof(height));
+    }
+
+    internal static int RequiredRgba8ByteCount(int width, int height)
+        => checked(width * height * 4);
 }
 
 public sealed class CubeTexture : BaseTexture
@@ -183,6 +229,29 @@ public sealed class CubeTexture : BaseTexture
     public CubeTexture(RenderDevice device, int size)
         : this(device.GL, size)
     {
+    }
+
+    public static TexturePixelUploadPlan BuildRgba8UploadPlan(
+        CubeMapFace face,
+        int size,
+        int pixelBufferByteCount,
+        bool generateMipmaps = true)
+    {
+        Texture.ValidateDimensions(size, size);
+        _ = MapFace(face);
+        int requiredByteCount = Texture.RequiredRgba8ByteCount(size, size);
+        if (pixelBufferByteCount < requiredByteCount)
+            throw new ArgumentException("Pixel buffer too small for declared dimensions", nameof(pixelBufferByteCount));
+
+        return new TexturePixelUploadPlan(
+            TexturePixelUploadKind.CubeFace,
+            size,
+            size,
+            TextureFormat.Rgba8,
+            requiredByteCount,
+            pixelBufferByteCount,
+            generateMipmaps,
+            face);
     }
 
     public unsafe void SetPixelsRgba8(CubeMapFace face, ReadOnlySpan<byte> rgba, bool generateMipmaps = true)

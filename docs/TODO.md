@@ -1558,6 +1558,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style texture format metadata and 2D/cube allocation planning.
   - [x] Add UDB-style texture render-device 2D constructor surface.
   - [x] Add UDB-style texture 2D format allocation application.
+  - [x] Add UDB-style texture pixel upload byte-size planning.
   - [x] Add UDB-style render-device texture operation planning.
   - [x] Add UDB-style render-device Color4 texture clear overload planning.
   - [x] Add UDB-style render-device 2D texture clear and pixel upload application.
