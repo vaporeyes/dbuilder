@@ -200,6 +200,25 @@ public static class Renderer3DGeometryLifecyclePlan
             ]);
     }
 
+    public static Renderer3DModelPassPlan BuildTranslucentModelPassPlan(int translucentModelThingCount)
+    {
+        if (translucentModelThingCount < 0) throw new ArgumentOutOfRangeException(nameof(translucentModelThingCount));
+        if (translucentModelThingCount == 0) return new Renderer3DModelPassPlan([]);
+
+        return new Renderer3DModelPassPlan(
+            [
+                new(Renderer3DGeometryPassOperationKind.SetAlphaBlend, Enabled: true),
+                new(Renderer3DGeometryPassOperationKind.SetAlphaTest, Enabled: false),
+                new(Renderer3DGeometryPassOperationKind.SetZWrite, Enabled: false),
+                new(Renderer3DGeometryPassOperationKind.SetSourceBlend, SourceBlend: Blend.SourceAlpha),
+                new(
+                    Renderer3DGeometryPassOperationKind.RenderModels,
+                    LightBucket: Renderer3DGeometryBucketKind.LightThings,
+                    ModelBucket: Renderer3DGeometryBucketKind.TranslucentModelThings,
+                    TranslucentModels: true),
+            ]);
+    }
+
     public static Renderer3DFinishGeometryCleanupPlan BuildFinishGeometryCleanupPlan()
         => new(
             UnbindTexture: true,

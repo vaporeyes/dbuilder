@@ -247,6 +247,41 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
             Renderer3DGeometryLifecyclePlan.BuildTranslucentPassPlan(translucentGeometryCount, translucentThingCount));
 
     [Fact]
+    public void BuildTranslucentModelPassPlanSkipsWhenNoTranslucentModelsExist()
+    {
+        Renderer3DModelPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildTranslucentModelPassPlan(translucentModelThingCount: 0);
+
+        Assert.False(plan.ShouldRender);
+        Assert.Empty(plan.Operations);
+    }
+
+    [Fact]
+    public void BuildTranslucentModelPassPlanMatchesUdbAlphaBlendSequence()
+    {
+        Renderer3DModelPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildTranslucentModelPassPlan(translucentModelThingCount: 3);
+
+        Assert.True(plan.ShouldRender);
+        Assert.Equal(
+            [
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetAlphaBlend, Enabled: true),
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetAlphaTest, Enabled: false),
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetZWrite, Enabled: false),
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetSourceBlend, SourceBlend: Blend.SourceAlpha),
+                new Renderer3DGeometryPassOperation(
+                    Renderer3DGeometryPassOperationKind.RenderModels,
+                    LightBucket: Renderer3DGeometryBucketKind.LightThings,
+                    ModelBucket: Renderer3DGeometryBucketKind.TranslucentModelThings,
+                    TranslucentModels: true),
+            ],
+            plan.Operations);
+    }
+
+    [Fact]
+    public void BuildTranslucentModelPassPlanRejectsNegativeCounts()
+        => Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Renderer3DGeometryLifecyclePlan.BuildTranslucentModelPassPlan(translucentModelThingCount: -1));
+
+    [Fact]
     public void Renderer3DStartGeometryExpressionsMatchUdbWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -286,6 +321,8 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("graphics.SetZWriteEnable(false);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetSourceBlend(Blend.SourceAlpha);", source, StringComparison.Ordinal);
         Assert.Contains("RenderTranslucentPass(translucentgeo, translucentthings, lightthings);", source, StringComparison.Ordinal);
+        Assert.Contains("if(translucentmodelthings.Count > 0)", source, StringComparison.Ordinal);
+        Assert.Contains("RenderModels(true, lightthings);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);
