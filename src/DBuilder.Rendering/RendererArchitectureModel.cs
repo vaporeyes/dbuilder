@@ -88,6 +88,7 @@ public static class RendererArchitectureModel
             "Surface buffer unload and reload resource-state planning",
             "Surface locked-buffer unlock lifecycle planning",
             "Surface manager resource registration and lifecycle planning",
+            "Surface manager map-analysis allocation planning",
             "Surface manager update and free surface-entry lifecycle planning",
             "Text font byte-indexed glyph table planning",
             "Text font Font.cfg resource discovery and glyph-source parsing",

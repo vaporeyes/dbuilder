@@ -226,6 +226,16 @@ public sealed class SurfaceManagerState
         return set;
     }
 
+    public void AllocateBuffers(IEnumerable<int> sectorVertexCounts)
+    {
+        foreach (SurfaceChunkPlan chunk in SurfaceManagerPlan.PlanChunks(sectorVertexCounts))
+        {
+            SurfaceBufferSetState set = GetSet(chunk.VerticesPerEntry);
+            int freeEntriesNeeded = chunk.EntryCount - set.Entries.Count;
+            set.EnsureFreeEntries(freeEntriesNeeded);
+        }
+    }
+
     public void UpdateSurfaces(SurfaceEntryCollection entries, SurfaceUpdate update)
     {
         if (entries.Count > 0 && entries.TotalVertices != update.NumVertices)

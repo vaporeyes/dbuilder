@@ -495,6 +495,54 @@ public sealed class SurfaceManagerPlanTests
         Assert.Throws<InvalidOperationException>(() => manager.UpdateSurfaces(entries, update));
     }
 
+    [Fact]
+    public void ManagerStateAllocateBuffersAnalyzesSectorChunksLikeUdb()
+    {
+        var manager = new SurfaceManagerState();
+
+        manager.AllocateBuffers(new[] { 0, 3, 6001, 6000 });
+
+        Assert.Equal(new[] { 1, 3, 6000 }, manager.Sets.Keys.OrderBy(key => key).ToArray());
+        Assert.Single(manager.GetSet(1).Holes);
+        Assert.Single(manager.GetSet(3).Holes);
+        Assert.Equal(2, manager.GetSet(6000).Holes.Count);
+        Assert.Equal(new[] { 2 }, manager.GetSet(1).BufferSizes);
+        Assert.Equal(new[] { 6 }, manager.GetSet(3).BufferSizes);
+        Assert.Equal(new[] { 24000 }, manager.GetSet(6000).BufferSizes);
+    }
+
+    [Fact]
+    public void ManagerStateAllocateBuffersOnlyAddsMissingFreeEntries()
+    {
+        var manager = new SurfaceManagerState();
+        SurfaceBufferSetState set = manager.GetSet(3);
+        SurfaceEntry existing = set.AllocateEntry();
+
+        manager.AllocateBuffers(new[] { 3, 3 });
+
+        Assert.Same(existing, Assert.Single(set.Entries));
+        SurfaceEntry hole = Assert.Single(set.Holes);
+        Assert.Equal(3, hole.NumVertices);
+        Assert.Equal(0, hole.BufferIndex);
+        Assert.Equal(6, hole.VertexOffset);
+        Assert.Equal(new[] { 12 }, set.BufferSizes);
+    }
+
+    [Fact]
+    public void ManagerStateAllocateBuffersDoesNotShrinkExistingEntries()
+    {
+        var manager = new SurfaceManagerState();
+        SurfaceBufferSetState set = manager.GetSet(3);
+        SurfaceEntry first = set.AllocateEntry();
+        SurfaceEntry second = set.AllocateEntry();
+
+        manager.AllocateBuffers(new[] { 3 });
+
+        Assert.Equal(new[] { first, second }, set.Entries);
+        Assert.Empty(set.Holes);
+        Assert.Equal(new[] { 12 }, set.BufferSizes);
+    }
+
     private static FlatVertex[] Vertices(int count)
         => Enumerable.Range(0, count)
             .Select(i => new FlatVertex { x = i, y = i })

@@ -1586,6 +1586,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style surface buffer unload and reload resource-state planning.
   - [x] Add UDB-style surface locked-buffer unlock lifecycle planning.
   - [x] Add UDB-style surface manager resource registration and lifecycle planning.
+  - [x] Add UDB-style surface manager map-analysis allocation planning.
   - [x] Add UDB-style surface manager update and free surface-entry lifecycle planning.
 - [ ] Port surface entries and updates.
   - [x] Add UDB-style surface entry, update, collection, and bounds model.
