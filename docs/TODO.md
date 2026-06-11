@@ -1508,6 +1508,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style 2D presentation layer draw dispatch argument planning.
   - [x] Add UDB-style 2D presentation layer texture binding planning.
   - [x] Add UDB-style 2D presentation per-layer draw operation sequence planning.
+  - [x] Add UDB-style core visual render pass enum ordering.
 - [x] Port render modes and view modes.
   - [x] Add UDB-style classic 2D view mode action ids and renderer switching for wireframe, brightness, floor textures, and ceiling textures.
   - [x] Add raw UDB classic view mode and highlight action aliases.

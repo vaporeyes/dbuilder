@@ -13,6 +13,14 @@ public enum PrimitiveType { LineList, TriangleList, TriangleStrip }
 public enum TextureFilter { Nearest, Linear }
 public enum MipmapFilter { None, Nearest, Linear }
 
+public enum RenderPass
+{
+    Solid = 0,
+    Mask = 1,
+    Alpha = 2,
+    Additive = 3,
+}
+
 public enum UniformType
 {
     Vec4f, Vec3f, Vec2f, Float,
