@@ -1546,6 +1546,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style 3D model render ordering and blend planning.
   - [x] Add UDB-style 3D model draw shader and distance planning.
   - [x] Add UDB-style 3D model dynamic light uniform planning.
+  - [x] Add UDB-style 3D model mesh draw and light cleanup planning.
   - [x] Add UDB-style 3D geometry finish cleanup planning.
 - [ ] Port render passes and layers.
   - [x] Add UDB-style 2D presentation layer stack planning.

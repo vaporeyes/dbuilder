@@ -385,6 +385,22 @@ public sealed record Renderer3DModelLightUniformPlan(
 
 public sealed record Renderer3DModelLightUniformsPlan(IReadOnlyList<Renderer3DModelLightUniformPlan> Things);
 
+public sealed record Renderer3DModelMeshCandidate(
+    int ThingId,
+    int MeshCount,
+    IReadOnlyList<string?> Textures);
+
+public sealed record Renderer3DModelMeshDrawPlan(
+    int ThingId,
+    int MeshIndex,
+    string? Texture,
+    bool SetTexture,
+    bool DrawMesh);
+
+public sealed record Renderer3DModelMeshRenderPlan(
+    IReadOnlyList<Renderer3DModelMeshDrawPlan> Draws,
+    bool DisableLightsEnabledUniform);
+
 public enum Renderer3DThingPositionMatrixStrategy
 {
     Billboard,
@@ -1124,6 +1140,34 @@ public static class Renderer3DGeometryLifecyclePlan
         }
 
         return new Renderer3DModelLightUniformsPlan(things);
+    }
+
+    public static Renderer3DModelMeshRenderPlan BuildModelMeshRenderPlan(
+        IReadOnlyList<Renderer3DModelMeshCandidate> models)
+    {
+        ArgumentNullException.ThrowIfNull(models);
+
+        var draws = new List<Renderer3DModelMeshDrawPlan>();
+        foreach (Renderer3DModelMeshCandidate model in models)
+        {
+            ArgumentNullException.ThrowIfNull(model.Textures);
+            if (model.MeshCount < 0) throw new ArgumentOutOfRangeException(nameof(models));
+            if (model.Textures.Count < model.MeshCount) throw new ArgumentOutOfRangeException(nameof(models));
+
+            for (int meshIndex = 0; meshIndex < model.MeshCount; meshIndex++)
+            {
+                draws.Add(new Renderer3DModelMeshDrawPlan(
+                    model.ThingId,
+                    meshIndex,
+                    model.Textures[meshIndex],
+                    SetTexture: true,
+                    DrawMesh: true));
+            }
+        }
+
+        return new Renderer3DModelMeshRenderPlan(
+            draws,
+            DisableLightsEnabledUniform: true);
     }
 
     public static Renderer3DThingPositionMatrixPlan BuildThingPositionMatrixPlan(

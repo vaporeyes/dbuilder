@@ -1624,6 +1624,61 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
             maxDynamicLightsPerSurface: 1));
     }
 
+    [Fact]
+    public void BuildModelMeshRenderPlanSetsTextureAndDrawsEveryMeshInThingOrder()
+    {
+        Renderer3DModelMeshRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildModelMeshRenderPlan(
+            [
+                new Renderer3DModelMeshCandidate(1, MeshCount: 2, Textures: ["A", "B"]),
+                new Renderer3DModelMeshCandidate(2, MeshCount: 1, Textures: ["C"]),
+            ]);
+
+        Assert.True(plan.DisableLightsEnabledUniform);
+        Assert.Equal(
+            [
+                new Renderer3DModelMeshDrawPlan(1, MeshIndex: 0, Texture: "A", SetTexture: true, DrawMesh: true),
+                new Renderer3DModelMeshDrawPlan(1, MeshIndex: 1, Texture: "B", SetTexture: true, DrawMesh: true),
+                new Renderer3DModelMeshDrawPlan(2, MeshIndex: 0, Texture: "C", SetTexture: true, DrawMesh: true),
+            ],
+            plan.Draws);
+    }
+
+    [Fact]
+    public void BuildModelMeshRenderPlanPreservesNullTexturesAndSkipsModelsWithoutMeshes()
+    {
+        Renderer3DModelMeshRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildModelMeshRenderPlan(
+            [
+                new Renderer3DModelMeshCandidate(1, MeshCount: 0, Textures: []),
+                new Renderer3DModelMeshCandidate(2, MeshCount: 2, Textures: [null, "B"]),
+            ]);
+
+        Assert.True(plan.DisableLightsEnabledUniform);
+        Assert.Equal(
+            [
+                new Renderer3DModelMeshDrawPlan(2, MeshIndex: 0, Texture: null, SetTexture: true, DrawMesh: true),
+                new Renderer3DModelMeshDrawPlan(2, MeshIndex: 1, Texture: "B", SetTexture: true, DrawMesh: true),
+            ],
+            plan.Draws);
+    }
+
+    [Fact]
+    public void BuildModelMeshRenderPlanRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentNullException>(() => Renderer3DGeometryLifecyclePlan.BuildModelMeshRenderPlan(null!));
+        Assert.Throws<ArgumentNullException>(() => Renderer3DGeometryLifecyclePlan.BuildModelMeshRenderPlan(
+            [
+                new Renderer3DModelMeshCandidate(1, MeshCount: 1, Textures: null!),
+            ]));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildModelMeshRenderPlan(
+            [
+                new Renderer3DModelMeshCandidate(1, MeshCount: -1, Textures: []),
+            ]));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildModelMeshRenderPlan(
+            [
+                new Renderer3DModelMeshCandidate(1, MeshCount: 2, Textures: ["A"]),
+            ]));
+    }
+
     [Theory]
     [InlineData(false, Renderer3DThingPositionMatrixStrategy.Billboard)]
     [InlineData(true, Renderer3DThingPositionMatrixStrategy.XYBillboard)]
@@ -1868,6 +1923,11 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("if (lightIndex >= lightColor.Length)", source, StringComparison.Ordinal);
         Assert.Contains("bool havelights = (lightIndex > 0);", source, StringComparison.Ordinal);
         Assert.Contains("if (hadlights != havelights || havelights)", source, StringComparison.Ordinal);
+        Assert.Contains("GZModel model = General.Map.Data.ModeldefEntries[t.Thing.Type].Model;", source, StringComparison.Ordinal);
+        Assert.Contains("for (int j = 0; j < model.Meshes.Count; j++)", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetTexture(model.Textures[j]);", source, StringComparison.Ordinal);
+        Assert.Contains("model.Meshes[j].Draw(graphics);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.lightsEnabled, false);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);
