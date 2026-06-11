@@ -1,6 +1,7 @@
 // ABOUTME: Verifies UDB-style Renderer3D.StartGeometry collection lifecycle planning.
 // ABOUTME: Pins solid, masked, translucent, sky, model, light, and all-things buckets.
 
+using DBuilder.Geometry;
 using DBuilder.Rendering;
 
 namespace DBuilder.Tests;
@@ -711,6 +712,95 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
     }
 
     [Fact]
+    public void BuildEventLineRenderPlanSkipsWhenLinesAreEmpty()
+    {
+        Renderer3DEventLineRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildEventLineRenderPlan([]);
+
+        Assert.Empty(plan.Vertices);
+        Assert.Empty(plan.StateOperations);
+        Assert.False(plan.SetIdentityWorld);
+        Assert.Equal(PrimitiveType.LineList, plan.PrimitiveType);
+        Assert.Equal(0, plan.StartIndex);
+        Assert.Equal(0, plan.PrimitiveCount);
+        Assert.False(plan.DisposeVertexBuffer);
+    }
+
+    [Fact]
+    public void BuildEventLineRenderPlanMatchesUdbRenderStateSetup()
+    {
+        Renderer3DEventLineRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildEventLineRenderPlan(
+            [
+                new Line3D(new Vector3D(0, 0, 0), new Vector3D(10, 0, 0), 0xff102030u, renderArrowhead: false),
+            ]);
+
+        Assert.Equal(
+            [
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetAlphaBlend, Enabled: true),
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetAlphaTest, Enabled: false),
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetZWrite, Enabled: false),
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetSourceBlend, Blend: Blend.SourceAlpha),
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetDestinationBlend, Blend: Blend.SourceAlpha),
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetShader, Shader: ShaderName.world3d_vertex_color),
+            ],
+            plan.StateOperations);
+        Assert.True(plan.SetIdentityWorld);
+        Assert.Equal(PrimitiveType.LineList, plan.PrimitiveType);
+        Assert.Equal(0, plan.StartIndex);
+        Assert.Equal(1, plan.PrimitiveCount);
+        Assert.True(plan.DisposeVertexBuffer);
+    }
+
+    [Fact]
+    public void BuildEventLineRenderPlanMatchesUdbArrowheadVertices()
+    {
+        var line = new Line3D(new Vector3D(0, 0, 0), new Vector3D(10, 0, 0), 0xff102030u);
+        Renderer3DEventLineRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildEventLineRenderPlan([line]);
+
+        double angle = line.GetAngle();
+        Vector3D firstArrowhead = new(
+            line.End.x - Renderer3DGeometryLifecyclePlan.EventLineArrowheadLength * Math.Sin(angle - Renderer3DGeometryLifecyclePlan.EventLineArrowheadHalfAngle),
+            line.End.y + Renderer3DGeometryLifecyclePlan.EventLineArrowheadLength * Math.Cos(angle - Renderer3DGeometryLifecyclePlan.EventLineArrowheadHalfAngle),
+            line.End.z);
+        Vector3D secondArrowhead = new(
+            line.End.x - Renderer3DGeometryLifecyclePlan.EventLineArrowheadLength * Math.Sin(angle + Renderer3DGeometryLifecyclePlan.EventLineArrowheadHalfAngle),
+            line.End.y + Renderer3DGeometryLifecyclePlan.EventLineArrowheadLength * Math.Cos(angle + Renderer3DGeometryLifecyclePlan.EventLineArrowheadHalfAngle),
+            line.End.z);
+
+        Assert.Equal(6, plan.Vertices.Length);
+        AssertWorldVertex(plan.Vertices[0], 0.0f, 0.0f, 0.0f, unchecked((int)0xff102030));
+        AssertWorldVertex(plan.Vertices[1], 10.0f, 0.0f, 0.0f, unchecked((int)0xff102030));
+        AssertWorldVertex(plan.Vertices[2], 10.0f, 0.0f, 0.0f, unchecked((int)0xff102030));
+        AssertWorldVertex(plan.Vertices[3], (float)firstArrowhead.x, (float)firstArrowhead.y, (float)firstArrowhead.z, unchecked((int)0xff102030));
+        AssertWorldVertex(plan.Vertices[4], 10.0f, 0.0f, 0.0f, unchecked((int)0xff102030));
+        AssertWorldVertex(plan.Vertices[5], (float)secondArrowhead.x, (float)secondArrowhead.y, (float)secondArrowhead.z, unchecked((int)0xff102030));
+        Assert.Equal(3, plan.PrimitiveCount);
+    }
+
+    [Fact]
+    public void BuildEventLineRenderPlanKeepsPlainLineWhenArrowheadIsDisabled()
+    {
+        Renderer3DEventLineRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildEventLineRenderPlan(
+            [
+                new Line3D(new Vector3D(1, 2, 3), new Vector3D(4, 5, 6), 0xff405060u, renderArrowhead: false),
+            ]);
+
+        Assert.Equal(2, plan.Vertices.Length);
+        AssertWorldVertex(plan.Vertices[0], 1.0f, 2.0f, 3.0f, unchecked((int)0xff405060));
+        AssertWorldVertex(plan.Vertices[1], 4.0f, 5.0f, 6.0f, unchecked((int)0xff405060));
+        Assert.Equal(1, plan.PrimitiveCount);
+    }
+
+    [Fact]
+    public void BuildEventLineRenderPlanRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentNullException>(() => Renderer3DGeometryLifecyclePlan.BuildEventLineRenderPlan(null!));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildEventLineRenderPlan(
+            [
+                new Line3D(new Vector3D(double.NaN, 0, 0), new Vector3D(1, 0, 0)),
+            ]));
+    }
+
+    [Fact]
     public void Renderer3DStartGeometryExpressionsMatchUdbWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -801,6 +891,16 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("graphics.SetUniform(UniformName.slopeHandleLength, 1.0f);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetVertexBuffer(visualslopehandle.VertexGeometry);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.Draw(PrimitiveType.TriangleList, 0, 1);", source, StringComparison.Ordinal);
+        Assert.Contains("private void RenderArrows(ICollection<Line3D> lines)", source, StringComparison.Ordinal);
+        Assert.Contains("if(lines.Count == 0) return;", source, StringComparison.Ordinal);
+        Assert.Contains("pointscount += (line.RenderArrowhead ? 6 : 2);", source, StringComparison.Ordinal);
+        Assert.Contains("const float scaler = 20f;", source, StringComparison.Ordinal);
+        Assert.Contains("double nz = line.GetDelta().GetNormal().z * scaler;", source, StringComparison.Ordinal);
+        Assert.Contains("Vector3D a1 = new Vector3D(line.End.x - scaler * Math.Sin(angle - 0.46f), line.End.y + scaler * Math.Cos(angle - 0.46f), line.End.z - nz);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetShader(ShaderName.world3d_vertex_color);", source, StringComparison.Ordinal);
+        Assert.Contains("world = Matrix.Identity;", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.Draw(PrimitiveType.LineList, 0, pointscount / 2);", source, StringComparison.Ordinal);
+        Assert.Contains("vb.Dispose();", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);
@@ -814,5 +914,15 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("maskedmodelthings = null;", source, StringComparison.Ordinal);
         Assert.Contains("translucentmodelthings = null;", source, StringComparison.Ordinal);
         Assert.Contains("visualvertices = null;", source, StringComparison.Ordinal);
+    }
+
+    private static void AssertWorldVertex(WorldVertex vertex, float x, float y, float z, int color)
+    {
+        Assert.Equal(x, vertex.x, precision: 5);
+        Assert.Equal(y, vertex.y, precision: 5);
+        Assert.Equal(z, vertex.z, precision: 5);
+        Assert.Equal(color, vertex.c);
+        Assert.Equal(0.0f, vertex.u);
+        Assert.Equal(0.0f, vertex.v);
     }
 }

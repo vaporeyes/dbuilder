@@ -1,6 +1,8 @@
 // ABOUTME: Plans UDB-style Renderer3D world-geometry collection lifecycle state.
 // ABOUTME: Keeps StartGeometry render buckets explicit before live 3D rendering is complete.
 
+using DBuilder.Geometry;
+
 namespace DBuilder.Rendering;
 
 public enum Renderer3DGeometryBucketKind
@@ -238,8 +240,20 @@ public sealed record Renderer3DSlopeHandleRenderPlan(
     IReadOnlyList<Renderer3DThingCageRenderOperation> StateOperations,
     IReadOnlyList<Renderer3DSlopeHandleDrawPlan> Draws);
 
+public sealed record Renderer3DEventLineRenderPlan(
+    WorldVertex[] Vertices,
+    IReadOnlyList<Renderer3DThingCageRenderOperation> StateOperations,
+    bool SetIdentityWorld,
+    PrimitiveType PrimitiveType,
+    int StartIndex,
+    int PrimitiveCount,
+    bool DisposeVertexBuffer);
+
 public static class Renderer3DGeometryLifecyclePlan
 {
+    public const float EventLineArrowheadLength = 20.0f;
+    public const float EventLineArrowheadHalfAngle = 0.46f;
+
     public static Renderer3DStartGeometryPlan BuildStartGeometryPlan()
         => new(
             [
@@ -569,6 +583,61 @@ public static class Renderer3DGeometryLifecyclePlan
                 .ToArray());
     }
 
+    public static Renderer3DEventLineRenderPlan BuildEventLineRenderPlan(IReadOnlyList<Line3D> lines)
+    {
+        ArgumentNullException.ThrowIfNull(lines);
+
+        var vertices = new List<WorldVertex>(lines.Count * 6);
+        foreach (Line3D line in lines)
+        {
+            if (!line.Start.IsFinite() || !line.End.IsFinite()) throw new ArgumentOutOfRangeException(nameof(lines));
+
+            int color = unchecked((int)line.Color);
+            WorldVertex end = Vertex(line.End, color);
+            vertices.Add(Vertex(line.Start, color));
+            vertices.Add(end);
+
+            if (!line.RenderArrowhead) continue;
+
+            double normalZ = line.GetDelta().GetNormal().z * EventLineArrowheadLength;
+            double angle = line.GetAngle();
+            Vector3D first = new(
+                line.End.x - EventLineArrowheadLength * Math.Sin(angle - EventLineArrowheadHalfAngle),
+                line.End.y + EventLineArrowheadLength * Math.Cos(angle - EventLineArrowheadHalfAngle),
+                line.End.z - normalZ);
+            Vector3D second = new(
+                line.End.x - EventLineArrowheadLength * Math.Sin(angle + EventLineArrowheadHalfAngle),
+                line.End.y + EventLineArrowheadLength * Math.Cos(angle + EventLineArrowheadHalfAngle),
+                line.End.z - normalZ);
+
+            vertices.Add(end);
+            vertices.Add(Vertex(first, color));
+            vertices.Add(end);
+            vertices.Add(Vertex(second, color));
+        }
+
+        if (vertices.Count < 2)
+        {
+            return new Renderer3DEventLineRenderPlan([], [], SetIdentityWorld: false, PrimitiveType.LineList, StartIndex: 0, PrimitiveCount: 0, DisposeVertexBuffer: false);
+        }
+
+        return new Renderer3DEventLineRenderPlan(
+            vertices.ToArray(),
+            [
+                new(Renderer3DThingCageRenderOperationKind.SetAlphaBlend, Enabled: true),
+                new(Renderer3DThingCageRenderOperationKind.SetAlphaTest, Enabled: false),
+                new(Renderer3DThingCageRenderOperationKind.SetZWrite, Enabled: false),
+                new(Renderer3DThingCageRenderOperationKind.SetSourceBlend, Blend: Blend.SourceAlpha),
+                new(Renderer3DThingCageRenderOperationKind.SetDestinationBlend, Blend: Blend.SourceAlpha),
+                new(Renderer3DThingCageRenderOperationKind.SetShader, Shader: ShaderName.world3d_vertex_color),
+            ],
+            SetIdentityWorld: true,
+            PrimitiveType.LineList,
+            StartIndex: 0,
+            PrimitiveCount: vertices.Count / 2,
+            DisposeVertexBuffer: true);
+    }
+
     public static Renderer3DFinishGeometryCleanupPlan BuildFinishGeometryCleanupPlan()
         => new(
             UnbindTexture: true,
@@ -586,4 +655,7 @@ public static class Renderer3DGeometryLifecyclePlan
                 Renderer3DGeometryBucketKind.TranslucentModelThings,
                 Renderer3DGeometryBucketKind.VisualVertices,
             ]);
+
+    private static WorldVertex Vertex(Vector3D position, int color)
+        => new((float)position.x, (float)position.y, (float)position.z, color, u: 0.0f, v: 0.0f);
 }
