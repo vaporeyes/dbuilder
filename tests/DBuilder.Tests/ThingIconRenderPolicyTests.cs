@@ -291,7 +291,7 @@ public sealed class ThingIconRenderPolicyTests
             ThingIconRenderPolicy.OverviewMarkerScaleThreshold * 4,
             thingArrows: false)
             > ThingIconRenderPolicy.OverviewCullCellPixels);
-        Assert.Equal(96.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
+        Assert.Equal(ThingIconRenderPolicy.FarOverviewCullCellPixels, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
             ThingIconRenderPolicy.OverviewMarkerScaleThreshold * 4,
             thingArrows: false));
         Assert.Equal(0, ThingIconRenderPolicy.OverviewCullCell(
@@ -310,7 +310,7 @@ public sealed class ThingIconRenderPolicyTests
         Assert.Equal(48.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
             ThingIconRenderPolicy.OverviewMarkerScaleThreshold,
             thingArrows: false));
-        Assert.Equal(192.0, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
+        Assert.Equal(ThingIconRenderPolicy.MaxFarOverviewCullCellPixels, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
             ThingIconRenderPolicy.OverviewMarkerScaleThreshold * 16,
             thingArrows: false));
         Assert.Equal(ThingIconRenderPolicy.MaxFarOverviewCullCellPixels, ThingIconRenderPolicy.OverviewCullCellPixelsFor(
