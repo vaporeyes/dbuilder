@@ -1152,6 +1152,164 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
     }
 
     [Theory]
+    [InlineData(false, ShaderName.world3d_main_vertexcolor, ShaderName.world3d_main_highlight_vertexcolor)]
+    [InlineData(true, ShaderName.world3d_fullbright, ShaderName.world3d_fullbright_highlight)]
+    public void BuildModelRenderPlanUsesUdbInitialShaderAndLightUniformState(
+        bool fullBrightness,
+        ShaderName initialShader,
+        ShaderName highlightShader)
+    {
+        Renderer3DModelRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildModelRenderPlan(
+            translucent: false,
+            maskedModelThingGroups: [],
+            translucentModelThings: [],
+            new Vector3D(),
+            fullBrightness,
+            lightCount: 2,
+            inverseSquareLightAttenuation: true);
+
+        Assert.Equal(initialShader, plan.InitialShader);
+        Assert.Equal(highlightShader, plan.HighlightShader);
+        Assert.True(plan.LightsEnabled);
+        Assert.True(plan.IgnoreNormals);
+        Assert.True(plan.UseLightStrength);
+        Assert.Empty(plan.Draws);
+    }
+
+    [Fact]
+    public void BuildModelRenderPlanFlattensMaskedModelGroupsWithoutSortingOrBlendChanges()
+    {
+        Renderer3DModelRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildModelRenderPlan(
+            translucent: false,
+            maskedModelThingGroups:
+            [
+                new Renderer3DModelThingGroup(
+                    [
+                        new Renderer3DModelThingCandidate(1, new Vector3D(100, 0, 0), RenderPass.Alpha),
+                        new Renderer3DModelThingCandidate(2, new Vector3D(1, 0, 0), RenderPass.Additive),
+                    ]),
+                new Renderer3DModelThingGroup(
+                    [
+                        new Renderer3DModelThingCandidate(3, new Vector3D(50, 0, 0), RenderPass.Alpha),
+                    ]),
+            ],
+            translucentModelThings:
+            [
+                new Renderer3DModelThingCandidate(4, new Vector3D(200, 0, 0), RenderPass.Alpha),
+            ],
+            new Vector3D(),
+            fullBrightness: false,
+            lightCount: 0,
+            inverseSquareLightAttenuation: false);
+
+        Assert.False(plan.LightsEnabled);
+        Assert.False(plan.UseLightStrength);
+        Assert.Equal(
+            [
+                new Renderer3DModelThingDrawPlan(1, RenderPass.Alpha, DestinationBlendChange: null),
+                new Renderer3DModelThingDrawPlan(2, RenderPass.Additive, DestinationBlendChange: null),
+                new Renderer3DModelThingDrawPlan(3, RenderPass.Alpha, DestinationBlendChange: null),
+            ],
+            plan.Draws);
+    }
+
+    [Fact]
+    public void BuildModelRenderPlanSortsTranslucentModelsBackToFrontAndAppliesBlendChanges()
+    {
+        Renderer3DModelRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildModelRenderPlan(
+            translucent: true,
+            maskedModelThingGroups:
+            [
+                new Renderer3DModelThingGroup(
+                    [
+                        new Renderer3DModelThingCandidate(5, new Vector3D(100, 0, 0), RenderPass.Alpha),
+                    ]),
+            ],
+            translucentModelThings:
+            [
+                new Renderer3DModelThingCandidate(1, new Vector3D(4, 0, 0), RenderPass.Alpha),
+                new Renderer3DModelThingCandidate(2, new Vector3D(3, 0, 0), RenderPass.Alpha),
+                new Renderer3DModelThingCandidate(3, new Vector3D(2, 0, 0), RenderPass.Additive),
+                new Renderer3DModelThingCandidate(4, new Vector3D(1, 0, 0), RenderPass.Alpha),
+            ],
+            new Vector3D(),
+            fullBrightness: false,
+            lightCount: 0,
+            inverseSquareLightAttenuation: false);
+
+        Assert.Equal(
+            [
+                new Renderer3DModelThingDrawPlan(1, RenderPass.Alpha, Blend.InverseSourceAlpha),
+                new Renderer3DModelThingDrawPlan(2, RenderPass.Alpha, DestinationBlendChange: null),
+                new Renderer3DModelThingDrawPlan(3, RenderPass.Additive, Blend.One),
+                new Renderer3DModelThingDrawPlan(4, RenderPass.Alpha, Blend.InverseSourceAlpha),
+            ],
+            plan.Draws);
+    }
+
+    [Fact]
+    public void BuildModelRenderPlanRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentNullException>(() => Renderer3DGeometryLifecyclePlan.BuildModelRenderPlan(
+            translucent: false,
+            maskedModelThingGroups: null!,
+            translucentModelThings: [],
+            new Vector3D(),
+            fullBrightness: false,
+            lightCount: 0,
+            inverseSquareLightAttenuation: false));
+        Assert.Throws<ArgumentNullException>(() => Renderer3DGeometryLifecyclePlan.BuildModelRenderPlan(
+            translucent: false,
+            maskedModelThingGroups: [],
+            translucentModelThings: null!,
+            new Vector3D(),
+            fullBrightness: false,
+            lightCount: 0,
+            inverseSquareLightAttenuation: false));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildModelRenderPlan(
+            translucent: false,
+            maskedModelThingGroups: [],
+            translucentModelThings: [],
+            new Vector3D(double.NaN, 0, 0),
+            fullBrightness: false,
+            lightCount: 0,
+            inverseSquareLightAttenuation: false));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildModelRenderPlan(
+            translucent: false,
+            maskedModelThingGroups: [],
+            translucentModelThings: [],
+            new Vector3D(),
+            fullBrightness: false,
+            lightCount: -1,
+            inverseSquareLightAttenuation: false));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildModelRenderPlan(
+            translucent: false,
+            maskedModelThingGroups:
+            [
+                new Renderer3DModelThingGroup(
+                    [
+                        new Renderer3DModelThingCandidate(1, new Vector3D(double.NaN, 0, 0), RenderPass.Alpha),
+                    ]),
+            ],
+            translucentModelThings: [],
+            new Vector3D(),
+            fullBrightness: false,
+            lightCount: 0,
+            inverseSquareLightAttenuation: false));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildModelRenderPlan(
+            translucent: true,
+            maskedModelThingGroups: [],
+            translucentModelThings:
+            [
+                new Renderer3DModelThingCandidate(1, new Vector3D(0, double.NaN, 0), RenderPass.Alpha),
+            ],
+            new Vector3D(),
+            fullBrightness: false,
+            lightCount: 0,
+            inverseSquareLightAttenuation: false));
+    }
+
+    [Theory]
     [InlineData(false, Renderer3DThingPositionMatrixStrategy.Billboard)]
     [InlineData(true, Renderer3DThingPositionMatrixStrategy.XYBillboard)]
     public void BuildThingPositionMatrixPlanUsesBillboardStrategyForNormalThings(
@@ -1369,6 +1527,14 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("case ThingRenderMode.WALLSPRITE:", source, StringComparison.Ordinal);
         Assert.Contains("case ThingRenderMode.MODEL:", source, StringComparison.Ordinal);
         Assert.Contains("case ThingRenderMode.VOXEL:", source, StringComparison.Ordinal);
+        Assert.Contains("private void RenderModels(bool trans, List<VisualThing> lights)", source, StringComparison.Ordinal);
+        Assert.Contains("ShaderName shaderpass = (fullbrightness ? ShaderName.world3d_fullbright : ShaderName.world3d_main_vertexcolor);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.lightsEnabled, lights.Count > 0);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.ignoreNormals, true);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.useLightStrength, General.Map.Data.MapInfo.LightAttenuationMode == \"InverseSquare\");", source, StringComparison.Ordinal);
+        Assert.Contains("translucentmodelthings.Sort((vt1, vt2) => (int)((General.Map.VisualCamera.Position - vt2.BoundingBox[0]).GetLengthSq()", source, StringComparison.Ordinal);
+        Assert.Contains("foreach (KeyValuePair<ModelData, List<VisualThing>> group in maskedmodelthings)", source, StringComparison.Ordinal);
+        Assert.Contains("if (t.RenderPass != currentpass)", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);

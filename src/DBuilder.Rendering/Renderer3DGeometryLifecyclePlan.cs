@@ -315,6 +315,26 @@ public sealed record Renderer3DTranslucentThingOrderPlan(
     TextureAddress RestoredTextureAddress,
     Cull RestoredCullMode);
 
+public sealed record Renderer3DModelThingCandidate(
+    int Id,
+    Vector3D BoundingBoxCenter,
+    RenderPass RenderPass);
+
+public sealed record Renderer3DModelThingGroup(IReadOnlyList<Renderer3DModelThingCandidate> Things);
+
+public sealed record Renderer3DModelThingDrawPlan(
+    int ThingId,
+    RenderPass RenderPass,
+    Blend? DestinationBlendChange);
+
+public sealed record Renderer3DModelRenderPlan(
+    ShaderName InitialShader,
+    ShaderName HighlightShader,
+    bool LightsEnabled,
+    bool IgnoreNormals,
+    bool UseLightStrength,
+    IReadOnlyList<Renderer3DModelThingDrawPlan> Draws);
+
 public enum Renderer3DThingPositionMatrixStrategy
 {
     Billboard,
@@ -869,6 +889,71 @@ public static class Renderer3DGeometryLifecyclePlan
             draws,
             TextureAddress.Wrap,
             Cull.Clockwise);
+    }
+
+    public static Renderer3DModelRenderPlan BuildModelRenderPlan(
+        bool translucent,
+        IReadOnlyList<Renderer3DModelThingGroup> maskedModelThingGroups,
+        IReadOnlyList<Renderer3DModelThingCandidate> translucentModelThings,
+        Vector3D cameraPosition,
+        bool fullBrightness,
+        int lightCount,
+        bool inverseSquareLightAttenuation)
+    {
+        ArgumentNullException.ThrowIfNull(maskedModelThingGroups);
+        ArgumentNullException.ThrowIfNull(translucentModelThings);
+        if (!cameraPosition.IsFinite()) throw new ArgumentOutOfRangeException(nameof(cameraPosition));
+        if (lightCount < 0) throw new ArgumentOutOfRangeException(nameof(lightCount));
+
+        foreach (Renderer3DModelThingGroup group in maskedModelThingGroups)
+        {
+            ArgumentNullException.ThrowIfNull(group.Things);
+            foreach (Renderer3DModelThingCandidate thing in group.Things)
+            {
+                if (!thing.BoundingBoxCenter.IsFinite()) throw new ArgumentOutOfRangeException(nameof(maskedModelThingGroups));
+            }
+        }
+
+        foreach (Renderer3DModelThingCandidate thing in translucentModelThings)
+        {
+            if (!thing.BoundingBoxCenter.IsFinite()) throw new ArgumentOutOfRangeException(nameof(translucentModelThings));
+        }
+
+        ShaderName shaderPass = fullBrightness ? ShaderName.world3d_fullbright : ShaderName.world3d_main_vertexcolor;
+        Renderer3DModelThingCandidate[] things = translucent
+            ? translucentModelThings
+                .OrderByDescending(thing => (cameraPosition - thing.BoundingBoxCenter).GetLengthSq())
+                .ToArray()
+            : maskedModelThingGroups
+                .SelectMany(group => group.Things)
+                .ToArray();
+
+        var draws = new List<Renderer3DModelThingDrawPlan>(things.Length);
+        RenderPass currentPass = RenderPass.Solid;
+        foreach (Renderer3DModelThingCandidate thing in things)
+        {
+            Blend? destinationBlend = null;
+            if (translucent && thing.RenderPass != currentPass)
+            {
+                destinationBlend = thing.RenderPass switch
+                {
+                    RenderPass.Additive => Blend.One,
+                    RenderPass.Alpha => Blend.InverseSourceAlpha,
+                    _ => null,
+                };
+                currentPass = thing.RenderPass;
+            }
+
+            draws.Add(new Renderer3DModelThingDrawPlan(thing.Id, thing.RenderPass, destinationBlend));
+        }
+
+        return new Renderer3DModelRenderPlan(
+            shaderPass,
+            (ShaderName)(shaderPass + 2),
+            LightsEnabled: lightCount > 0,
+            IgnoreNormals: true,
+            UseLightStrength: inverseSquareLightAttenuation,
+            draws);
     }
 
     public static Renderer3DThingPositionMatrixPlan BuildThingPositionMatrixPlan(
