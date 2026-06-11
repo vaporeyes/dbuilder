@@ -47,9 +47,7 @@ public static class SectorBuilder
             // Interior is on the right of v1->v2. The right side is the line's front when our travel matches
             // the line's start->end, otherwise its back.
             bool useFront = ReferenceEquals(line.Start, v1);
-            var side = useFront ? line.Front : line.Back;
-            if (side == null) map.AddSidedef(line, useFront, sector);
-            else side.Sector = sector;
+            AssignSide(map, line, useFront, sector);
         }
 
         return sector;
@@ -69,11 +67,31 @@ public static class SectorBuilder
 
         foreach (var ls in sides)
         {
-            var side = ls.Front ? ls.Line.Front : ls.Line.Back;
-            if (side == null) map.AddSidedef(ls.Line, ls.Front, sector);
-            else side.Sector = sector;
+            AssignSide(map, ls.Line, ls.Front, sector);
         }
         return sector;
+    }
+
+    private static void AssignSide(MapSet map, Linedef line, bool front, Sector sector)
+    {
+        var side = front ? line.Front : line.Back;
+        if (side != null)
+        {
+            side.Sector = sector;
+            return;
+        }
+
+        side = map.AddSidedef(line, front, sector);
+        side.Marked = true;
+        Sidedef? other = side.Other ?? (front ? line.Back : line.Front);
+        if (other == null) return;
+
+        other.CopyPropertiesTo(side);
+        side.Line = line;
+        side.IsFront = front;
+        side.Sector = sector;
+        side.Marked = true;
+        other.Marked = true;
     }
 
     private static double SignedArea(IReadOnlyList<Vertex> verts)

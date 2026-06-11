@@ -105,6 +105,61 @@ public class SectorBuilderTests
     }
 
     [Fact]
+    public void NewSideCopiesOppositeSidePropertiesLikeUdb()
+    {
+        var map = new MapSet();
+        var loop = Square(map, 100, ccw: true);
+        Linedef shared = map.AddLinedef(loop[0], loop[1]);
+        Sector source = map.AddSector();
+        Sidedef existing = map.AddSidedef(shared, true, source);
+        existing.OffsetX = 12;
+        existing.OffsetY = -4;
+        existing.SetTextureMid("SOURCE");
+        existing.LongMiddleTexture = 55;
+        existing.UdmfFlags.Add("lightabsolute");
+        existing.Fields["offsetx_mid"] = 3.0;
+
+        Sector sector = SectorBuilder.CreateSector(map, loop)!;
+        map.BuildIndexes();
+
+        Sidedef created = shared.Back!;
+        Assert.Same(sector, created.Sector);
+        Assert.True(created.Marked);
+        Assert.True(existing.Marked);
+        Assert.Equal(12, created.OffsetX);
+        Assert.Equal(-4, created.OffsetY);
+        Assert.Equal("SOURCE", created.MidTexture);
+        Assert.Equal(55, created.LongMiddleTexture);
+        Assert.Contains("lightabsolute", created.UdmfFlags);
+        Assert.Equal(3.0, created.Fields["offsetx_mid"]);
+    }
+
+    [Fact]
+    public void TracedNewSideCopiesOppositeSidePropertiesLikeUdb()
+    {
+        var map = new MapSet();
+        Vertex a = map.AddVertex(new Vector2D(0, 0));
+        Vertex b = map.AddVertex(new Vector2D(64, 0));
+        Linedef line = map.AddLinedef(a, b);
+        Sector source = map.AddSector();
+        Sidedef existing = map.AddSidedef(line, false, source);
+        existing.OffsetX = 7;
+        existing.SetTextureMid("TRACE");
+        existing.LongMiddleTexture = 66;
+
+        Sector sector = SectorBuilder.CreateSectorFromSides(map, new[] { new LinedefSide(line, true) })!;
+        map.BuildIndexes();
+
+        Sidedef created = line.Front!;
+        Assert.Same(sector, created.Sector);
+        Assert.Equal(7, created.OffsetX);
+        Assert.Equal("TRACE", created.MidTexture);
+        Assert.Equal(66, created.LongMiddleTexture);
+        Assert.True(created.Marked);
+        Assert.True(existing.Marked);
+    }
+
+    [Fact]
     public void TooFewVerticesReturnsNull()
     {
         var map = new MapSet();
