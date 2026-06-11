@@ -12,6 +12,8 @@ public sealed class SurfaceManagerPlanTests
     {
         Assert.Equal(30000, SurfaceManagerPlan.MaxVerticesPerBuffer);
         Assert.Equal(6000, SurfaceManagerPlan.MaxVerticesPerSector);
+        Assert.Equal(SurfaceManagerPlan.MaxVerticesPerBuffer, SurfaceManagerPlan.MAX_VERTICES_PER_BUFFER);
+        Assert.Equal(SurfaceManagerPlan.MaxVerticesPerSector, SurfaceManagerPlan.MAX_VERTICES_PER_SECTOR);
     }
 
     [Fact]

@@ -213,6 +213,8 @@ public static class SurfaceManagerPlan
 {
     public const int MaxVerticesPerBuffer = 30000;
     public const int MaxVerticesPerSector = 6000;
+    public const int MAX_VERTICES_PER_BUFFER = MaxVerticesPerBuffer;
+    public const int MAX_VERTICES_PER_SECTOR = MaxVerticesPerSector;
 
     public static IReadOnlyList<int> SplitSectorVertexCount(int vertexCount)
     {
