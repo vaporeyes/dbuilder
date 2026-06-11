@@ -364,6 +364,94 @@ public sealed class Renderer2DLineMetricsTests
     }
 
     [Fact]
+    public void BuildExtraFloorFlaggedLineIndexesUsesUdmfArg0Tags()
+    {
+        Renderer2DExtraFloorLine control = ExtraFloorLine(
+            index: 1,
+            args: [7, 0, 0, 0, 9],
+            front: Side(99));
+        Renderer2DExtraFloorLine target = ExtraFloorLine(
+            index: 2,
+            args: [0, 0, 0, 0, 0],
+            front: Side(7));
+        Renderer2DExtraFloorLine other = ExtraFloorLine(
+            index: 3,
+            args: [0, 0, 0, 0, 0],
+            front: Side(9));
+
+        HashSet<int> flagged = Renderer2DLineMetricPlanner.BuildExtraFloorFlaggedLineIndexes(
+            [control, target, other],
+            udmf: true);
+
+        Assert.Equal([2], flagged.Order());
+    }
+
+    [Fact]
+    public void BuildExtraFloorFlaggedLineIndexesCombinesClassicHighTagWhenFlagUnset()
+    {
+        Renderer2DExtraFloorLine control = ExtraFloorLine(
+            index: 1,
+            args: [7, 0, 0, 0, 1],
+            front: Side(99));
+        Renderer2DExtraFloorLine target = ExtraFloorLine(
+            index: 2,
+            args: [0, 0, 0, 0, 0],
+            front: Side(263));
+        Renderer2DExtraFloorLine lowTag = ExtraFloorLine(
+            index: 3,
+            args: [0, 0, 0, 0, 0],
+            front: Side(7));
+
+        HashSet<int> flagged = Renderer2DLineMetricPlanner.BuildExtraFloorFlaggedLineIndexes(
+            [control, target, lowTag],
+            udmf: false);
+
+        Assert.Equal([2], flagged.Order());
+    }
+
+    [Fact]
+    public void BuildExtraFloorFlaggedLineIndexesUsesClassicArg0WhenFlagSet()
+    {
+        Renderer2DExtraFloorLine control = ExtraFloorLine(
+            index: 1,
+            args: [7, 8, 0, 0, 1],
+            front: Side(99));
+        Renderer2DExtraFloorLine target = ExtraFloorLine(
+            index: 2,
+            args: [0, 0, 0, 0, 0],
+            back: Side(7));
+        Renderer2DExtraFloorLine highTag = ExtraFloorLine(
+            index: 3,
+            args: [0, 0, 0, 0, 0],
+            front: Side(263));
+
+        HashSet<int> flagged = Renderer2DLineMetricPlanner.BuildExtraFloorFlaggedLineIndexes(
+            [control, target, highTag],
+            udmf: false);
+
+        Assert.Equal([2], flagged.Order());
+    }
+
+    [Fact]
+    public void BuildExtraFloorFlaggedLineIndexesIgnoresZeroTags()
+    {
+        Renderer2DExtraFloorLine control = ExtraFloorLine(
+            index: 1,
+            args: [0, 0, 0, 0, 0],
+            front: Side(99));
+        Renderer2DExtraFloorLine target = ExtraFloorLine(
+            index: 2,
+            args: [0, 0, 0, 0, 0],
+            front: Side(0));
+
+        HashSet<int> flagged = Renderer2DLineMetricPlanner.BuildExtraFloorFlaggedLineIndexes(
+            [control, target],
+            udmf: true);
+
+        Assert.Empty(flagged);
+    }
+
+    [Fact]
     public void BuildLinedefSegmentsRejectsInvalidViewport()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => Renderer2DLineMetricPlanner.BuildLinedefSegments(
@@ -374,6 +462,17 @@ public sealed class Renderer2DLineMetricsTests
             scale: 1,
             viewportHeight: -1));
     }
+
+    private static Renderer2DExtraFloorLine ExtraFloorLine(
+        int index,
+        IReadOnlyList<int> args,
+        Renderer2DExtraFloorSide? front = null,
+        Renderer2DExtraFloorSide? back = null,
+        int action = 160)
+        => new(index, action, args, front, back);
+
+    private static Renderer2DExtraFloorSide Side(params int[] tags)
+        => new(tags.Length > 0 ? tags[0] : 0, tags.ToHashSet());
 
     [Fact]
     public void LineMetricExpressionsMatchUdbRenderer2DWhenCloneIsAvailable()

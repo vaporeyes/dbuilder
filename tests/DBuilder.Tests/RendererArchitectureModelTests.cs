@@ -47,6 +47,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Renderer2D coordinate transform planning", replacement.CoveredResponsibilities);
         Assert.Contains("Renderer2D color selection planning", replacement.CoveredResponsibilities);
         Assert.Contains("Renderer2D brightness color planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Renderer2D extra-floor flag planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device alpha-blend state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device alpha-test compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device multisample antialias compatibility state planning", replacement.CoveredResponsibilities);

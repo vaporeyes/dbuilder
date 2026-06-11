@@ -110,6 +110,7 @@ public static class RendererArchitectureModel
             "Renderer2D coordinate transform planning",
             "Renderer2D color selection planning",
             "Renderer2D brightness color planning",
+            "Renderer2D extra-floor flag planning",
             "Render-device alpha-blend state planning",
             "Render-device alpha-test compatibility state planning",
             "Render-device multisample antialias compatibility state planning",

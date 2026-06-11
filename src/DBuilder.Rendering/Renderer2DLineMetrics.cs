@@ -58,6 +58,15 @@ public readonly record struct Renderer2DPlotVertexPlan(
     int Size,
     int ColorIndex);
 
+public readonly record struct Renderer2DExtraFloorSide(int SectorTag, IReadOnlySet<int> SectorTags);
+
+public readonly record struct Renderer2DExtraFloorLine(
+    int Index,
+    int Action,
+    IReadOnlyList<int> Args,
+    Renderer2DExtraFloorSide? Front,
+    Renderer2DExtraFloorSide? Back);
+
 public static class Renderer2DLineMetricPlanner
 {
     public const double LineNormalScreenSize = 10.0;
@@ -255,6 +264,40 @@ public static class Renderer2DLineMetricPlanner
             TransformY((int)((v1.y + my) + (mx * lengthInv) * metrics.LineNormalSize), viewportHeight)));
 
         return segments;
+    }
+
+    public static HashSet<int> BuildExtraFloorFlaggedLineIndexes(
+        IEnumerable<Renderer2DExtraFloorLine> lines,
+        bool udmf)
+    {
+        ArgumentNullException.ThrowIfNull(lines);
+
+        var materialized = lines.ToArray();
+        var tags = new HashSet<int>();
+        foreach (Renderer2DExtraFloorLine line in materialized)
+        {
+            if (line.Action != 160 || line.Args.Count < 5) continue;
+
+            int sectorTag = udmf || (line.Args[1] & 8) != 0
+                ? line.Args[0]
+                : line.Args[0] + (line.Args[4] << 8);
+            if (sectorTag != 0) tags.Add(sectorTag);
+        }
+
+        var flagged = new HashSet<int>();
+        foreach (Renderer2DExtraFloorLine line in materialized)
+        {
+            if (IsExtraFloorSide(line.Front, tags) || IsExtraFloorSide(line.Back, tags))
+                flagged.Add(line.Index);
+        }
+
+        return flagged;
+    }
+
+    private static bool IsExtraFloorSide(Renderer2DExtraFloorSide? side, HashSet<int> tags)
+    {
+        if (side is null || side.Value.SectorTag == 0) return false;
+        return tags.Overlaps(side.Value.SectorTags);
     }
 
     private static int TransformY(int y, int viewportHeight)

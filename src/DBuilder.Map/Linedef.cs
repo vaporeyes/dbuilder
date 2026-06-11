@@ -33,6 +33,10 @@ public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
 
     /// <summary>Transient editor selection group membership bitmask.</summary>
     public int Groups { get; set; }
+
+    /// <summary>Transient renderer flag set when this line borders a sector targeted by a 3D floor control line.</summary>
+    public bool ExtraFloorFlag { get; set; }
+
     public Sidedef? Front { get; set; }
     public Sidedef? Back { get; set; }
     public Line2D Line => new(Start.Position, End.Position);
@@ -138,6 +142,7 @@ public class Linedef : IMapElement, ISelectable, IMarkable, IGroupable, IFielded
         linedef.Selected = Selected;
         linedef.Marked = Marked;
         linedef.Groups = Groups;
+        linedef.ExtraFloorFlag = ExtraFloorFlag;
         linedef.Flags = Flags;
         linedef.Action = Action;
         linedef.Activate = Activate;

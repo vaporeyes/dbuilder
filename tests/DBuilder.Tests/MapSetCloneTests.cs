@@ -137,6 +137,7 @@ public class MapSetCloneTests
         Assert.Equal(sample.Linedefs[0].Activate, line.Activate);
         Assert.Equal(sample.Linedefs[0].Args, line.Args);
         Assert.Equal(sample.Linedefs[0].Tags, line.Tags);
+        Assert.Equal(sample.Linedefs[0].ExtraFloorFlag, line.ExtraFloorFlag);
         Assert.Contains("blocking", line.UdmfFlags);
         Assert.Null(line.Front);
         Assert.Null(line.Back);
@@ -253,6 +254,7 @@ public class MapSetCloneTests
         var line = map.AddLinedef(v0, v1);
         line.Marked = true;
         line.Groups = MapSet.GroupMask(2);
+        line.ExtraFloorFlag = true;
         line.Flags = 1;
         line.Action = 80;
         line.Activate = 2;
