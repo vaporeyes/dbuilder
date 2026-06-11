@@ -319,6 +319,122 @@ public sealed class PresentationPlanTests
     }
 
     [Fact]
+    public void SurfaceRedrawReturnsWithoutWorkWhenRendererIsBusy()
+    {
+        PresentationSurfaceRedrawPlan plan = PresentationRenderTargetPlan.BuildSurfaceRedrawPlan(
+            currentLayer: RenderLayers.Overlay,
+            surfaceTargetAvailable: true,
+            windowSizeChanged: true,
+            viewMode: ViewMode.Brightness,
+            skipHiddenSectors: true);
+
+        Assert.False(plan.CanRedraw);
+        Assert.False(plan.RecreateRenderTargets);
+        Assert.Equal(RenderLayers.Overlay, plan.RenderLayerAfter);
+        Assert.Empty(plan.Steps);
+    }
+
+    [Fact]
+    public void SurfaceRedrawRecreatesTargetsAndRendersBrightnessLikeUdb()
+    {
+        PresentationSurfaceRedrawPlan plan = PresentationRenderTargetPlan.BuildSurfaceRedrawPlan(
+            currentLayer: RenderLayers.None,
+            surfaceTargetAvailable: true,
+            windowSizeChanged: true,
+            viewMode: ViewMode.Brightness,
+            skipHiddenSectors: true);
+
+        Assert.True(plan.CanRedraw);
+        Assert.True(plan.RecreateRenderTargets);
+        Assert.Equal(RenderLayers.None, plan.RenderLayerAfter);
+        Assert.Equal(ViewMode.Brightness, plan.ViewMode);
+        Assert.True(plan.SkipHiddenSectors);
+        Assert.Equal(new[]
+        {
+            new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.RecreateRenderTargets),
+            new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.SetRenderLayerSurface),
+            new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.StartRenderingToSurface, "surface"),
+            new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.UpdateTransformations),
+            new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.SetCullNone),
+            new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.DisableDepth),
+            new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.DisableAlphaBlend),
+            new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.DisableAlphaTest),
+            new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.ClearDesaturation),
+            new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.SetWorldTransformation),
+            new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.ApplyDisplaySettings),
+            new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.RenderSectorBrightness, "True"),
+            new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.RenderSectorSurfaces),
+            new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.Finish),
+        }, plan.Steps);
+    }
+
+    [Theory]
+    [InlineData(ViewMode.FloorTextures, PresentationSurfaceRedrawStepKind.RenderSectorFloors)]
+    [InlineData(ViewMode.CeilingTextures, PresentationSurfaceRedrawStepKind.RenderSectorCeilings)]
+    public void SurfaceRedrawUsesViewModeSpecificSurfacePreparation(
+        ViewMode viewMode,
+        PresentationSurfaceRedrawStepKind expected)
+    {
+        PresentationSurfaceRedrawPlan plan = PresentationRenderTargetPlan.BuildSurfaceRedrawPlan(
+            currentLayer: RenderLayers.None,
+            surfaceTargetAvailable: true,
+            windowSizeChanged: false,
+            viewMode: viewMode,
+            skipHiddenSectors: false);
+
+        Assert.Contains(new PresentationSurfaceRedrawStep(expected, "False"), plan.Steps);
+        Assert.Contains(new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.RenderSectorSurfaces), plan.Steps);
+        Assert.DoesNotContain(plan.Steps, step => step.Kind == PresentationSurfaceRedrawStepKind.RecreateRenderTargets);
+    }
+
+    [Fact]
+    public void SurfaceRedrawNormalModeOnlyClearsSurfaceTargetAndFinishes()
+    {
+        PresentationSurfaceRedrawPlan plan = PresentationRenderTargetPlan.BuildSurfaceRedrawPlan(
+            currentLayer: RenderLayers.None,
+            surfaceTargetAvailable: true,
+            windowSizeChanged: false,
+            viewMode: ViewMode.Normal,
+            skipHiddenSectors: false);
+
+        Assert.DoesNotContain(plan.Steps, step => step.Kind == PresentationSurfaceRedrawStepKind.RenderSectorBrightness);
+        Assert.DoesNotContain(plan.Steps, step => step.Kind == PresentationSurfaceRedrawStepKind.RenderSectorFloors);
+        Assert.DoesNotContain(plan.Steps, step => step.Kind == PresentationSurfaceRedrawStepKind.RenderSectorCeilings);
+        Assert.DoesNotContain(plan.Steps, step => step.Kind == PresentationSurfaceRedrawStepKind.RenderSectorSurfaces);
+        Assert.Equal(PresentationSurfaceRedrawStepKind.Finish, plan.Steps[^1].Kind);
+    }
+
+    [Fact]
+    public void SurfaceRedrawFinishesWhenSurfaceTargetIsUnavailable()
+    {
+        PresentationSurfaceRedrawPlan plan = PresentationRenderTargetPlan.BuildSurfaceRedrawPlan(
+            currentLayer: RenderLayers.None,
+            surfaceTargetAvailable: false,
+            windowSizeChanged: false,
+            viewMode: ViewMode.FloorTextures,
+            skipHiddenSectors: true);
+
+        Assert.True(plan.CanRedraw);
+        Assert.Equal(RenderLayers.None, plan.RenderLayerAfter);
+        Assert.Equal(new[]
+        {
+            new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.SetRenderLayerSurface),
+            new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.Finish),
+        }, plan.Steps);
+    }
+
+    [Fact]
+    public void SurfaceRedrawRejectsInvalidViewMode()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => PresentationRenderTargetPlan.BuildSurfaceRedrawPlan(
+            currentLayer: RenderLayers.None,
+            surfaceTargetAvailable: true,
+            windowSizeChanged: false,
+            viewMode: (ViewMode)99,
+            skipHiddenSectors: false));
+    }
+
+    [Fact]
     public void RenderTargetPlanCreatesDefaultOverlayTextureWithoutPresentation()
     {
         PresentationRenderTargetPlan plan = PresentationRenderTargetPlan.Create(320, 200, presentation: null);

@@ -105,6 +105,7 @@ public static class RendererArchitectureModel
             "2D presentation per-layer draw operation sequence planning",
             "2D presentation planner input validation planning",
             "2D presentation render-session start and finish planning",
+            "2D presentation surface redraw operation planning",
             "Renderer2D contract surface model",
             "Render-device alpha-blend state planning",
             "Render-device alpha-test compatibility state planning",

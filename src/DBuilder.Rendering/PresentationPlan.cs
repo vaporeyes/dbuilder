@@ -374,6 +374,39 @@ public sealed record PresentationRenderSessionFinishPlan(
     RenderLayers RenderLayerAfter,
     IReadOnlyList<PresentationRenderSessionFinishStep> Steps);
 
+public enum PresentationSurfaceRedrawStepKind
+{
+    RecreateRenderTargets,
+    SetRenderLayerSurface,
+    StartRenderingToSurface,
+    UpdateTransformations,
+    SetCullNone,
+    DisableDepth,
+    DisableAlphaBlend,
+    DisableAlphaTest,
+    ClearDesaturation,
+    SetWorldTransformation,
+    ApplyDisplaySettings,
+    RenderSectorBrightness,
+    RenderSectorFloors,
+    RenderSectorCeilings,
+    RenderSectorSurfaces,
+    Finish,
+}
+
+public sealed record PresentationSurfaceRedrawStep(
+    PresentationSurfaceRedrawStepKind Kind,
+    string? TargetName = null);
+
+public sealed record PresentationSurfaceRedrawPlan(
+    RenderLayers PreviousLayer,
+    RenderLayers RenderLayerAfter,
+    bool CanRedraw,
+    bool RecreateRenderTargets,
+    ViewMode ViewMode,
+    bool SkipHiddenSectors,
+    IReadOnlyList<PresentationSurfaceRedrawStep> Steps);
+
 public readonly record struct PresentationMapCenterLine(
     int StartX,
     int StartY,
@@ -859,6 +892,73 @@ public sealed record PresentationRenderTargetPlan(
         steps.Add(new PresentationRenderSessionFinishStep(PresentationRenderSessionFinishStepKind.SetRenderLayerNone));
 
         return new PresentationRenderSessionFinishPlan(currentLayer, RenderLayers.None, steps);
+    }
+
+    public static PresentationSurfaceRedrawPlan BuildSurfaceRedrawPlan(
+        RenderLayers currentLayer,
+        bool surfaceTargetAvailable,
+        bool windowSizeChanged,
+        ViewMode viewMode,
+        bool skipHiddenSectors)
+    {
+        if (!Enum.IsDefined(viewMode)) throw new ArgumentOutOfRangeException(nameof(viewMode), viewMode, null);
+
+        if (currentLayer != RenderLayers.None)
+        {
+            return new PresentationSurfaceRedrawPlan(
+                currentLayer,
+                currentLayer,
+                CanRedraw: false,
+                RecreateRenderTargets: false,
+                viewMode,
+                skipHiddenSectors,
+                Array.Empty<PresentationSurfaceRedrawStep>());
+        }
+
+        var steps = new List<PresentationSurfaceRedrawStep>();
+        if (windowSizeChanged)
+            steps.Add(new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.RecreateRenderTargets));
+
+        steps.Add(new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.SetRenderLayerSurface));
+
+        if (surfaceTargetAvailable)
+        {
+            steps.Add(new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.StartRenderingToSurface, "surface"));
+            steps.Add(new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.UpdateTransformations));
+            steps.Add(new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.SetCullNone));
+            steps.Add(new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.DisableDepth));
+            steps.Add(new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.DisableAlphaBlend));
+            steps.Add(new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.DisableAlphaTest));
+            steps.Add(new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.ClearDesaturation));
+            steps.Add(new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.SetWorldTransformation));
+            steps.Add(new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.ApplyDisplaySettings));
+
+            PresentationSurfaceRedrawStepKind? renderStep = viewMode switch
+            {
+                ViewMode.Brightness => PresentationSurfaceRedrawStepKind.RenderSectorBrightness,
+                ViewMode.FloorTextures => PresentationSurfaceRedrawStepKind.RenderSectorFloors,
+                ViewMode.CeilingTextures => PresentationSurfaceRedrawStepKind.RenderSectorCeilings,
+                ViewMode.Normal => null,
+                _ => throw new ArgumentOutOfRangeException(nameof(viewMode), viewMode, null),
+            };
+
+            if (renderStep.HasValue)
+            {
+                steps.Add(new PresentationSurfaceRedrawStep(renderStep.Value, skipHiddenSectors.ToString()));
+                steps.Add(new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.RenderSectorSurfaces));
+            }
+        }
+
+        steps.Add(new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.Finish));
+
+        return new PresentationSurfaceRedrawPlan(
+            currentLayer,
+            RenderLayers.None,
+            CanRedraw: true,
+            RecreateRenderTargets: windowSizeChanged,
+            ViewMode: viewMode,
+            SkipHiddenSectors: skipHiddenSectors,
+            Steps: steps);
     }
 
     public IReadOnlyList<PresentationLayerDrawPlan> BuildLayerDrawPlans(
