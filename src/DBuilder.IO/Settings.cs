@@ -66,6 +66,9 @@ public sealed class Settings
     public int? LightRenderMode { get; set; }
     public bool EnhancedRenderingEffects { get; set; } = true;
     public bool ClassicRendering { get; set; }
+    public bool QualityDisplay { get; set; } = true;
+    public bool ClassicBilinear { get; set; }
+    public bool VisualBilinear { get; set; }
     public bool DrawFog { get; set; }
     public bool DrawSky { get; set; } = true;
     public bool ShowEventLines { get; set; } = true;

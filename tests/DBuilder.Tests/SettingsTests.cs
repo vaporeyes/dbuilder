@@ -160,6 +160,16 @@ public class SettingsTests
     }
 
     [Fact]
+    public void RenderQualityPreferencesDefaultLikeUdb()
+    {
+        var settings = new Settings();
+
+        Assert.True(settings.QualityDisplay);
+        Assert.False(settings.ClassicBilinear);
+        Assert.False(settings.VisualBilinear);
+    }
+
+    [Fact]
     public void GzVisualToggleDefaultsMatchUdb()
     {
         var settings = new Settings();
@@ -367,6 +377,9 @@ public class SettingsTests
                 LightRenderMode = (int)ThingLightRenderMode.Animated,
                 EnhancedRenderingEffects = false,
                 ClassicRendering = true,
+                QualityDisplay = false,
+                ClassicBilinear = true,
+                VisualBilinear = true,
                 DrawFog = true,
                 DrawSky = false,
                 ShowEventLines = false,
@@ -537,6 +550,9 @@ public class SettingsTests
             Assert.Equal(ThingLightRenderMode.Animated, loaded.NormalizedLightRenderMode);
             Assert.False(loaded.EnhancedRenderingEffects);
             Assert.True(loaded.ClassicRendering);
+            Assert.False(loaded.QualityDisplay);
+            Assert.True(loaded.ClassicBilinear);
+            Assert.True(loaded.VisualBilinear);
             Assert.True(loaded.DrawFog);
             Assert.False(loaded.DrawSky);
             Assert.False(loaded.ShowEventLines);

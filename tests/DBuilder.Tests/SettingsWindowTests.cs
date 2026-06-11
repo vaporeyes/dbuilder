@@ -336,6 +336,27 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesRenderQualityPreferences()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("QualityDisplay", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("ClassicBilinear", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("VisualBilinear", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCheckBox(\"High quality rendering\", s.QualityDisplay)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Bilinear filtering in classic modes\", s.ClassicBilinear)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Bilinear filtering in visual modes\", s.VisualBilinear)", body, StringComparison.Ordinal);
+        Assert.Contains("QualityDisplay = _qualityDisplay.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("ClassicBilinear = _classicBilinear.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("VisualBilinear = _visualBilinear.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.QualityDisplay = dlg.QualityDisplay;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.ClassicBilinear = dlg.ClassicBilinear;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.VisualBilinear = dlg.VisualBilinear;", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesEnhancedRenderingEffectsPreference()
     {
         Type type = typeof(SettingsWindow);
