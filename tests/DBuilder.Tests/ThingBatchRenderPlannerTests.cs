@@ -1,6 +1,7 @@
 // ABOUTME: Verifies UDB Renderer2D thing batch upload and draw count planning.
 // ABOUTME: Pins 2D thing buffer chunk sizes against upstream Renderer2D expressions.
 
+using System.Numerics;
 using DBuilder.Rendering;
 
 namespace DBuilder.Tests;
@@ -435,6 +436,93 @@ public sealed class ThingBatchRenderPlannerTests
     }
 
     [Fact]
+    public void Model2DTransformAppliesUdbModelScaleViewScaleAndScreenPosition()
+    {
+        ThingModel2DTransformPlan plan = ThingBatchRenderPlanner.BuildModel2DTransformPlan(
+            Matrix4x4.Identity,
+            Vector3.Zero,
+            useRotationCenter: false,
+            screenX: 100,
+            screenY: 200,
+            viewScale: 10,
+            scaleX: 2,
+            scaleY: 3,
+            actorScaleWidth: 4,
+            actorScaleHeight: 5,
+            angleRadians: 0,
+            pitchRadians: 0,
+            rollRadians: 0);
+
+        Vector3 origin = Vector3.Transform(Vector3.Zero, plan.World);
+        Vector3 xAxis = Vector3.Transform(Vector3.UnitX, plan.World) - origin;
+        Vector3 yAxis = Vector3.Transform(Vector3.UnitY, plan.World) - origin;
+        Vector3 zAxis = Vector3.Transform(Vector3.UnitZ, plan.World) - origin;
+
+        Assert.False(plan.UsesRotationCenter);
+        AssertVector(new Vector3(100.0f, 200.0f, 0.0f), origin);
+        AssertVector(new Vector3(80.0f, 0.0f, 0.0f), xAxis);
+        AssertVector(new Vector3(0.0f, -80.0f, 0.0f), yAxis);
+        AssertVector(Vector3.Zero, zAxis);
+    }
+
+    [Fact]
+    public void Model2DTransformRotatesAroundRotationCenterWhenEnabled()
+    {
+        ThingModel2DTransformPlan plan = ThingBatchRenderPlanner.BuildModel2DTransformPlan(
+            Matrix4x4.Identity,
+            new Vector3(1.0f, 0.0f, 0.0f),
+            useRotationCenter: true,
+            screenX: 0,
+            screenY: 0,
+            viewScale: 1,
+            scaleX: 1,
+            scaleY: 1,
+            actorScaleWidth: 1,
+            actorScaleHeight: 1,
+            angleRadians: MathF.PI / 2.0f,
+            pitchRadians: 0,
+            rollRadians: 0);
+
+        Vector3 origin = Vector3.Transform(Vector3.Zero, plan.World);
+
+        Assert.True(plan.UsesRotationCenter);
+        AssertVector(new Vector3(1.0f, 1.0f, 0.0f), origin);
+    }
+
+    [Fact]
+    public void Model2DTransformRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildModel2DTransformPlan(
+            Matrix4x4.Identity,
+            Vector3.Zero,
+            useRotationCenter: false,
+            screenX: double.NaN,
+            screenY: 0,
+            viewScale: 1,
+            scaleX: 1,
+            scaleY: 1,
+            actorScaleWidth: 1,
+            actorScaleHeight: 1,
+            angleRadians: 0,
+            pitchRadians: 0,
+            rollRadians: 0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildModel2DTransformPlan(
+            Matrix4x4.Identity,
+            Vector3.Zero,
+            useRotationCenter: false,
+            screenX: 0,
+            screenY: 0,
+            viewScale: 1,
+            scaleX: 1,
+            scaleY: 1,
+            actorScaleWidth: 1,
+            actorScaleHeight: 1,
+            angleRadians: 0,
+            pitchRadians: 0,
+            rollRadians: double.NaN));
+    }
+
+    [Fact]
     public void ArrowTextureBoundsMatchUdbSpriteState()
     {
         Assert.Equal(new ThingArrowTextureBounds(0.501f, 0.999f, 0.001f, 0.999f),
@@ -631,6 +719,14 @@ public sealed class ThingBatchRenderPlannerTests
         Assert.Contains("cSelection.Alpha = ((alpha < 1.0f) ? alpha * 0.25f : 0.6f);", source, StringComparison.Ordinal);
         Assert.Contains("if((General.Settings.GZDrawModelsMode == ModelRenderMode.SELECTION && !t.Selected) || (General.Settings.GZDrawModelsMode == ModelRenderMode.ACTIVE_THINGS_FILTER && alpha < 1.0f)) continue;", source, StringComparison.Ordinal);
         Assert.Contains("double modelScale = scale * t.ActorScale.Width * t.ScaleX;", source, StringComparison.Ordinal);
+        Assert.Contains("Matrix viewscale = Matrix.Scaling(scale, -scale, 0.0f);", source, StringComparison.Ordinal);
+        Assert.Contains("double sx = t.ScaleX * t.ActorScale.Width;", source, StringComparison.Ordinal);
+        Assert.Contains("double sy = t.ScaleY * t.ActorScale.Height;", source, StringComparison.Ordinal);
+        Assert.Contains("Matrix modelscale = Matrix.Scaling((float)sx, (float)sx, (float)sy);", source, StringComparison.Ordinal);
+        Assert.Contains("Matrix rotation = Matrix.RotationY((float)-t.RollRad) * Matrix.RotationX((float)-t.PitchRad) * Matrix.RotationZ((float)t.Angle);", source, StringComparison.Ordinal);
+        Assert.Contains("Matrix position = Matrix.Translation((float)screenpos.x, (float)screenpos.y, 0.0f);", source, StringComparison.Ordinal);
+        Assert.Contains("world = General.Map.Data.ModeldefEntries[t.Type].Transform * modelscale * Matrix.Translation(-General.Map.Data.ModeldefEntries[t.Type].RotationCenter) * rotation * Matrix.Translation(General.Map.Data.ModeldefEntries[t.Type].RotationCenter) * viewscale * position;", source, StringComparison.Ordinal);
+        Assert.Contains("world = General.Map.Data.ModeldefEntries[t.Type].Transform * modelscale * rotation * viewscale * position;", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetFillMode(FillMode.Solid);", source, StringComparison.Ordinal);
         Assert.Contains("float sinarrowsize = (float)Math.Sin(t.Angle + Angle2D.PI * 0.25f) * arrowsize;", source, StringComparison.Ordinal);
         Assert.Contains("float cosarrowsize = (float)Math.Cos(t.Angle + Angle2D.PI * 0.25f) * arrowsize;", source, StringComparison.Ordinal);
@@ -667,5 +763,12 @@ public sealed class ThingBatchRenderPlannerTests
         Assert.Equal(green * PixelColor.ByteToFloat, color.Green, precision: 5);
         Assert.Equal(blue * PixelColor.ByteToFloat, color.Blue, precision: 5);
         Assert.Equal(alpha, color.Alpha, precision: 5);
+    }
+
+    private static void AssertVector(Vector3 expected, Vector3 actual)
+    {
+        Assert.Equal(expected.X, actual.X, precision: 5);
+        Assert.Equal(expected.Y, actual.Y, precision: 5);
+        Assert.Equal(expected.Z, actual.Z, precision: 5);
     }
 }

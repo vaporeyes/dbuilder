@@ -1,6 +1,8 @@
 // ABOUTME: Plans UDB-style 2D thing batch upload and draw counts.
 // ABOUTME: Keeps Renderer2D thing buffer chunking testable outside the live render device.
 
+using System.Numerics;
+
 namespace DBuilder.Rendering;
 
 public readonly record struct ThingBatchDraw(
@@ -56,6 +58,14 @@ public readonly record struct ThingModel2DPassPlan(
     ShaderName Shader,
     Color4 SelectionColor,
     Color4 WireColor);
+
+public readonly record struct ThingModel2DTransformPlan(
+    Matrix4x4 World,
+    Matrix4x4 ModelScale,
+    Matrix4x4 Rotation,
+    Matrix4x4 ViewScale,
+    Matrix4x4 Position,
+    bool UsesRotationCenter);
 
 public static class ThingBatchRenderPlanner
 {
@@ -240,6 +250,59 @@ public static class ThingBatchRenderPlanner
             || ((screenX - screenRadius) >= windowWidth)
             || ((screenY + screenRadius) <= 0.0)
             || ((screenY - screenRadius) >= windowHeight));
+    }
+
+    public static ThingModel2DTransformPlan BuildModel2DTransformPlan(
+        Matrix4x4 modeldefTransform,
+        Vector3 rotationCenter,
+        bool useRotationCenter,
+        double screenX,
+        double screenY,
+        double viewScale,
+        double scaleX,
+        double scaleY,
+        double actorScaleWidth,
+        double actorScaleHeight,
+        double angleRadians,
+        double pitchRadians,
+        double rollRadians)
+    {
+        if (double.IsNaN(screenX)) throw new ArgumentOutOfRangeException(nameof(screenX));
+        if (double.IsNaN(screenY)) throw new ArgumentOutOfRangeException(nameof(screenY));
+        if (double.IsNaN(viewScale)) throw new ArgumentOutOfRangeException(nameof(viewScale));
+        if (double.IsNaN(scaleX)) throw new ArgumentOutOfRangeException(nameof(scaleX));
+        if (double.IsNaN(scaleY)) throw new ArgumentOutOfRangeException(nameof(scaleY));
+        if (double.IsNaN(actorScaleWidth)) throw new ArgumentOutOfRangeException(nameof(actorScaleWidth));
+        if (double.IsNaN(actorScaleHeight)) throw new ArgumentOutOfRangeException(nameof(actorScaleHeight));
+        if (double.IsNaN(angleRadians)) throw new ArgumentOutOfRangeException(nameof(angleRadians));
+        if (double.IsNaN(pitchRadians)) throw new ArgumentOutOfRangeException(nameof(pitchRadians));
+        if (double.IsNaN(rollRadians)) throw new ArgumentOutOfRangeException(nameof(rollRadians));
+
+        double sx = scaleX * actorScaleWidth;
+        double sy = scaleY * actorScaleHeight;
+        Matrix4x4 modelScale = Matrix4x4.CreateScale((float)sx, (float)sx, (float)sy);
+        Matrix4x4 rotation = Matrix4x4.CreateRotationY((float)-rollRadians)
+            * Matrix4x4.CreateRotationX((float)-pitchRadians)
+            * Matrix4x4.CreateRotationZ((float)angleRadians);
+        Matrix4x4 scaledView = Matrix4x4.CreateScale((float)viewScale, (float)-viewScale, 0.0f);
+        Matrix4x4 position = Matrix4x4.CreateTranslation((float)screenX, (float)screenY, 0.0f);
+        Matrix4x4 world = useRotationCenter
+            ? modeldefTransform
+                * modelScale
+                * Matrix4x4.CreateTranslation(-rotationCenter)
+                * rotation
+                * Matrix4x4.CreateTranslation(rotationCenter)
+                * scaledView
+                * position
+            : modeldefTransform * modelScale * rotation * scaledView * position;
+
+        return new ThingModel2DTransformPlan(
+            world,
+            modelScale,
+            rotation,
+            scaledView,
+            position,
+            useRotationCenter);
     }
 
     public static ThingArrowTextureBounds ArrowTextureBounds(bool spriteSkipped)
