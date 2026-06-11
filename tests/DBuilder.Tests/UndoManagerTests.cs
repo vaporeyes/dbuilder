@@ -2,6 +2,7 @@
 // ABOUTME: Exercises geometry, custom fields, tags and namespace to confirm the ClipboardStream snapshot captures everything.
 
 using System.Linq;
+using System.Text.RegularExpressions;
 using DBuilder.Geometry;
 using DBuilder.IO;
 using DBuilder.Map;
@@ -10,6 +11,17 @@ namespace DBuilder.Tests;
 
 public class UndoManagerTests
 {
+    private static string? FindUdbRoot()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "."));
+        string sibling = Path.GetFullPath(Path.Combine(repositoryRoot, "..", "UltimateDoomBuilder"));
+        if (File.Exists(Path.Combine(sibling, "Source", "Core", "Editing", "UndoManager.cs"))) return sibling;
+
+        string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string root = Path.Combine(home, "dev", "repos", "UltimateDoomBuilder");
+        return File.Exists(Path.Combine(root, "Source", "Core", "Editing", "UndoManager.cs")) ? root : null;
+    }
+
     private static MapSet BuildMap()
     {
         var map = new MapSet { Namespace = "Doom" };
@@ -22,6 +34,19 @@ public class UndoManagerTests
         map.AddThing(new Vector2D(50, 50), 3001);
         map.BuildIndexes();
         return map;
+    }
+
+    [Fact]
+    public void DefaultMaxLevelsMatchesUdbUndoManagerWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Source", "Core", "Editing", "UndoManager.cs"));
+        Match match = Regex.Match(source, @"private\s+const\s+int\s+MAX_UNDO_LEVELS\s*=\s*(?<value>\d+);");
+
+        Assert.True(match.Success, "Expected UDB UndoManager MAX_UNDO_LEVELS constant.");
+        Assert.Equal(UndoManager.DefaultMaxLevels, int.Parse(match.Groups["value"].Value));
     }
 
     [Fact]

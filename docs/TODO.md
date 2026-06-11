@@ -1234,6 +1234,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add separate undo and redo history clearing operations.
   - [x] Show the current map label as the Undo/Redo panel begin row.
 - [ ] Port undo snapshot behavior.
+  - [x] Match UDB's default undo snapshot level cap.
 - [x] Port grid setup behavior.
   - [x] Clamp grid background scale to UDB's 1-10000 percent range.
   - [x] Clamp persisted grid background scale when reading map options.

@@ -24,6 +24,8 @@ namespace DBuilder.IO;
 
 public sealed class UndoManager
 {
+    public const int DefaultMaxLevels = 2000;
+
     private readonly MapSet map;
     private readonly int maxLevels;
     private readonly LinkedList<Snapshot> undos = new();
@@ -33,7 +35,7 @@ public sealed class UndoManager
     private int lastGroupId;
     private int lastGroupTag;
 
-    public UndoManager(MapSet map, int maxLevels = 50)
+    public UndoManager(MapSet map, int maxLevels = DefaultMaxLevels)
     {
         this.map = map;
         this.maxLevels = maxLevels < 1 ? 1 : maxLevels;
