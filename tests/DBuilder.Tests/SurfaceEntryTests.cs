@@ -96,12 +96,54 @@ public sealed class SurfaceEntryTests
         var ceilingOnly = new SurfaceUpdate(numVertices: 6, updateFloor: false, updateCeiling: true);
 
         Assert.Equal(6, both.NumVertices);
+        Assert.Equal(6, both.numvertices);
         Assert.Equal(6, both.FloorVertices?.Length);
+        Assert.Equal(6, both.floorvertices?.Length);
         Assert.Equal(6, both.CeilingVertices?.Length);
+        Assert.Equal(6, both.ceilvertices?.Length);
         Assert.Equal(6, floorOnly.FloorVertices?.Length);
         Assert.Null(floorOnly.CeilingVertices);
+        Assert.Null(floorOnly.ceilvertices);
         Assert.Null(ceilingOnly.FloorVertices);
+        Assert.Null(ceilingOnly.floorvertices);
         Assert.Equal(6, ceilingOnly.CeilingVertices?.Length);
+    }
+
+    [Fact]
+    public void SurfaceUpdateUdbFieldAliasesStayInSyncWithProperties()
+    {
+        var update = new SurfaceUpdate(numVertices: 3, updateFloor: false, updateCeiling: false);
+        FlatVertex[] floor = Vertices(3, 10);
+        FlatVertex[] ceiling = Vertices(3, 20);
+
+        update.floorvertices = floor;
+        update.ceilvertices = ceiling;
+        update.floortexture = 11;
+        update.ceiltexture = 22;
+        update.hidden = true;
+        update.desaturation = 0.75;
+
+        Assert.Equal(3, update.NumVertices);
+        Assert.Same(floor, update.FloorVertices);
+        Assert.Same(ceiling, update.CeilingVertices);
+        Assert.Equal(11, update.FloorTexture);
+        Assert.Equal(22, update.CeilingTexture);
+        Assert.True(update.Hidden);
+        Assert.Equal(0.75, update.Desaturation);
+
+        update.FloorVertices = Vertices(3, 30);
+        update.CeilingVertices = Vertices(3, 40);
+        update.FloorTexture = 33;
+        update.CeilingTexture = 44;
+        update.Hidden = false;
+        update.Desaturation = 0.25;
+
+        Assert.Same(update.FloorVertices, update.floorvertices);
+        Assert.Same(update.CeilingVertices, update.ceilvertices);
+        Assert.Equal(33, update.floortexture);
+        Assert.Equal(44, update.ceiltexture);
+        Assert.False(update.hidden);
+        Assert.Equal(0.25, update.desaturation);
     }
 
     [Fact]

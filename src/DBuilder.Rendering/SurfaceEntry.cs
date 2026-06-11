@@ -219,4 +219,42 @@ public sealed class SurfaceUpdate
     public long CeilingTexture { get; set; }
     public bool Hidden { get; set; }
     public double Desaturation { get; set; }
+
+    public int numvertices => NumVertices;
+
+    public FlatVertex[]? floorvertices
+    {
+        get => FloorVertices;
+        set => FloorVertices = value;
+    }
+
+    public FlatVertex[]? ceilvertices
+    {
+        get => CeilingVertices;
+        set => CeilingVertices = value;
+    }
+
+    public long floortexture
+    {
+        get => FloorTexture;
+        set => FloorTexture = value;
+    }
+
+    public long ceiltexture
+    {
+        get => CeilingTexture;
+        set => CeilingTexture = value;
+    }
+
+    public bool hidden
+    {
+        get => Hidden;
+        set => Hidden = value;
+    }
+
+    public double desaturation
+    {
+        get => Desaturation;
+        set => Desaturation = value;
+    }
 }
