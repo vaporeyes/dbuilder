@@ -328,6 +328,52 @@ public sealed record PresentationFrameReleasePlan(
     string TextureBindingAfter,
     string VertexBufferBindingAfter);
 
+public enum PresentationRenderSessionStartKind
+{
+    Plotter,
+    Things,
+    Overlay,
+}
+
+public enum PresentationRenderSessionStartStepKind
+{
+    SetRenderLayer,
+    ClearPlotter,
+    RenderBackgroundGrid,
+    SetupBackground,
+    StartRenderingToTexture,
+    UpdateTransformations,
+    Finish,
+}
+
+public sealed record PresentationRenderSessionStartStep(
+    PresentationRenderSessionStartStepKind Kind,
+    string? TargetName = null);
+
+public sealed record PresentationRenderSessionStartPlan(
+    PresentationRenderSessionStartKind Kind,
+    RenderLayers PreviousLayer,
+    RenderLayers RenderLayerAfter,
+    bool CanStart,
+    bool ThrowsWhenBusy,
+    string? FailureReason,
+    IReadOnlyList<PresentationRenderSessionStartStep> Steps);
+
+public enum PresentationRenderSessionFinishStepKind
+{
+    DrawPlotterContents,
+    FinishRendering,
+    SetRenderLayerNone,
+}
+
+public sealed record PresentationRenderSessionFinishStep(
+    PresentationRenderSessionFinishStepKind Kind);
+
+public sealed record PresentationRenderSessionFinishPlan(
+    RenderLayers PreviousLayer,
+    RenderLayers RenderLayerAfter,
+    IReadOnlyList<PresentationRenderSessionFinishStep> Steps);
+
 public readonly record struct PresentationMapCenterLine(
     int StartX,
     int StartY,
@@ -718,6 +764,102 @@ public sealed record PresentationRenderTargetPlan(
         => new(
             TextureBindingAfter: "null",
             VertexBufferBindingAfter: "null");
+
+    public static PresentationRenderSessionStartPlan BuildRenderSessionStartPlan(
+        PresentationRenderSessionStartKind kind,
+        RenderLayers currentLayer,
+        bool targetAvailable,
+        bool clear,
+        int overlayLayerNumber = 0,
+        int overlayTextureCount = 1)
+    {
+        if (overlayTextureCount < 0) throw new ArgumentOutOfRangeException(nameof(overlayTextureCount));
+
+        RenderLayers requestedLayer = kind switch
+        {
+            PresentationRenderSessionStartKind.Plotter => RenderLayers.Plotter,
+            PresentationRenderSessionStartKind.Things => RenderLayers.Things,
+            PresentationRenderSessionStartKind.Overlay => RenderLayers.Overlay,
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
+        };
+
+        if (currentLayer != RenderLayers.None)
+        {
+            return new PresentationRenderSessionStartPlan(
+                kind,
+                currentLayer,
+                currentLayer,
+                CanStart: false,
+                ThrowsWhenBusy: true,
+                FailureReason: "Renderer starting called before finished previous layer. Call Finish() first!",
+                Array.Empty<PresentationRenderSessionStartStep>());
+        }
+
+        bool overlayLayerAvailable = kind != PresentationRenderSessionStartKind.Overlay
+            || (overlayLayerNumber >= 0 && overlayLayerNumber < overlayTextureCount);
+        if (!targetAvailable || !overlayLayerAvailable)
+        {
+            return new PresentationRenderSessionStartPlan(
+                kind,
+                currentLayer,
+                RenderLayers.None,
+                CanStart: false,
+                ThrowsWhenBusy: false,
+                FailureReason: !targetAvailable ? "Render target unavailable" : "Overlay layer unavailable",
+                new[]
+                {
+                    new PresentationRenderSessionStartStep(PresentationRenderSessionStartStepKind.SetRenderLayer, requestedLayer.ToString()),
+                    new PresentationRenderSessionStartStep(PresentationRenderSessionStartStepKind.Finish),
+                });
+        }
+
+        var steps = new List<PresentationRenderSessionStartStep>
+        {
+            new(PresentationRenderSessionStartStepKind.SetRenderLayer, requestedLayer.ToString()),
+        };
+
+        if (kind == PresentationRenderSessionStartKind.Plotter)
+        {
+            if (clear)
+            {
+                steps.Add(new PresentationRenderSessionStartStep(PresentationRenderSessionStartStepKind.ClearPlotter, "plotter"));
+                steps.Add(new PresentationRenderSessionStartStep(PresentationRenderSessionStartStepKind.RenderBackgroundGrid));
+                steps.Add(new PresentationRenderSessionStartStep(PresentationRenderSessionStartStepKind.SetupBackground));
+            }
+        }
+        else
+        {
+            string targetName = kind == PresentationRenderSessionStartKind.Things
+                ? "things"
+                : "overlay" + overlayLayerNumber;
+            steps.Add(new PresentationRenderSessionStartStep(PresentationRenderSessionStartStepKind.StartRenderingToTexture, targetName));
+        }
+
+        steps.Add(new PresentationRenderSessionStartStep(PresentationRenderSessionStartStepKind.UpdateTransformations));
+
+        return new PresentationRenderSessionStartPlan(
+            kind,
+            currentLayer,
+            requestedLayer,
+            CanStart: true,
+            ThrowsWhenBusy: false,
+            FailureReason: null,
+            steps);
+    }
+
+    public static PresentationRenderSessionFinishPlan BuildRenderSessionFinishPlan(RenderLayers currentLayer)
+    {
+        var steps = new List<PresentationRenderSessionFinishStep>();
+        if (currentLayer == RenderLayers.Plotter)
+            steps.Add(new PresentationRenderSessionFinishStep(PresentationRenderSessionFinishStepKind.DrawPlotterContents));
+
+        if (currentLayer is RenderLayers.Things or RenderLayers.Overlay or RenderLayers.Surface)
+            steps.Add(new PresentationRenderSessionFinishStep(PresentationRenderSessionFinishStepKind.FinishRendering));
+
+        steps.Add(new PresentationRenderSessionFinishStep(PresentationRenderSessionFinishStepKind.SetRenderLayerNone));
+
+        return new PresentationRenderSessionFinishPlan(currentLayer, RenderLayers.None, steps);
+    }
 
     public IReadOnlyList<PresentationLayerDrawPlan> BuildLayerDrawPlans(
         PresentationPlan presentation,
