@@ -68,6 +68,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Render-device texture operation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device Color4 texture clear overload planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device 2D texture clear and pixel upload application", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device texture pixel upload byte-size planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device unsafe plotter pixel upload surface", replacement.CoveredResponsibilities);
         Assert.Contains("Cube texture resource and render-device cube operation surface", replacement.CoveredResponsibilities);
         Assert.Contains("PixelColor arithmetic helper surface", replacement.CoveredResponsibilities);

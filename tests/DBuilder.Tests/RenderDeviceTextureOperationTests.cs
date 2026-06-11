@@ -102,6 +102,52 @@ public sealed class RenderDeviceTextureOperationTests
     }
 
     [Fact]
+    public void BuildPixelUploadPlansTrackDimensionsAndByteCounts()
+    {
+        TextureOperationPlan twoD = RenderDevice.BuildSetPixelsPlan(
+            texture: null,
+            width: 4,
+            height: 3,
+            pixelBufferByteCount: 60,
+            generateMipmaps: false);
+        TextureOperationPlan cube = RenderDevice.BuildSetCubePixelsPlan(
+            texture: null,
+            face: CubeMapFace.NegativeY,
+            size: 5,
+            pixelBufferByteCount: 128,
+            generateMipmaps: true);
+
+        Assert.Equal(TextureOperationKind.SetPixels2D, twoD.Kind);
+        Assert.Equal(4, twoD.Width);
+        Assert.Equal(3, twoD.Height);
+        Assert.Equal(48, twoD.RequiredByteCount);
+        Assert.Equal(60, twoD.ProvidedByteCount);
+        Assert.False(twoD.GenerateMipmaps);
+        Assert.Null(twoD.CubeFace);
+
+        Assert.Equal(TextureOperationKind.SetPixelsCubeFace, cube.Kind);
+        Assert.Equal(CubeMapFace.NegativeY, cube.CubeFace);
+        Assert.Equal(5, cube.Width);
+        Assert.Equal(5, cube.Height);
+        Assert.Equal(100, cube.RequiredByteCount);
+        Assert.Equal(128, cube.ProvidedByteCount);
+        Assert.True(cube.GenerateMipmaps);
+    }
+
+    [Fact]
+    public void BuildPixelUploadPlansRejectInvalidDimensionsAndShortBuffers()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildSetPixelsPlan(null, width: 0, height: 1, pixelBufferByteCount: 4));
+        Assert.Throws<ArgumentException>(() =>
+            RenderDevice.BuildSetPixelsPlan(null, width: 2, height: 2, pixelBufferByteCount: 15));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildSetCubePixelsPlan(null, CubeMapFace.PositiveZ, size: 0, pixelBufferByteCount: 4));
+        Assert.Throws<ArgumentException>(() =>
+            RenderDevice.BuildSetCubePixelsPlan(null, CubeMapFace.PositiveZ, size: 2, pixelBufferByteCount: 15));
+    }
+
+    [Fact]
     public void BuildPboPlansTrackMapAndUnmapOperations()
     {
         TextureOperationPlan map = RenderDevice.BuildMapPboPlan(texture: null);

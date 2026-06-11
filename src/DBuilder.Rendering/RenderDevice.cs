@@ -88,7 +88,12 @@ public sealed record TextureOperationPlan(
     int Unit,
     bool HasTexture,
     CubeMapFace? CubeFace = null,
-    uint? ColorArgb = null);
+    uint? ColorArgb = null,
+    int Width = 0,
+    int Height = 0,
+    int RequiredByteCount = 0,
+    int ProvidedByteCount = 0,
+    bool GenerateMipmaps = false);
 
 public sealed record RenderStateTogglePlan(
     RenderStateToggleKind Kind,
@@ -764,8 +769,49 @@ public sealed class RenderDevice : IDisposable
     public static TextureOperationPlan BuildSetPixelsPlan(Texture? texture)
         => new(TextureOperationKind.SetPixels2D, 0, texture != null);
 
-    public static TextureOperationPlan BuildSetCubePixelsPlan(Texture? texture, CubeMapFace face)
+    public static TextureOperationPlan BuildSetPixelsPlan(
+        Texture? texture,
+        int width,
+        int height,
+        int pixelBufferByteCount,
+        bool generateMipmaps = true)
+    {
+        TexturePixelUploadPlan plan = Texture.BuildRgba8UploadPlan(width, height, pixelBufferByteCount, generateMipmaps);
+
+        return new TextureOperationPlan(
+            TextureOperationKind.SetPixels2D,
+            Unit: 0,
+            HasTexture: texture != null,
+            Width: plan.Width,
+            Height: plan.Height,
+            RequiredByteCount: plan.RequiredByteCount,
+            ProvidedByteCount: plan.ProvidedByteCount,
+            GenerateMipmaps: plan.GenerateMipmaps);
+    }
+
+    public static TextureOperationPlan BuildSetCubePixelsPlan(CubeTexture? texture, CubeMapFace face)
         => new(TextureOperationKind.SetPixelsCubeFace, 0, texture != null, CubeFace: face);
+
+    public static TextureOperationPlan BuildSetCubePixelsPlan(
+        CubeTexture? texture,
+        CubeMapFace face,
+        int size,
+        int pixelBufferByteCount,
+        bool generateMipmaps = true)
+    {
+        TexturePixelUploadPlan plan = CubeTexture.BuildRgba8UploadPlan(face, size, pixelBufferByteCount, generateMipmaps);
+
+        return new TextureOperationPlan(
+            TextureOperationKind.SetPixelsCubeFace,
+            Unit: 0,
+            HasTexture: texture != null,
+            CubeFace: plan.CubeFace,
+            Width: plan.Width,
+            Height: plan.Height,
+            RequiredByteCount: plan.RequiredByteCount,
+            ProvidedByteCount: plan.ProvidedByteCount,
+            GenerateMipmaps: plan.GenerateMipmaps);
+    }
 
     public static TextureOperationPlan BuildMapPboPlan(Texture? texture)
         => new(TextureOperationKind.MapPbo, 0, texture != null);
