@@ -19,6 +19,11 @@ public sealed class IndexBuffer : IDisposable
         if (Handle == 0) throw new InvalidOperationException("IndexBuffer allocation failed.");
     }
 
+    ~IndexBuffer()
+    {
+        Dispose();
+    }
+
     public void Dispose()
     {
         if (!Disposed)

@@ -20,6 +20,11 @@ public sealed class VertexBuffer : IDisposable
         if (Handle == 0) throw new InvalidOperationException("VertexBuffer allocation failed.");
     }
 
+    ~VertexBuffer()
+    {
+        Dispose();
+    }
+
     public void Dispose()
     {
         if (!Disposed)

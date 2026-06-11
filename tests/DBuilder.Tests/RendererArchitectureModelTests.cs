@@ -159,6 +159,14 @@ public class RendererArchitectureModelTests
     {
         Assert.NotNull(typeof(VertexBuffer).GetProperty(nameof(VertexBuffer.Disposed)));
         Assert.NotNull(typeof(IndexBuffer).GetProperty(nameof(IndexBuffer.Disposed)));
+
+        MethodInfo? vertexFinalizer = typeof(VertexBuffer).GetMethod("Finalize", BindingFlags.Instance | BindingFlags.NonPublic);
+        MethodInfo? indexFinalizer = typeof(IndexBuffer).GetMethod("Finalize", BindingFlags.Instance | BindingFlags.NonPublic);
+
+        Assert.NotNull(vertexFinalizer);
+        Assert.NotNull(indexFinalizer);
+        Assert.Equal(typeof(VertexBuffer), vertexFinalizer.DeclaringType);
+        Assert.Equal(typeof(IndexBuffer), indexFinalizer.DeclaringType);
     }
 
     [Fact]
