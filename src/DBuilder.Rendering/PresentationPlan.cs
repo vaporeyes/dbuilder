@@ -13,7 +13,7 @@ public enum PresentationRendererLayer
     Surface,
 }
 
-public enum PresentationRenderLayerMask
+public enum PresentationRenderLayerMask : int
 {
     None = 0,
     Background = 1,

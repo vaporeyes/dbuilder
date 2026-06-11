@@ -77,6 +77,12 @@ public sealed class PresentationPlanTests
     }
 
     [Fact]
+    public void RenderLayerMasksUseUdbUnderlyingType()
+    {
+        Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(PresentationRenderLayerMask)));
+    }
+
+    [Fact]
     public void RenderLayerMaskForMapsGridAndGeometryToUdbPlotterLayer()
     {
         Assert.Equal(PresentationRenderLayerMask.Background, PresentationPlan.RenderLayerMaskFor(PresentationRendererLayer.Background));
