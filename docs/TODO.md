@@ -424,6 +424,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style element index change helpers.
   - [x] Add UDB-style selection group helpers on groupable elements.
   - [x] Add UDB-style marked-sidedef selection helpers.
+  - [x] Keep opposite sidedef links coherent when creating sidedefs.
 - [x] Port element disposal and orphan cleanup behavior.
 - [x] Port element copy, paste, clone, and serialization behavior.
   - [x] Add UDB-style map element property copy helpers.

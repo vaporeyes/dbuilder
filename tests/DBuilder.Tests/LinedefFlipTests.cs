@@ -9,6 +9,25 @@ namespace DBuilder.Tests;
 public class LinedefFlipTests
 {
     [Fact]
+    public void AddSidedefLinksOppositeSidesImmediately()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(100, 0));
+        var line = map.AddLinedef(a, b);
+        var frontSector = map.AddSector();
+        var backSector = map.AddSector();
+
+        var front = map.AddSidedef(line, true, frontSector);
+        var back = map.AddSidedef(line, false, backSector);
+
+        Assert.Same(back, front.Other);
+        Assert.Same(front, back.Other);
+        Assert.Same(front, line.Front);
+        Assert.Same(back, line.Back);
+    }
+
+    [Fact]
     public void FlipVerticesReversesDirectionAndAngle()
     {
         var map = new MapSet();

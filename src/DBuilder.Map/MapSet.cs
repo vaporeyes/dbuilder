@@ -164,9 +164,9 @@ public class MapSet : IDisposable
     // Mutation operations.
     // ============================================================
     // These maintain the primary lists and direct references (Linedef.Front/Back/Start/End, Sidedef.Sector).
-    // Derived state (Vertex.Linedefs, Sector.Sidedefs, Sidedef.Other) is NOT updated incrementally - call
-    // BuildIndexes() once after a batch of edits before triangulating or rendering. Removals scan the primary
-    // lists rather than the derived back-references so they stay correct even when indexes are stale.
+    // Derived vertex and sector back-references are NOT updated incrementally - call BuildIndexes() once after
+    // a batch of edits before triangulating or rendering. Removals scan the primary lists rather than the
+    // derived back-references so they stay correct even when indexes are stale.
 
     public void BeginAddRemove()
         => addRemoveDepth++;
@@ -240,7 +240,7 @@ public class MapSet : IDisposable
     public Sidedef AddSidedef(Linedef line, bool isFront, Sector? sector)
     {
         var sd = new Sidedef(line, isFront) { Index = Sidedefs.Count, Sector = sector };
-        if (isFront) line.Front = sd; else line.Back = sd;
+        if (isFront) line.AttachFront(sd); else line.AttachBack(sd);
         Sidedefs.Add(sd);
         return sd;
     }
@@ -1347,8 +1347,6 @@ public class MapSet : IDisposable
 
     private static void RemoveUnneededTexturesFromCorrectedOuterLine(Linedef line)
     {
-        if (line.Front != null) line.Front.Other = line.Back;
-        if (line.Back != null) line.Back.Other = line.Front;
         line.Front?.RemoveUnneededTextures(line.Back != null, force: false, shiftMiddle: true);
         line.Back?.RemoveUnneededTextures(line.Front != null, force: false, shiftMiddle: true);
     }
