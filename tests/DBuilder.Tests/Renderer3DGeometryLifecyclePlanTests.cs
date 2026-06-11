@@ -550,6 +550,85 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
     }
 
     [Fact]
+    public void BuildVisualVertexRenderPlanSkipsWhenVisualVerticesAreUnavailable()
+    {
+        Renderer3DVisualVertexRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildVisualVertexRenderPlan(
+            visualVertices: null,
+            showSelection: true,
+            selectionColor: unchecked((int)0xffff4000),
+            infoLineColor: unchecked((int)0xff00ff00),
+            verticesColor: unchecked((int)0xff101010));
+
+        Assert.Empty(plan.StateOperations);
+        Assert.Empty(plan.Draws);
+    }
+
+    [Fact]
+    public void BuildVisualVertexRenderPlanMatchesUdbRenderStateSetup()
+    {
+        Renderer3DVisualVertexRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildVisualVertexRenderPlan(
+            [],
+            showSelection: true,
+            selectionColor: unchecked((int)0xffff4000),
+            infoLineColor: unchecked((int)0xff00ff00),
+            verticesColor: unchecked((int)0xff101010));
+
+        Assert.Equal(
+            [
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetAlphaBlend, Enabled: true),
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetAlphaTest, Enabled: false),
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetZWrite, Enabled: false),
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetSourceBlend, Blend: Blend.SourceAlpha),
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetDestinationBlend, Blend: Blend.SourceAlpha),
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetShader, Shader: ShaderName.world3d_constant_color),
+            ],
+            plan.StateOperations);
+        Assert.Empty(plan.Draws);
+    }
+
+    [Fact]
+    public void BuildVisualVertexRenderPlanMatchesUdbColorHandleAndDrawRules()
+    {
+        Renderer3DVisualVertexRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildVisualVertexRenderPlan(
+            [
+                new Renderer3DVisualVertexCandidate(1, Selected: true, Highlighted: false, HaveHeightOffset: false, CeilingVertex: false),
+                new Renderer3DVisualVertexCandidate(2, Selected: false, Highlighted: true, HaveHeightOffset: true, CeilingVertex: true),
+                new Renderer3DVisualVertexCandidate(3, Selected: false, Highlighted: false, HaveHeightOffset: false, CeilingVertex: false),
+            ],
+            showSelection: true,
+            selectionColor: unchecked((int)0xffff4000),
+            infoLineColor: unchecked((int)0xff00ff00),
+            verticesColor: unchecked((int)0xff101010));
+
+        Assert.Equal(
+            [
+                new Renderer3DVisualVertexDrawPlan(1, unchecked((int)0xffff4000), 1.0f, Renderer3DVisualVertexHandleKind.Lower, PrimitiveType.LineList, StartIndex: 0, PrimitiveCount: 8),
+                new Renderer3DVisualVertexDrawPlan(2, unchecked((int)0xff00ff00), 1.0f, Renderer3DVisualVertexHandleKind.Upper, PrimitiveType.LineList, StartIndex: 0, PrimitiveCount: 8),
+                new Renderer3DVisualVertexDrawPlan(3, unchecked((int)0xff101010), 0.6f, Renderer3DVisualVertexHandleKind.Lower, PrimitiveType.LineList, StartIndex: 0, PrimitiveCount: 8),
+            ],
+            plan.Draws);
+    }
+
+    [Fact]
+    public void BuildVisualVertexRenderPlanUsesNonSelectionColorWhenSelectionDisplayIsDisabled()
+    {
+        Renderer3DVisualVertexRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildVisualVertexRenderPlan(
+            [
+                new Renderer3DVisualVertexCandidate(1, Selected: true, Highlighted: false, HaveHeightOffset: true, CeilingVertex: false),
+            ],
+            showSelection: false,
+            selectionColor: unchecked((int)0xffff4000),
+            infoLineColor: unchecked((int)0xff00ff00),
+            verticesColor: unchecked((int)0xff101010));
+
+        Assert.Equal(
+            [
+                new Renderer3DVisualVertexDrawPlan(1, unchecked((int)0xff00ff00), 0.6f, Renderer3DVisualVertexHandleKind.Lower, PrimitiveType.LineList, StartIndex: 0, PrimitiveCount: 8),
+            ],
+            plan.Draws);
+    }
+
+    [Fact]
     public void Renderer3DStartGeometryExpressionsMatchUdbWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -620,6 +699,12 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("thingcolor = t.CageColor;", source, StringComparison.Ordinal);
         Assert.Contains("if(t != highlighted) thingcolor.Alpha = 0.6f;", source, StringComparison.Ordinal);
         Assert.Contains("graphics.Draw(PrimitiveType.LineList, 0, t.CageLength);", source, StringComparison.Ordinal);
+        Assert.Contains("private void RenderVertices()", source, StringComparison.Ordinal);
+        Assert.Contains("if(visualvertices == null) return;", source, StringComparison.Ordinal);
+        Assert.Contains("color = v.HaveHeightOffset ? General.Colors.InfoLine.ToColorValue() : General.Colors.Vertices.ToColorValue();", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.world, ref world);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetVertexBuffer(v.CeilingVertex ? vertexhandle.Upper : vertexhandle.Lower);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.Draw(PrimitiveType.LineList, 0, 8);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);

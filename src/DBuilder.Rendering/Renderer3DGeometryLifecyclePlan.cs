@@ -184,6 +184,32 @@ public sealed record Renderer3DThingCageRenderPlan(
     IReadOnlyList<Renderer3DThingCageRenderOperation> StateOperations,
     IReadOnlyList<Renderer3DThingCageDrawPlan> Draws);
 
+public enum Renderer3DVisualVertexHandleKind
+{
+    Lower,
+    Upper,
+}
+
+public sealed record Renderer3DVisualVertexCandidate(
+    int Id,
+    bool Selected,
+    bool Highlighted,
+    bool HaveHeightOffset,
+    bool CeilingVertex);
+
+public sealed record Renderer3DVisualVertexDrawPlan(
+    int VertexId,
+    int Color,
+    float Alpha,
+    Renderer3DVisualVertexHandleKind Handle,
+    PrimitiveType PrimitiveType,
+    int StartIndex,
+    int PrimitiveCount);
+
+public sealed record Renderer3DVisualVertexRenderPlan(
+    IReadOnlyList<Renderer3DThingCageRenderOperation> StateOperations,
+    IReadOnlyList<Renderer3DVisualVertexDrawPlan> Draws);
+
 public static class Renderer3DGeometryLifecyclePlan
 {
     public static Renderer3DStartGeometryPlan BuildStartGeometryPlan()
@@ -447,6 +473,37 @@ public static class Renderer3DGeometryLifecyclePlan
                 PrimitiveType.LineList,
                 StartIndex: 0,
                 PrimitiveCount: thing.CageLength)).ToArray());
+    }
+
+    public static Renderer3DVisualVertexRenderPlan BuildVisualVertexRenderPlan(
+        IReadOnlyList<Renderer3DVisualVertexCandidate>? visualVertices,
+        bool showSelection,
+        int selectionColor,
+        int infoLineColor,
+        int verticesColor)
+    {
+        if (visualVertices == null)
+        {
+            return new Renderer3DVisualVertexRenderPlan([], []);
+        }
+
+        return new Renderer3DVisualVertexRenderPlan(
+            [
+                new(Renderer3DThingCageRenderOperationKind.SetAlphaBlend, Enabled: true),
+                new(Renderer3DThingCageRenderOperationKind.SetAlphaTest, Enabled: false),
+                new(Renderer3DThingCageRenderOperationKind.SetZWrite, Enabled: false),
+                new(Renderer3DThingCageRenderOperationKind.SetSourceBlend, Blend: Blend.SourceAlpha),
+                new(Renderer3DThingCageRenderOperationKind.SetDestinationBlend, Blend: Blend.SourceAlpha),
+                new(Renderer3DThingCageRenderOperationKind.SetShader, Shader: ShaderName.world3d_constant_color),
+            ],
+            visualVertices.Select(vertex => new Renderer3DVisualVertexDrawPlan(
+                vertex.Id,
+                vertex.Selected && showSelection ? selectionColor : vertex.HaveHeightOffset ? infoLineColor : verticesColor,
+                vertex.Selected && showSelection || vertex.Highlighted ? 1.0f : 0.6f,
+                vertex.CeilingVertex ? Renderer3DVisualVertexHandleKind.Upper : Renderer3DVisualVertexHandleKind.Lower,
+                PrimitiveType.LineList,
+                StartIndex: 0,
+                PrimitiveCount: 8)).ToArray());
     }
 
     public static Renderer3DFinishGeometryCleanupPlan BuildFinishGeometryCleanupPlan()
