@@ -2,6 +2,7 @@
 // ABOUTME: Pins scale-derived line plotting thresholds against upstream Renderer2D expressions.
 
 using DBuilder.Rendering;
+using DBuilder.Geometry;
 
 namespace DBuilder.Tests;
 
@@ -49,6 +50,75 @@ public sealed class Renderer2DLineMetricsTests
     }
 
     [Fact]
+    public void BuildLinedefSegmentsMatchesUdbMainLineAndNormalIndicator()
+    {
+        IReadOnlyList<Renderer2DLinedefSegment> segments = Renderer2DLineMetricPlanner.BuildLinedefSegments(
+            new Vector2D(0, 0),
+            new Vector2D(10, 0),
+            translateX: 1,
+            translateY: 2,
+            scale: 2,
+            viewportHeight: 100);
+
+        Assert.Equal(new[]
+        {
+            new Renderer2DLinedefSegment(Renderer2DLinedefSegmentKind.Main, 2, 104, 22, 104),
+            new Renderer2DLinedefSegment(Renderer2DLinedefSegmentKind.NormalIndicator, 12, 104, 12, 99),
+        }, segments);
+    }
+
+    [Fact]
+    public void BuildLinedefSegmentsSuppressesShortLinesAndShortNormalsLikeUdb()
+    {
+        Assert.Empty(Renderer2DLineMetricPlanner.BuildLinedefSegments(
+            new Vector2D(0, 0),
+            new Vector2D(0.1, 0),
+            translateX: 0,
+            translateY: 0,
+            scale: 1,
+            viewportHeight: 100));
+
+        IReadOnlyList<Renderer2DLinedefSegment> lineOnly = Renderer2DLineMetricPlanner.BuildLinedefSegments(
+            new Vector2D(0, 0),
+            new Vector2D(1, 0),
+            translateX: 0,
+            translateY: 0,
+            scale: 1,
+            viewportHeight: 100);
+
+        Renderer2DLinedefSegment segment = Assert.Single(lineOnly);
+        Assert.Equal(Renderer2DLinedefSegmentKind.Main, segment.Kind);
+    }
+
+    [Fact]
+    public void BuildLinedefSegmentsMarksExtraFloorsWhenRequested()
+    {
+        Renderer2DLinedefSegment segment = Assert.Single(Renderer2DLineMetricPlanner.BuildLinedefSegments(
+            new Vector2D(0, 0),
+            new Vector2D(1, 0),
+            translateX: 0,
+            translateY: 0,
+            scale: 1,
+            viewportHeight: 100,
+            extraFloor: true,
+            markExtraFloors: true));
+
+        Assert.Equal(Renderer2DLinedefSegmentKind.ThreeDFloor, segment.Kind);
+    }
+
+    [Fact]
+    public void BuildLinedefSegmentsRejectsInvalidViewport()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer2DLineMetricPlanner.BuildLinedefSegments(
+            new Vector2D(0, 0),
+            new Vector2D(1, 0),
+            translateX: 0,
+            translateY: 0,
+            scale: 1,
+            viewportHeight: -1));
+    }
+
+    [Fact]
     public void LineMetricExpressionsMatchUdbRenderer2DWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -60,5 +130,9 @@ public sealed class Renderer2DLineMetricsTests
         Assert.Contains("minlinelength = linenormalsize * 0.0625f;", source, StringComparison.Ordinal);
         Assert.Contains("minlinenormallength = linenormalsize * 2f;", source, StringComparison.Ordinal);
         Assert.Contains("if((v2 - v1).GetLengthSq() < linenormalsize * lengthscaler) return;", source, StringComparison.Ordinal);
+        Assert.Contains("if(lengthsq < minlinelength) return;", source, StringComparison.Ordinal);
+        Assert.Contains("if(lengthsq < minlinenormallength) return;", source, StringComparison.Ordinal);
+        Assert.Contains("(int)((v1.x + mx) - (my * l.LengthInv) * linenormalsize)", source, StringComparison.Ordinal);
+        Assert.Contains("TransformY((int)((v1.y + my) + (mx * l.LengthInv) * linenormalsize))", source, StringComparison.Ordinal);
     }
 }
