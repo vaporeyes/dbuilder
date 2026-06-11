@@ -306,6 +306,18 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
     }
 
     [Fact]
+    public void BuildVisualVerticesPassPlanAlwaysRendersVertices()
+    {
+        Renderer3DVisualVerticesPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildVisualVerticesPassPlan();
+
+        Assert.Equal(
+            [
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.RenderVertices),
+            ],
+            plan.Operations);
+    }
+
+    [Fact]
     public void Renderer3DStartGeometryExpressionsMatchUdbWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -349,6 +361,8 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("RenderModels(true, lightthings);", source, StringComparison.Ordinal);
         Assert.Contains("if (renderthingcages)", source, StringComparison.Ordinal);
         Assert.Contains("RenderThingCages();", source, StringComparison.Ordinal);
+        Assert.Contains("//mxd. Visual vertices", source, StringComparison.Ordinal);
+        Assert.Contains("RenderVertices();", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);

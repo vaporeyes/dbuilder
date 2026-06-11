@@ -61,6 +61,7 @@ public enum Renderer3DGeometryPassOperationKind
     RenderModels,
     RenderTranslucentPass,
     RenderThingCages,
+    RenderVertices,
 }
 
 public sealed record Renderer3DGeometryPassOperation(
@@ -95,6 +96,8 @@ public sealed record Renderer3DThingCagePassPlan(IReadOnlyList<Renderer3DGeometr
 {
     public bool ShouldRender => Operations.Count > 0;
 }
+
+public sealed record Renderer3DVisualVerticesPassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations);
 
 public static class Renderer3DGeometryLifecyclePlan
 {
@@ -234,6 +237,12 @@ public static class Renderer3DGeometryLifecyclePlan
                     new(Renderer3DGeometryPassOperationKind.RenderThingCages),
                 ])
             : new Renderer3DThingCagePassPlan([]);
+
+    public static Renderer3DVisualVerticesPassPlan BuildVisualVerticesPassPlan()
+        => new(
+            [
+                new(Renderer3DGeometryPassOperationKind.RenderVertices),
+            ]);
 
     public static Renderer3DFinishGeometryCleanupPlan BuildFinishGeometryCleanupPlan()
         => new(
