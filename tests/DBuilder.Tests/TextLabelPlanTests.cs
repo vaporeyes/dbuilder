@@ -116,9 +116,30 @@ public sealed class TextLabelPlanTests
     }
 
     [Fact]
-    public void ColorAndBackgroundTogglesInvalidateTextureOnlyWhenChanged()
+    public void LocationAndRectangleCompatibilityInvalidateLayoutOnAssignmentLikeUdb()
+    {
+        var current = new TextLabelPoint(10, 20);
+
+        TextLabelPropertyChangePlan location = TextLabelPlan.BuildLocationChangePlan(
+            current,
+            current,
+            TextLabelInvalidation.Clean);
+        TextLabelPropertyChangePlan rectangle = TextLabelPlan.BuildRectangleCompatibilityChangePlan(
+            current,
+            new TextLabelRectangle(10, 20, 100, 50),
+            TextLabelInvalidation.Clean);
+
+        Assert.Equal(TextLabelPropertyChangeKind.Layout, location.ChangeKind);
+        Assert.Equal(new TextLabelInvalidation(LayoutUpdateNeeded: true, TextureUpdateNeeded: false), location.Invalidation);
+        Assert.Equal(TextLabelPropertyChangeKind.Layout, rectangle.ChangeKind);
+        Assert.Equal(new TextLabelInvalidation(LayoutUpdateNeeded: true, TextureUpdateNeeded: false), rectangle.Invalidation);
+    }
+
+    [Fact]
+    public void ColorBackColorAndBackgroundTogglesInvalidateTextureOnlyWhenChanged()
     {
         var color = new PixelColor(255, 1, 2, 3);
+        var backColor = new PixelColor(128, 4, 5, 6);
 
         TextLabelPropertyChangePlan sameColor = TextLabelPlan.BuildColorChangePlan(
             color,
@@ -127,6 +148,14 @@ public sealed class TextLabelPlanTests
         TextLabelPropertyChangePlan newColor = TextLabelPlan.BuildColorChangePlan(
             color,
             new PixelColor(255, 3, 2, 1),
+            TextLabelInvalidation.Clean);
+        TextLabelPropertyChangePlan sameBackColor = TextLabelPlan.BuildBackColorChangePlan(
+            backColor,
+            backColor,
+            TextLabelInvalidation.Clean);
+        TextLabelPropertyChangePlan newBackColor = TextLabelPlan.BuildBackColorChangePlan(
+            backColor,
+            new PixelColor(128, 6, 5, 4),
             TextLabelInvalidation.Clean);
         TextLabelPropertyChangePlan sameBackground = TextLabelPlan.BuildDrawBackgroundChangePlan(
             currentDrawBackground: true,
@@ -140,9 +169,28 @@ public sealed class TextLabelPlanTests
         Assert.Equal(TextLabelPropertyChangeKind.None, sameColor.ChangeKind);
         Assert.Equal(TextLabelPropertyChangeKind.Texture, newColor.ChangeKind);
         Assert.Equal(new TextLabelInvalidation(LayoutUpdateNeeded: false, TextureUpdateNeeded: true), newColor.Invalidation);
+        Assert.Equal(TextLabelPropertyChangeKind.None, sameBackColor.ChangeKind);
+        Assert.Equal(TextLabelPropertyChangeKind.Texture, newBackColor.ChangeKind);
+        Assert.Equal(new TextLabelInvalidation(LayoutUpdateNeeded: false, TextureUpdateNeeded: true), newBackColor.Invalidation);
         Assert.Equal(TextLabelPropertyChangeKind.None, sameBackground.ChangeKind);
         Assert.Equal(TextLabelPropertyChangeKind.Texture, newBackground.ChangeKind);
         Assert.Equal(new TextLabelInvalidation(LayoutUpdateNeeded: false, TextureUpdateNeeded: true), newBackground.Invalidation);
+    }
+
+    [Fact]
+    public void FontTransformAndAlignmentAssignmentsMatchUdbInvalidation()
+    {
+        TextLabelPropertyChangePlan font = TextLabelPlan.BuildFontChangePlan(TextLabelInvalidation.Clean);
+        TextLabelPropertyChangePlan transform = TextLabelPlan.BuildTransformCoordinatesChangePlan(TextLabelInvalidation.Clean);
+        TextLabelPropertyChangePlan alignment = TextLabelPlan.BuildAlignmentChangePlan(TextLabelInvalidation.Clean);
+
+        Assert.Equal(TextLabelPropertyChangeKind.Font, font.ChangeKind);
+        Assert.True(font.DisposeCurrentFont);
+        Assert.Equal(new TextLabelInvalidation(LayoutUpdateNeeded: false, TextureUpdateNeeded: true), font.Invalidation);
+        Assert.Equal(TextLabelPropertyChangeKind.Layout, transform.ChangeKind);
+        Assert.Equal(new TextLabelInvalidation(LayoutUpdateNeeded: true, TextureUpdateNeeded: false), transform.Invalidation);
+        Assert.Equal(TextLabelPropertyChangeKind.Layout, alignment.ChangeKind);
+        Assert.Equal(new TextLabelInvalidation(LayoutUpdateNeeded: true, TextureUpdateNeeded: false), alignment.Invalidation);
     }
 
     [Fact]

@@ -87,6 +87,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Text font glyph metrics and vertex planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label font selection and legacy scale planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label compatibility property mutation planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Text label UDB setter invalidation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label size, alignment, transform, culling, and quad planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label plain and background image drawing planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label render dispatch planning", replacement.CoveredResponsibilities);
