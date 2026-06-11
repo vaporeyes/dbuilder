@@ -46,6 +46,20 @@ public sealed record CurveLinedefsOptions(
         settings[FixedCurveOutwardsKey] = options.FixedCurveOutwards;
     }
 
+    public static CurveLinedefsOptions Defaults()
+        => new();
+
+    public CurveLinedefsOptions Reset()
+        => Defaults();
+
+    public CurveLinedefsOptions Flipped()
+    {
+        CurveLinedefsOptions options = Normalized();
+        return options.FixedCurve
+            ? options with { FixedCurveOutwards = !options.FixedCurveOutwards }
+            : options with { Distance = -options.Distance };
+    }
+
     public CurveLinedefsOptions Normalized()
         => this with
         {

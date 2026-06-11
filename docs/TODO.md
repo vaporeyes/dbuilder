@@ -534,6 +534,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Mark changed geometry when applying Curve Linedefs.
   - [x] Add UDB-style stitch and snap post-processing for Curve Linedefs materialization.
   - [x] Wire editor Curve Linedefs command to merge-mode post-processing.
+  - [x] Add UDB-style Curve Linedefs option panel reset and flip state helpers.
 - [ ] Port robust triangulation behavior for all known UDB map shapes.
   - [x] Keep fallback triangulation from reviving same-sector internal sidedefs.
   - [x] Reset triangulation fallback state when reusing triangulation instances.

@@ -51,6 +51,50 @@ public class CurveLinedefsTests
     }
 
     [Fact]
+    public void PanelResetReturnsUdbCurveLinedefsDefaults()
+    {
+        CurveLinedefsOptions options = new CurveLinedefsOptions(
+            Vertices: 24,
+            Distance: -64,
+            Angle: 90,
+            FixedCurve: true,
+            FixedCurveOutwards: false);
+
+        Assert.Equal(new CurveLinedefsOptions(), CurveLinedefsOptions.Defaults());
+        Assert.Equal(new CurveLinedefsOptions(), options.Reset());
+    }
+
+    [Fact]
+    public void PanelFlipNegatesDistanceForNonFixedCurves()
+    {
+        var options = new CurveLinedefsOptions(
+            Distance: 128,
+            FixedCurve: false,
+            FixedCurveOutwards: false);
+
+        CurveLinedefsOptions flipped = options.Flipped();
+
+        Assert.Equal(-128, flipped.Distance);
+        Assert.False(flipped.FixedCurve);
+        Assert.False(flipped.FixedCurveOutwards);
+    }
+
+    [Fact]
+    public void PanelFlipTogglesDirectionForFixedCurves()
+    {
+        var options = new CurveLinedefsOptions(
+            Distance: 128,
+            FixedCurve: true,
+            FixedCurveOutwards: true);
+
+        CurveLinedefsOptions flipped = options.Flipped();
+
+        Assert.Equal(128, flipped.Distance);
+        Assert.True(flipped.FixedCurve);
+        Assert.False(flipped.FixedCurveOutwards);
+    }
+
+    [Fact]
     public void GenerateCurvePointsClampsVerticesToLineLengthOverFour()
     {
         var map = new MapSet();
