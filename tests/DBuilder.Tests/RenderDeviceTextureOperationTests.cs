@@ -149,6 +149,17 @@ public sealed class RenderDeviceTextureOperationTests
     }
 
     [Fact]
+    public void CubeOperationPlansRejectInvalidFaces()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildCopyTexturePlan((CubeMapFace)99, texture: null));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildSetCubePixelsPlan(texture: null, (CubeMapFace)99));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildSetCubePixelsPlan(null, (CubeMapFace)99, size: 2, pixelBufferByteCount: 16));
+    }
+
+    [Fact]
     public void BuildPboPlansTrackMapAndUnmapOperations()
     {
         TextureOperationPlan map = RenderDevice.BuildMapPboPlan(texture: null);

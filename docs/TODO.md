@@ -1670,6 +1670,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style cube texture resource and render-device cube operation surface.
   - [x] Add UDB-style cube texture render-device constructor surface.
   - [x] Add UDB-style cube map face enum values.
+  - [x] Add UDB-style cube texture operation face validation.
 - [x] Port rendering color helpers.
   - [x] Add UDB-style ColorSetting helper.
   - [x] Add UDB-style PixelColor conversion aliases.

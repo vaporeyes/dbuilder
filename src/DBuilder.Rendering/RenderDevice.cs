@@ -852,7 +852,10 @@ public sealed class RenderDevice : IDisposable
         => BuildClearTexturePlan((uint)backColor.ToArgb(), texture);
 
     public static TextureOperationPlan BuildCopyTexturePlan(CubeMapFace face, Texture? texture)
-        => new(TextureOperationKind.CopyCubeFace, 0, texture != null, CubeFace: face);
+    {
+        _ = MapCubeFace(face);
+        return new(TextureOperationKind.CopyCubeFace, 0, texture != null, CubeFace: face);
+    }
 
     public static TextureOperationPlan BuildSetPixelsPlan(Texture? texture)
         => new(TextureOperationKind.SetPixels2D, 0, texture != null);
@@ -878,7 +881,10 @@ public sealed class RenderDevice : IDisposable
     }
 
     public static TextureOperationPlan BuildSetCubePixelsPlan(CubeTexture? texture, CubeMapFace face)
-        => new(TextureOperationKind.SetPixelsCubeFace, 0, texture != null, CubeFace: face);
+    {
+        _ = MapCubeFace(face);
+        return new(TextureOperationKind.SetPixelsCubeFace, 0, texture != null, CubeFace: face);
+    }
 
     public static TextureOperationPlan BuildSetCubePixelsPlan(
         CubeTexture? texture,
