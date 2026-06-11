@@ -169,6 +169,20 @@ public class SelectionTests
     }
 
     [Fact]
+    public void SelectAllSelectsEveryMapElementType()
+    {
+        var map = BuildMap();
+
+        map.SelectAll();
+
+        Assert.Equal(map.Vertices.Count, map.SelectedVerticesCount);
+        Assert.Equal(map.Linedefs.Count, map.SelectedLinedefsCount);
+        Assert.Equal(map.Sidedefs.Count, map.SelectedSidedefsCount);
+        Assert.Equal(map.Sectors.Count, map.SelectedSectorsCount);
+        Assert.Equal(map.Things.Count, map.SelectedThingsCount);
+    }
+
+    [Fact]
     public void InvertSelectedPerTypeOnlyFlipsRequestedElementType()
     {
         var map = BuildMap();
@@ -179,6 +193,24 @@ public class SelectionTests
 
         Assert.Equal(new[] { map.Vertices[1], map.Vertices[2] }, map.GetSelectedVertices());
         Assert.Equal(new[] { map.Linedefs[0] }, map.GetSelectedLinedefs());
+    }
+
+    [Fact]
+    public void InvertAllSelectedFlipsEveryMapElementType()
+    {
+        var map = BuildMap();
+        map.Vertices[0].Selected = true;
+        map.Linedefs[0].Selected = true;
+        map.Sidedefs[0].Selected = true;
+        map.Sectors[0].Selected = true;
+
+        map.InvertAllSelected();
+
+        Assert.Equal(new[] { map.Vertices[1], map.Vertices[2] }, map.GetSelectedVertices());
+        Assert.Equal(new[] { map.Linedefs[1] }, map.GetSelectedLinedefs());
+        Assert.Empty(map.GetSelectedSidedefs());
+        Assert.Empty(map.GetSelectedSectors());
+        Assert.Equal(map.Things, map.GetSelectedThings());
     }
 
     [Fact]

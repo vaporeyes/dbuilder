@@ -1688,11 +1688,29 @@ public class MapSet : IDisposable
     public void SelectAllSectors() => SetSelected(Sectors, true);
     public void SelectAllThings() => SetSelected(Things, true);
 
+    public void SelectAll()
+    {
+        SelectAllVertices();
+        SelectAllLinedefs();
+        SelectAllSidedefs();
+        SelectAllSectors();
+        SelectAllThings();
+    }
+
     public void InvertSelectedVertices() => InvertSelected(Vertices);
     public void InvertSelectedLinedefs() => InvertSelected(Linedefs);
     public void InvertSelectedSidedefs() => InvertSelected(Sidedefs);
     public void InvertSelectedSectors() => InvertSelected(Sectors);
     public void InvertSelectedThings() => InvertSelected(Things);
+
+    public void InvertAllSelected()
+    {
+        InvertSelectedVertices();
+        InvertSelectedLinedefs();
+        InvertSelectedSidedefs();
+        InvertSelectedSectors();
+        InvertSelectedThings();
+    }
 
     /// <summary>Clears the Selected flag on every element of every type.</summary>
     public void ClearAllSelected()
