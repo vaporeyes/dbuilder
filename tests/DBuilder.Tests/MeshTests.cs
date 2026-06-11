@@ -55,6 +55,14 @@ public sealed class MeshTests
     }
 
     [Fact]
+    public void MeshExposesDisposedState()
+    {
+        Assert.NotNull(typeof(Mesh).GetProperty(nameof(Mesh.Disposed)));
+        Assert.Equal(typeof(bool), typeof(Mesh).GetProperty(nameof(Mesh.Disposed))!.PropertyType);
+        Assert.Null(typeof(Mesh).GetProperty(nameof(Mesh.Disposed))!.SetMethod);
+    }
+
+    [Fact]
     public void PrimitiveCountUsesCompleteIndexedTrianglesOnly()
     {
         Assert.Equal(0, Mesh.PrimitiveCountFor(0));

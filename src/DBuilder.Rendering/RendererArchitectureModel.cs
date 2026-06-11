@@ -91,6 +91,7 @@ public static class RendererArchitectureModel
             "Owned indexed-triangle mesh wrapper",
             "Mesh construction, draw, and dispose operation planning",
             "Mesh disposal and finalizer lifecycle",
+            "Mesh disposed-state reporting",
             "Surface-entry chunk metadata and bounds model",
             "Surface manager vertex chunk and buffer allocation planning",
             "Surface buffer hole allocation and free-entry planning",

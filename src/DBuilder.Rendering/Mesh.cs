@@ -48,6 +48,7 @@ public sealed class Mesh : IDisposable
     }
 
     public int PrimitivesCount { get; }
+    public bool Disposed => _disposed;
 
     internal VertexBuffer Vertices { get; private set; }
     internal IndexBuffer Indices { get; private set; }

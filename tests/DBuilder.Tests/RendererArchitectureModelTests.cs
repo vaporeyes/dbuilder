@@ -83,6 +83,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("PixelColor arithmetic helper surface", replacement.CoveredResponsibilities);
         Assert.Contains("Mesh construction, draw, and dispose operation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Mesh disposal and finalizer lifecycle", replacement.CoveredResponsibilities);
+        Assert.Contains("Mesh disposed-state reporting", replacement.CoveredResponsibilities);
         Assert.Contains("Surface-entry chunk metadata and bounds model", replacement.CoveredResponsibilities);
         Assert.Contains("Surface manager vertex chunk and buffer allocation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface buffer hole allocation and free-entry planning", replacement.CoveredResponsibilities);
@@ -199,6 +200,7 @@ public class RendererArchitectureModelTests
         Assert.NotNull(typeof(Mesh).GetConstructor(new[] { typeof(RenderDevice), typeof(WorldVertex[]), typeof(int[]) }));
         Assert.NotNull(typeof(Mesh).GetMethod(nameof(Mesh.Draw), new[] { typeof(RenderDevice) }));
         Assert.NotNull(typeof(Mesh).GetProperty(nameof(Mesh.PrimitivesCount)));
+        Assert.NotNull(typeof(Mesh).GetProperty(nameof(Mesh.Disposed)));
         Assert.Contains(typeof(IDisposable), typeof(Mesh).GetInterfaces());
         MethodInfo? finalizer = typeof(Mesh).GetMethod("Finalize", BindingFlags.Instance | BindingFlags.NonPublic);
         Assert.NotNull(finalizer);
