@@ -9579,17 +9579,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         if (_map == null) return null;
 
-        Thing? closest = null;
-        double bestSq = maxRange * maxRange;
-        foreach (var t in _map.Things)
-        {
-            if (ThingHidden2D(t)) continue;
-            double dx = t.Position.x - pos.x;
-            double dy = t.Position.y - pos.y;
-            double d = dx * dx + dy * dy;
-            if (d < bestSq) { bestSq = d; closest = t; }
-        }
-        return closest;
+        return _map.NearestThingSquareRange(pos, maxRange, _zoom, _fixedThingsScale, t => !ThingHidden2D(t));
     }
 
     private void Pick(Vec2D world, bool additive)

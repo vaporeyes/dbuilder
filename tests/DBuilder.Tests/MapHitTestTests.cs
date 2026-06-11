@@ -449,6 +449,22 @@ public class MapHitTestTests
     }
 
     [Fact]
+    public void StaticNearestThingSquareRangeCanFilterCandidates()
+    {
+        var hidden = new Thing(new Vector2D(0, 0), 1) { Size = 8, Selected = true };
+        var visible = new Thing(new Vector2D(6, 0), 2) { Size = 8 };
+        var selection = new[] { hidden, visible };
+
+        Assert.Same(visible, MapSet.NearestThingSquareRange(
+            selection,
+            new Vector2D(0, 0),
+            maxRange: 5,
+            viewScale: 1.0,
+            fixedThingsScale: false,
+            include: thing => !thing.Selected));
+    }
+
+    [Fact]
     public void NearestThingSquareRangeSearchesMapThings()
     {
         var map = new MapSet();

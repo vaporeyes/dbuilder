@@ -2726,6 +2726,16 @@ public class MapSet : IDisposable
         double maxRange,
         double viewScale,
         bool fixedThingsScale)
+        => NearestThingSquareRange(selection, pos, maxRange, viewScale, fixedThingsScale, include: null);
+
+    /// <summary>Nearest thing inside a square range using UDB displayed-size adjustment and an optional candidate filter.</summary>
+    public static Thing? NearestThingSquareRange(
+        ICollection<Thing> selection,
+        Vector2D pos,
+        double maxRange,
+        double viewScale,
+        bool fixedThingsScale,
+        Predicate<Thing>? include)
     {
         var range = RectangleF.FromLTRB(
             (float)(pos.x - maxRange),
@@ -2737,6 +2747,7 @@ public class MapSet : IDisposable
         double bestSize = double.MaxValue;
         foreach (var t in selection)
         {
+            if (include != null && !include(t)) continue;
             double x = t.Position.x;
             double y = t.Position.y;
             double size = DisplayedThingSize(t, viewScale, fixedThingsScale);
@@ -2755,6 +2766,10 @@ public class MapSet : IDisposable
     /// <summary>Nearest map thing inside a square range using UDB's displayed-size adjustment for fixed-scale things.</summary>
     public Thing? NearestThingSquareRange(Vector2D pos, double maxRange, double viewScale, bool fixedThingsScale)
         => NearestThingSquareRange(Things, pos, maxRange, viewScale, fixedThingsScale);
+
+    /// <summary>Nearest map thing inside a square range using UDB displayed-size adjustment and an optional candidate filter.</summary>
+    public Thing? NearestThingSquareRange(Vector2D pos, double maxRange, double viewScale, bool fixedThingsScale, Predicate<Thing>? include)
+        => NearestThingSquareRange(Things, pos, maxRange, viewScale, fixedThingsScale, include);
 
     private static double DisplayedThingSize(Thing thing, double viewScale, bool fixedThingsScale)
     {

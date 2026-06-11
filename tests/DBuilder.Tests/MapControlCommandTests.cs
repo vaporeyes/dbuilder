@@ -34,6 +34,18 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void ThingHighlightUsesUdbSquareRangePicking()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int helperIndex = body.IndexOf("private Thing? NearestVisibleThing", StringComparison.Ordinal);
+        int pickIndex = body.IndexOf("private void Pick(", helperIndex, StringComparison.Ordinal);
+        string helper = body[helperIndex..pickIndex];
+
+        Assert.Contains("NearestThingSquareRange(pos, maxRange, _zoom, _fixedThingsScale", helper, StringComparison.Ordinal);
+        Assert.DoesNotContain("double bestSq = maxRange * maxRange;", helper, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ClassicViewModeDefaultsToUdbNormalSetting()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
