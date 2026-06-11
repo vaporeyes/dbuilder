@@ -21,6 +21,14 @@ public struct Vector4f
         W = w;
     }
 
+    public Vector4f(Vector3f xyz, float w)
+    {
+        X = xyz.X;
+        Y = xyz.Y;
+        Z = xyz.Z;
+        W = w;
+    }
+
     public Vector4f(float x, float y, float z, float w)
     {
         X = x;
@@ -101,6 +109,14 @@ public struct Vector4i
         X = xy.X;
         Y = xy.Y;
         Z = z;
+        W = w;
+    }
+
+    public Vector4i(Vector3i xyz, int w)
+    {
+        X = xyz.X;
+        Y = xyz.Y;
+        Z = xyz.Z;
         W = w;
     }
 

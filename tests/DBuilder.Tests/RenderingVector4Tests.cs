@@ -12,10 +12,12 @@ public sealed class RenderingVector4Tests
     {
         var uniform = new Vector4f(3.5f);
         var fromVector2 = new Vector4f(new Vector2f(1.25f, -2.5f), 7.5f, -8.5f);
+        var fromVector3 = new Vector4f(new Vector3f(1.25f, -2.5f, 7.5f), -8.5f);
         var values = new Vector4f(1f, 2f, 3f, 4f);
 
         Assert.Equal(new Vector4f(3.5f, 3.5f, 3.5f, 3.5f), uniform);
         Assert.Equal(new Vector4f(1.25f, -2.5f, 7.5f, -8.5f), fromVector2);
+        Assert.Equal(new Vector4f(1.25f, -2.5f, 7.5f, -8.5f), fromVector3);
         Assert.Equal(1f, values.X);
         Assert.Equal(2f, values.Y);
         Assert.Equal(3f, values.Z);
@@ -75,10 +77,12 @@ public sealed class RenderingVector4Tests
     {
         var uniform = new Vector4i(3);
         var fromVector2 = new Vector4i(new Vector2i(1, -2), 7, -8);
+        var fromVector3 = new Vector4i(new Vector3i(1, -2, 7), -8);
         var values = new Vector4i(1, 2, 3, 4);
 
         Assert.Equal(new Vector4i(3, 3, 3, 3), uniform);
         Assert.Equal(new Vector4i(1, -2, 7, -8), fromVector2);
+        Assert.Equal(new Vector4i(1, -2, 7, -8), fromVector3);
         Assert.Equal(1, values.X);
         Assert.Equal(2, values.Y);
         Assert.Equal(3, values.Z);
