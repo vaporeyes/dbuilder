@@ -1496,6 +1496,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match UDB 2D view mode count metadata.
   - [x] Add UDB-style map center crosshair render planning.
   - [x] Add UDB-style 2D line plotting metric planning.
+  - [x] Add UDB-style 2D plot line draw planning.
   - [x] Add UDB-style 2D linedef segment and normal indicator planning.
   - [x] Add UDB-style 2D vertex marker size planning.
   - [x] Add UDB-style 2D thing screen-size planning.

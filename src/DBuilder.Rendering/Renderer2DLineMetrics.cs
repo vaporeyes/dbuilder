@@ -25,6 +25,14 @@ public readonly record struct Renderer2DLinedefSegment(
     int EndX,
     int EndY);
 
+public readonly record struct Renderer2DPlotLinePlan(
+    bool ShouldDraw,
+    int StartX,
+    int StartY,
+    int EndX,
+    int EndY,
+    PixelColor Color);
+
 public static class Renderer2DLineMetricPlanner
 {
     public const double LineNormalScreenSize = 10.0;
@@ -50,6 +58,42 @@ public static class Renderer2DLineMetricPlanner
 
     public static bool ShouldPlotLine(double screenLengthSquared, double lineNormalSize, double lengthScaler = MinimumLineLengthScale)
         => screenLengthSquared >= lineNormalSize * lengthScaler;
+
+    public static Renderer2DPlotLinePlan BuildPlotLinePlan(
+        Vector2D start,
+        Vector2D end,
+        PixelColor color,
+        double translateX,
+        double translateY,
+        double scale,
+        int viewportHeight,
+        double lengthScaler = MinimumLineLengthScale)
+    {
+        if (viewportHeight < 0) throw new ArgumentOutOfRangeException(nameof(viewportHeight));
+        if (double.IsNaN(lengthScaler)) throw new ArgumentOutOfRangeException(nameof(lengthScaler));
+
+        Renderer2DLineMetrics metrics = Build(scale);
+        Vector2D v1 = start.GetTransformed(translateX, translateY, scale, -scale);
+        Vector2D v2 = end.GetTransformed(translateX, translateY, scale, -scale);
+        if (!ShouldPlotLine((v2 - v1).GetLengthSq(), metrics.LineNormalSize, lengthScaler))
+        {
+            return new Renderer2DPlotLinePlan(
+                ShouldDraw: false,
+                StartX: 0,
+                StartY: 0,
+                EndX: 0,
+                EndY: 0,
+                color);
+        }
+
+        return new Renderer2DPlotLinePlan(
+            ShouldDraw: true,
+            (int)v1.x,
+            TransformY((int)v1.y, viewportHeight),
+            (int)v2.x,
+            TransformY((int)v2.y, viewportHeight),
+            color);
+    }
 
     public static int BuildVertexSize(double scale, double vertexScale2D)
     {

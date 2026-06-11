@@ -49,6 +49,94 @@ public sealed class Renderer2DLineMetricsTests
         Assert.True(Renderer2DLineMetricPlanner.ShouldPlotLine(threshold + 0.001, metrics.LineNormalSize));
     }
 
+    [Fact]
+    public void BuildPlotLinePlanMatchesUdbTransformedPlotterCoordinates()
+    {
+        PixelColor color = PixelColor.FromArgb(unchecked((int)0xff123456));
+
+        Renderer2DPlotLinePlan plan = Renderer2DLineMetricPlanner.BuildPlotLinePlan(
+            new Vector2D(0, 0),
+            new Vector2D(10, 0),
+            color,
+            translateX: 1,
+            translateY: 2,
+            scale: 2,
+            viewportHeight: 100);
+
+        Assert.True(plan.ShouldDraw);
+        Assert.Equal(2, plan.StartX);
+        Assert.Equal(104, plan.StartY);
+        Assert.Equal(22, plan.EndX);
+        Assert.Equal(104, plan.EndY);
+        Assert.Equal(color, plan.Color);
+    }
+
+    [Fact]
+    public void BuildPlotLinePlanSuppressesShortLinesLikeUdb()
+    {
+        Renderer2DPlotLinePlan plan = Renderer2DLineMetricPlanner.BuildPlotLinePlan(
+            new Vector2D(0, 0),
+            new Vector2D(0.1, 0),
+            PixelColor.FromArgb(unchecked((int)0xff123456)),
+            translateX: 0,
+            translateY: 0,
+            scale: 1,
+            viewportHeight: 100);
+
+        Assert.False(plan.ShouldDraw);
+        Assert.Equal(0, plan.StartX);
+        Assert.Equal(0, plan.StartY);
+        Assert.Equal(0, plan.EndX);
+        Assert.Equal(0, plan.EndY);
+    }
+
+    [Fact]
+    public void BuildPlotLinePlanHonorsUdbLengthScaler()
+    {
+        Renderer2DPlotLinePlan defaultScaler = Renderer2DLineMetricPlanner.BuildPlotLinePlan(
+            new Vector2D(0, 0),
+            new Vector2D(1, 0),
+            PixelColor.FromArgb(unchecked((int)0xff123456)),
+            translateX: 0,
+            translateY: 0,
+            scale: 1,
+            viewportHeight: 100);
+        Renderer2DPlotLinePlan largerScaler = Renderer2DLineMetricPlanner.BuildPlotLinePlan(
+            new Vector2D(0, 0),
+            new Vector2D(1, 0),
+            PixelColor.FromArgb(unchecked((int)0xff123456)),
+            translateX: 0,
+            translateY: 0,
+            scale: 1,
+            viewportHeight: 100,
+            lengthScaler: 2);
+
+        Assert.True(defaultScaler.ShouldDraw);
+        Assert.False(largerScaler.ShouldDraw);
+    }
+
+    [Fact]
+    public void BuildPlotLinePlanRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer2DLineMetricPlanner.BuildPlotLinePlan(
+            new Vector2D(0, 0),
+            new Vector2D(1, 0),
+            PixelColor.FromArgb(unchecked((int)0xff123456)),
+            translateX: 0,
+            translateY: 0,
+            scale: 1,
+            viewportHeight: -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer2DLineMetricPlanner.BuildPlotLinePlan(
+            new Vector2D(0, 0),
+            new Vector2D(1, 0),
+            PixelColor.FromArgb(unchecked((int)0xff123456)),
+            translateX: 0,
+            translateY: 0,
+            scale: 1,
+            viewportHeight: 100,
+            lengthScaler: double.NaN));
+    }
+
     [Theory]
     [InlineData(0.1, 1.0, 0)]
     [InlineData(1.0, 1.0, 2)]
@@ -152,7 +240,9 @@ public sealed class Renderer2DLineMetricsTests
         Assert.Contains("vertexsize = (int)(1.7f * General.Settings.GZVertexScale2D * scale + 0.5f);", source, StringComparison.Ordinal);
         Assert.Contains("if(vertexsize < 0) vertexsize = 0;", source, StringComparison.Ordinal);
         Assert.Contains("if(vertexsize > 4) vertexsize = 4;", source, StringComparison.Ordinal);
+        Assert.Contains("public void PlotLine(Vector2D start, Vector2D end, PixelColor c, float lengthscaler)", source, StringComparison.Ordinal);
         Assert.Contains("if((v2 - v1).GetLengthSq() < linenormalsize * lengthscaler) return;", source, StringComparison.Ordinal);
+        Assert.Contains("plotter.DrawLineSolid((int)v1.x, TransformY((int)v1.y), (int)v2.x, TransformY((int)v2.y), ref c);", source, StringComparison.Ordinal);
         Assert.Contains("if(lengthsq < minlinelength) return;", source, StringComparison.Ordinal);
         Assert.Contains("if(lengthsq < minlinenormallength) return;", source, StringComparison.Ordinal);
         Assert.Contains("(int)((v1.x + mx) - (my * l.LengthInv) * linenormalsize)", source, StringComparison.Ordinal);
