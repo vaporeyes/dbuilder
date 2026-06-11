@@ -194,6 +194,26 @@ public sealed record Renderer3DGeometryDrawStatePlanSet(
     bool ResetSkewAfterGeometry,
     bool DisableLightsAfterGeometry);
 
+public sealed record Renderer3DGeometryTextureGroupItem(
+    int GeometryId,
+    int SectorFixedIndex);
+
+public sealed record Renderer3DGeometryTextureGroupCandidate(
+    long TextureLongName,
+    bool DrawPaletted,
+    IReadOnlyList<Renderer3DGeometryTextureGroupItem> Geometry);
+
+public sealed record Renderer3DGeometryTextureGroupPlan(
+    long TextureLongName,
+    bool SetTexture,
+    long BoundTextureLongName,
+    bool DrawPaletted,
+    bool SortBySectorFixedIndex,
+    IReadOnlyList<int> OrderedGeometryIds);
+
+public sealed record Renderer3DGeometryTextureGroupPlanSet(
+    IReadOnlyList<Renderer3DGeometryTextureGroupPlan> Groups);
+
 public sealed record Renderer3DModelPassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations)
 {
     public bool ShouldRender => Operations.Count > 0;
@@ -1589,6 +1609,31 @@ public static class Renderer3DGeometryLifecyclePlan
         }
 
         return new Renderer3DThingLitColorPlan(litColor, contributions);
+    }
+
+    public static Renderer3DGeometryTextureGroupPlanSet BuildGeometryTextureGroupPlan(
+        IReadOnlyList<Renderer3DGeometryTextureGroupCandidate> textureGroups)
+    {
+        ArgumentNullException.ThrowIfNull(textureGroups);
+
+        var groups = new List<Renderer3DGeometryTextureGroupPlan>(textureGroups.Count);
+        foreach (Renderer3DGeometryTextureGroupCandidate group in textureGroups)
+        {
+            ArgumentNullException.ThrowIfNull(group.Geometry);
+
+            Renderer3DGeometryTextureGroupItem[] ordered = group.Geometry.ToArray();
+            Array.Sort(ordered, (first, second) => first.SectorFixedIndex.CompareTo(second.SectorFixedIndex));
+
+            groups.Add(new Renderer3DGeometryTextureGroupPlan(
+                group.TextureLongName,
+                SetTexture: true,
+                BoundTextureLongName: group.TextureLongName,
+                DrawPaletted: group.DrawPaletted,
+                SortBySectorFixedIndex: true,
+                OrderedGeometryIds: ordered.Select(item => item.GeometryId).ToArray()));
+        }
+
+        return new Renderer3DGeometryTextureGroupPlanSet(groups);
     }
 
     public static Renderer3DThingDrawStatePlanSet BuildThingDrawStatePlan(

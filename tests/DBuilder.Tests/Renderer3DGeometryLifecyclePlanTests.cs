@@ -1360,6 +1360,66 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
     }
 
     [Fact]
+    public void BuildGeometryTextureGroupPlanBindsTextureAndSortsGeometryBySectorIndex()
+    {
+        Renderer3DGeometryTextureGroupPlanSet plan = Renderer3DGeometryLifecyclePlan.BuildGeometryTextureGroupPlan(
+            [
+                new Renderer3DGeometryTextureGroupCandidate(
+                    TextureLongName: 100,
+                    DrawPaletted: false,
+                    Geometry:
+                    [
+                        new Renderer3DGeometryTextureGroupItem(GeometryId: 1, SectorFixedIndex: 20),
+                        new Renderer3DGeometryTextureGroupItem(GeometryId: 2, SectorFixedIndex: 10),
+                    ]),
+                new Renderer3DGeometryTextureGroupCandidate(
+                    TextureLongName: 200,
+                    DrawPaletted: true,
+                    Geometry:
+                    [
+                        new Renderer3DGeometryTextureGroupItem(GeometryId: 3, SectorFixedIndex: 5),
+                    ]),
+            ]);
+
+        Assert.Equal(2, plan.Groups.Count);
+        Assert.Equal(100, plan.Groups[0].TextureLongName);
+        Assert.True(plan.Groups[0].SetTexture);
+        Assert.Equal(100, plan.Groups[0].BoundTextureLongName);
+        Assert.False(plan.Groups[0].DrawPaletted);
+        Assert.True(plan.Groups[0].SortBySectorFixedIndex);
+        Assert.Equal([2, 1], plan.Groups[0].OrderedGeometryIds);
+        Assert.Equal(200, plan.Groups[1].TextureLongName);
+        Assert.True(plan.Groups[1].SetTexture);
+        Assert.Equal(200, plan.Groups[1].BoundTextureLongName);
+        Assert.True(plan.Groups[1].DrawPaletted);
+        Assert.True(plan.Groups[1].SortBySectorFixedIndex);
+        Assert.Equal([3], plan.Groups[1].OrderedGeometryIds);
+    }
+
+    [Fact]
+    public void BuildGeometryTextureGroupPlanKeepsEmptyTextureGroupsIterable()
+    {
+        Renderer3DGeometryTextureGroupPlanSet plan = Renderer3DGeometryLifecyclePlan.BuildGeometryTextureGroupPlan(
+            [
+                new Renderer3DGeometryTextureGroupCandidate(TextureLongName: 100, DrawPaletted: false, Geometry: []),
+            ]);
+
+        Renderer3DGeometryTextureGroupPlan group = Assert.Single(plan.Groups);
+        Assert.True(group.SetTexture);
+        Assert.Empty(group.OrderedGeometryIds);
+    }
+
+    [Fact]
+    public void BuildGeometryTextureGroupPlanRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentNullException>(() => Renderer3DGeometryLifecyclePlan.BuildGeometryTextureGroupPlan(null!));
+        Assert.Throws<ArgumentNullException>(() => Renderer3DGeometryLifecyclePlan.BuildGeometryTextureGroupPlan(
+            [
+                new Renderer3DGeometryTextureGroupCandidate(TextureLongName: 100, DrawPaletted: false, Geometry: null!),
+            ]));
+    }
+
+    [Fact]
     public void BuildThingShaderPassPlanKeepsBaseShaderWithoutHighlightFogOrVertexColor()
     {
         Renderer3DThingShaderPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingShaderPassPlan(
@@ -3144,6 +3204,12 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("graphics.Draw(PrimitiveType.LineList, 0, pointscount / 2);", source, StringComparison.Ordinal);
         Assert.Contains("vb.Dispose();", source, StringComparison.Ordinal);
         Assert.Contains("ShaderName highshaderpass = (ShaderName)(shaderpass + 2);", source, StringComparison.Ordinal);
+        Assert.Contains("foreach (KeyValuePair<ImageData, List<VisualGeometry>> group in geopass)", source, StringComparison.Ordinal);
+        Assert.Contains("curtexture = group.Key;", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetTexture(texture);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.drawPaletted, texture.UserData == ImageData.TEXTURE_INDEXED);", source, StringComparison.Ordinal);
+        Assert.Contains("group.Value.Sort((g1, g2) => g1.Sector.Sector.FixedIndex - g2.Sector.Sector.FixedIndex);", source, StringComparison.Ordinal);
+        Assert.Contains("foreach(VisualGeometry g in group.Value)", source, StringComparison.Ordinal);
         Assert.Contains("ShaderName wantedshaderpass = (((g == highlighted) && showhighlight) || (g.Selected && showselection)) ? highshaderpass : shaderpass;", source, StringComparison.Ordinal);
         Assert.Contains("if(General.Settings.GZDrawFog && !fullbrightness && !General.Settings.ClassicRendering && sector.Sector.FogMode != SectorFogMode.NONE)", source, StringComparison.Ordinal);
         Assert.Contains("wantedshaderpass += 8;", source, StringComparison.Ordinal);
