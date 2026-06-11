@@ -55,6 +55,7 @@ public static class RendererArchitectureModel
             "Render-device finish and present frame handoff planning",
             "Render-device named shader and uniform operation planning",
             "Render-device named shader and uniform source-compatible method surface",
+            "Render-device named uniform payload conversion planning",
             "Cull, depth, fill, blend, sampler, and texture state",
             "Flat and world vertex-buffer attribute binding",
             "Length-based vertex-buffer allocation",

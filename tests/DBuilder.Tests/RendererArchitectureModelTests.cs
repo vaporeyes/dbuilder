@@ -50,6 +50,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Render-device finish and present frame handoff planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device named shader and uniform operation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device named shader and uniform source-compatible method surface", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device named uniform payload conversion planning", replacement.CoveredResponsibilities);
         Assert.Contains("Index-buffer binding and primitive draw dispatch", replacement.CoveredResponsibilities);
         Assert.Contains("Length-based vertex-buffer allocation", replacement.CoveredResponsibilities);
         Assert.Contains("Flat and world vertex-buffer subdata updates", replacement.CoveredResponsibilities);
@@ -456,6 +457,46 @@ public class RendererArchitectureModelTests
         Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetUniform), new[] { typeof(UniformName), typeof(Vector2f[]) }));
         Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetUniform), new[] { typeof(UniformName), typeof(Vector3f[]) }));
         Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetUniform), new[] { typeof(UniformName), typeof(Vector4f[]) }));
+    }
+
+    [Fact]
+    public void RenderDeviceBuildsUdbNamedUniformPayloadPlans()
+    {
+        Matrix matrix = Matrix.Identity;
+        matrix.M12 = 2.0f;
+        matrix.M43 = 3.0f;
+
+        RenderShaderOperationPlan boolPlan = RenderDevice.BuildSetUniformPlan(UniformName.lightsEnabled, true);
+        RenderShaderOperationPlan colorPlan = RenderDevice.BuildSetUniformPlan(UniformName.vertexColor, new Color4(0.1f, 0.2f, 0.3f, 0.4f));
+        RenderShaderOperationPlan matrixPlan = RenderDevice.BuildSetUniformPlan(UniformName.world, matrix);
+        RenderShaderOperationPlan intVectorPlan = RenderDevice.BuildSetUniformPlan(UniformName.colormapSize, new Vector2i(320, 200));
+        RenderShaderOperationPlan arrayPlan = RenderDevice.BuildSetUniformPlan(
+            UniformName.lightPosAndRadius,
+            new[] { new Vector4f(1.0f, 2.0f, 3.0f, 4.0f), new Vector4f(5.0f, 6.0f, 7.0f, 8.0f) });
+        RenderShaderOperationPlan emptyArrayPlan = RenderDevice.BuildSetUniformPlan(
+            UniformName.light2Radius,
+            Array.Empty<Vector2f>());
+
+        Assert.Equal(UniformType.Float, boolPlan.UniformType);
+        Assert.Equal(new[] { 1.0f }, boolPlan.FloatValues);
+        Assert.Null(boolPlan.IntValues);
+        Assert.Equal(4, boolPlan.ValueByteSize);
+        Assert.Equal(UniformType.Vec4f, colorPlan.UniformType);
+        Assert.Equal(new[] { 0.1f, 0.2f, 0.3f, 0.4f }, colorPlan.FloatValues);
+        Assert.Equal(UniformType.Mat4, matrixPlan.UniformType);
+        Assert.Equal(new[] { 1.0f, 2.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 3.0f, 1.0f }, matrixPlan.FloatValues);
+        Assert.Equal(64, matrixPlan.ValueByteSize);
+        Assert.Equal(UniformType.Vec2i, intVectorPlan.UniformType);
+        Assert.Equal(new[] { 320, 200 }, intVectorPlan.IntValues);
+        Assert.Null(intVectorPlan.FloatValues);
+        Assert.Equal(8, intVectorPlan.ValueByteSize);
+        Assert.Equal(UniformType.Vec4fArray, arrayPlan.UniformType);
+        Assert.Equal(2, arrayPlan.ValueCount);
+        Assert.Equal(32, arrayPlan.ValueByteSize);
+        Assert.Equal(new[] { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f }, arrayPlan.FloatValues);
+        Assert.Equal(0, emptyArrayPlan.ValueCount);
+        Assert.Equal(0, emptyArrayPlan.ValueByteSize);
+        Assert.Empty(emptyArrayPlan.FloatValues!);
     }
 
     [Fact]

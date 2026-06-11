@@ -1524,6 +1524,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style render-device enum values.
   - [x] Add UDB-style render-device named shader and uniform operation planning.
   - [x] Add UDB-style render-device named shader and uniform method surface.
+  - [x] Add UDB-style render-device named uniform payload conversion planning.
   - [x] Add UDB-style shader name enum surface.
   - [x] Add UDB-style text alignment enum underlying types.
   - [x] Add UDB-style uniform type enum underlying type.

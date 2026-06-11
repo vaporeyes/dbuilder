@@ -131,7 +131,9 @@ public sealed record RenderShaderOperationPlan(
     string? ShaderGroupName = null,
     string? ShaderEntryName = null,
     int ValueCount = 0,
-    int ValueByteSize = 0);
+    int ValueByteSize = 0,
+    float[]? FloatValues = null,
+    int[]? IntValues = null);
 
 public sealed record RenderResourceRegistrationPlan(
     RenderResourceRegistrationKind Kind,
@@ -440,49 +442,49 @@ public sealed class RenderDevice : IDisposable
         => _lastShaderOperation = BuildSetShaderPlan(shader);
 
     public void SetUniform(UniformName uniform, bool value)
-        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Float);
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, value);
 
     public void SetUniform(UniformName uniform, float value)
-        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Float);
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, value);
 
     public void SetUniform(UniformName uniform, Vector2f value)
-        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Vec2f);
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, value);
 
     public void SetUniform(UniformName uniform, Vector3f value)
-        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Vec3f);
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, value);
 
     public void SetUniform(UniformName uniform, Vector4f value)
-        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Vec4f);
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, value);
 
     public void SetUniform(UniformName uniform, Color4 value)
-        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Vec4f);
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, value);
 
     public void SetUniform(UniformName uniform, Matrix matrix)
-        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Mat4);
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, matrix);
 
     public void SetUniform(UniformName uniform, ref Matrix matrix)
-        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Mat4);
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, matrix);
 
     public void SetUniform(UniformName uniform, int value)
-        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Int);
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, value);
 
     public void SetUniform(UniformName uniform, Vector2i value)
-        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Vec2i);
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, value);
 
     public void SetUniform(UniformName uniform, Vector3i value)
-        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Vec3i);
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, value);
 
     public void SetUniform(UniformName uniform, Vector4i value)
-        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Vec4i);
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, value);
 
     public void SetUniform(UniformName uniform, Vector2f[] value)
-        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Vec2fArray, value.Length);
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, value);
 
     public void SetUniform(UniformName uniform, Vector3f[] value)
-        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Vec3fArray, value.Length);
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, value);
 
     public void SetUniform(UniformName uniform, Vector4f[] value)
-        => _lastShaderOperation = BuildSetUniformPlan(uniform, UniformType.Vec4fArray, value.Length);
+        => _lastShaderOperation = BuildSetUniformPlan(uniform, value);
 
     public void SetUniform(string name, Matrix4x4 m)
     {
@@ -719,7 +721,7 @@ public sealed class RenderDevice : IDisposable
         UniformType type,
         int valueCount = 1)
     {
-        if (valueCount <= 0) throw new ArgumentOutOfRangeException(nameof(valueCount));
+        if (valueCount < 0) throw new ArgumentOutOfRangeException(nameof(valueCount));
 
         return new(
             RenderShaderOperationKind.SetUniform,
@@ -729,6 +731,90 @@ public sealed class RenderDevice : IDisposable
             ValueByteSize: checked(GetUniformValueByteSize(type, valueCount)));
     }
 
+    public static RenderShaderOperationPlan BuildSetUniformPlan(UniformName uniform, bool value)
+        => BuildSetUniformPlan(uniform, UniformType.Float, floatValues: [value ? 1.0f : 0.0f]);
+
+    public static RenderShaderOperationPlan BuildSetUniformPlan(UniformName uniform, float value)
+        => BuildSetUniformPlan(uniform, UniformType.Float, floatValues: [value]);
+
+    public static RenderShaderOperationPlan BuildSetUniformPlan(UniformName uniform, Vector2f value)
+        => BuildSetUniformPlan(uniform, UniformType.Vec2f, floatValues: [value.X, value.Y]);
+
+    public static RenderShaderOperationPlan BuildSetUniformPlan(UniformName uniform, Vector3f value)
+        => BuildSetUniformPlan(uniform, UniformType.Vec3f, floatValues: [value.X, value.Y, value.Z]);
+
+    public static RenderShaderOperationPlan BuildSetUniformPlan(UniformName uniform, Vector4f value)
+        => BuildSetUniformPlan(uniform, UniformType.Vec4f, floatValues: [value.X, value.Y, value.Z, value.W]);
+
+    public static RenderShaderOperationPlan BuildSetUniformPlan(UniformName uniform, Color4 value)
+        => BuildSetUniformPlan(uniform, UniformType.Vec4f, floatValues: [value.Red, value.Green, value.Blue, value.Alpha]);
+
+    public static RenderShaderOperationPlan BuildSetUniformPlan(UniformName uniform, Matrix value)
+        => BuildSetUniformPlan(
+            uniform,
+            UniformType.Mat4,
+            floatValues:
+            [
+                value.M11, value.M12, value.M13, value.M14,
+                value.M21, value.M22, value.M23, value.M24,
+                value.M31, value.M32, value.M33, value.M34,
+                value.M41, value.M42, value.M43, value.M44,
+            ]);
+
+    public static RenderShaderOperationPlan BuildSetUniformPlan(UniformName uniform, int value)
+        => BuildSetUniformPlan(uniform, UniformType.Int, intValues: [value]);
+
+    public static RenderShaderOperationPlan BuildSetUniformPlan(UniformName uniform, Vector2i value)
+        => BuildSetUniformPlan(uniform, UniformType.Vec2i, intValues: [value.X, value.Y]);
+
+    public static RenderShaderOperationPlan BuildSetUniformPlan(UniformName uniform, Vector3i value)
+        => BuildSetUniformPlan(uniform, UniformType.Vec3i, intValues: [value.X, value.Y, value.Z]);
+
+    public static RenderShaderOperationPlan BuildSetUniformPlan(UniformName uniform, Vector4i value)
+        => BuildSetUniformPlan(uniform, UniformType.Vec4i, intValues: [value.X, value.Y, value.Z, value.W]);
+
+    public static RenderShaderOperationPlan BuildSetUniformPlan(UniformName uniform, Vector2f[] value)
+    {
+        float[] values = new float[value.Length * 2];
+        for (int i = 0; i < value.Length; i++)
+        {
+            int index = i * 2;
+            values[index] = value[i].X;
+            values[index + 1] = value[i].Y;
+        }
+
+        return BuildSetUniformPlan(uniform, UniformType.Vec2fArray, value.Length, floatValues: values);
+    }
+
+    public static RenderShaderOperationPlan BuildSetUniformPlan(UniformName uniform, Vector3f[] value)
+    {
+        float[] values = new float[value.Length * 3];
+        for (int i = 0; i < value.Length; i++)
+        {
+            int index = i * 3;
+            values[index] = value[i].X;
+            values[index + 1] = value[i].Y;
+            values[index + 2] = value[i].Z;
+        }
+
+        return BuildSetUniformPlan(uniform, UniformType.Vec3fArray, value.Length, floatValues: values);
+    }
+
+    public static RenderShaderOperationPlan BuildSetUniformPlan(UniformName uniform, Vector4f[] value)
+    {
+        float[] values = new float[value.Length * 4];
+        for (int i = 0; i < value.Length; i++)
+        {
+            int index = i * 4;
+            values[index] = value[i].X;
+            values[index + 1] = value[i].Y;
+            values[index + 2] = value[i].Z;
+            values[index + 3] = value[i].W;
+        }
+
+        return BuildSetUniformPlan(uniform, UniformType.Vec4fArray, value.Length, floatValues: values);
+    }
+
     public static SamplerFilterPlan BuildSamplerFilterPlan(
         TextureFilter min,
         TextureFilter mag,
@@ -736,6 +822,25 @@ public sealed class RenderDevice : IDisposable
         float maxAnisotropy,
         int unit = 0)
         => new(min, mag, mip, maxAnisotropy, unit);
+
+    private static RenderShaderOperationPlan BuildSetUniformPlan(
+        UniformName uniform,
+        UniformType type,
+        int valueCount = 1,
+        float[]? floatValues = null,
+        int[]? intValues = null)
+    {
+        if (valueCount < 0) throw new ArgumentOutOfRangeException(nameof(valueCount));
+
+        return new(
+            RenderShaderOperationKind.SetUniform,
+            UniformName: uniform,
+            UniformType: type,
+            ValueCount: valueCount,
+            ValueByteSize: checked(GetUniformValueByteSize(type, valueCount)),
+            FloatValues: floatValues,
+            IntValues: intValues);
+    }
 
     private static int GetUniformValueByteSize(UniformType type, int valueCount)
     {
