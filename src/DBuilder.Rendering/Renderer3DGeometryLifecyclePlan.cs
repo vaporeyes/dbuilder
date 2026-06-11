@@ -62,6 +62,7 @@ public enum Renderer3DGeometryPassOperationKind
     RenderTranslucentPass,
     RenderThingCages,
     RenderVertices,
+    RenderSlopeHandles,
 }
 
 public sealed record Renderer3DGeometryPassOperation(
@@ -98,6 +99,11 @@ public sealed record Renderer3DThingCagePassPlan(IReadOnlyList<Renderer3DGeometr
 }
 
 public sealed record Renderer3DVisualVerticesPassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations);
+
+public sealed record Renderer3DSlopeHandlesPassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations)
+{
+    public bool ShouldRender => Operations.Count > 0;
+}
 
 public static class Renderer3DGeometryLifecyclePlan
 {
@@ -243,6 +249,14 @@ public static class Renderer3DGeometryLifecyclePlan
             [
                 new(Renderer3DGeometryPassOperationKind.RenderVertices),
             ]);
+
+    public static Renderer3DSlopeHandlesPassPlan BuildSlopeHandlesPassPlan(bool isUdmfMap)
+        => isUdmfMap
+            ? new Renderer3DSlopeHandlesPassPlan(
+                [
+                    new(Renderer3DGeometryPassOperationKind.RenderSlopeHandles),
+                ])
+            : new Renderer3DSlopeHandlesPassPlan([]);
 
     public static Renderer3DFinishGeometryCleanupPlan BuildFinishGeometryCleanupPlan()
         => new(
