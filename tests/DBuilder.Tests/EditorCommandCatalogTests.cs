@@ -2114,21 +2114,27 @@ public class EditorCommandCatalogTests
         Assert.Equal("3D Floor Mode", floor.Title);
         Assert.Equal(EditorCommandScope.Map2D, floor.Scope);
         Assert.True(floor.AllowScroll);
+        Assert.Equal("Edits 3D floors", floor.Description);
         Assert.Equal("threedfloorhelpermode", ThreeDFloors.ModeDescriptor.SwitchAction);
         Assert.NotNull(floorAlias);
         Assert.Equal("3D floor editing mode", floorAlias.Title);
+        Assert.Equal(floor.Description, floorAlias.Description);
 
         Assert.NotNull(slope);
         Assert.Equal("Slope Mode", slope.Title);
+        Assert.Equal("Edits slope vertex groups", slope.Description);
         Assert.Equal("threedslopemode", ThreeDFloors.SlopeModeDescriptor.SwitchAction);
         Assert.NotNull(slopeAlias);
         Assert.Equal("Slope mode", slopeAlias.Title);
+        Assert.Equal(slope.Description, slopeAlias.Description);
 
         Assert.NotNull(drawSlopes);
         Assert.Equal("Draw Slopes Mode", drawSlopes.Title);
+        Assert.Equal("Draws a slope vertex group", drawSlopes.Description);
         Assert.Equal("drawslopesmode", ThreeDFloors.DrawSlopesModeDescriptor.SwitchAction);
         Assert.NotNull(drawSlopesAlias);
         Assert.Equal("Draw slope mode", drawSlopesAlias.Title);
+        Assert.Equal(drawSlopes.Description, drawSlopesAlias.Description);
     }
 
     [Fact]
