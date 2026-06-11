@@ -1512,6 +1512,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style 2D thing bounding-box line pass planning.
   - [x] Add UDB-style 2D arrow line draw planning.
   - [x] Add UDB-style 2D thick line draw planning.
+  - [x] Add UDB-style 2D rectangle border draw planning.
 - [ ] Port renderer 3D parity.
 - [ ] Port render passes and layers.
   - [x] Add UDB-style 2D presentation layer stack planning.
