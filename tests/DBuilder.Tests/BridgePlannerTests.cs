@@ -3,17 +3,78 @@
 
 using DBuilder.Geometry;
 using DBuilder.Map;
+using System.Text.RegularExpressions;
 
 namespace DBuilder.Tests;
 
 public class BridgePlannerTests
 {
+    private static string? FindUdbRoot()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "."));
+        string sibling = Path.GetFullPath(Path.Combine(repositoryRoot, "..", "UltimateDoomBuilder"));
+        if (File.Exists(Path.Combine(sibling, "Source", "Plugins", "BuilderModes", "Interface", "BridgeModeForm.cs"))) return sibling;
+
+        string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string root = Path.Combine(home, "dev", "repos", "UltimateDoomBuilder");
+        return File.Exists(Path.Combine(root, "Source", "Plugins", "BuilderModes", "Interface", "BridgeModeForm.cs")) ? root : null;
+    }
+
+    private static string[] BridgeModeLabels(string source, string arrayName)
+    {
+        var constants = Regex.Matches(source, @"public\s+const\s+string\s+(?<name>\w+)\s*=\s*""(?<value>[^""]+)""")
+            .Cast<Match>()
+            .ToDictionary(match => match.Groups["name"].Value, match => match.Groups["value"].Value, StringComparer.Ordinal);
+        var match = Regex.Match(source, @"public\s+static\s+readonly\s+string\[\]\s+" + arrayName + @"\s*=\s*\{\s*(?<values>[^}]+)\s*\}");
+        Assert.True(match.Success, "Expected UDB bridge interpolation array " + arrayName + ".");
+
+        string values = Regex.Replace(match.Groups["values"].Value, @"/\*.*?\*/", "", RegexOptions.Singleline);
+        return values
+            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Select(value => constants[value])
+            .ToArray();
+    }
+
     [Fact]
     public void CreatedStatusMatchesUdbBridgeModeMessage()
     {
         Assert.Equal("Created a Bridge with 0 subdivisions.", BridgePlanner.CreatedStatus(BridgePlanner.MinSubdivisions));
         Assert.Equal("Created a Bridge with 12 subdivisions.", BridgePlanner.CreatedStatus(12));
         Assert.Equal("Created a Bridge with 32 subdivisions.", BridgePlanner.CreatedStatus(99));
+    }
+
+    [Fact]
+    public void InterpolationOptionLabelsMatchUdbBridgeModeFormWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string path = Path.Combine(udbRoot, "Source", "Plugins", "BuilderModes", "Interface", "BridgeModeForm.cs");
+        string source = File.ReadAllText(path);
+
+        Assert.Equal(
+            BridgeModeLabels(source, "FLOOR_INTERPOLATION_MODES"),
+            BridgePlanner.FloorInterpolationOptions.Select(option => option.Label).ToArray());
+        Assert.Equal(
+            BridgeModeLabels(source, "CEILING_INTERPOLATION_MODES"),
+            BridgePlanner.CeilingInterpolationOptions.Select(option => option.Label).ToArray());
+        Assert.Equal(
+            BridgeModeLabels(source, "BRIGHTNESS_INTERPOLATION_MODES"),
+            BridgePlanner.BrightnessInterpolationOptions.Select(option => option.Label).ToArray());
+    }
+
+    [Fact]
+    public void InterpolationOptionModesMatchUdbBridgeModeBehavior()
+    {
+        Assert.Equal(
+            new[] { BridgeInterpolation.Linear, BridgeInterpolation.Lowest, BridgeInterpolation.EaseInSine, BridgeInterpolation.EaseOutSine, BridgeInterpolation.EaseInOutSine },
+            BridgePlanner.FloorInterpolationOptions.Select(option => option.Mode).ToArray());
+        Assert.Equal(
+            new[] { BridgeInterpolation.Linear, BridgeInterpolation.Highest, BridgeInterpolation.EaseInSine, BridgeInterpolation.EaseOutSine, BridgeInterpolation.EaseInOutSine },
+            BridgePlanner.CeilingInterpolationOptions.Select(option => option.Mode).ToArray());
+        Assert.Equal(
+            new[] { BridgeInterpolation.Linear, BridgeInterpolation.Highest, BridgeInterpolation.Lowest },
+            BridgePlanner.BrightnessInterpolationOptions.Select(option => option.Mode).ToArray());
     }
 
     [Fact]

@@ -34,10 +34,37 @@ public sealed record BridgeShape(IReadOnlyList<Vector2D> Loop, BridgeSectorPrope
 
 public sealed record BridgePlan(IReadOnlyList<IReadOnlyList<Vector2D>> Curves, IReadOnlyList<BridgeShape> Shapes);
 
+public sealed record BridgeInterpolationOption(string Label, BridgeInterpolation Mode);
+
 public static class BridgePlanner
 {
     public const int MinSubdivisions = 0;
     public const int MaxSubdivisions = 32;
+
+    public static IReadOnlyList<BridgeInterpolationOption> FloorInterpolationOptions { get; } =
+    [
+        new("Linear interpolation", BridgeInterpolation.Linear),
+        new("Lowest floor", BridgeInterpolation.Lowest),
+        new("EaseInSine interpolation", BridgeInterpolation.EaseInSine),
+        new("EaseOutSine interpolation", BridgeInterpolation.EaseOutSine),
+        new("EaseInOutSine interpolation", BridgeInterpolation.EaseInOutSine),
+    ];
+
+    public static IReadOnlyList<BridgeInterpolationOption> CeilingInterpolationOptions { get; } =
+    [
+        new("Linear interpolation", BridgeInterpolation.Linear),
+        new("Highest ceiling", BridgeInterpolation.Highest),
+        new("EaseInSine interpolation", BridgeInterpolation.EaseInSine),
+        new("EaseOutSine interpolation", BridgeInterpolation.EaseOutSine),
+        new("EaseInOutSine interpolation", BridgeInterpolation.EaseInOutSine),
+    ];
+
+    public static IReadOnlyList<BridgeInterpolationOption> BrightnessInterpolationOptions { get; } =
+    [
+        new("Linear interpolation", BridgeInterpolation.Linear),
+        new("Use highest", BridgeInterpolation.Highest),
+        new("Use lowest", BridgeInterpolation.Lowest),
+    ];
 
     public static string CreatedStatus(int subdivisions)
         => "Created a Bridge with " + Math.Clamp(subdivisions, MinSubdivisions, MaxSubdivisions) + " subdivisions.";

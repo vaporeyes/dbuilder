@@ -2482,6 +2482,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style Apply lightfog flag action for selected linedefs.
 - [x] Port bridge mode.
   - [x] Add UDB-style Bridge Mode action metadata, shortcut, and command dispatch.
+  - [x] Add UDB-style Bridge Mode interpolation option labels.
   - [x] Add UDB-style bridge line-chain validation, Bezier shape planning, and sector property interpolation.
   - [x] Add editor menu and toolbar bridge materialization from selected linedef chains.
 - [x] Port slope arch tools.
