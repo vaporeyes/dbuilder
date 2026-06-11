@@ -69,6 +69,44 @@ public sealed class RenderingMetadataTests
     }
 
     [Fact]
+    public void ShaderNameValuesMatchUdbOrdering()
+    {
+        Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(ShaderName)));
+        Assert.Equal(
+            new[]
+            {
+                "display2d_fsaa",
+                "display2d_normal",
+                "display2d_fullbright",
+                "things2d_thing",
+                "things2d_sprite",
+                "things2d_fill",
+                "world3d_main",
+                "world3d_fullbright",
+                "world3d_main_highlight",
+                "world3d_fullbright_highlight",
+                "world3d_main_vertexcolor",
+                "world3d_skybox",
+                "world3d_main_highlight_vertexcolor",
+                "world3d_p7",
+                "world3d_main_fog",
+                "world3d_p9",
+                "world3d_main_highlight_fog",
+                "world3d_p11",
+                "world3d_main_fog_vertexcolor",
+                "world3d_p13",
+                "world3d_main_highlight_fog_vertexcolor",
+                "world3d_vertex_color",
+                "world3d_constant_color",
+                "world3d_slope_handle",
+                "world3d_classic",
+                "world3d_p19",
+                "world3d_classic_highlight",
+            },
+            Enum.GetNames<ShaderName>());
+    }
+
+    [Fact]
     public void TextAlignmentXValuesMatchUdbOrdering()
     {
         Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(TextAlignmentX)));

@@ -1522,6 +1522,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style SurfaceEntry field and UpdateBBox aliases.
   - [x] Add UDB-style SurfaceUpdate field aliases.
   - [x] Add UDB-style render-device enum values.
+  - [x] Add UDB-style shader name enum surface.
   - [x] Add UDB-style text alignment enum underlying types.
   - [x] Add UDB-style uniform type enum underlying type.
 - [x] Port render modes and view modes.
