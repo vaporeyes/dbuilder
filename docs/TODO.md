@@ -1498,6 +1498,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style 2D line plotting metric planning.
   - [x] Add UDB-style 2D renderer coordinate transform planning.
   - [x] Add UDB-style 2D renderer color selection planning.
+  - [x] Add UDB-style 2D renderer brightness color planning.
   - [x] Add UDB-style 2D plot line draw planning.
   - [x] Add UDB-style 2D linedef segment and normal indicator planning.
   - [x] Add UDB-style 2D vertex marker size planning.

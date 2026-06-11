@@ -85,4 +85,23 @@ public sealed class Renderer2DColorPlannerTests
 
         Assert.Equal(PixelColor.FromArgb(unchecked((int)0x40112233)), color);
     }
+
+    [Theory]
+    [InlineData(160, false, RendererBrightnessLightMode.Configuration, 0xffa0a0a0)]
+    [InlineData(160, true, RendererBrightnessLightMode.Configuration, 0xff909090)]
+    [InlineData(160, false, RendererBrightnessLightMode.Doom, 0xff909090)]
+    [InlineData(160, true, RendererBrightnessLightMode.Standard, 0xffa0a0a0)]
+    [InlineData(200, true, RendererBrightnessLightMode.Configuration, 0xffc8c8c8)]
+    [InlineData(-10, false, RendererBrightnessLightMode.Configuration, 0xff000000)]
+    [InlineData(300, false, RendererBrightnessLightMode.Configuration, 0xffffffff)]
+    public void CalculateBrightnessMatchesUdbRendererBase(
+        int level,
+        bool doomLightLevels,
+        RendererBrightnessLightMode lightMode,
+        uint expected)
+    {
+        int color = Renderer2DColorPlanner.CalculateBrightness(level, doomLightLevels, lightMode);
+
+        Assert.Equal(unchecked((int)expected), color);
+    }
 }
