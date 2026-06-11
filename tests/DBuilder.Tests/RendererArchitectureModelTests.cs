@@ -126,6 +126,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Surface manager update and free surface-entry lifecycle planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text font byte-indexed glyph table planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text font Font.cfg resource discovery and glyph-source parsing", replacement.CoveredResponsibilities);
+        Assert.Contains("Text font resource and containment helpers", replacement.CoveredResponsibilities);
         Assert.Contains("Text font configuration metric normalization", replacement.CoveredResponsibilities);
         Assert.Contains("Text font glyph metrics and vertex planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text font string vertex sequence planning", replacement.CoveredResponsibilities);
@@ -136,12 +137,15 @@ public class RendererArchitectureModelTests
         Assert.Contains("Text label scale setter font invalidation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label size, alignment, transform, culling, and quad planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label plain and background image drawing planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Text label skipped-label filtering and render dispatch planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label render dispatch planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label render-state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label planner input validation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label dirty-state and resource invalidation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label unload-resource disposal planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Text label transform-cache invalidation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label skipped-resource invalidation planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Text label skipped-resource invalidation distinction", replacement.CoveredResponsibilities);
         Assert.Contains("Text label offscreen texture disposal planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label offscreen vertex-buffer disposal planning", replacement.CoveredResponsibilities);
         Assert.Contains("Text label texture and vertex-buffer update planning", replacement.CoveredResponsibilities);
