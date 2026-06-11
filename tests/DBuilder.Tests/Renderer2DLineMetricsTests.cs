@@ -403,6 +403,39 @@ public sealed class Renderer2DLineMetricsTests
     }
 
     [Fact]
+    public void BuildPlotLinedefSetSegmentsKeepsPerLineSegments()
+    {
+        IReadOnlyList<Renderer2DPlotLinedefSetSegment> segments =
+            Renderer2DLineMetricPlanner.BuildPlotLinedefSetSegments(
+            [
+                new Renderer2DPlotLinedefInput(10, new Vector2D(0, 0), new Vector2D(10, 0), ExtraFloor: false),
+                new Renderer2DPlotLinedefInput(11, new Vector2D(0, 0), new Vector2D(0.1, 0), ExtraFloor: false),
+                new Renderer2DPlotLinedefInput(12, new Vector2D(0, 0), new Vector2D(1, 0), ExtraFloor: true),
+            ],
+            translateX: 1,
+            translateY: 2,
+            scale: 2,
+            viewportHeight: 100,
+            markExtraFloors: true);
+
+        Assert.Equal(new[]
+        {
+            new Renderer2DPlotLinedefSetSegment(10, new Renderer2DLinedefSegment(Renderer2DLinedefSegmentKind.Main, 2, 104, 22, 104)),
+            new Renderer2DPlotLinedefSetSegment(10, new Renderer2DLinedefSegment(Renderer2DLinedefSegmentKind.NormalIndicator, 12, 104, 12, 99)),
+            new Renderer2DPlotLinedefSetSegment(12, new Renderer2DLinedefSegment(Renderer2DLinedefSegmentKind.ThreeDFloor, 2, 104, 4, 104)),
+        }, segments);
+    }
+
+    [Fact]
+    public void BuildPlotLinedefSetSegmentsRejectsNullLines()
+        => Assert.Throws<ArgumentNullException>(() => Renderer2DLineMetricPlanner.BuildPlotLinedefSetSegments(
+            null!,
+            translateX: 0,
+            translateY: 0,
+            scale: 1,
+            viewportHeight: 100));
+
+    [Fact]
     public void BuildExtraFloorFlaggedLineIndexesUsesUdmfArg0Tags()
     {
         Renderer2DExtraFloorLine control = ExtraFloorLine(

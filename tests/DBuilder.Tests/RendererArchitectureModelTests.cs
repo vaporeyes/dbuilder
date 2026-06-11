@@ -50,6 +50,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Renderer2D extra-floor flag planning", replacement.CoveredResponsibilities);
         Assert.Contains("Renderer2D sector plotting operation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Renderer2D vertex set plotting planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Renderer2D linedef set plotting planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device alpha-blend state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device alpha-test compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device multisample antialias compatibility state planning", replacement.CoveredResponsibilities);

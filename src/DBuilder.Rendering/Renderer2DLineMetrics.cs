@@ -43,6 +43,16 @@ public readonly record struct Renderer2DLinedefSegment(
     int EndX,
     int EndY);
 
+public readonly record struct Renderer2DPlotLinedefInput(
+    int LinedefIndex,
+    Vector2D Start,
+    Vector2D End,
+    bool ExtraFloor);
+
+public readonly record struct Renderer2DPlotLinedefSetSegment(
+    int LinedefIndex,
+    Renderer2DLinedefSegment Segment);
+
 public readonly record struct Renderer2DPlotLinePlan(
     bool ShouldDraw,
     int StartX,
@@ -307,6 +317,36 @@ public static class Renderer2DLineMetricPlanner
             TransformY((int)(v1.y + my), viewportHeight),
             (int)((v1.x + mx) - (my * lengthInv) * metrics.LineNormalSize),
             TransformY((int)((v1.y + my) + (mx * lengthInv) * metrics.LineNormalSize), viewportHeight)));
+
+        return segments;
+    }
+
+    public static IReadOnlyList<Renderer2DPlotLinedefSetSegment> BuildPlotLinedefSetSegments(
+        IEnumerable<Renderer2DPlotLinedefInput> linedefs,
+        double translateX,
+        double translateY,
+        double scale,
+        int viewportHeight,
+        bool markExtraFloors = false)
+    {
+        ArgumentNullException.ThrowIfNull(linedefs);
+
+        var segments = new List<Renderer2DPlotLinedefSetSegment>();
+        foreach (Renderer2DPlotLinedefInput linedef in linedefs)
+        {
+            foreach (Renderer2DLinedefSegment segment in BuildLinedefSegments(
+                linedef.Start,
+                linedef.End,
+                translateX,
+                translateY,
+                scale,
+                viewportHeight,
+                linedef.ExtraFloor,
+                markExtraFloors))
+            {
+                segments.Add(new Renderer2DPlotLinedefSetSegment(linedef.LinedefIndex, segment));
+            }
+        }
 
         return segments;
     }
