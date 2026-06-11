@@ -41,6 +41,16 @@ public enum RenderFrameOperationKind
     Present,
 }
 
+public enum RenderBufferOperationKind
+{
+    SetFlatVertexData,
+    SetWorldVertexData,
+    SetIndexData,
+    SetVertexLength,
+    SetFlatVertexSubdata,
+    SetWorldVertexSubdata,
+}
+
 public enum RenderShaderOperationKind
 {
     DeclareUniform,
@@ -119,6 +129,14 @@ public sealed record DrawOperationPlan(
 public sealed record RenderFrameOperationPlan(
     RenderFrameOperationKind Kind,
     bool FlushCommands);
+
+public sealed record RenderBufferOperationPlan(
+    RenderBufferOperationKind Kind,
+    VertexFormat? VertexFormat,
+    int ElementCount,
+    long ElementOffset,
+    long ByteOffset,
+    long ByteCount);
 
 public sealed record RenderShaderOperationPlan(
     RenderShaderOperationKind Kind,
@@ -322,12 +340,7 @@ public sealed class RenderDevice : IDisposable
     {
         if (length < 0) throw new ArgumentOutOfRangeException(nameof(length));
 
-        int stride = format switch
-        {
-            VertexFormat.Flat => FlatVertex.Stride,
-            VertexFormat.World => WorldVertex.Stride,
-            _ => throw new ArgumentOutOfRangeException(nameof(format)),
-        };
+        int stride = VertexStride(format);
 
         buffer.Format = format;
         buffer.VertexCount = length;
@@ -425,6 +438,93 @@ public sealed class RenderDevice : IDisposable
         _boundIb = buffer;
         _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, buffer?.Handle ?? 0);
     }
+
+    public static RenderBufferOperationPlan BuildSetBufferDataPlan(FlatVertex[] data)
+        => new(
+            RenderBufferOperationKind.SetFlatVertexData,
+            VertexFormat.Flat,
+            data.Length,
+            ElementOffset: 0,
+            ByteOffset: 0,
+            ByteCount: checked((long)data.Length * FlatVertex.Stride));
+
+    public static RenderBufferOperationPlan BuildSetBufferDataPlan(WorldVertex[] data)
+        => new(
+            RenderBufferOperationKind.SetWorldVertexData,
+            VertexFormat.World,
+            data.Length,
+            ElementOffset: 0,
+            ByteOffset: 0,
+            ByteCount: checked((long)data.Length * WorldVertex.Stride));
+
+    public static RenderBufferOperationPlan BuildSetBufferDataPlan(int[] data)
+        => new(
+            RenderBufferOperationKind.SetIndexData,
+            VertexFormat: null,
+            data.Length,
+            ElementOffset: 0,
+            ByteOffset: 0,
+            ByteCount: checked((long)data.Length * sizeof(int)));
+
+    public static RenderBufferOperationPlan BuildSetBufferDataPlan(int length, VertexFormat format)
+    {
+        if (length < 0) throw new ArgumentOutOfRangeException(nameof(length));
+
+        return new RenderBufferOperationPlan(
+            RenderBufferOperationKind.SetVertexLength,
+            format,
+            length,
+            ElementOffset: 0,
+            ByteOffset: 0,
+            ByteCount: checked((long)length * VertexStride(format)));
+    }
+
+    public static RenderBufferOperationPlan BuildSetBufferSubdataPlan(long destOffset, FlatVertex[] data)
+    {
+        if (destOffset < 0) throw new ArgumentOutOfRangeException(nameof(destOffset));
+
+        return new RenderBufferOperationPlan(
+            RenderBufferOperationKind.SetFlatVertexSubdata,
+            VertexFormat.Flat,
+            data.Length,
+            destOffset,
+            ByteOffset: checked(destOffset * FlatVertex.Stride),
+            ByteCount: checked((long)data.Length * FlatVertex.Stride));
+    }
+
+    public static RenderBufferOperationPlan BuildSetBufferSubdataPlan(long destOffset, WorldVertex[] data)
+    {
+        if (destOffset < 0) throw new ArgumentOutOfRangeException(nameof(destOffset));
+
+        return new RenderBufferOperationPlan(
+            RenderBufferOperationKind.SetWorldVertexSubdata,
+            VertexFormat.World,
+            data.Length,
+            destOffset,
+            ByteOffset: checked(destOffset * WorldVertex.Stride),
+            ByteCount: checked((long)data.Length * WorldVertex.Stride));
+    }
+
+    public static RenderBufferOperationPlan BuildSetBufferSubdataPlan(FlatVertex[] data, long size)
+    {
+        if (size < 0 || size > data.Length) throw new ArgumentOutOfRangeException(nameof(size));
+
+        return new RenderBufferOperationPlan(
+            RenderBufferOperationKind.SetFlatVertexSubdata,
+            VertexFormat.Flat,
+            checked((int)size),
+            ElementOffset: 0,
+            ByteOffset: 0,
+            ByteCount: checked(size * FlatVertex.Stride));
+    }
+
+    private static int VertexStride(VertexFormat format)
+        => format switch
+        {
+            VertexFormat.Flat => FlatVertex.Stride,
+            VertexFormat.World => WorldVertex.Stride,
+            _ => throw new ArgumentOutOfRangeException(nameof(format)),
+        };
 
     public void SetShader(Shader shader)
     {

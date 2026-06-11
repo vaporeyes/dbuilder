@@ -51,6 +51,93 @@ public sealed class RenderingMetadataTests
     }
 
     [Fact]
+    public void BufferDataPlansUseUdbVertexAndIndexByteSizes()
+    {
+        RenderBufferOperationPlan flat = RenderDevice.BuildSetBufferDataPlan(new FlatVertex[3]);
+        RenderBufferOperationPlan world = RenderDevice.BuildSetBufferDataPlan(new WorldVertex[2]);
+        RenderBufferOperationPlan index = RenderDevice.BuildSetBufferDataPlan(new int[5]);
+
+        Assert.Equal(new RenderBufferOperationPlan(
+            RenderBufferOperationKind.SetFlatVertexData,
+            VertexFormat.Flat,
+            ElementCount: 3,
+            ElementOffset: 0,
+            ByteOffset: 0,
+            ByteCount: 3 * FlatVertex.Stride), flat);
+        Assert.Equal(new RenderBufferOperationPlan(
+            RenderBufferOperationKind.SetWorldVertexData,
+            VertexFormat.World,
+            ElementCount: 2,
+            ElementOffset: 0,
+            ByteOffset: 0,
+            ByteCount: 2 * WorldVertex.Stride), world);
+        Assert.Equal(new RenderBufferOperationPlan(
+            RenderBufferOperationKind.SetIndexData,
+            VertexFormat: null,
+            ElementCount: 5,
+            ElementOffset: 0,
+            ByteOffset: 0,
+            ByteCount: 5 * sizeof(int)), index);
+    }
+
+    [Fact]
+    public void BufferLengthPlanUsesRequestedVertexFormatStride()
+    {
+        RenderBufferOperationPlan flat = RenderDevice.BuildSetBufferDataPlan(8, VertexFormat.Flat);
+        RenderBufferOperationPlan world = RenderDevice.BuildSetBufferDataPlan(8, VertexFormat.World);
+
+        Assert.Equal(8 * FlatVertex.Stride, flat.ByteCount);
+        Assert.Equal(8 * WorldVertex.Stride, world.ByteCount);
+        Assert.Equal(VertexFormat.Flat, flat.VertexFormat);
+        Assert.Equal(VertexFormat.World, world.VertexFormat);
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildSetBufferDataPlan(-1, VertexFormat.Flat));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildSetBufferDataPlan(1, (VertexFormat)99));
+    }
+
+    [Fact]
+    public void BufferSubdataPlansConvertElementOffsetsToByteOffsets()
+    {
+        RenderBufferOperationPlan flat = RenderDevice.BuildSetBufferSubdataPlan(4, new FlatVertex[3]);
+        RenderBufferOperationPlan world = RenderDevice.BuildSetBufferSubdataPlan(2, new WorldVertex[5]);
+        RenderBufferOperationPlan flatPrefix = RenderDevice.BuildSetBufferSubdataPlan(new FlatVertex[6], size: 4);
+
+        Assert.Equal(new RenderBufferOperationPlan(
+            RenderBufferOperationKind.SetFlatVertexSubdata,
+            VertexFormat.Flat,
+            ElementCount: 3,
+            ElementOffset: 4,
+            ByteOffset: 4 * FlatVertex.Stride,
+            ByteCount: 3 * FlatVertex.Stride), flat);
+        Assert.Equal(new RenderBufferOperationPlan(
+            RenderBufferOperationKind.SetWorldVertexSubdata,
+            VertexFormat.World,
+            ElementCount: 5,
+            ElementOffset: 2,
+            ByteOffset: 2 * WorldVertex.Stride,
+            ByteCount: 5 * WorldVertex.Stride), world);
+        Assert.Equal(new RenderBufferOperationPlan(
+            RenderBufferOperationKind.SetFlatVertexSubdata,
+            VertexFormat.Flat,
+            ElementCount: 4,
+            ElementOffset: 0,
+            ByteOffset: 0,
+            ByteCount: 4 * FlatVertex.Stride), flatPrefix);
+    }
+
+    [Fact]
+    public void BufferSubdataPlansRejectInvalidRanges()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildSetBufferSubdataPlan(-1, Array.Empty<FlatVertex>()));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildSetBufferSubdataPlan(-1, Array.Empty<WorldVertex>()));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RenderDevice.BuildSetBufferSubdataPlan(new FlatVertex[1], size: 2));
+    }
+
+    [Fact]
     public void UniformTypeValuesMatchUdbOrdering()
     {
         Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(UniformType)));
