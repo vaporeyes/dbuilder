@@ -1497,6 +1497,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style map center crosshair render planning.
   - [x] Add UDB-style 2D line plotting metric planning.
   - [x] Add UDB-style 2D linedef segment and normal indicator planning.
+  - [x] Add UDB-style 2D vertex marker size planning.
 - [ ] Port renderer 3D parity.
 - [ ] Port render passes and layers.
   - [x] Add UDB-style 2D presentation layer stack planning.

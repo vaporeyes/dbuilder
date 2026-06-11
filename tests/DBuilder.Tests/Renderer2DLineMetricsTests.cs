@@ -49,6 +49,26 @@ public sealed class Renderer2DLineMetricsTests
         Assert.True(Renderer2DLineMetricPlanner.ShouldPlotLine(threshold + 0.001, metrics.LineNormalSize));
     }
 
+    [Theory]
+    [InlineData(0.1, 1.0, 0)]
+    [InlineData(1.0, 1.0, 2)]
+    [InlineData(1.0, 2.0, 3)]
+    [InlineData(10.0, 1.0, 4)]
+    [InlineData(1.0, -1.0, 0)]
+    public void BuildVertexSizeMatchesUdbScaleViewFormula(double scale, double vertexScale2D, int expected)
+    {
+        Assert.Equal(expected, Renderer2DLineMetricPlanner.BuildVertexSize(scale, vertexScale2D));
+    }
+
+    [Fact]
+    public void BuildVertexSizeRejectsInvalidScaleInputs()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer2DLineMetricPlanner.BuildVertexSize(0, 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer2DLineMetricPlanner.BuildVertexSize(-1, 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer2DLineMetricPlanner.BuildVertexSize(double.NaN, 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer2DLineMetricPlanner.BuildVertexSize(1, double.NaN));
+    }
+
     [Fact]
     public void BuildLinedefSegmentsMatchesUdbMainLineAndNormalIndicator()
     {
@@ -129,6 +149,9 @@ public sealed class Renderer2DLineMetricsTests
         Assert.Contains("linenormalsize = 10f * scaleinv;", source, StringComparison.Ordinal);
         Assert.Contains("minlinelength = linenormalsize * 0.0625f;", source, StringComparison.Ordinal);
         Assert.Contains("minlinenormallength = linenormalsize * 2f;", source, StringComparison.Ordinal);
+        Assert.Contains("vertexsize = (int)(1.7f * General.Settings.GZVertexScale2D * scale + 0.5f);", source, StringComparison.Ordinal);
+        Assert.Contains("if(vertexsize < 0) vertexsize = 0;", source, StringComparison.Ordinal);
+        Assert.Contains("if(vertexsize > 4) vertexsize = 4;", source, StringComparison.Ordinal);
         Assert.Contains("if((v2 - v1).GetLengthSq() < linenormalsize * lengthscaler) return;", source, StringComparison.Ordinal);
         Assert.Contains("if(lengthsq < minlinelength) return;", source, StringComparison.Ordinal);
         Assert.Contains("if(lengthsq < minlinenormallength) return;", source, StringComparison.Ordinal);

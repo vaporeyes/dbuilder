@@ -30,6 +30,10 @@ public static class Renderer2DLineMetricPlanner
     public const double LineNormalScreenSize = 10.0;
     public const double MinimumLineLengthScale = 0.0625;
     public const double MinimumLineNormalLengthScale = 2.0;
+    public const double VertexSizeBaseScale = 1.7;
+    public const double VertexSizeRoundBias = 0.5;
+    public const int MinVertexSize = 0;
+    public const int MaxVertexSize = 4;
 
     public static Renderer2DLineMetrics Build(double scale)
     {
@@ -46,6 +50,15 @@ public static class Renderer2DLineMetricPlanner
 
     public static bool ShouldPlotLine(double screenLengthSquared, double lineNormalSize, double lengthScaler = MinimumLineLengthScale)
         => screenLengthSquared >= lineNormalSize * lengthScaler;
+
+    public static int BuildVertexSize(double scale, double vertexScale2D)
+    {
+        if (scale <= 0 || double.IsNaN(scale)) throw new ArgumentOutOfRangeException(nameof(scale));
+        if (double.IsNaN(vertexScale2D)) throw new ArgumentOutOfRangeException(nameof(vertexScale2D));
+
+        int size = (int)(VertexSizeBaseScale * vertexScale2D * scale + VertexSizeRoundBias);
+        return Math.Clamp(size, MinVertexSize, MaxVertexSize);
+    }
 
     public static IReadOnlyList<Renderer2DLinedefSegment> BuildLinedefSegments(
         Vector2D start,
