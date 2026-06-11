@@ -45,6 +45,10 @@ public sealed class Mesh : IDisposable
 
     public Mesh(RenderDevice graphics, WorldVertex[] vertexData, int[] indexData)
     {
+        ArgumentNullException.ThrowIfNull(graphics);
+        ArgumentNullException.ThrowIfNull(vertexData);
+        ArgumentNullException.ThrowIfNull(indexData);
+
         Vertices = new VertexBuffer(graphics.GL);
         Indices = new IndexBuffer(graphics.GL);
         graphics.SetBufferData(Vertices, vertexData);
@@ -85,11 +89,16 @@ public sealed class Mesh : IDisposable
     }
 
     public static MeshConstructionPlan BuildConstructionPlan(WorldVertex[] vertexData, int[] indexData)
-        => new(
+    {
+        ArgumentNullException.ThrowIfNull(vertexData);
+        ArgumentNullException.ThrowIfNull(indexData);
+
+        return new MeshConstructionPlan(
             vertexData.Length,
             indexData.Length,
             PrimitiveCountFor(indexData.Length),
             new[] { MeshBufferKind.Vertex, MeshBufferKind.Index });
+    }
 
     public static IReadOnlyList<MeshDrawStep> BuildDrawPlan(int primitiveCount)
     {

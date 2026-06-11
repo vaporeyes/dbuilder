@@ -92,6 +92,7 @@ public static class RendererArchitectureModel
             "Mesh construction, draw, and dispose operation planning",
             "Mesh disposal and finalizer lifecycle",
             "Mesh disposed-state reporting",
+            "Mesh constructor input validation planning",
             "Mesh primitive-count validation planning",
             "Mesh draw availability planning",
             "Surface-entry chunk metadata and bounds model",

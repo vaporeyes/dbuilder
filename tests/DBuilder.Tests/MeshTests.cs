@@ -28,6 +28,16 @@ public sealed class MeshTests
     }
 
     [Fact]
+    public void ConstructionPlanRejectsNullMeshData()
+    {
+        WorldVertex[] vertices = { new(), new(), new() };
+        int[] indices = { 0, 1, 2 };
+
+        Assert.Throws<ArgumentNullException>(() => Mesh.BuildConstructionPlan(null!, indices));
+        Assert.Throws<ArgumentNullException>(() => Mesh.BuildConstructionPlan(vertices, null!));
+    }
+
+    [Fact]
     public void DrawPlanMatchesUdbIndexedTriangleSequence()
     {
         IReadOnlyList<MeshDrawStep> plan = Mesh.BuildDrawPlan(primitiveCount: 2);
