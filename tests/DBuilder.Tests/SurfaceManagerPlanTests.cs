@@ -115,6 +115,42 @@ public sealed class SurfaceManagerPlanTests
     }
 
     [Fact]
+    public void SurfaceBufferSetExposesUdbFieldShape()
+    {
+        var buffers = new List<VertexBuffer>();
+        var bufferSizes = new List<int> { 12 };
+        var entries = new List<SurfaceEntry> { new(numVertices: 3, bufferIndex: 0, vertexOffset: 0) };
+        var holes = new List<SurfaceEntry> { new(numVertices: 3, bufferIndex: 0, vertexOffset: 6) };
+
+        var set = new SurfaceBufferSet
+        {
+            numvertices = 3,
+            buffers = buffers,
+            buffersizes = bufferSizes,
+            entries = entries,
+            holes = holes,
+        };
+
+        Assert.Equal(3, set.numvertices);
+        Assert.Same(buffers, set.buffers);
+        Assert.Same(bufferSizes, set.buffersizes);
+        Assert.Same(entries, set.entries);
+        Assert.Same(holes, set.holes);
+    }
+
+    [Fact]
+    public void SurfaceBufferSetDefaultMatchesUdbStructDefaults()
+    {
+        var set = default(SurfaceBufferSet);
+
+        Assert.Equal(0, set.numvertices);
+        Assert.Null(set.buffers);
+        Assert.Null(set.buffersizes);
+        Assert.Null(set.entries);
+        Assert.Null(set.holes);
+    }
+
+    [Fact]
     public void UnlockBuffersClearsLockedListOnlyWhenResourcesAreLoaded()
     {
         SurfaceBufferUnlockPlan loaded = SurfaceManagerPlan.BuildUnlockBuffersPlan(

@@ -17,6 +17,15 @@ public sealed record SurfaceBufferReloadPlan(int BufferIndex, int BufferSize, IR
 
 public sealed record SurfaceBufferUnloadPlan(IReadOnlyList<int> DisposedBufferIndexes);
 
+public struct SurfaceBufferSet
+{
+    public int numvertices;
+    public List<VertexBuffer> buffers;
+    public List<int> buffersizes;
+    public List<SurfaceEntry> entries;
+    public List<SurfaceEntry> holes;
+}
+
 public sealed record SurfaceBufferUnlockPlan(
     int LockedBufferCountBefore,
     bool ResourcesUnloaded,
