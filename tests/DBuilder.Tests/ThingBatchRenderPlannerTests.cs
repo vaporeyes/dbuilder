@@ -81,6 +81,58 @@ public sealed class ThingBatchRenderPlannerTests
         Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildSetupPlan(float.NaN));
     }
 
+    [Fact]
+    public void RenderThingCallPlanRoutesSingleThingAsFixedColorBatch()
+    {
+        PixelColor color = PixelColor.FromArgb(unchecked((int)0xff112233));
+
+        ThingRenderBatchCallPlan plan = ThingBatchRenderPlanner.BuildRenderThingCallPlan(0.5f, color);
+
+        Assert.Equal(ThingRenderBatchCallKind.SingleThing, plan.Kind);
+        Assert.Equal(1, plan.ThingCount);
+        Assert.Equal(0.5f, plan.Alpha);
+        Assert.True(plan.FixedColor);
+        Assert.Equal(color, plan.Color);
+    }
+
+    [Fact]
+    public void RenderThingSetCallPlanRoutesDefaultColorBatchLikeUdb()
+    {
+        ThingRenderBatchCallPlan plan = ThingBatchRenderPlanner.BuildRenderThingSetCallPlan(3, 0.75f);
+
+        Assert.Equal(ThingRenderBatchCallKind.ThingSet, plan.Kind);
+        Assert.Equal(3, plan.ThingCount);
+        Assert.Equal(0.75f, plan.Alpha);
+        Assert.False(plan.FixedColor);
+        Assert.Equal(default, plan.Color);
+    }
+
+    [Fact]
+    public void RenderThingSetCallPlanRoutesExplicitColorBatchLikeUdb()
+    {
+        PixelColor color = PixelColor.FromArgb(unchecked((int)0xff445566));
+
+        ThingRenderBatchCallPlan plan = ThingBatchRenderPlanner.BuildRenderThingSetCallPlan(4, color, 0.25f);
+
+        Assert.Equal(ThingRenderBatchCallKind.FixedColorThingSet, plan.Kind);
+        Assert.Equal(4, plan.ThingCount);
+        Assert.Equal(0.25f, plan.Alpha);
+        Assert.False(plan.FixedColor);
+        Assert.Equal(color, plan.Color);
+    }
+
+    [Fact]
+    public void RenderThingCallPlansRejectInvalidInputs()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildRenderThingCallPlan(
+            float.NaN,
+            default));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildRenderThingSetCallPlan(-1, 1.0f));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildRenderThingSetCallPlan(1, float.NaN));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildRenderThingSetCallPlan(-1, default, 1.0f));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildRenderThingSetCallPlan(1, default, float.NaN));
+    }
+
     [Theory]
     [InlineData(0, 6)]
     [InlineData(45, 5)]
@@ -745,6 +797,9 @@ public sealed class ThingBatchRenderPlannerTests
 
         string source = File.ReadAllText(Path.Combine(udbRoot, "Source", "Core", "Rendering", "Renderer2D.cs"));
 
+        Assert.Contains("RenderThingsBatch(things, alpha, true, c);", source, StringComparison.Ordinal);
+        Assert.Contains("RenderThingsBatch(things, alpha, false, new PixelColor());", source, StringComparison.Ordinal);
+        Assert.Contains("RenderThingsBatch(things, alpha, false, c);", source, StringComparison.Ordinal);
         Assert.Contains("FlatVertex[] verts = new FlatVertex[THING_BUFFER_SIZE * 6];", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetCullMode(Cull.None);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetZEnable(false);", source, StringComparison.Ordinal);

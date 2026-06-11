@@ -53,6 +53,20 @@ public readonly record struct ThingBatchSetupPlan(
     ShaderName Shader,
     float Alpha);
 
+public enum ThingRenderBatchCallKind
+{
+    SingleThing,
+    ThingSet,
+    FixedColorThingSet,
+}
+
+public readonly record struct ThingRenderBatchCallPlan(
+    ThingRenderBatchCallKind Kind,
+    int ThingCount,
+    float Alpha,
+    bool FixedColor,
+    PixelColor Color);
+
 public readonly record struct ThingSpriteRenderDecision(
     bool SkipForModelRender,
     bool RenderSprite,
@@ -139,6 +153,44 @@ public static class ThingBatchRenderPlanner
             ResetWorldTransformation: true,
             Shader: ShaderName.things2d_thing,
             Alpha: alpha);
+    }
+
+    public static ThingRenderBatchCallPlan BuildRenderThingCallPlan(float alpha, PixelColor color)
+    {
+        if (float.IsNaN(alpha)) throw new ArgumentOutOfRangeException(nameof(alpha));
+
+        return new ThingRenderBatchCallPlan(
+            ThingRenderBatchCallKind.SingleThing,
+            ThingCount: 1,
+            alpha,
+            FixedColor: true,
+            color);
+    }
+
+    public static ThingRenderBatchCallPlan BuildRenderThingSetCallPlan(int thingCount, float alpha)
+    {
+        if (thingCount < 0) throw new ArgumentOutOfRangeException(nameof(thingCount));
+        if (float.IsNaN(alpha)) throw new ArgumentOutOfRangeException(nameof(alpha));
+
+        return new ThingRenderBatchCallPlan(
+            ThingRenderBatchCallKind.ThingSet,
+            thingCount,
+            alpha,
+            FixedColor: false,
+            default);
+    }
+
+    public static ThingRenderBatchCallPlan BuildRenderThingSetCallPlan(int thingCount, PixelColor color, float alpha)
+    {
+        if (thingCount < 0) throw new ArgumentOutOfRangeException(nameof(thingCount));
+        if (float.IsNaN(alpha)) throw new ArgumentOutOfRangeException(nameof(alpha));
+
+        return new ThingRenderBatchCallPlan(
+            ThingRenderBatchCallKind.FixedColorThingSet,
+            thingCount,
+            alpha,
+            FixedColor: false,
+            color);
     }
 
     public static int SpriteFrameAngleIndex(int angleDoom, int spriteFrameCount)
