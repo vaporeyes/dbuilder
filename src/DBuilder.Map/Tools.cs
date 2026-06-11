@@ -259,6 +259,41 @@ public static class Tools
         return sector;
     }
 
+    /// <summary>Checks whether traced sides already reference one complete existing sector, matching UDB SectorBuilder.IsValidSector.</summary>
+    public static bool IsValidTracedSector(IReadOnlyList<LinedefSide> sectorEdges)
+    {
+        if (sectorEdges.Count == 0) return false;
+
+        Sector? sector = GetSector(sectorEdges[0]);
+        if (sector == null) return false;
+
+        for (int i = 1; i < sectorEdges.Count; i++)
+        {
+            if (!ReferenceEquals(sector, GetSector(sectorEdges[i]))) return false;
+        }
+
+        return sector.Sidedefs.Count == sectorEdges.Count;
+    }
+
+    /// <summary>Finds an existing sector inside traced sides using UDB SectorBuilder.FindExistingSector priority rules.</summary>
+    public static Sector? FindExistingTracedSector(IReadOnlyList<LinedefSide> sectorEdges, ISet<Sidedef> sidesIgnore)
+    {
+        Sector? sector = null;
+        Sector? sectorPriority = null;
+        foreach (LinedefSide edge in sectorEdges)
+        {
+            Sidedef? side = GetSide(edge);
+            if (side?.Sector == null) continue;
+
+            if (sidesIgnore.Contains(side))
+                sector = side.Sector;
+            else
+                sectorPriority = side.Sector;
+        }
+
+        return sectorPriority ?? sector;
+    }
+
     /// <summary>Creates a sector from traced linedef sides, matching UDB Tools.MakeSector without editor globals.</summary>
     public static Sector? MakeSector(
         MapSet map,
@@ -390,6 +425,12 @@ public static class Tools
 
         return newSector;
     }
+
+    private static Sidedef? GetSide(LinedefSide edge)
+        => edge.Front ? edge.Line.Front : edge.Line.Back;
+
+    private static Sector? GetSector(LinedefSide edge)
+        => GetSide(edge)?.Sector;
 
     /// <summary>Rebuilds invalid one or two sided sectors from surrounding geometry, matching UDB Tools.MergeInvalidSectors.</summary>
     public static void MergeInvalidSectors(

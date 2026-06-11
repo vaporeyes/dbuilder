@@ -604,6 +604,73 @@ public class ToolsTraceTests
     }
 
     [Fact]
+    public void IsValidTracedSectorRequiresOneCompleteExistingSector()
+    {
+        var map = new MapSet();
+        var lines = BuildSidelessSquare(map);
+        var sides = lines.Select(line => new LinedefSide(line, true)).ToList();
+        Sector sector = Tools.MakeSector(map, sides)!;
+        map.BuildIndexes();
+
+        Assert.True(Tools.IsValidTracedSector(sides));
+        Assert.False(Tools.IsValidTracedSector(sides.Take(3).ToList()));
+
+        lines[0].Front!.SetSector(map.AddSector());
+        map.BuildIndexes();
+
+        Assert.False(Tools.IsValidTracedSector(sides));
+        Assert.Same(sector, sides[1].Line.Front!.Sector);
+    }
+
+    [Fact]
+    public void IsValidTracedSectorRejectsMissingSectors()
+    {
+        var map = new MapSet();
+        var lines = BuildSidelessSquare(map);
+
+        Assert.False(Tools.IsValidTracedSector(lines.Select(line => new LinedefSide(line, true)).ToList()));
+    }
+
+    [Fact]
+    public void FindExistingTracedSectorPrefersSidesOutsideIgnoreSet()
+    {
+        var map = new MapSet();
+        Vertex a = map.AddVertex(new Vector2D(0, 0));
+        Vertex b = map.AddVertex(new Vector2D(64, 0));
+        Vertex c = map.AddVertex(new Vector2D(128, 0));
+        Linedef first = map.AddLinedef(a, b);
+        Linedef second = map.AddLinedef(b, c);
+        Sector ignoredSector = map.AddSector();
+        Sector prioritySector = map.AddSector();
+        Sidedef ignoredSide = map.AddSidedef(first, true, ignoredSector);
+        Sidedef prioritySide = map.AddSidedef(second, true, prioritySector);
+
+        Sector? found = Tools.FindExistingTracedSector(
+            new[] { new LinedefSide(first, true), new LinedefSide(second, true) },
+            new HashSet<Sidedef> { ignoredSide });
+
+        Assert.Same(prioritySector, found);
+        Assert.Same(prioritySector, prioritySide.Sector);
+    }
+
+    [Fact]
+    public void FindExistingTracedSectorFallsBackToIgnoredSides()
+    {
+        var map = new MapSet();
+        Vertex a = map.AddVertex(new Vector2D(0, 0));
+        Vertex b = map.AddVertex(new Vector2D(64, 0));
+        Linedef line = map.AddLinedef(a, b);
+        Sector sector = map.AddSector();
+        Sidedef side = map.AddSidedef(line, true, sector);
+
+        Sector? found = Tools.FindExistingTracedSector(
+            new[] { new LinedefSide(line, true) },
+            new HashSet<Sidedef> { side });
+
+        Assert.Same(sector, found);
+    }
+
+    [Fact]
     public void MakeSectorCreatesMissingSidedefsWithDefaultOptions()
     {
         var map = new MapSet();

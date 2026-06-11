@@ -459,6 +459,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port sidedef part semantics.
 - [ ] Port sector builder behavior beyond the current subset.
   - [x] Add UDB-style join-existing-sector helper for traced linedef sides.
+  - [x] Add UDB-style traced-sector validity and reuse helpers.
 - [x] Port split-line and merge-geometry behavior to full UDB behavior.
   - [x] Add UDB-style linedef center and side-point helpers.
   - [x] Add UDB-style backward linedef flipping helper.
