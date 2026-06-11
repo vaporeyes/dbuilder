@@ -7151,6 +7151,7 @@ public partial class MainWindow : Window
         return new MapCheckContext
         {
             IsUdmf = _mapFormat == MapFormat.Udmf,
+            VertexDecimals = _mapFormat == MapFormat.Udmf ? 3 : 0,
             TextureExists = texExists,
             TextureSize = textureSize,
             FlatExists = flatExists,

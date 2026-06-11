@@ -264,6 +264,8 @@ public sealed class MapCheckContext
     public IReadOnlySet<string>? TriggerActivationFlags { get; init; }
     /// <summary>Enable UDMF-only missing activation checks.</summary>
     public bool CheckMissingActivations { get; init; }
+    /// <summary>Number of vertex decimal places used by UDB-style geometric checks; 0 disables rounding.</summary>
+    public int VertexDecimals { get; init; }
     /// <summary>Enable Hexen/UDMF polyobject reference checks.</summary>
     public bool CheckPolyobjects { get; init; }
     /// <summary>Enable Hexen/UDMF unknown ACS script reference checks.</summary>
@@ -531,7 +533,7 @@ public static class MapAnalysis
             CheckThingsAndActions(map, ctx, issues);
             CheckPolyobjects(map, ctx, issues);
             CheckTextureAlignment(map, ctx, issues);
-            CheckOverlappingLinedefs(map, issues);
+            CheckOverlappingLinedefs(map, ctx, issues);
             CheckShortLinedefs(map, ctx, issues);
         }
 
@@ -1582,7 +1584,7 @@ public static class MapAnalysis
         => ((value % modulus) + modulus) % modulus;
 
     // Two linedefs sharing both endpoints or crossing through their interiors overlap; report each extra one once.
-    private static void CheckOverlappingLinedefs(MapSet map, List<MapIssue> issues)
+    private static void CheckOverlappingLinedefs(MapSet map, MapCheckContext ctx, List<MapIssue> issues)
     {
         var seen = new Dictionary<(long, long, long, long), Linedef>();
         for (int i = 0; i < map.Linedefs.Count; i++)
@@ -1607,6 +1609,11 @@ public static class MapAnalysis
             {
                 var other = map.Linedefs[j];
                 if (!l.Line.GetIntersection(other.Line, out double uLine, out double uOther)) continue;
+                if (ctx.VertexDecimals > 0)
+                {
+                    uLine = Math.Round(uLine, ctx.VertexDecimals);
+                    uOther = Math.Round(uOther, ctx.VertexDecimals);
+                }
                 if (uLine <= 0.0 || uLine >= 1.0 || uOther <= 0.0 || uOther >= 1.0) continue;
                 if (ReferencesSameSectorOnAllSides(l, other)) continue;
 

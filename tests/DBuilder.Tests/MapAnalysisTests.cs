@@ -2593,6 +2593,22 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void CrossingLinedefsRoundNearEndpointIntersectionsByVertexPrecision()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(10, 0));
+        var c = map.AddVertex(new Vector2D(0.004, -5));
+        var d = map.AddVertex(new Vector2D(0.004, 5));
+        map.AddLinedef(a, b);
+        map.AddLinedef(c, d);
+        map.BuildIndexes();
+
+        Assert.True(Has(map, new MapCheckContext(), MapIssueKind.OverlappingLinedefs));
+        Assert.False(Has(map, new MapCheckContext { VertexDecimals = 2 }, MapIssueKind.OverlappingLinedefs));
+    }
+
+    [Fact]
     public void ShortLinedefFlagged()
     {
         var map = new MapSet();
