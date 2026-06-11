@@ -471,7 +471,7 @@ public static class VisualSlopeHandles
 
         VisualSlopeHandle[] all = handles.ToArray();
         VisualSlopeHandle[] selected = all
-            .Where(handle => handle.Selected && handle.Kind == VisualSlopeHandleKind.Line && handle.Sidedef != null)
+            .Where(handle => handle.Selected && IsNearestSlopeHandleCandidate(handle))
             .ToArray();
 
         if (selected.Length == 0)
@@ -493,9 +493,8 @@ public static class VisualSlopeHandles
         foreach (VisualSlopeHandle candidate in all)
         {
             if (ReferenceEquals(candidate, handle)
-                || candidate.Kind != VisualSlopeHandleKind.Line
-                || candidate.Sidedef == null
-                || candidate.Sidedef.Line != handle.Sidedef!.Line)
+                || !IsNearestSlopeHandleCandidate(candidate)
+                || !SameNearestSlopeHandleAnchor(candidate, handle))
                 continue;
 
             int z = Convert.ToInt32(Math.Round(candidate.GetPivotPoint().z));
@@ -523,7 +522,9 @@ public static class VisualSlopeHandles
 
         VisualSlopeHandle? resolvedPivot = pivot
             ?? all.FirstOrDefault(candidate => candidate.Pivot)
-            ?? GetSmartSidedefPivot(handle, all);
+            ?? (handle.Kind == VisualSlopeHandleKind.Line
+                ? GetSmartSidedefPivot(handle, all)
+                : GetSmartVertexPivot(handle, all));
         VisualSlopeChangeResult change = ChangeTargetHeight(handle, resolvedPivot, targetHeight - startHeight, affectedLevels);
         return change == VisualSlopeChangeResult.Changed
             ? new VisualSlopeNearestHandleApplyResult(
@@ -915,6 +916,18 @@ public static class VisualSlopeHandles
            && left.ExtraFloor == right.ExtraFloor
            && left.Plane.Normal == right.Plane.Normal
            && left.Plane.Offset == right.Plane.Offset;
+
+    private static bool IsNearestSlopeHandleCandidate(VisualSlopeHandle handle)
+        => (handle.Kind == VisualSlopeHandleKind.Line && handle.Sidedef != null)
+           || (handle.Kind == VisualSlopeHandleKind.Vertex && handle.Vertex != null);
+
+    private static bool SameNearestSlopeHandleAnchor(VisualSlopeHandle candidate, VisualSlopeHandle handle)
+    {
+        if (candidate.Kind != handle.Kind) return false;
+        return handle.Kind == VisualSlopeHandleKind.Line
+            ? candidate.Sidedef!.Line == handle.Sidedef!.Line
+            : ReferenceEquals(candidate.Vertex, handle.Vertex);
+    }
 
     private static int NormalizedAngleDeg(Linedef line)
         => line.AngleDeg >= 180 ? line.AngleDeg - 180 : line.AngleDeg;

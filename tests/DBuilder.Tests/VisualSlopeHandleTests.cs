@@ -808,6 +808,51 @@ public class VisualSlopeHandleTests
     }
 
     [Fact]
+    public void RaiseSelectedVertexSlopeHandleToNearestUsesNextHigherSameVertexHandleLikeUdb()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        Vertex vertex = sector.Sidedefs[0].Line.Start;
+        Vertex pivotVertex = sector.Sidedefs[0].Line.End;
+        VisualSlopeHandle selected = VertexHandle(vertex, sector, 0) with { Selected = true };
+        VisualSlopeHandle farTarget = VertexHandle(vertex, sector, 32);
+        VisualSlopeHandle nearTarget = VertexHandle(vertex, sector, 16);
+        VisualSlopeHandle otherVertex = VertexHandle(pivotVertex, sector, 8);
+        VisualSlopeHandle pivot = VertexHandle(pivotVertex, sector, 0) with { Pivot = true };
+
+        VisualSlopeNearestHandleApplyResult result = VisualSlopeHandles.RaiseSelectedSlopeHandleToNearest(
+            [selected, farTarget, nearTarget, otherVertex, pivot]);
+
+        Assert.Equal(VisualSlopeNearestHandleResult.Changed, result.Result);
+        Assert.Equal(1, result.ChangedLevels);
+        Assert.Equal(VisualSlopeHandles.ChangedSlopeMessage, result.StatusMessage);
+        Assert.Equal(16, sector.GetFloorZ(vertex.Position), 1e-9);
+        Assert.Equal(0, sector.GetFloorZ(pivotVertex.Position), 1e-9);
+    }
+
+    [Fact]
+    public void LowerSelectedVertexSlopeHandleToNearestUsesNextLowerSameVertexHandleLikeUdb()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        Vertex vertex = sector.Sidedefs[0].Line.Start;
+        Vertex pivotVertex = sector.Sidedefs[0].Line.End;
+        VisualSlopeHandle selected = VertexHandle(vertex, sector, 32) with { Selected = true };
+        VisualSlopeHandle farTarget = VertexHandle(vertex, sector, 0);
+        VisualSlopeHandle nearTarget = VertexHandle(vertex, sector, 16);
+        VisualSlopeHandle pivot = VertexHandle(pivotVertex, sector, 32) with { Pivot = true };
+
+        VisualSlopeNearestHandleApplyResult result = VisualSlopeHandles.LowerSelectedSlopeHandleToNearest(
+            [selected, farTarget, nearTarget, pivot]);
+
+        Assert.Equal(VisualSlopeNearestHandleResult.Changed, result.Result);
+        Assert.Equal(1, result.ChangedLevels);
+        Assert.Equal(VisualSlopeHandles.ChangedSlopeMessage, result.StatusMessage);
+        Assert.Equal(16, sector.GetFloorZ(vertex.Position), 1e-9);
+        Assert.Equal(32, sector.GetFloorZ(pivotVertex.Position), 1e-9);
+    }
+
+    [Fact]
     public void SelectedSlopeHandleToNearestWarnsForTooManyAndMissingTargetsLikeUdb()
     {
         var map = new MapSet();
@@ -1122,4 +1167,13 @@ public class VisualSlopeHandleTests
                 VisualSlopeLevelType.Floor,
                 new Plane(new Vector3D(0, 0, 1), -height)),
             up: true);
+
+    private static VisualSlopeHandle VertexHandle(Vertex vertex, Sector sector, int height)
+        => VisualSlopeHandles.CreateVertex(
+            vertex,
+            sector,
+            new VisualSlopeLevel(
+                sector,
+                VisualSlopeLevelType.Floor,
+                new Plane(new Vector3D(0, 0, 1), -height)));
 }
