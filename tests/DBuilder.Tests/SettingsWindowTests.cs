@@ -270,6 +270,7 @@ public class SettingsWindowTests
         Assert.Contains("ToastAnchor = (ToastAnchor)ComboNumber(_toastAnchor, (int)ToastPreferences.DefaultAnchor);", body, StringComparison.Ordinal);
         Assert.Contains("ToastDurationMilliseconds = ToastPreferences.AcceptDurationSecondsText(_toastDuration.Text);", body, StringComparison.Ordinal);
         Assert.Contains("ToastActionSettings = ToastPreferences.ParseDisabledActionsText(_toastDisabledActions.Text);", body, StringComparison.Ordinal);
+        Assert.Contains("_toastDisabledActions.Watermark = \"disabled toast ids: \" + ToastPreferences.KnownActionNamesText();", body, StringComparison.Ordinal);
         Assert.Contains("_settings.ToastsEnabled = dlg.ToastsEnabled;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.ToastAnchor = dlg.ToastAnchor;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.ToastDurationMilliseconds = dlg.ToastDurationMilliseconds;", mainWindow, StringComparison.Ordinal);

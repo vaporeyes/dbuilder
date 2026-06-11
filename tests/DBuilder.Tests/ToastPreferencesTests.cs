@@ -16,6 +16,39 @@ public class ToastPreferencesTests
     }
 
     [Fact]
+    public void DefaultActionsIncludeUdbRegisteredToastIds()
+    {
+        string[] names = ToastPreferences.DefaultActions.Select(action => action.Name).OrderBy(name => name, StringComparer.Ordinal).ToArray();
+
+        Assert.Contains("builder_autosave", names);
+        Assert.Contains("builder_resourcewarningsanderrors", names);
+        Assert.Contains("builder_togglebrightness", names);
+        Assert.Contains("builder_togglehighlight", names);
+        Assert.Contains("builder_gztoggleenhancedrendering", names);
+        Assert.Contains("builder_gztoggleeventlines", names);
+        Assert.Contains(ToastPreferences.StatusWarningActionName, names);
+    }
+
+    [Fact]
+    public void RegisteredActionsApplyPersistedDisabledFlags()
+    {
+        var settings = new Settings
+        {
+            ToastActionSettings = new Dictionary<string, bool>(StringComparer.Ordinal)
+            {
+                ["builder_autosave"] = false,
+                [ToastPreferences.StatusWarningActionName] = false,
+            },
+        };
+
+        IReadOnlyList<ToastActionPreference> actions = ToastPreferences.RegisteredActions(settings);
+
+        Assert.False(actions.Single(action => action.Name == "builder_autosave").Enabled);
+        Assert.False(actions.Single(action => action.Name == ToastPreferences.StatusWarningActionName).Enabled);
+        Assert.True(actions.Single(action => action.Name == "builder_togglehighlight").Enabled);
+    }
+
+    [Fact]
     public void NormalizesInvalidAnchorAndDuration()
     {
         Assert.Equal(ToastAnchor.BottomRight, ToastPreferences.NormalizeAnchor((ToastAnchor)99));
@@ -74,7 +107,7 @@ public class ToastPreferencesTests
             {
                 ToastActionSettings = new Dictionary<string, bool>(StringComparer.Ordinal)
                 {
-                    ["status.warning"] = false,
+                    [ToastPreferences.StatusWarningActionName] = false,
                 },
             },
             StatusHistoryKind.Warning));

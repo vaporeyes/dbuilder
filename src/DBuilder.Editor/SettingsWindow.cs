@@ -82,7 +82,7 @@ public sealed class SettingsWindow : PropertyDialog
         _toastDisabledActions = AddField("Disabled toasts", ToastPreferences.DisabledActionsText(s.ToastActionSettings));
         _toastDisabledActions.AcceptsReturn = true;
         _toastDisabledActions.MinHeight = 72;
-        _toastDisabledActions.Watermark = "toast action ids, separated by semicolons, commas, or new lines";
+        _toastDisabledActions.Watermark = "disabled toast ids: " + ToastPreferences.KnownActionNamesText();
         _toastDisabledActions.TextWrapping = Avalonia.Media.TextWrapping.Wrap;
         _shortcutOverrides = AddField("Shortcut overrides", EditorCommandCatalog.OverrideText(s.ShortcutOverrides));
         _shortcutOverrides.AcceptsReturn = true;
