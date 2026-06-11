@@ -100,6 +100,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Surface render pass validation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface render texture fallback resolution planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface render draw-command and vertex-buffer binding planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Surface render invalid-entry command filtering planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface render shader and sampler state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface buffer resource reload upload planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface buffer reset invalidation planning", replacement.CoveredResponsibilities);

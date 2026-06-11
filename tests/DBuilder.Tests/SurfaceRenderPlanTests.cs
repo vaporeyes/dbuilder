@@ -251,6 +251,22 @@ public sealed class SurfaceRenderPlanTests
     }
 
     [Fact]
+    public void BuildCommandsSkipsInvalidatedEntries()
+    {
+        var invalid = new SurfaceEntry(numVertices: -1, bufferIndex: -1, vertexOffset: 0);
+        var valid = new SurfaceEntry(numVertices: 3, bufferIndex: 0, vertexOffset: 6);
+        var batch = new SurfaceRenderBatch(11, new[] { invalid, valid });
+
+        IReadOnlyList<SurfaceRenderCommand> commands = SurfaceRenderPlan.BuildCommands(
+            new[] { batch },
+            SurfaceRenderPass.Floor);
+
+        Assert.Equal(
+            new[] { new SurfaceRenderCommand(11, 0, 6, 1, 0) },
+            commands);
+    }
+
+    [Fact]
     public void CommandAndStatePlansRejectInvalidRenderPasses()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>

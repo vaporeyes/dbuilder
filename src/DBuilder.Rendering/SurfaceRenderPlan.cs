@@ -117,6 +117,8 @@ public static class SurfaceRenderPlan
         {
             foreach (SurfaceEntry entry in batch.Entries)
             {
+                if (entry.NumVertices <= 0 || entry.BufferIndex < 0) continue;
+
                 commands.Add(new SurfaceRenderCommand(
                     batch.Texture,
                     entry.BufferIndex,
