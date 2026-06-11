@@ -206,6 +206,8 @@ public sealed class MapCheckContext
     public Func<Thing, bool>? EditThing { get; init; }
     /// <summary>Returns an obsolete warning for a known thing type, or null when the thing type is current.</summary>
     public Func<int, string?>? ThingObsoleteMessage { get; init; }
+    /// <summary>Enable DECORATE-backed obsolete thing checks.</summary>
+    public bool CheckObsoleteThings { get; init; } = true;
     /// <summary>Returns UDB thing error-check mode for a thing type, or null when unavailable.</summary>
     public Func<int, int?>? ThingErrorCheck { get; init; }
     /// <summary>Returns UDB thing blocking mode for a thing type, or null when unavailable.</summary>
@@ -855,7 +857,7 @@ public static class MapAnalysis
                         UnknownThingDescription));
             }
 
-        if (ctx.ThingObsoleteMessage != null)
+        if (ctx.CheckObsoleteThings && ctx.ThingObsoleteMessage != null)
             for (int i = 0; i < map.Things.Count; i++)
             {
                 var t = map.Things[i];

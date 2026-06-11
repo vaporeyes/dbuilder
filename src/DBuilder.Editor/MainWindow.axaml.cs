@@ -7159,6 +7159,7 @@ public partial class MainWindow : Window
             ThingTypeKnown = thingKnown,
             ThingTitle = type => _config?.ThingTitle(type) ?? type.ToString(System.Globalization.CultureInfo.InvariantCulture),
             ThingObsoleteMessage = thingObsoleteMessage,
+            CheckObsoleteThings = !string.IsNullOrEmpty(_config?.DecorateGames),
             ThingErrorCheck = thingErrorCheck,
             ThingBlocking = thingBlocking,
             ThingHeight = thingHeight,

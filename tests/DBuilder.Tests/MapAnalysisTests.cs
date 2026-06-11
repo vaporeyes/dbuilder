@@ -1872,6 +1872,20 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void ObsoleteThingCheckCanBeSkippedWhenDecorateIsUnsupportedLikeUdb()
+    {
+        var map = Square(true);
+        map.AddThing(new Vector2D(50, 50), 31007);
+        var ctx = new MapCheckContext
+        {
+            CheckObsoleteThings = false,
+            ThingObsoleteMessage = type => type == 31007 ? "Use ReplacementThing instead" : null,
+        };
+
+        Assert.DoesNotContain(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.ObsoleteThingType);
+    }
+
+    [Fact]
     public void UnknownThingIssueCanEditThing()
     {
         var map = Square(true);
