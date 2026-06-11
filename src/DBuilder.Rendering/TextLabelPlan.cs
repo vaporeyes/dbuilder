@@ -299,6 +299,9 @@ public static class TextLabelPlan
     public static TextLabelPropertyChangePlan BuildFontChangePlan(TextLabelInvalidation invalidation)
         => new(InvalidateTexture(invalidation), TextLabelPropertyChangeKind.Font, DisposeCurrentFont: true);
 
+    public static TextLabelPropertyChangePlan BuildScaleChangePlan(TextLabelInvalidation invalidation)
+        => BuildFontChangePlan(invalidation);
+
     public static TextLabelPropertyChangePlan BuildTransformCoordinatesChangePlan(TextLabelInvalidation invalidation)
         => new(InvalidateLayout(invalidation), TextLabelPropertyChangeKind.Layout);
 

@@ -215,12 +215,16 @@ public sealed class TextLabelPlanTests
     public void FontTransformAndAlignmentAssignmentsMatchUdbInvalidation()
     {
         TextLabelPropertyChangePlan font = TextLabelPlan.BuildFontChangePlan(TextLabelInvalidation.Clean);
+        TextLabelPropertyChangePlan scale = TextLabelPlan.BuildScaleChangePlan(TextLabelInvalidation.Clean);
         TextLabelPropertyChangePlan transform = TextLabelPlan.BuildTransformCoordinatesChangePlan(TextLabelInvalidation.Clean);
         TextLabelPropertyChangePlan alignment = TextLabelPlan.BuildAlignmentChangePlan(TextLabelInvalidation.Clean);
 
         Assert.Equal(TextLabelPropertyChangeKind.Font, font.ChangeKind);
         Assert.True(font.DisposeCurrentFont);
         Assert.Equal(new TextLabelInvalidation(LayoutUpdateNeeded: false, TextureUpdateNeeded: true), font.Invalidation);
+        Assert.Equal(TextLabelPropertyChangeKind.Font, scale.ChangeKind);
+        Assert.True(scale.DisposeCurrentFont);
+        Assert.Equal(new TextLabelInvalidation(LayoutUpdateNeeded: false, TextureUpdateNeeded: true), scale.Invalidation);
         Assert.Equal(TextLabelPropertyChangeKind.Layout, transform.ChangeKind);
         Assert.Equal(new TextLabelInvalidation(LayoutUpdateNeeded: true, TextureUpdateNeeded: false), transform.Invalidation);
         Assert.Equal(TextLabelPropertyChangeKind.Layout, alignment.ChangeKind);
