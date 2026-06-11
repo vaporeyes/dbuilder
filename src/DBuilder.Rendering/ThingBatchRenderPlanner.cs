@@ -15,6 +15,17 @@ public readonly record struct ThingArrowTextureBounds(
     float Top,
     float Bottom);
 
+public readonly record struct ThingBoxLine(
+    float StartX,
+    float StartY,
+    float EndX,
+    float EndY,
+    int Color);
+
+public readonly record struct ThingBoxRenderPlan(
+    FlatVertex[] Vertices,
+    IReadOnlyList<ThingBoxLine> BoundingBoxLines);
+
 public static class ThingBatchRenderPlanner
 {
     public const int VerticesPerThing = 6;
@@ -118,6 +129,45 @@ public static class ThingBatchRenderPlanner
         vertices[4] = vertices[2];
         vertices[5] = Vertex(screenX + width, screenY + height, color, right, 1.0f);
         return vertices;
+    }
+
+    public static ThingBoxRenderPlan BuildBoxPlan(
+        double screenX,
+        double screenY,
+        double circleSize,
+        double boundingBoxSize,
+        int color,
+        int boundingBoxColor)
+    {
+        if (double.IsNaN(screenX)) throw new ArgumentOutOfRangeException(nameof(screenX));
+        if (double.IsNaN(screenY)) throw new ArgumentOutOfRangeException(nameof(screenY));
+        if (circleSize < 0 || double.IsNaN(circleSize)) throw new ArgumentOutOfRangeException(nameof(circleSize));
+        if (double.IsNaN(boundingBoxSize)) throw new ArgumentOutOfRangeException(nameof(boundingBoxSize));
+
+        var vertices = new FlatVertex[VerticesPerThing];
+        vertices[0] = Vertex(screenX - circleSize, screenY - circleSize, color, 0.0f, 0.0f);
+        vertices[1] = Vertex(screenX + circleSize, screenY - circleSize, color, 0.5f, 0.0f);
+        vertices[2] = Vertex(screenX - circleSize, screenY + circleSize, color, 0.0f, 1.0f);
+        vertices[3] = vertices[1];
+        vertices[4] = vertices[2];
+        vertices[5] = Vertex(screenX + circleSize, screenY + circleSize, color, 0.5f, 1.0f);
+
+        if (boundingBoxSize <= 0)
+            return new ThingBoxRenderPlan(vertices, Array.Empty<ThingBoxLine>());
+
+        float left = (float)(screenX - boundingBoxSize);
+        float right = (float)(screenX + boundingBoxSize);
+        float top = (float)(screenY - boundingBoxSize);
+        float bottom = (float)(screenY + boundingBoxSize);
+        return new ThingBoxRenderPlan(
+            vertices,
+            new[]
+            {
+                new ThingBoxLine(left, top, right, top, boundingBoxColor),
+                new ThingBoxLine(right, top, right, bottom, boundingBoxColor),
+                new ThingBoxLine(left, bottom, right, bottom, boundingBoxColor),
+                new ThingBoxLine(left, top, left, bottom, boundingBoxColor),
+            });
     }
 
     private static FlatVertex Vertex(double x, double y, float u, float v)

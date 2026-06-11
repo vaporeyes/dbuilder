@@ -162,6 +162,57 @@ public sealed class ThingBatchRenderPlannerTests
     }
 
     [Fact]
+    public void BoxPlanMatchesUdbThingMarkerQuadOrder()
+    {
+        ThingBoxRenderPlan plan = ThingBatchRenderPlanner.BuildBoxPlan(
+            screenX: 10,
+            screenY: 20,
+            circleSize: 3,
+            boundingBoxSize: -1,
+            color: 0x123456,
+            boundingBoxColor: 0x654321);
+
+        Assert.Empty(plan.BoundingBoxLines);
+        Assert.Equal(6, plan.Vertices.Length);
+        AssertVertex(plan.Vertices[0], 7, 17, 0x123456, 0.0f, 0.0f);
+        AssertVertex(plan.Vertices[1], 13, 17, 0x123456, 0.5f, 0.0f);
+        AssertVertex(plan.Vertices[2], 7, 23, 0x123456, 0.0f, 1.0f);
+        Assert.Equal(plan.Vertices[1], plan.Vertices[3]);
+        Assert.Equal(plan.Vertices[2], plan.Vertices[4]);
+        AssertVertex(plan.Vertices[5], 13, 23, 0x123456, 0.5f, 1.0f);
+    }
+
+    [Fact]
+    public void BoxPlanAddsUdbFixedScaleBoundingBoxLines()
+    {
+        ThingBoxRenderPlan plan = ThingBatchRenderPlanner.BuildBoxPlan(
+            screenX: 10,
+            screenY: 20,
+            circleSize: 3,
+            boundingBoxSize: 5,
+            color: 0x123456,
+            boundingBoxColor: 0x654321);
+
+        Assert.Equal(new[]
+        {
+            new ThingBoxLine(5, 15, 15, 15, 0x654321),
+            new ThingBoxLine(15, 15, 15, 25, 0x654321),
+            new ThingBoxLine(5, 25, 15, 25, 0x654321),
+            new ThingBoxLine(5, 15, 5, 25, 0x654321),
+        }, plan.BoundingBoxLines);
+    }
+
+    [Fact]
+    public void BoxPlanRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildBoxPlan(double.NaN, 0, 1, -1, -1, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildBoxPlan(0, double.NaN, 1, -1, -1, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildBoxPlan(0, 0, -1, -1, -1, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildBoxPlan(0, 0, double.NaN, -1, -1, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildBoxPlan(0, 0, 1, double.NaN, -1, -1));
+    }
+
+    [Fact]
     public void ThingBatchExpressionsMatchUdbRenderer2DWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -186,6 +237,13 @@ public sealed class ThingBatchRenderPlannerTests
         Assert.Contains("verts[offset].x = (float)screenpos.x - width;", source, StringComparison.Ordinal);
         Assert.Contains("verts[offset].x = (float)screenpos.x + width;", source, StringComparison.Ordinal);
         Assert.Contains("verts[offset].y = (float)screenpos.y + height;", source, StringComparison.Ordinal);
+        Assert.Contains("if(t.Size * scale < MINIMUM_THING_RADIUS) return false;", source, StringComparison.Ordinal);
+        Assert.Contains("float screensize = (bboxsize > 0 ? bboxsize : circlesize);", source, StringComparison.Ordinal);
+        Assert.Contains("verts[offset].u = 0.5f;", source, StringComparison.Ordinal);
+        Assert.Contains("bboxes.Add(new Line3D(tl, tr, boxcolor, false));", source, StringComparison.Ordinal);
+        Assert.Contains("bboxes.Add(new Line3D(tr, br, boxcolor, false));", source, StringComparison.Ordinal);
+        Assert.Contains("bboxes.Add(new Line3D(bl, br, boxcolor, false));", source, StringComparison.Ordinal);
+        Assert.Contains("bboxes.Add(new Line3D(tl, bl, boxcolor, false));", source, StringComparison.Ordinal);
     }
 
     private static void AssertVertex(FlatVertex vertex, float x, float y, int color, float u, float v)
