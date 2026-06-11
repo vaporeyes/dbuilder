@@ -48,6 +48,15 @@ public readonly record struct ThingBatchItemDecision(
     bool CollectModel,
     byte BoundingBoxAlpha);
 
+public readonly record struct ThingModel2DPassPlan(
+    bool RenderModels,
+    bool AlphaBlendEnabled,
+    FillMode FillMode,
+    FillMode RestoreFillMode,
+    ShaderName Shader,
+    Color4 SelectionColor,
+    Color4 WireColor);
+
 public static class ThingBatchRenderPlanner
 {
     public const int VerticesPerThing = 6;
@@ -163,6 +172,74 @@ public static class ThingBatchRenderPlanner
             skipHighlighted,
             collectModel,
             (byte)(alpha * alphaScale));
+    }
+
+    public static ThingModel2DPassPlan BuildModel2DPassPlan(
+        ModelRenderMode modelRenderMode,
+        float alpha,
+        PixelColor currentColor,
+        PixelColor highlightColor,
+        PixelColor selectionColor,
+        PixelColor modelWireColor)
+    {
+        if (float.IsNaN(alpha)) throw new ArgumentOutOfRangeException(nameof(alpha));
+
+        Color4 selected = selectionColor.ToColorValue();
+        Color4 wire = currentColor.ToInt() == highlightColor.ToInt()
+            ? highlightColor.ToColorValue()
+            : modelWireColor.ToColorValue();
+        selected.Alpha = alpha < 1.0f ? alpha * 0.25f : 0.6f;
+        wire.Alpha = selected.Alpha;
+
+        return new ThingModel2DPassPlan(
+            RenderModels: modelRenderMode != ModelRenderMode.NONE,
+            AlphaBlendEnabled: false,
+            FillMode: FillMode.Wireframe,
+            RestoreFillMode: FillMode.Solid,
+            Shader: ShaderName.things2d_fill,
+            SelectionColor: selected,
+            WireColor: wire);
+    }
+
+    public static bool ShouldRenderModel2D(ModelRenderMode modelRenderMode, bool selected, float alpha)
+    {
+        if (float.IsNaN(alpha)) throw new ArgumentOutOfRangeException(nameof(alpha));
+
+        return modelRenderMode switch
+        {
+            ModelRenderMode.NONE => false,
+            ModelRenderMode.SELECTION => selected,
+            ModelRenderMode.ACTIVE_THINGS_FILTER => alpha >= 1.0f,
+            ModelRenderMode.ALL => true,
+            _ => false,
+        };
+    }
+
+    public static bool IsModel2DVisible(
+        double screenX,
+        double screenY,
+        double modelRadius,
+        double viewScale,
+        double thingScaleX,
+        double actorScaleWidth,
+        double windowWidth,
+        double windowHeight)
+    {
+        if (double.IsNaN(screenX)) throw new ArgumentOutOfRangeException(nameof(screenX));
+        if (double.IsNaN(screenY)) throw new ArgumentOutOfRangeException(nameof(screenY));
+        if (modelRadius < 0 || double.IsNaN(modelRadius)) throw new ArgumentOutOfRangeException(nameof(modelRadius));
+        if (double.IsNaN(viewScale)) throw new ArgumentOutOfRangeException(nameof(viewScale));
+        if (double.IsNaN(thingScaleX)) throw new ArgumentOutOfRangeException(nameof(thingScaleX));
+        if (double.IsNaN(actorScaleWidth)) throw new ArgumentOutOfRangeException(nameof(actorScaleWidth));
+        if (windowWidth < 0 || double.IsNaN(windowWidth)) throw new ArgumentOutOfRangeException(nameof(windowWidth));
+        if (windowHeight < 0 || double.IsNaN(windowHeight)) throw new ArgumentOutOfRangeException(nameof(windowHeight));
+
+        double modelScale = viewScale * actorScaleWidth * thingScaleX;
+        double screenRadius = modelRadius * modelScale;
+        return !(((screenX + screenRadius) <= 0.0)
+            || ((screenX - screenRadius) >= windowWidth)
+            || ((screenY + screenRadius) <= 0.0)
+            || ((screenY - screenRadius) >= windowHeight));
     }
 
     public static ThingArrowTextureBounds ArrowTextureBounds(bool spriteSkipped)

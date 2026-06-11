@@ -301,6 +301,140 @@ public sealed class ThingBatchRenderPlannerTests
     }
 
     [Fact]
+    public void Model2DPassPlanMatchesUdbWireframeStateAndAlpha()
+    {
+        ThingModel2DPassPlan plan = ThingBatchRenderPlanner.BuildModel2DPassPlan(
+            ModelRenderMode.ALL,
+            alpha: 0.5f,
+            currentColor: new PixelColor(255, 1, 2, 3),
+            highlightColor: new PixelColor(255, 4, 5, 6),
+            selectionColor: new PixelColor(255, 20, 40, 60),
+            modelWireColor: new PixelColor(255, 80, 100, 120));
+
+        Assert.True(plan.RenderModels);
+        Assert.False(plan.AlphaBlendEnabled);
+        Assert.Equal(FillMode.Wireframe, plan.FillMode);
+        Assert.Equal(FillMode.Solid, plan.RestoreFillMode);
+        Assert.Equal(ShaderName.things2d_fill, plan.Shader);
+        AssertColor(plan.SelectionColor, 20, 40, 60, 0.125f);
+        AssertColor(plan.WireColor, 80, 100, 120, 0.125f);
+    }
+
+    [Fact]
+    public void Model2DPassPlanUsesHighlightWireColorForHighlightedFixedColorPass()
+    {
+        PixelColor highlight = new(255, 4, 5, 6);
+
+        ThingModel2DPassPlan plan = ThingBatchRenderPlanner.BuildModel2DPassPlan(
+            ModelRenderMode.SELECTION,
+            alpha: 1.0f,
+            currentColor: highlight,
+            highlightColor: highlight,
+            selectionColor: new PixelColor(255, 20, 40, 60),
+            modelWireColor: new PixelColor(255, 80, 100, 120));
+
+        Assert.True(plan.RenderModels);
+        AssertColor(plan.WireColor, 4, 5, 6, 0.6f);
+        AssertColor(plan.SelectionColor, 20, 40, 60, 0.6f);
+    }
+
+    [Fact]
+    public void Model2DPassPlanSkipsModelPassWhenModeIsNone()
+    {
+        ThingModel2DPassPlan plan = ThingBatchRenderPlanner.BuildModel2DPassPlan(
+            ModelRenderMode.NONE,
+            alpha: 1.0f,
+            currentColor: new PixelColor(255, 1, 2, 3),
+            highlightColor: new PixelColor(255, 4, 5, 6),
+            selectionColor: new PixelColor(255, 20, 40, 60),
+            modelWireColor: new PixelColor(255, 80, 100, 120));
+
+        Assert.False(plan.RenderModels);
+    }
+
+    [Theory]
+    [InlineData(ModelRenderMode.NONE, true, 1.0f, false)]
+    [InlineData(ModelRenderMode.SELECTION, false, 1.0f, false)]
+    [InlineData(ModelRenderMode.SELECTION, true, 0.5f, true)]
+    [InlineData(ModelRenderMode.ACTIVE_THINGS_FILTER, false, 0.5f, false)]
+    [InlineData(ModelRenderMode.ACTIVE_THINGS_FILTER, false, 1.0f, true)]
+    [InlineData(ModelRenderMode.ALL, false, 0.5f, true)]
+    public void ShouldRenderModel2DMatchesUdbModelModeGate(
+        ModelRenderMode mode,
+        bool selected,
+        float alpha,
+        bool expected)
+    {
+        Assert.Equal(expected, ThingBatchRenderPlanner.ShouldRenderModel2D(mode, selected, alpha));
+    }
+
+    [Fact]
+    public void Model2DVisibilityMatchesUdbRadiusCulling()
+    {
+        Assert.True(ThingBatchRenderPlanner.IsModel2DVisible(
+            screenX: 50,
+            screenY: 50,
+            modelRadius: 10,
+            viewScale: 2,
+            thingScaleX: 1.5,
+            actorScaleWidth: 2,
+            windowWidth: 100,
+            windowHeight: 100));
+        Assert.False(ThingBatchRenderPlanner.IsModel2DVisible(
+            screenX: -61,
+            screenY: 50,
+            modelRadius: 10,
+            viewScale: 2,
+            thingScaleX: 1.5,
+            actorScaleWidth: 2,
+            windowWidth: 100,
+            windowHeight: 100));
+        Assert.False(ThingBatchRenderPlanner.IsModel2DVisible(
+            screenX: 161,
+            screenY: 50,
+            modelRadius: 10,
+            viewScale: 2,
+            thingScaleX: 1.5,
+            actorScaleWidth: 2,
+            windowWidth: 100,
+            windowHeight: 100));
+    }
+
+    [Fact]
+    public void Model2DHelpersRejectInvalidInputs()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildModel2DPassPlan(
+            ModelRenderMode.ALL,
+            alpha: float.NaN,
+            currentColor: new PixelColor(),
+            highlightColor: new PixelColor(),
+            selectionColor: new PixelColor(),
+            modelWireColor: new PixelColor()));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.ShouldRenderModel2D(
+            ModelRenderMode.ALL,
+            selected: false,
+            alpha: float.NaN));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.IsModel2DVisible(
+            double.NaN,
+            0,
+            1,
+            1,
+            1,
+            1,
+            100,
+            100));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.IsModel2DVisible(
+            0,
+            0,
+            -1,
+            1,
+            1,
+            1,
+            100,
+            100));
+    }
+
+    [Fact]
     public void ArrowTextureBoundsMatchUdbSpriteState()
     {
         Assert.Equal(new ThingArrowTextureBounds(0.501f, 0.999f, 0.001f, 0.999f),
@@ -490,6 +624,14 @@ public sealed class ThingBatchRenderPlannerTests
         Assert.Contains("locksize = ((things.Count - totalcount) > THING_BUFFER_SIZE) ? THING_BUFFER_SIZE : (things.Count - totalcount);", source, StringComparison.Ordinal);
         Assert.Contains("locksize = ((framegroup.Value.Count - totalcount) > THING_BUFFER_SIZE) ? THING_BUFFER_SIZE : (framegroup.Value.Count - totalcount);", source, StringComparison.Ordinal);
         Assert.Contains("locksize = ((thingsByPosition.Count - totalcount) > THING_BUFFER_SIZE) ? THING_BUFFER_SIZE : (thingsByPosition.Count - totalcount);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetAlphaBlendEnable(false);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetFillMode(FillMode.Wireframe);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetShader(ShaderName.things2d_fill);", source, StringComparison.Ordinal);
+        Assert.Contains("Color4 cWire = ((c.ToInt() == General.Colors.Highlight.ToInt()) ? General.Colors.Highlight.ToColorValue() : General.Colors.ModelWireframe.ToColorValue());", source, StringComparison.Ordinal);
+        Assert.Contains("cSelection.Alpha = ((alpha < 1.0f) ? alpha * 0.25f : 0.6f);", source, StringComparison.Ordinal);
+        Assert.Contains("if((General.Settings.GZDrawModelsMode == ModelRenderMode.SELECTION && !t.Selected) || (General.Settings.GZDrawModelsMode == ModelRenderMode.ACTIVE_THINGS_FILTER && alpha < 1.0f)) continue;", source, StringComparison.Ordinal);
+        Assert.Contains("double modelScale = scale * t.ActorScale.Width * t.ScaleX;", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetFillMode(FillMode.Solid);", source, StringComparison.Ordinal);
         Assert.Contains("float sinarrowsize = (float)Math.Sin(t.Angle + Angle2D.PI * 0.25f) * arrowsize;", source, StringComparison.Ordinal);
         Assert.Contains("float cosarrowsize = (float)Math.Cos(t.Angle + Angle2D.PI * 0.25f) * arrowsize;", source, StringComparison.Ordinal);
         Assert.Contains("ul = 0.625f;", source, StringComparison.Ordinal);
@@ -517,5 +659,13 @@ public sealed class ThingBatchRenderPlannerTests
         Assert.Equal(color, vertex.c);
         Assert.Equal(u, vertex.u);
         Assert.Equal(v, vertex.v);
+    }
+
+    private static void AssertColor(Color4 color, byte red, byte green, byte blue, float alpha)
+    {
+        Assert.Equal(red * PixelColor.ByteToFloat, color.Red, precision: 5);
+        Assert.Equal(green * PixelColor.ByteToFloat, color.Green, precision: 5);
+        Assert.Equal(blue * PixelColor.ByteToFloat, color.Blue, precision: 5);
+        Assert.Equal(alpha, color.Alpha, precision: 5);
     }
 }
