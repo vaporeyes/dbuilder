@@ -111,6 +111,7 @@ public static class RendererArchitectureModel
             "Mesh primitive-count validation planning",
             "Mesh draw availability planning",
             "Surface-entry chunk metadata and bounds model",
+            "Surface buffer set field carrier",
             "Surface manager vertex chunk and buffer allocation planning",
             "Surface buffer entry-size validation planning",
             "Surface buffer hole allocation and free-entry planning",

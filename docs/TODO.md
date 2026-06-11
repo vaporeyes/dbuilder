@@ -1618,10 +1618,10 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style surface manager map-analysis allocation planning.
   - [x] Add UDB-style surface manager update buffer upload planning.
   - [x] Add UDB-style surface manager update and free surface-entry lifecycle planning.
-- [ ] Port surface entries and updates.
+- [x] Port surface entries and updates.
   - [x] Add UDB-style surface entry, update, collection, and bounds model.
   - [x] Add UDB-style surface buffer set field carrier.
-- [ ] Port mesh behavior.
+- [x] Port mesh behavior.
   - [x] Add UDB-style owned indexed-triangle mesh wrapper.
   - [x] Add UDB-style mesh construction, draw, and dispose operation planning.
   - [x] Add UDB-style mesh disposal and finalizer lifecycle.

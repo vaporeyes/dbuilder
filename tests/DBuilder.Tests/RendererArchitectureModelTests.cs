@@ -96,6 +96,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("PixelColor conversion and channel alias surface", replacement.CoveredResponsibilities);
         Assert.Contains("ColorCollection default and mutable array surface", replacement.CoveredResponsibilities);
         Assert.Contains("PixelColor arithmetic helper surface", replacement.CoveredResponsibilities);
+        Assert.Contains("Owned indexed-triangle mesh wrapper", replacement.CoveredResponsibilities);
         Assert.Contains("Mesh construction, draw, and dispose operation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Mesh disposal and finalizer lifecycle", replacement.CoveredResponsibilities);
         Assert.Contains("Mesh disposed-state reporting", replacement.CoveredResponsibilities);
@@ -103,6 +104,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Mesh primitive-count validation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Mesh draw availability planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface-entry chunk metadata and bounds model", replacement.CoveredResponsibilities);
+        Assert.Contains("Surface buffer set field carrier", replacement.CoveredResponsibilities);
         Assert.Contains("Surface manager vertex chunk and buffer allocation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface buffer entry-size validation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Surface buffer hole allocation and free-entry planning", replacement.CoveredResponsibilities);
