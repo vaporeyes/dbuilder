@@ -88,6 +88,28 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesSectorCreationDefaults()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("DefaultSectorFloorHeightSetting", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("DefaultSectorCeilingHeightSetting", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("DefaultSectorBrightnessSetting", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddField(\"Default floor height\", Settings.DefaultSectorFloorHeightText(s))", body, StringComparison.Ordinal);
+        Assert.Contains("AddField(\"Default ceiling height\", Settings.DefaultSectorCeilingHeightText(s))", body, StringComparison.Ordinal);
+        Assert.Contains("AddField(\"Default brightness\", Settings.DefaultSectorBrightnessText(s))", body, StringComparison.Ordinal);
+        Assert.Contains("DefaultSectorFloorHeightSetting = Settings.AcceptSectorHeightText(_defaultSectorFloorHeight.Text);", body, StringComparison.Ordinal);
+        Assert.Contains("DefaultSectorCeilingHeightSetting = Settings.AcceptSectorHeightText(_defaultSectorCeilingHeight.Text);", body, StringComparison.Ordinal);
+        Assert.Contains("DefaultSectorBrightnessSetting = Settings.AcceptSectorBrightnessText(_defaultSectorBrightness.Text);", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.DefaultSectorFloorHeightSetting = dlg.DefaultSectorFloorHeightSetting;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.DefaultSectorCeilingHeightSetting = dlg.DefaultSectorCeilingHeightSetting;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.DefaultSectorBrightnessSetting = dlg.DefaultSectorBrightnessSetting;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("ApplySectorDefaultSettings();", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesAlphaBasedTextureHighlightingPreference()
     {
         Type type = typeof(SettingsWindow);

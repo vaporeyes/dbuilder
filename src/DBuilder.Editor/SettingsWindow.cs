@@ -12,7 +12,7 @@ public sealed class SettingsWindow : PropertyDialog
 {
     private const string ShortcutOverrideWatermark = "command.id=Shortcut; use None or Unassigned to clear; separate entries with semicolons, commas, or new lines";
 
-    private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _testSkill, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _autosaveCount, _autosaveInterval, _statusHistoryLimit, _toastDuration, _toastDisabledActions, _shortcutOverrides;
+    private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _testSkill, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _autosaveCount, _autosaveInterval, _defaultSectorFloorHeight, _defaultSectorCeilingHeight, _defaultSectorBrightness, _statusHistoryLimit, _toastDuration, _toastDisabledActions, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _mergeGeometryMode, _toastAnchor, _pasteTagMode;
     private readonly CheckBox _testMonsters, _autosave, _autoClearSidedefTextures, _autoMerge, _splitJoinedSectors, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _selectAdjacentVisualVertexSlopeHandles, _toastsEnabled, _pasteRemoveActions;
     private readonly bool _drawLineShowGuidelines;
@@ -28,6 +28,9 @@ public sealed class SettingsWindow : PropertyDialog
     public bool Autosave;
     public int? AutosaveCount;
     public int? AutosaveIntervalMinutes;
+    public int? DefaultSectorFloorHeightSetting;
+    public int? DefaultSectorCeilingHeightSetting;
+    public int? DefaultSectorBrightnessSetting;
     public int? TestSkill;
     public bool TestMonsters;
     public bool AutoClearSidedefTextures;
@@ -81,6 +84,9 @@ public sealed class SettingsWindow : PropertyDialog
         _autosave = AddCheckBox("Enable autosave", s.Autosave);
         _autosaveCount = AddField("Autosave count", Settings.AutosaveCountText(s));
         _autosaveInterval = AddField("Autosave interval", Settings.AutosaveIntervalText(s));
+        _defaultSectorFloorHeight = AddField("Default floor height", Settings.DefaultSectorFloorHeightText(s));
+        _defaultSectorCeilingHeight = AddField("Default ceiling height", Settings.DefaultSectorCeilingHeightText(s));
+        _defaultSectorBrightness = AddField("Default brightness", Settings.DefaultSectorBrightnessText(s));
         _statusHistoryLimit = AddField("Status history", Settings.StatusHistoryLimitText(s));
         _toastsEnabled = AddCheckBox("Show toasts", s.ToastsEnabled);
         _toastDuration = AddField("Toast duration", ToastPreferences.DurationSecondsText(s.NormalizedToastDurationMilliseconds));
@@ -155,6 +161,9 @@ public sealed class SettingsWindow : PropertyDialog
         Autosave = _autosave.IsChecked == true;
         AutosaveCount = Settings.AcceptAutosaveCountText(_autosaveCount.Text);
         AutosaveIntervalMinutes = Settings.AcceptAutosaveIntervalText(_autosaveInterval.Text);
+        DefaultSectorFloorHeightSetting = Settings.AcceptSectorHeightText(_defaultSectorFloorHeight.Text);
+        DefaultSectorCeilingHeightSetting = Settings.AcceptSectorHeightText(_defaultSectorCeilingHeight.Text);
+        DefaultSectorBrightnessSetting = Settings.AcceptSectorBrightnessText(_defaultSectorBrightness.Text);
         StatusHistoryLimit = Settings.AcceptStatusHistoryLimitText(_statusHistoryLimit.Text);
         AutoClearSidedefTextures = _autoClearSidedefTextures.IsChecked == true;
         AutoMerge = _autoMerge.IsChecked == true;

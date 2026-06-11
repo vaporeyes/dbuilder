@@ -1390,6 +1390,17 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void SectorCreationDefaultsUsePersistedPreferences()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("ApplySectorDefaultSettings();", body, StringComparison.Ordinal);
+        Assert.Contains("MapView.DefaultSectorFloorHeight = _settings.NormalizedDefaultSectorFloorHeight;", body, StringComparison.Ordinal);
+        Assert.Contains("MapView.DefaultSectorCeilingHeight = _settings.NormalizedDefaultSectorCeilingHeight;", body, StringComparison.Ordinal);
+        Assert.Contains("MapView.DefaultSectorBrightness = _settings.NormalizedDefaultSectorBrightness;", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ResourceCatalogGuardsUseWarningStatusKind()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));

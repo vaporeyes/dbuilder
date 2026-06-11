@@ -55,14 +55,20 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
-    public void SectorCreationFallbackBrightnessMatchesUdbDefault()
+    public void SectorCreationFallbackDefaultsUsePersistedUdbPreferences()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
 
-        Assert.Contains("DefaultFloorHeight = 0,", body, StringComparison.Ordinal);
-        Assert.Contains("DefaultCeilingHeight = 128,", body, StringComparison.Ordinal);
-        Assert.Contains("DefaultBrightness = 192,", body, StringComparison.Ordinal);
-        Assert.Contains("CustomBrightness = _mapOptions?.CustomBrightness ?? 192,", body, StringComparison.Ordinal);
+        Assert.Contains("private int _defaultSectorFloorHeight = Settings.DefaultSectorFloorHeight;", body, StringComparison.Ordinal);
+        Assert.Contains("private int _defaultSectorCeilingHeight = Settings.DefaultSectorCeilingHeight;", body, StringComparison.Ordinal);
+        Assert.Contains("private int _defaultSectorBrightness = Settings.DefaultSectorBrightness;", body, StringComparison.Ordinal);
+        Assert.Contains("DefaultFloorHeight = _defaultSectorFloorHeight,", body, StringComparison.Ordinal);
+        Assert.Contains("DefaultCeilingHeight = _defaultSectorCeilingHeight,", body, StringComparison.Ordinal);
+        Assert.Contains("DefaultBrightness = _defaultSectorBrightness,", body, StringComparison.Ordinal);
+        Assert.Contains("CustomFloorHeight = _mapOptions?.CustomFloorHeight ?? _defaultSectorFloorHeight,", body, StringComparison.Ordinal);
+        Assert.Contains("CustomCeilingHeight = _mapOptions?.CustomCeilingHeight ?? _defaultSectorCeilingHeight,", body, StringComparison.Ordinal);
+        Assert.Contains("CustomBrightness = _mapOptions?.CustomBrightness ?? _defaultSectorBrightness,", body, StringComparison.Ordinal);
+        Assert.Contains("set => _defaultSectorBrightness = Math.Clamp(value, 0, 255);", body, StringComparison.Ordinal);
         Assert.DoesNotContain("DefaultFloorHeight = _mapOptions?.CustomFloorHeight ?? 0,", body, StringComparison.Ordinal);
         Assert.DoesNotContain("DefaultCeilingHeight = _mapOptions?.CustomCeilingHeight ?? 128,", body, StringComparison.Ordinal);
         Assert.DoesNotContain("DefaultBrightness = _mapOptions?.CustomBrightness ?? 192,", body, StringComparison.Ordinal);

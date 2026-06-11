@@ -681,6 +681,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private AutomapModeSettings _automapSettings = new();
     private IReadOnlyList<LinedefColorPreset> _linedefColorPresets = LinedefColorPresetModel.DefaultPresets;
     private ThreeDFloorControlSectorAreaSettings _threeDFloorControlSectorAreaSettings = new();
+    private int _defaultSectorFloorHeight = Settings.DefaultSectorFloorHeight;
+    private int _defaultSectorCeilingHeight = Settings.DefaultSectorCeilingHeight;
+    private int _defaultSectorBrightness = Settings.DefaultSectorBrightness;
     public ShapeKind CurrentShape => _shapeKind;
 
     public DrawLineModeSettings DrawLineSettings
@@ -753,6 +756,24 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         get => _threeDFloorControlSectorAreaSettings;
         set => _threeDFloorControlSectorAreaSettings = value ?? new ThreeDFloorControlSectorAreaSettings();
+    }
+
+    public int DefaultSectorFloorHeight
+    {
+        get => _defaultSectorFloorHeight;
+        set => _defaultSectorFloorHeight = value;
+    }
+
+    public int DefaultSectorCeilingHeight
+    {
+        get => _defaultSectorCeilingHeight;
+        set => _defaultSectorCeilingHeight = value;
+    }
+
+    public int DefaultSectorBrightness
+    {
+        get => _defaultSectorBrightness;
+        set => _defaultSectorBrightness = Math.Clamp(value, 0, 255);
     }
 
     // Thing categories hidden from rendering (keyed by config category, "(uncategorized)" for blank).
@@ -9085,9 +9106,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private Tools.SectorCreationOptions CreateSectorCreationOptions()
         => new()
         {
-            DefaultFloorHeight = 0,
-            DefaultCeilingHeight = 128,
-            DefaultBrightness = 192,
+            DefaultFloorHeight = _defaultSectorFloorHeight,
+            DefaultCeilingHeight = _defaultSectorCeilingHeight,
+            DefaultBrightness = _defaultSectorBrightness,
             DefaultFloorTexture = FirstNonBlankOr("-", _mapOptions?.DefaultFloorTexture, _gameConfig?.DefaultFloorTexture),
             DefaultCeilingTexture = FirstNonBlankOr("-", _mapOptions?.DefaultCeilingTexture, _gameConfig?.DefaultCeilingTexture),
             DefaultHighTexture = FirstNonBlankOr("-", _mapOptions?.DefaultTopTexture),
@@ -9101,9 +9122,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             OverrideFloorHeight = _mapOptions?.OverrideFloorHeight == true,
             OverrideCeilingHeight = _mapOptions?.OverrideCeilingHeight == true,
             OverrideBrightness = _mapOptions?.OverrideBrightness == true,
-            CustomFloorHeight = _mapOptions?.CustomFloorHeight ?? 0,
-            CustomCeilingHeight = _mapOptions?.CustomCeilingHeight ?? 128,
-            CustomBrightness = _mapOptions?.CustomBrightness ?? 192,
+            CustomFloorHeight = _mapOptions?.CustomFloorHeight ?? _defaultSectorFloorHeight,
+            CustomCeilingHeight = _mapOptions?.CustomCeilingHeight ?? _defaultSectorCeilingHeight,
+            CustomBrightness = _mapOptions?.CustomBrightness ?? _defaultSectorBrightness,
         };
 
     private static string FirstNonBlankOr(string fallback, params string?[] values)

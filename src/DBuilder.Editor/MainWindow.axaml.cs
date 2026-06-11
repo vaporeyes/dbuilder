@@ -238,6 +238,7 @@ public partial class MainWindow : Window
         MapView.SetShowVisualVertices(_settings.ShowVisualVertices);
         MapView.SetSelectAdjacentVisualVertexSlopeHandles(_settings.SelectAdjacentVisualVertexSlopeHandles);
         MapView.SetViewMode2D((MapControl.ClassicViewMode)_settings.NormalizedDefaultViewMode);
+        ApplySectorDefaultSettings();
         ApplyAutosaveSettings();
         ApplyShortcutBindings();
         _statusHistory.SetCapacity(_settings.NormalizedStatusHistoryLimit);
@@ -1403,6 +1404,9 @@ public partial class MainWindow : Window
         _settings.Autosave = dlg.Autosave;
         _settings.AutosaveCount = dlg.AutosaveCount;
         _settings.AutosaveIntervalMinutes = dlg.AutosaveIntervalMinutes;
+        _settings.DefaultSectorFloorHeightSetting = dlg.DefaultSectorFloorHeightSetting;
+        _settings.DefaultSectorCeilingHeightSetting = dlg.DefaultSectorCeilingHeightSetting;
+        _settings.DefaultSectorBrightnessSetting = dlg.DefaultSectorBrightnessSetting;
         _settings.AutoClearSidedefTextures = dlg.AutoClearSidedefTextures;
         _settings.AutoMerge = dlg.AutoMerge;
         _settings.SplitJoinedSectors = dlg.SplitJoinedSectors;
@@ -1459,6 +1463,7 @@ public partial class MainWindow : Window
         RebuildRecentMenu();
         RebuildTestMapMenu();
         ReloadCompilerConfiguration();
+        ApplySectorDefaultSettings();
         ApplyAutosaveSettings();
         SaveSettings();
         SetStatus("Settings saved.");
@@ -5137,6 +5142,13 @@ public partial class MainWindow : Window
             _autosavePending = false;
             _autosaveTimer.Stop();
         }
+    }
+
+    private void ApplySectorDefaultSettings()
+    {
+        MapView.DefaultSectorFloorHeight = _settings.NormalizedDefaultSectorFloorHeight;
+        MapView.DefaultSectorCeilingHeight = _settings.NormalizedDefaultSectorCeilingHeight;
+        MapView.DefaultSectorBrightness = _settings.NormalizedDefaultSectorBrightness;
     }
 
     private void DeleteCurrentAutosave()

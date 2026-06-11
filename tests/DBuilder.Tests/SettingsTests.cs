@@ -116,6 +116,20 @@ public class SettingsTests
     }
 
     [Fact]
+    public void SectorCreationDefaultsMatchUdb()
+    {
+        var settings = new Settings();
+
+        Assert.Equal(0, settings.NormalizedDefaultSectorFloorHeight);
+        Assert.Equal(128, settings.NormalizedDefaultSectorCeilingHeight);
+        Assert.Equal(192, settings.NormalizedDefaultSectorBrightness);
+        Assert.Equal(0, Settings.AcceptSectorBrightnessText("-5"));
+        Assert.Equal(255, Settings.AcceptSectorBrightnessText("999"));
+        Assert.Null(Settings.AcceptSectorHeightText("bad"));
+        Assert.Null(Settings.AcceptSectorBrightnessText("bad"));
+    }
+
+    [Fact]
     public void VisualAlphaBasedTextureHighlightingDefaultsEnabledLikeUdb()
     {
         Assert.True(new Settings().AlphaBasedTextureHighlighting);
@@ -336,6 +350,9 @@ public class SettingsTests
                 Autosave = false,
                 AutosaveCount = 9,
                 AutosaveIntervalMinutes = 14,
+                DefaultSectorFloorHeightSetting = -16,
+                DefaultSectorCeilingHeightSetting = 192,
+                DefaultSectorBrightnessSetting = 144,
                 AutoClearSidedefTextures = false,
                 AutoMerge = false,
                 SplitJoinedSectors = true,
@@ -495,6 +512,12 @@ public class SettingsTests
             Assert.Equal(9, loaded.NormalizedAutosaveCount);
             Assert.Equal(14, loaded.AutosaveIntervalMinutes);
             Assert.Equal(14, loaded.NormalizedAutosaveIntervalMinutes);
+            Assert.Equal(-16, loaded.DefaultSectorFloorHeightSetting);
+            Assert.Equal(-16, loaded.NormalizedDefaultSectorFloorHeight);
+            Assert.Equal(192, loaded.DefaultSectorCeilingHeightSetting);
+            Assert.Equal(192, loaded.NormalizedDefaultSectorCeilingHeight);
+            Assert.Equal(144, loaded.DefaultSectorBrightnessSetting);
+            Assert.Equal(144, loaded.NormalizedDefaultSectorBrightness);
             Assert.False(loaded.AutoClearSidedefTextures);
             Assert.False(loaded.AutoMerge);
             Assert.True(loaded.SplitJoinedSectors);

@@ -28,6 +28,9 @@ public sealed class Settings
     public const int DefaultAutosaveIntervalMinutes = 5;
     public const int MinAutosaveIntervalMinutes = 1;
     public const int MaxAutosaveIntervalMinutes = 60;
+    public const int DefaultSectorFloorHeight = 0;
+    public const int DefaultSectorCeilingHeight = 128;
+    public const int DefaultSectorBrightness = 192;
 
     public string? ConfigDir { get; set; }
     public string? LastUsedConfigName { get; set; }
@@ -48,6 +51,9 @@ public sealed class Settings
     public bool Autosave { get; set; } = true;
     public int? AutosaveCount { get; set; }
     public int? AutosaveIntervalMinutes { get; set; }
+    public int? DefaultSectorFloorHeightSetting { get; set; }
+    public int? DefaultSectorCeilingHeightSetting { get; set; }
+    public int? DefaultSectorBrightnessSetting { get; set; }
     public bool AutoClearSidedefTextures { get; set; } = true;
     public bool AutoMerge { get; set; } = true;
     public bool SplitJoinedSectors { get; set; } = true;
@@ -120,6 +126,15 @@ public sealed class Settings
     public int NormalizedAutosaveIntervalMinutes =>
         Math.Clamp(AutosaveIntervalMinutes ?? DefaultAutosaveIntervalMinutes, MinAutosaveIntervalMinutes, MaxAutosaveIntervalMinutes);
 
+    public int NormalizedDefaultSectorFloorHeight =>
+        DefaultSectorFloorHeightSetting ?? DefaultSectorFloorHeight;
+
+    public int NormalizedDefaultSectorCeilingHeight =>
+        DefaultSectorCeilingHeightSetting ?? DefaultSectorCeilingHeight;
+
+    public int NormalizedDefaultSectorBrightness =>
+        Math.Clamp(DefaultSectorBrightnessSetting ?? DefaultSectorBrightness, 0, 255);
+
     public ToastAnchor NormalizedToastAnchor =>
         ToastPreferences.NormalizeAnchor(ToastAnchor);
 
@@ -156,6 +171,12 @@ public sealed class Settings
         return Math.Clamp(value, MinAutosaveIntervalMinutes, MaxAutosaveIntervalMinutes);
     }
 
+    public static int? AcceptSectorHeightText(string? text)
+        => int.TryParse(text, out int value) ? value : null;
+
+    public static int? AcceptSectorBrightnessText(string? text)
+        => int.TryParse(text, out int value) ? Math.Clamp(value, 0, 255) : null;
+
     public static string MaxRecentFilesText(Settings settings)
         => settings.NormalizedMaxRecentFiles.ToString(CultureInfo.InvariantCulture);
 
@@ -170,6 +191,15 @@ public sealed class Settings
 
     public static string AutosaveIntervalText(Settings settings)
         => settings.NormalizedAutosaveIntervalMinutes.ToString(CultureInfo.InvariantCulture);
+
+    public static string DefaultSectorFloorHeightText(Settings settings)
+        => settings.NormalizedDefaultSectorFloorHeight.ToString(CultureInfo.InvariantCulture);
+
+    public static string DefaultSectorCeilingHeightText(Settings settings)
+        => settings.NormalizedDefaultSectorCeilingHeight.ToString(CultureInfo.InvariantCulture);
+
+    public static string DefaultSectorBrightnessText(Settings settings)
+        => settings.NormalizedDefaultSectorBrightness.ToString(CultureInfo.InvariantCulture);
 
     public int NormalizedDefaultViewMode =>
         Math.Clamp(DefaultViewMode ?? 0, 0, 3);
