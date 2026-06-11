@@ -194,6 +194,69 @@ public class SectorBuilderTests
     }
 
     [Fact]
+    public void CopiesSourceSectorFromExistingLoopSideLikeUdb()
+    {
+        var map = new MapSet();
+        var loop = Square(map, 64, ccw: true);
+        Linedef shared = map.AddLinedef(loop[0], loop[1]);
+        Sector source = map.AddSector();
+        source.FloorHeight = -16;
+        source.CeilHeight = 192;
+        source.SetFloorTexture("SRCFLAT");
+        source.SetCeilTexture("SRCCEIL");
+        map.AddSidedef(shared, true, source);
+
+        Sector sector = SectorBuilder.CreateSector(map, loop)!;
+
+        Assert.NotSame(source, sector);
+        Assert.Equal(-16, sector.FloorHeight);
+        Assert.Equal(192, sector.CeilHeight);
+        Assert.Equal("SRCFLAT", sector.FloorTexture);
+        Assert.Equal("SRCCEIL", sector.CeilTexture);
+    }
+
+    [Fact]
+    public void ExplicitCopyFromOverridesExistingLoopSideSource()
+    {
+        var map = new MapSet();
+        var loop = Square(map, 64, ccw: true);
+        Linedef shared = map.AddLinedef(loop[0], loop[1]);
+        Sector nearby = map.AddSector();
+        nearby.FloorHeight = -16;
+        nearby.SetFloorTexture("NEARBY");
+        map.AddSidedef(shared, true, nearby);
+        var explicitSource = new Sector { FloorHeight = 24 };
+        explicitSource.SetFloorTexture("EXPLICIT");
+
+        Sector sector = SectorBuilder.CreateSector(map, loop, explicitSource)!;
+
+        Assert.Equal(24, sector.FloorHeight);
+        Assert.Equal("EXPLICIT", sector.FloorTexture);
+    }
+
+    [Fact]
+    public void TracedSidesCopySameSideSectorBeforeOppositeFallbackLikeUdb()
+    {
+        var map = new MapSet();
+        Vertex a = map.AddVertex(new Vector2D(0, 0));
+        Vertex b = map.AddVertex(new Vector2D(64, 0));
+        Linedef line = map.AddLinedef(a, b);
+        Sector sameSide = map.AddSector();
+        sameSide.FloorHeight = 8;
+        sameSide.SetFloorTexture("SAME");
+        Sector opposite = map.AddSector();
+        opposite.FloorHeight = 16;
+        opposite.SetFloorTexture("OPPOSITE");
+        map.AddSidedef(line, true, sameSide);
+        map.AddSidedef(line, false, opposite);
+
+        Sector sector = SectorBuilder.CreateSectorFromSides(map, new[] { new LinedefSide(line, true) })!;
+
+        Assert.Equal(8, sector.FloorHeight);
+        Assert.Equal("SAME", sector.FloorTexture);
+    }
+
+    [Fact]
     public void CopyFromPreservesTagsSlopesAndFields()
     {
         var map = new MapSet();

@@ -32,11 +32,8 @@ public static class SectorBuilder
         // Normalize to clockwise winding (negative signed area in y-up) so front faces the interior.
         if (SignedArea(verts) > 0) verts.Reverse();
 
-        var sector = map.AddSector();
-        sector.Marked = true;
-        if (copyFrom != null) CopyProperties(copyFrom, sector);
-
         int n = verts.Count;
+        var sides = new List<LinedefSide>(n);
         for (int i = 0; i < n; i++)
         {
             var v1 = verts[i];
@@ -47,8 +44,15 @@ public static class SectorBuilder
             // Interior is on the right of v1->v2. The right side is the line's front when our travel matches
             // the line's start->end, otherwise its back.
             bool useFront = ReferenceEquals(line.Start, v1);
-            AssignSide(map, line, useFront, sector);
+            sides.Add(new LinedefSide(line, useFront));
         }
+
+        var sector = map.AddSector();
+        sector.Marked = true;
+        CopySectorProperties(copyFrom ?? FindCopySector(sides), sector);
+
+        foreach (LinedefSide side in sides)
+            AssignSide(map, side.Line, side.Front, sector);
 
         return sector;
     }
@@ -63,13 +67,34 @@ public static class SectorBuilder
         if (sides.Count == 0) return null;
         var sector = map.AddSector();
         sector.Marked = true;
-        if (copyFrom != null) CopyProperties(copyFrom, sector);
+        CopySectorProperties(copyFrom ?? FindCopySector(sides), sector);
 
         foreach (var ls in sides)
         {
             AssignSide(map, ls.Line, ls.Front, sector);
         }
         return sector;
+    }
+
+    private static Sector? FindCopySector(IReadOnlyList<LinedefSide> sides)
+    {
+        Sector? copyFrom = null;
+        foreach (LinedefSide side in sides)
+        {
+            if (side.Line.Front?.Sector != null)
+            {
+                copyFrom = side.Line.Front.Sector;
+                if (side.Front) break;
+            }
+
+            if (side.Line.Back?.Sector != null)
+            {
+                copyFrom = side.Line.Back.Sector;
+                if (!side.Front) break;
+            }
+        }
+
+        return copyFrom;
     }
 
     private static void AssignSide(MapSet map, Linedef line, bool front, Sector sector)
@@ -117,8 +142,10 @@ public static class SectorBuilder
         return null;
     }
 
-    private static void CopyProperties(Sector src, Sector dst)
+    private static void CopySectorProperties(Sector? src, Sector dst)
     {
+        if (src == null) return;
+
         dst.FloorHeight = src.FloorHeight;
         dst.CeilHeight = src.CeilHeight;
         dst.FloorTexture = src.FloorTexture;
