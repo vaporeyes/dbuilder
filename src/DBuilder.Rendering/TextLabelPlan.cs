@@ -71,11 +71,40 @@ public sealed record TextLabelRenderCommand(
     TextLabelRectangle ScreenRectangle,
     int PrimitiveCount);
 
+public sealed record TextLabelUpdateCommand(
+    int LabelIndex,
+    double TranslateX,
+    double TranslateY,
+    double ScaleX,
+    double ScaleY,
+    bool SkipRendering);
+
+public enum TextLabelRenderOperationKind
+{
+    SetTexture,
+    SetVertexBuffer,
+    Draw,
+}
+
+public sealed record TextLabelRenderOperation(
+    TextLabelRenderOperationKind Kind,
+    int LabelIndex,
+    PrimitiveType PrimitiveType,
+    int PrimitiveCount);
+
 public sealed record TextLabelRenderPlan(
     IReadOnlyList<TextLabelRenderCommand> Commands,
     int SkippedLabels)
 {
     public bool ShouldRender => Commands.Count > 0;
+}
+
+public sealed record TextLabelRenderSequencePlan(
+    IReadOnlyList<TextLabelUpdateCommand> Updates,
+    IReadOnlyList<TextLabelRenderOperation> Operations,
+    int SkippedLabels)
+{
+    public bool ShouldRender => Operations.Count > 0;
 }
 
 public sealed record TextLabelRenderStatePlan(
@@ -466,6 +495,64 @@ public static class TextLabelPlan
         }
 
         return new TextLabelRenderPlan(commands, skipped);
+    }
+
+    public static TextLabelRenderSequencePlan BuildRenderSequencePlan(
+        IReadOnlyList<TextLabelLayout> labels,
+        double translateX,
+        double translateY,
+        double scale)
+    {
+        ArgumentNullException.ThrowIfNull(labels);
+        if (double.IsNaN(translateX)) throw new ArgumentOutOfRangeException(nameof(translateX));
+        if (double.IsNaN(translateY)) throw new ArgumentOutOfRangeException(nameof(translateY));
+        if (scale == 0.0 || double.IsNaN(scale)) throw new ArgumentOutOfRangeException(nameof(scale));
+
+        var updates = new List<TextLabelUpdateCommand>(labels.Count);
+        var operations = new List<TextLabelRenderOperation>();
+        int skipped = 0;
+
+        for (int i = 0; i < labels.Count; i++)
+        {
+            TextLabelLayout label = labels[i];
+            updates.Add(new TextLabelUpdateCommand(
+                i,
+                translateX,
+                translateY,
+                scale,
+                -scale,
+                label.SkipRendering));
+
+            if (label.SkipRendering) skipped++;
+        }
+
+        if (labels.Count == skipped)
+        {
+            return new TextLabelRenderSequencePlan(updates, operations, skipped);
+        }
+
+        for (int i = 0; i < labels.Count; i++)
+        {
+            if (labels[i].SkipRendering) continue;
+
+            operations.Add(new TextLabelRenderOperation(
+                TextLabelRenderOperationKind.SetTexture,
+                i,
+                PrimitiveType.TriangleStrip,
+                PrimitiveCount: 0));
+            operations.Add(new TextLabelRenderOperation(
+                TextLabelRenderOperationKind.SetVertexBuffer,
+                i,
+                PrimitiveType.TriangleStrip,
+                PrimitiveCount: 0));
+            operations.Add(new TextLabelRenderOperation(
+                TextLabelRenderOperationKind.Draw,
+                i,
+                PrimitiveType.TriangleStrip,
+                PrimitiveCount: 2));
+        }
+
+        return new TextLabelRenderSequencePlan(updates, operations, skipped);
     }
 
     public static TextLabelRenderStatePlan BuildRenderStatePlan(TextLabelRenderPlan renderPlan)

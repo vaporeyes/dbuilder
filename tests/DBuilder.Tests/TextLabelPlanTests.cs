@@ -7,6 +7,17 @@ namespace DBuilder.Tests;
 
 public sealed class TextLabelPlanTests
 {
+    private static string? FindUdbRoot()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "."));
+        string sibling = Path.GetFullPath(Path.Combine(repositoryRoot, "..", "UltimateDoomBuilder"));
+        if (File.Exists(Path.Combine(sibling, "Source", "Core", "Rendering", "Renderer2D.cs"))) return sibling;
+
+        string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string root = Path.Combine(home, "dev", "repos", "UltimateDoomBuilder");
+        return File.Exists(Path.Combine(root, "Source", "Core", "Rendering", "Renderer2D.cs")) ? root : null;
+    }
+
     [Fact]
     public void BuildInitializationPlanMatchesUdbConstructorDefaults()
     {
@@ -452,6 +463,81 @@ public sealed class TextLabelPlanTests
     }
 
     [Fact]
+    public void BuildRenderSequencePlanUpdatesEveryLabelBeforeDrawingVisibleLabelsLikeUdb()
+    {
+        TextLabelLayout visible = TextLabelPlan.Build(
+            "Visible",
+            new TextLabelSize(24, 10),
+            new TextLabelPoint(8, 8),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+        TextLabelLayout skipped = TextLabelPlan.Build(
+            "Skipped",
+            new TextLabelSize(24, 10),
+            new TextLabelPoint(400, 8),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+        TextLabelLayout secondVisible = TextLabelPlan.Build(
+            "Second",
+            new TextLabelSize(24, 10),
+            new TextLabelPoint(32, 16),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+
+        TextLabelRenderSequencePlan plan = TextLabelPlan.BuildRenderSequencePlan(
+            [visible, skipped, secondVisible],
+            translateX: 4,
+            translateY: -8,
+            scale: 2);
+
+        Assert.True(plan.ShouldRender);
+        Assert.Equal(1, plan.SkippedLabels);
+        Assert.Equal(
+            [
+                new TextLabelUpdateCommand(0, 4, -8, 2, -2, SkipRendering: false),
+                new TextLabelUpdateCommand(1, 4, -8, 2, -2, SkipRendering: true),
+                new TextLabelUpdateCommand(2, 4, -8, 2, -2, SkipRendering: false),
+            ],
+            plan.Updates);
+        Assert.Equal(
+            [
+                new TextLabelRenderOperation(TextLabelRenderOperationKind.SetTexture, 0, PrimitiveType.TriangleStrip, PrimitiveCount: 0),
+                new TextLabelRenderOperation(TextLabelRenderOperationKind.SetVertexBuffer, 0, PrimitiveType.TriangleStrip, PrimitiveCount: 0),
+                new TextLabelRenderOperation(TextLabelRenderOperationKind.Draw, 0, PrimitiveType.TriangleStrip, PrimitiveCount: 2),
+                new TextLabelRenderOperation(TextLabelRenderOperationKind.SetTexture, 2, PrimitiveType.TriangleStrip, PrimitiveCount: 0),
+                new TextLabelRenderOperation(TextLabelRenderOperationKind.SetVertexBuffer, 2, PrimitiveType.TriangleStrip, PrimitiveCount: 0),
+                new TextLabelRenderOperation(TextLabelRenderOperationKind.Draw, 2, PrimitiveType.TriangleStrip, PrimitiveCount: 2),
+            ],
+            plan.Operations);
+    }
+
+    [Fact]
+    public void BuildRenderSequencePlanReturnsAfterUpdatesWhenAllLabelsSkipLikeUdb()
+    {
+        TextLabelLayout skipped = TextLabelPlan.Build(
+            "Skipped",
+            new TextLabelSize(24, 10),
+            new TextLabelPoint(400, 8),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+
+        TextLabelRenderSequencePlan plan = TextLabelPlan.BuildRenderSequencePlan(
+            [skipped],
+            translateX: 1,
+            translateY: 2,
+            scale: 3);
+
+        Assert.False(plan.ShouldRender);
+        Assert.Equal(1, plan.SkippedLabels);
+        Assert.Equal([new TextLabelUpdateCommand(0, 1, 2, 3, -3, SkipRendering: true)], plan.Updates);
+        Assert.Empty(plan.Operations);
+    }
+
+    [Fact]
     public void TextLabelPlannersRejectNullInputs()
     {
         TextLabelLayout layout = TextLabelPlan.Build(
@@ -469,9 +555,49 @@ public sealed class TextLabelPlanTests
         Assert.Throws<ArgumentNullException>(() =>
             TextLabelPlan.BuildRenderPlan(null!));
         Assert.Throws<ArgumentNullException>(() =>
+            TextLabelPlan.BuildRenderSequencePlan(null!, translateX: 0, translateY: 0, scale: 1));
+        Assert.Throws<ArgumentNullException>(() =>
             TextLabelPlan.BuildRenderStatePlan(null!));
         Assert.Throws<ArgumentNullException>(() =>
             TextLabelPlan.BuildResourceUpdatePlan(TextLabelInvalidation.Initial, null!, hasTexture: false, hasVertexBuffer: false, vertexBufferDisposed: false));
+    }
+
+    [Fact]
+    public void BuildRenderSequencePlanRejectsInvalidTransformInputs()
+    {
+        TextLabelLayout visible = TextLabelPlan.Build(
+            "Visible",
+            new TextLabelSize(24, 10),
+            new TextLabelPoint(8, 8),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            TextLabelPlan.BuildRenderSequencePlan([visible], double.NaN, 0, 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            TextLabelPlan.BuildRenderSequencePlan([visible], 0, double.NaN, 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            TextLabelPlan.BuildRenderSequencePlan([visible], 0, 0, 0));
+    }
+
+    [Fact]
+    public void Renderer2DTextExpressionsMatchUdbWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Source", "Core", "Rendering", "Renderer2D.cs"));
+
+        Assert.Contains("public void RenderText(ITextLabel label)", source, StringComparison.Ordinal);
+        Assert.Contains("public void RenderText(IList<ITextLabel> labels)", source, StringComparison.Ordinal);
+        Assert.Contains("label.Update(graphics, translatex, translatey, scale, -scale);", source, StringComparison.Ordinal);
+        Assert.Contains("if(label.SkipRendering) return;", source, StringComparison.Ordinal);
+        Assert.Contains("if(labels.Count == skipped) return;", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetAlphaBlendEnable(true);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetTexture(label.Texture);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetVertexBuffer(label.VertexBuffer);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.Draw(PrimitiveType.TriangleStrip, 0, 2);", source, StringComparison.Ordinal);
     }
 
     [Fact]
