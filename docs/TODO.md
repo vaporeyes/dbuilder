@@ -1653,6 +1653,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style visual culling plan deduplication over visible blockmap ranges.
   - [x] Apply visual culling to 3D thing billboard drawing.
 - [x] Port visual picking behavior to full UDB behavior.
+  - [x] Add UDB-style visual pick result and pickable contract.
   - [x] Apply alpha-based texture highlighting to transparent-pixel double-sided middle-texture hit testing.
   - [x] Apply alpha-based texture highlighting to transparent-pixel 3D floor hit testing.
   - [x] Pick resolved 3D floor side bands before target-sector walls.
