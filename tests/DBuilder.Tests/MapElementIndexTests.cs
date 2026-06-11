@@ -80,6 +80,21 @@ public class MapElementIndexTests
     }
 
     [Fact]
+    public void GetLindefByIndexAliasMatchesUdbSpelling()
+    {
+        var map = new MapSet();
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(1, 0));
+        Linedef first = map.AddLinedef(a, b);
+        Linedef second = map.AddLinedef(a, b);
+
+        Assert.Same(first, map.GetLindefByIndex(0));
+        Assert.Same(second, map.GetLindefByIndex(1));
+        Assert.Null(map.GetLindefByIndex(-1));
+        Assert.Null(map.GetLindefByIndex(2));
+    }
+
+    [Fact]
     public void ChangeSectorIndexReindexesSectors()
     {
         var map = new MapSet();

@@ -2091,6 +2091,7 @@ public class MapSet : IDisposable
 
     public Vertex? GetVertexByIndex(int index) => (uint)index < (uint)Vertices.Count ? Vertices[index] : null;
     public Linedef? GetLinedefByIndex(int index) => (uint)index < (uint)Linedefs.Count ? Linedefs[index] : null;
+    public Linedef? GetLindefByIndex(int index) => GetLinedefByIndex(index);
     public Sidedef? GetSidedefByIndex(int index) => (uint)index < (uint)Sidedefs.Count ? Sidedefs[index] : null;
     public Sector? GetSectorByIndex(int index) => (uint)index < (uint)Sectors.Count ? Sectors[index] : null;
     public Thing? GetThingByIndex(int index) => (uint)index < (uint)Things.Count ? Things[index] : null;
