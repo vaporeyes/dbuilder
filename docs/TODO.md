@@ -1320,6 +1320,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style UDMF floor and ceiling flat alignment to selected linedef front/back sides.
 - [ ] Port stair builder behavior fully.
   - [x] Add independent ceiling height stepping to the stair builder.
+  - [x] Clamp stair prefab planning fields to UDB form minimums.
 - [ ] Port slope editing behavior fully.
 - [ ] Port sound propagation editing behavior fully.
   - [x] Block sound propagation across closed-height two-sided lines.

@@ -833,8 +833,8 @@ public sealed record StairBuilderPrefab
     public StairBuilderStraightOptions ToStraightOptions()
         => new()
         {
-            NumberOfSectors = NumberOfSectors,
-            SectorDepth = SectorDepth,
+            NumberOfSectors = AtLeastOne(NumberOfSectors),
+            SectorDepth = AtLeastOne(SectorDepth),
             Spacing = Spacing,
             SideFront = FrontSide,
             SingleSteps = SingleSteps,
@@ -845,20 +845,20 @@ public sealed record StairBuilderPrefab
     public StairBuilderCurvedOptions ToCurvedOptions()
         => new()
         {
-            NumberOfSectors = NumberOfSectors,
-            OuterVertexMultiplier = OuterVertexMultiplier,
-            InnerVertexMultiplier = InnerVertexMultiplier,
+            NumberOfSectors = AtLeastOne(NumberOfSectors),
+            OuterVertexMultiplier = AtLeastOne(OuterVertexMultiplier),
+            InnerVertexMultiplier = AtLeastOne(InnerVertexMultiplier),
             Flipping = Flipping,
         };
 
     public StairBuilderSplineOptions ToSplineOptions()
         => new()
         {
-            NumberOfSectors = NumberOfSectors,
-            OuterVertexMultiplier = OuterVertexMultiplier,
-            InnerVertexMultiplier = InnerVertexMultiplier,
+            NumberOfSectors = AtLeastOne(NumberOfSectors),
+            OuterVertexMultiplier = AtLeastOne(OuterVertexMultiplier),
+            InnerVertexMultiplier = AtLeastOne(InnerVertexMultiplier),
             Flipping = Flipping,
-            NumberOfControlPoints = NumberOfControlPoints,
+            NumberOfControlPoints = AtLeastOne(NumberOfControlPoints),
         };
 
     public StairBuilderOptions ToBuilderOptions(int floorBase = 0, int ceilingBase = 0)
@@ -963,6 +963,9 @@ public sealed record StairBuilderPrefab
 
     private static string ReadString(IReadOnlyDictionary<string, object> settings, string key, string fallback)
         => settings.TryGetValue(key, out object? value) && value is string typed ? typed : fallback;
+
+    private static int AtLeastOne(int value)
+        => Math.Max(value, 1);
 }
 
 public static class StairBuilderPrefabSettings

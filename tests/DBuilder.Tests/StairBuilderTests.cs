@@ -1079,6 +1079,21 @@ public class StairBuilderTests
     }
 
     [Fact]
+    public void PrefabCreatesStraightOptionsWithUdbMinimums()
+    {
+        var prefab = new StairBuilderPrefab
+        {
+            NumberOfSectors = 0,
+            SectorDepth = 0
+        };
+
+        StairBuilderStraightOptions options = prefab.ToStraightOptions();
+
+        Assert.Equal(1, options.NumberOfSectors);
+        Assert.Equal(1, options.SectorDepth);
+    }
+
+    [Fact]
     public void PrefabCreatesCurvedOptionsForLoadedFormState()
     {
         var prefab = new StairBuilderPrefab
@@ -1095,6 +1110,23 @@ public class StairBuilderTests
         Assert.Equal(3, options.OuterVertexMultiplier);
         Assert.Equal(2, options.InnerVertexMultiplier);
         Assert.Equal(1, options.Flipping);
+    }
+
+    [Fact]
+    public void PrefabCreatesCurvedOptionsWithUdbMinimums()
+    {
+        var prefab = new StairBuilderPrefab
+        {
+            NumberOfSectors = 0,
+            OuterVertexMultiplier = 0,
+            InnerVertexMultiplier = 0
+        };
+
+        StairBuilderCurvedOptions options = prefab.ToCurvedOptions();
+
+        Assert.Equal(1, options.NumberOfSectors);
+        Assert.Equal(1, options.OuterVertexMultiplier);
+        Assert.Equal(1, options.InnerVertexMultiplier);
     }
 
     [Fact]
@@ -1116,6 +1148,25 @@ public class StairBuilderTests
         Assert.Equal(2, options.InnerVertexMultiplier);
         Assert.Equal(1, options.Flipping);
         Assert.Equal(5, options.NumberOfControlPoints);
+    }
+
+    [Fact]
+    public void PrefabCreatesSplineOptionsWithUdbMinimums()
+    {
+        var prefab = new StairBuilderPrefab
+        {
+            NumberOfSectors = 0,
+            OuterVertexMultiplier = 0,
+            InnerVertexMultiplier = 0,
+            NumberOfControlPoints = 0
+        };
+
+        StairBuilderSplineOptions options = prefab.ToSplineOptions();
+
+        Assert.Equal(1, options.NumberOfSectors);
+        Assert.Equal(1, options.OuterVertexMultiplier);
+        Assert.Equal(1, options.InnerVertexMultiplier);
+        Assert.Equal(1, options.NumberOfControlPoints);
     }
 
     [Fact]
