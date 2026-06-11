@@ -174,6 +174,7 @@ public class SettingsWindowTests
         Assert.Contains("_settings.DrawCurveSettings = dlg.DrawCurveSettings;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.DrawCurveSettings = _settings.NormalizedDrawCurveSettings;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.CurveLinedefsSettings = _settings.NormalizedCurveLinedefsSettings;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.MergeGeometryMode = _settings.NormalizedMergeGeometryMode;", mainWindow, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -317,6 +318,7 @@ public class SettingsWindowTests
         Assert.Contains("AddCombo(\"Merge geometry mode\", MergeGeometryModeItems(), (int)s.NormalizedMergeGeometryMode)", body, StringComparison.Ordinal);
         Assert.Contains("MergeGeometryMode = (MergeGeometryMode)ComboNumber(_mergeGeometryMode, (int)MergeGeometryMode.Replace);", body, StringComparison.Ordinal);
         Assert.Contains("_settings.MergeGeometryMode = dlg.MergeGeometryMode;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.MergeGeometryMode = _settings.NormalizedMergeGeometryMode;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_map.StitchSelectedGeometry(_settings.NormalizedMergeGeometryMode, 0.5)", mainWindow, StringComparison.Ordinal);
     }
 

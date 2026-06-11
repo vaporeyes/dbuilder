@@ -530,6 +530,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Handle zero-step direct Bezier curve generation safely.
   - [x] Mark changed geometry when applying Curve Linedefs.
   - [x] Add UDB-style stitch and snap post-processing for Curve Linedefs materialization.
+  - [x] Wire editor Curve Linedefs command to merge-mode post-processing.
 - [ ] Port robust triangulation behavior for all known UDB map shapes.
 - [x] Port projected frustum behavior fully.
   - [x] Add UDB-style projected frustum box intersection helper.

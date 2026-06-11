@@ -217,6 +217,7 @@ public partial class MainWindow : Window
         MapView.DrawEllipseSettings = _settings.NormalizedDrawEllipseSettings;
         MapView.DrawCurveSettings = _settings.NormalizedDrawCurveSettings;
         MapView.CurveLinedefsSettings = _settings.NormalizedCurveLinedefsSettings;
+        MapView.MergeGeometryMode = _settings.NormalizedMergeGeometryMode;
         MapView.DrawGridSettings = _settings.NormalizedDrawGridSettings;
         MapView.AutomapSettings = _settings.NormalizedAutomapSettings;
         MapView.LinedefColorPresets = _settings.NormalizedLinedefColorPresets;
@@ -1427,6 +1428,7 @@ public partial class MainWindow : Window
         MapView.DrawEllipseSettings = _settings.NormalizedDrawEllipseSettings;
         MapView.DrawCurveSettings = _settings.NormalizedDrawCurveSettings;
         MapView.CurveLinedefsSettings = _settings.NormalizedCurveLinedefsSettings;
+        MapView.MergeGeometryMode = _settings.NormalizedMergeGeometryMode;
         MapView.DrawGridSettings = _settings.NormalizedDrawGridSettings;
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
         MapView.DynamicGridSizeEnabled = _settings.DynamicGridSize;
@@ -2858,6 +2860,7 @@ public partial class MainWindow : Window
     private void SetMergeGeometryMode(MergeGeometryMode mode)
     {
         _settings.MergeGeometryMode = mode;
+        MapView.MergeGeometryMode = _settings.NormalizedMergeGeometryMode;
         SaveSettings();
         UpdateCommandCheckedState();
         SetStatus(mode switch

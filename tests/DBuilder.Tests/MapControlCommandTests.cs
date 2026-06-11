@@ -918,9 +918,15 @@ public sealed class MapControlCommandTests
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
         int methodIndex = body.IndexOf("public string CurveSelectedLinedefs()", StringComparison.Ordinal);
         int warningIndex = body.IndexOf("const string message = \"This action requres a selection!\";", methodIndex, StringComparison.Ordinal);
+        int applyIndex = body.IndexOf("CurveLinedefs.ApplyToSelectedLinedefs(", methodIndex, StringComparison.Ordinal);
+        int mergeModeIndex = body.IndexOf("MergeGeometryMode,", applyIndex, StringComparison.Ordinal);
+        int snapIndex = body.IndexOf("snapToAccuracy: true", applyIndex, StringComparison.Ordinal);
 
         Assert.True(methodIndex >= 0);
         Assert.True(warningIndex > methodIndex);
+        Assert.True(applyIndex > methodIndex);
+        Assert.True(mergeModeIndex > applyIndex);
+        Assert.True(snapIndex > applyIndex);
     }
 
     [Fact]
