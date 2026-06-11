@@ -65,6 +65,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Flat and world vertex-buffer subdata updates", replacement.CoveredResponsibilities);
         Assert.Contains("Index-buffer subdata updates", replacement.CoveredResponsibilities);
         Assert.Contains("Vertex and index buffer upload byte-size planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device array upload input validation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Vertex and index buffer binding planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device vertex and index buffer binding state reporting", replacement.CoveredResponsibilities);
         Assert.Contains("Vertex and index buffer constructor input validation planning", replacement.CoveredResponsibilities);
@@ -549,6 +550,8 @@ public class RendererArchitectureModelTests
         Assert.Equal(DrawOperationKind.DrawIndexed, indexed.Kind);
         Assert.Equal(DrawOperationKind.DrawData, data.Kind);
         Assert.Equal(3, data.InlineVertexCount);
+        Assert.Throws<ArgumentNullException>(() =>
+            RenderDevice.BuildDrawDataPlan(PrimitiveType.LineList, startIndex: 0, primitiveCount: 0, data: null!));
     }
 
     [Fact]

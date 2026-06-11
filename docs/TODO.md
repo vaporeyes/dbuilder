@@ -1552,6 +1552,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style length and format vertex-buffer allocation overload.
   - [x] Add UDB-style vertex-buffer subdata upload overloads.
   - [x] Add UDB-style vertex and index buffer upload byte-size planning.
+  - [x] Add UDB-style render-device array upload input validation planning.
   - [x] Add UDB-style vertex and index buffer binding planning.
   - [x] Add UDB-style render-device buffer binding state reporting.
   - [x] Add UDB-style vertex and index buffer constructor input validation planning.

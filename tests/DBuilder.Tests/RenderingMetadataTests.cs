@@ -81,6 +81,17 @@ public sealed class RenderingMetadataTests
     }
 
     [Fact]
+    public void BufferDataPlansRejectNullArrays()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+            RenderDevice.BuildSetBufferDataPlan((FlatVertex[])null!));
+        Assert.Throws<ArgumentNullException>(() =>
+            RenderDevice.BuildSetBufferDataPlan((WorldVertex[])null!));
+        Assert.Throws<ArgumentNullException>(() =>
+            RenderDevice.BuildSetBufferDataPlan((int[])null!));
+    }
+
+    [Fact]
     public void BufferConstructorsRejectNullGl()
     {
         Assert.Throws<ArgumentNullException>(() => new VertexBuffer(null!));
@@ -158,6 +169,19 @@ public sealed class RenderingMetadataTests
             RenderDevice.BuildSetBufferSubdataPlan(new FlatVertex[1], size: 2));
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             RenderDevice.BuildSetIndexBufferSubdataPlan(-1, Array.Empty<int>()));
+    }
+
+    [Fact]
+    public void BufferSubdataPlansRejectNullArrays()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+            RenderDevice.BuildSetBufferSubdataPlan(0, (FlatVertex[])null!));
+        Assert.Throws<ArgumentNullException>(() =>
+            RenderDevice.BuildSetBufferSubdataPlan(0, (WorldVertex[])null!));
+        Assert.Throws<ArgumentNullException>(() =>
+            RenderDevice.BuildSetBufferSubdataPlan((FlatVertex[])null!, size: 0));
+        Assert.Throws<ArgumentNullException>(() =>
+            RenderDevice.BuildSetIndexBufferSubdataPlan(0, (int[])null!));
     }
 
     [Fact]

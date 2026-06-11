@@ -506,31 +506,43 @@ public sealed class RenderDevice : IDisposable
     }
 
     public static RenderBufferOperationPlan BuildSetBufferDataPlan(FlatVertex[] data)
-        => new(
+    {
+        ArgumentNullException.ThrowIfNull(data);
+
+        return new RenderBufferOperationPlan(
             RenderBufferOperationKind.SetFlatVertexData,
             VertexFormat.Flat,
             data.Length,
             ElementOffset: 0,
             ByteOffset: 0,
             ByteCount: checked((long)data.Length * FlatVertex.Stride));
+    }
 
     public static RenderBufferOperationPlan BuildSetBufferDataPlan(WorldVertex[] data)
-        => new(
+    {
+        ArgumentNullException.ThrowIfNull(data);
+
+        return new RenderBufferOperationPlan(
             RenderBufferOperationKind.SetWorldVertexData,
             VertexFormat.World,
             data.Length,
             ElementOffset: 0,
             ByteOffset: 0,
             ByteCount: checked((long)data.Length * WorldVertex.Stride));
+    }
 
     public static RenderBufferOperationPlan BuildSetBufferDataPlan(int[] data)
-        => new(
+    {
+        ArgumentNullException.ThrowIfNull(data);
+
+        return new RenderBufferOperationPlan(
             RenderBufferOperationKind.SetIndexData,
             VertexFormat: null,
             data.Length,
             ElementOffset: 0,
             ByteOffset: 0,
             ByteCount: checked((long)data.Length * sizeof(int)));
+    }
 
     public static RenderBufferOperationPlan BuildSetIndexBufferDataPlan(int length)
     {
@@ -560,6 +572,7 @@ public sealed class RenderDevice : IDisposable
 
     public static RenderBufferOperationPlan BuildSetBufferSubdataPlan(long destOffset, FlatVertex[] data)
     {
+        ArgumentNullException.ThrowIfNull(data);
         if (destOffset < 0) throw new ArgumentOutOfRangeException(nameof(destOffset));
 
         return new RenderBufferOperationPlan(
@@ -573,6 +586,7 @@ public sealed class RenderDevice : IDisposable
 
     public static RenderBufferOperationPlan BuildSetBufferSubdataPlan(long destOffset, WorldVertex[] data)
     {
+        ArgumentNullException.ThrowIfNull(data);
         if (destOffset < 0) throw new ArgumentOutOfRangeException(nameof(destOffset));
 
         return new RenderBufferOperationPlan(
@@ -586,6 +600,7 @@ public sealed class RenderDevice : IDisposable
 
     public static RenderBufferOperationPlan BuildSetBufferSubdataPlan(FlatVertex[] data, long size)
     {
+        ArgumentNullException.ThrowIfNull(data);
         if (size < 0 || size > data.Length) throw new ArgumentOutOfRangeException(nameof(size));
 
         return new RenderBufferOperationPlan(
@@ -599,6 +614,7 @@ public sealed class RenderDevice : IDisposable
 
     public static RenderBufferOperationPlan BuildSetIndexBufferSubdataPlan(long destOffset, int[] data)
     {
+        ArgumentNullException.ThrowIfNull(data);
         if (destOffset < 0) throw new ArgumentOutOfRangeException(nameof(destOffset));
 
         return new RenderBufferOperationPlan(
@@ -989,7 +1005,11 @@ public sealed class RenderDevice : IDisposable
         => new(DrawOperationKind.DrawIndexed, type, startIndex, primitiveCount);
 
     public static DrawOperationPlan BuildDrawDataPlan(PrimitiveType type, int startIndex, int primitiveCount, FlatVertex[] data)
-        => new(DrawOperationKind.DrawData, type, startIndex, primitiveCount, data.Length);
+    {
+        ArgumentNullException.ThrowIfNull(data);
+
+        return new DrawOperationPlan(DrawOperationKind.DrawData, type, startIndex, primitiveCount, data.Length);
+    }
 
     public static RenderFrameOperationPlan BuildFinishRenderingPlan()
         => new(RenderFrameOperationKind.FinishRendering, FlushCommands: false);
