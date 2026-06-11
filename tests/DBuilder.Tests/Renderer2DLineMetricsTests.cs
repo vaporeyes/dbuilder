@@ -39,6 +39,93 @@ public sealed class Renderer2DLineMetricsTests
     }
 
     [Fact]
+    public void BuildTransformPlanMatchesUdbUpdateTransformations()
+    {
+        Renderer2DTransformPlan plan = Renderer2DLineMetricPlanner.BuildTransformPlan(
+            windowWidth: 800,
+            windowHeight: 600,
+            offsetX: 100,
+            offsetY: -50,
+            scale: 2,
+            vertexScale2D: 1);
+
+        Assert.Equal(2, plan.Scale);
+        Assert.Equal(0.5, plan.ScaleInverse);
+        Assert.Equal(100, plan.TranslateX);
+        Assert.Equal(-100, plan.TranslateY);
+        Assert.Equal(5, plan.LineNormalSize);
+        Assert.Equal(0.3125, plan.MinimumLineLength);
+        Assert.Equal(10, plan.MinimumLineNormalLength);
+        Assert.Equal(3, plan.VertexSize);
+        Assert.Equal(new Renderer2DViewport(-100, 100, 400, -300), plan.Viewport);
+        Assert.Equal(new Renderer2DViewport(-100, -200, 400, 300), plan.YViewport);
+    }
+
+    [Fact]
+    public void DisplayToMapAndMapToDisplayRoundTripLikeUdb()
+    {
+        Renderer2DTransformPlan plan = Renderer2DLineMetricPlanner.BuildTransformPlan(
+            windowWidth: 800,
+            windowHeight: 600,
+            offsetX: 100,
+            offsetY: -50,
+            scale: 2,
+            vertexScale2D: 1);
+
+        Vector2D display = Renderer2DLineMetricPlanner.MapToDisplay(
+            new Vector2D(20, 30),
+            plan.TranslateX,
+            plan.TranslateY,
+            plan.Scale);
+        Vector2D map = Renderer2DLineMetricPlanner.DisplayToMap(
+            display,
+            plan.TranslateX,
+            plan.TranslateY,
+            plan.ScaleInverse);
+
+        Assert.Equal(240, display.x);
+        Assert.Equal(140, display.y);
+        Assert.Equal(20, map.x);
+        Assert.Equal(30, map.y);
+    }
+
+    [Fact]
+    public void BuildTransformPlanRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer2DLineMetricPlanner.BuildTransformPlan(
+            windowWidth: -1,
+            windowHeight: 600,
+            offsetX: 0,
+            offsetY: 0,
+            scale: 1,
+            vertexScale2D: 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer2DLineMetricPlanner.BuildTransformPlan(
+            windowWidth: 800,
+            windowHeight: -1,
+            offsetX: 0,
+            offsetY: 0,
+            scale: 1,
+            vertexScale2D: 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer2DLineMetricPlanner.BuildTransformPlan(
+            windowWidth: 800,
+            windowHeight: 600,
+            offsetX: double.NaN,
+            offsetY: 0,
+            scale: 1,
+            vertexScale2D: 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer2DLineMetricPlanner.DisplayToMap(
+            new Vector2D(),
+            translateX: 0,
+            translateY: 0,
+            scaleInverse: 0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer2DLineMetricPlanner.MapToDisplay(
+            new Vector2D(),
+            translateX: 0,
+            translateY: 0,
+            scale: 0));
+    }
+
+    [Fact]
     public void ShouldPlotLineUsesUdbSquaredLengthThreshold()
     {
         Renderer2DLineMetrics metrics = Renderer2DLineMetricPlanner.Build(scale: 1.0);
@@ -299,6 +386,12 @@ public sealed class Renderer2DLineMetricsTests
         Assert.Contains("linenormalsize = 10f * scaleinv;", source, StringComparison.Ordinal);
         Assert.Contains("minlinelength = linenormalsize * 0.0625f;", source, StringComparison.Ordinal);
         Assert.Contains("minlinenormallength = linenormalsize * 2f;", source, StringComparison.Ordinal);
+        Assert.Contains("translatex = -offsetx + (windowsize.Width * 0.5f) * scaleinv;", source, StringComparison.Ordinal);
+        Assert.Contains("translatey = -offsety - (windowsize.Height * 0.5f) * scaleinv;", source, StringComparison.Ordinal);
+        Assert.Contains("viewport = new RectangleF((float)lt.x, (float)lt.y, (float)(rb.x - lt.x), (float)(rb.y - lt.y));", source, StringComparison.Ordinal);
+        Assert.Contains("yviewport = new RectangleF((float)lt.x, (float)rb.y, (float)(rb.x - lt.x), (float)(lt.y - rb.y));", source, StringComparison.Ordinal);
+        Assert.Contains("return mousepos.GetInvTransformed(-translatex, -translatey, scaleinv, -scaleinv);", source, StringComparison.Ordinal);
+        Assert.Contains("return mappos.GetTransformed(translatex, translatey, scale, -scale);", source, StringComparison.Ordinal);
         Assert.Contains("vertexsize = (int)(1.7f * General.Settings.GZVertexScale2D * scale + 0.5f);", source, StringComparison.Ordinal);
         Assert.Contains("if(vertexsize < 0) vertexsize = 0;", source, StringComparison.Ordinal);
         Assert.Contains("if(vertexsize > 4) vertexsize = 4;", source, StringComparison.Ordinal);

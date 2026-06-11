@@ -11,6 +11,24 @@ public readonly record struct Renderer2DLineMetrics(
     double MinimumLineLength,
     double MinimumLineNormalLength);
 
+public readonly record struct Renderer2DViewport(
+    double X,
+    double Y,
+    double Width,
+    double Height);
+
+public readonly record struct Renderer2DTransformPlan(
+    double Scale,
+    double ScaleInverse,
+    double TranslateX,
+    double TranslateY,
+    double LineNormalSize,
+    double MinimumLineLength,
+    double MinimumLineNormalLength,
+    int VertexSize,
+    Renderer2DViewport Viewport,
+    Renderer2DViewport YViewport);
+
 public enum Renderer2DLinedefSegmentKind
 {
     Main,
@@ -61,6 +79,56 @@ public static class Renderer2DLineMetricPlanner
             lineNormalSize,
             lineNormalSize * MinimumLineLengthScale,
             lineNormalSize * MinimumLineNormalLengthScale);
+    }
+
+    public static Renderer2DTransformPlan BuildTransformPlan(
+        int windowWidth,
+        int windowHeight,
+        double offsetX,
+        double offsetY,
+        double scale,
+        double vertexScale2D)
+    {
+        if (windowWidth < 0) throw new ArgumentOutOfRangeException(nameof(windowWidth));
+        if (windowHeight < 0) throw new ArgumentOutOfRangeException(nameof(windowHeight));
+        if (double.IsNaN(offsetX)) throw new ArgumentOutOfRangeException(nameof(offsetX));
+        if (double.IsNaN(offsetY)) throw new ArgumentOutOfRangeException(nameof(offsetY));
+
+        Renderer2DLineMetrics metrics = Build(scale);
+        double translateX = -offsetX + (windowWidth * 0.5) * metrics.ScaleInverse;
+        double translateY = -offsetY - (windowHeight * 0.5) * metrics.ScaleInverse;
+        Vector2D leftTop = DisplayToMap(new Vector2D(0.0, 0.0), translateX, translateY, metrics.ScaleInverse);
+        Vector2D rightBottom = DisplayToMap(new Vector2D(windowWidth, windowHeight), translateX, translateY, metrics.ScaleInverse);
+
+        return new Renderer2DTransformPlan(
+            scale,
+            metrics.ScaleInverse,
+            translateX,
+            translateY,
+            metrics.LineNormalSize,
+            metrics.MinimumLineLength,
+            metrics.MinimumLineNormalLength,
+            BuildVertexSize(scale, vertexScale2D),
+            new Renderer2DViewport(leftTop.x, leftTop.y, rightBottom.x - leftTop.x, rightBottom.y - leftTop.y),
+            new Renderer2DViewport(leftTop.x, rightBottom.y, rightBottom.x - leftTop.x, leftTop.y - rightBottom.y));
+    }
+
+    public static Vector2D DisplayToMap(Vector2D display, double translateX, double translateY, double scaleInverse)
+    {
+        if (double.IsNaN(translateX)) throw new ArgumentOutOfRangeException(nameof(translateX));
+        if (double.IsNaN(translateY)) throw new ArgumentOutOfRangeException(nameof(translateY));
+        if (scaleInverse <= 0 || double.IsNaN(scaleInverse)) throw new ArgumentOutOfRangeException(nameof(scaleInverse));
+
+        return display.GetInvTransformed(-translateX, -translateY, scaleInverse, -scaleInverse);
+    }
+
+    public static Vector2D MapToDisplay(Vector2D map, double translateX, double translateY, double scale)
+    {
+        if (double.IsNaN(translateX)) throw new ArgumentOutOfRangeException(nameof(translateX));
+        if (double.IsNaN(translateY)) throw new ArgumentOutOfRangeException(nameof(translateY));
+        if (scale <= 0 || double.IsNaN(scale)) throw new ArgumentOutOfRangeException(nameof(scale));
+
+        return map.GetTransformed(translateX, translateY, scale, -scale);
     }
 
     public static bool ShouldPlotLine(double screenLengthSquared, double lineNormalSize, double lengthScaler = MinimumLineLengthScale)
