@@ -298,6 +298,23 @@ public sealed record Renderer3DTranslucentGeometryDrawPlan(
 
 public sealed record Renderer3DTranslucentGeometryOrderPlan(IReadOnlyList<Renderer3DTranslucentGeometryDrawPlan> Draws);
 
+public sealed record Renderer3DTranslucentThingCandidate(
+    int Id,
+    Vector3D BoundingBoxCenter,
+    RenderPass RenderPass);
+
+public sealed record Renderer3DTranslucentThingDrawPlan(
+    int ThingId,
+    RenderPass RenderPass,
+    Blend? DestinationBlendChange);
+
+public sealed record Renderer3DTranslucentThingOrderPlan(
+    TextureAddress InitialTextureAddress,
+    Cull InitialCullMode,
+    IReadOnlyList<Renderer3DTranslucentThingDrawPlan> Draws,
+    TextureAddress RestoredTextureAddress,
+    Cull RestoredCullMode);
+
 public static class Renderer3DGeometryLifecyclePlan
 {
     public const float EventLineArrowheadLength = 20.0f;
@@ -797,6 +814,48 @@ public static class Renderer3DGeometryLifecyclePlan
         }
 
         return new Renderer3DTranslucentGeometryOrderPlan(draws);
+    }
+
+    public static Renderer3DTranslucentThingOrderPlan BuildTranslucentThingOrderPlan(
+        IReadOnlyList<Renderer3DTranslucentThingCandidate> things,
+        Vector3D cameraPosition)
+    {
+        ArgumentNullException.ThrowIfNull(things);
+        if (!cameraPosition.IsFinite()) throw new ArgumentOutOfRangeException(nameof(cameraPosition));
+        foreach (Renderer3DTranslucentThingCandidate thing in things)
+        {
+            if (!thing.BoundingBoxCenter.IsFinite()) throw new ArgumentOutOfRangeException(nameof(things));
+        }
+
+        Renderer3DTranslucentThingCandidate[] ordered = things
+            .OrderByDescending(thing => (cameraPosition - thing.BoundingBoxCenter).GetLengthSq())
+            .ToArray();
+
+        var draws = new List<Renderer3DTranslucentThingDrawPlan>(ordered.Length);
+        RenderPass currentPass = RenderPass.Solid;
+        foreach (Renderer3DTranslucentThingCandidate thing in ordered)
+        {
+            Blend? destinationBlend = null;
+            if (thing.RenderPass != currentPass)
+            {
+                destinationBlend = thing.RenderPass switch
+                {
+                    RenderPass.Additive => Blend.One,
+                    RenderPass.Alpha => Blend.InverseSourceAlpha,
+                    _ => null,
+                };
+                currentPass = thing.RenderPass;
+            }
+
+            draws.Add(new Renderer3DTranslucentThingDrawPlan(thing.Id, thing.RenderPass, destinationBlend));
+        }
+
+        return new Renderer3DTranslucentThingOrderPlan(
+            TextureAddress.Clamp,
+            Cull.None,
+            draws,
+            TextureAddress.Wrap,
+            Cull.Clockwise);
     }
 
     public static Renderer3DFinishGeometryCleanupPlan BuildFinishGeometryCleanupPlan()

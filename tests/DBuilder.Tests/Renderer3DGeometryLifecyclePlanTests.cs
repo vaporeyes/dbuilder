@@ -1100,6 +1100,58 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
     }
 
     [Fact]
+    public void BuildTranslucentThingOrderPlanSortsThingsBackToFrontByCameraDistance()
+    {
+        Renderer3DTranslucentThingOrderPlan plan = Renderer3DGeometryLifecyclePlan.BuildTranslucentThingOrderPlan(
+            [
+                new Renderer3DTranslucentThingCandidate(1, new Vector3D(3, 0, 0), RenderPass.Alpha),
+                new Renderer3DTranslucentThingCandidate(2, new Vector3D(10, 0, 0), RenderPass.Alpha),
+                new Renderer3DTranslucentThingCandidate(3, new Vector3D(1, 0, 0), RenderPass.Alpha),
+            ],
+            new Vector3D(0, 0, 0));
+
+        Assert.Equal(TextureAddress.Clamp, plan.InitialTextureAddress);
+        Assert.Equal(Cull.None, plan.InitialCullMode);
+        Assert.Equal([2, 1, 3], plan.Draws.Select(draw => draw.ThingId).ToArray());
+        Assert.Equal(TextureAddress.Wrap, plan.RestoredTextureAddress);
+        Assert.Equal(Cull.Clockwise, plan.RestoredCullMode);
+    }
+
+    [Fact]
+    public void BuildTranslucentThingOrderPlanMatchesUdbDestinationBlendChanges()
+    {
+        Renderer3DTranslucentThingOrderPlan plan = Renderer3DGeometryLifecyclePlan.BuildTranslucentThingOrderPlan(
+            [
+                new Renderer3DTranslucentThingCandidate(1, new Vector3D(4, 0, 0), RenderPass.Alpha),
+                new Renderer3DTranslucentThingCandidate(2, new Vector3D(3, 0, 0), RenderPass.Alpha),
+                new Renderer3DTranslucentThingCandidate(3, new Vector3D(2, 0, 0), RenderPass.Additive),
+                new Renderer3DTranslucentThingCandidate(4, new Vector3D(1, 0, 0), RenderPass.Alpha),
+            ],
+            new Vector3D(0, 0, 0));
+
+        Assert.Equal(
+            [
+                new Renderer3DTranslucentThingDrawPlan(1, RenderPass.Alpha, Blend.InverseSourceAlpha),
+                new Renderer3DTranslucentThingDrawPlan(2, RenderPass.Alpha, DestinationBlendChange: null),
+                new Renderer3DTranslucentThingDrawPlan(3, RenderPass.Additive, Blend.One),
+                new Renderer3DTranslucentThingDrawPlan(4, RenderPass.Alpha, Blend.InverseSourceAlpha),
+            ],
+            plan.Draws);
+    }
+
+    [Fact]
+    public void BuildTranslucentThingOrderPlanRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentNullException>(() => Renderer3DGeometryLifecyclePlan.BuildTranslucentThingOrderPlan(null!, new Vector3D()));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildTranslucentThingOrderPlan([], new Vector3D(double.NaN, 0, 0)));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildTranslucentThingOrderPlan(
+            [
+                new Renderer3DTranslucentThingCandidate(1, new Vector3D(0, double.NaN, 0), RenderPass.Alpha),
+            ],
+            new Vector3D()));
+    }
+
+    [Fact]
     public void Renderer3DStartGeometryExpressionsMatchUdbWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -1220,6 +1272,13 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("case RenderPass.Additive:", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetDestinationBlend(Blend.One);", source, StringComparison.Ordinal);
         Assert.Contains("case RenderPass.Alpha:", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetSamplerState(TextureAddress.Clamp);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetCullMode(Cull.None); //mxd. Disable backside culling", source, StringComparison.Ordinal);
+        Assert.Contains("thingspass.Sort(delegate(VisualThing vt1, VisualThing vt2)", source, StringComparison.Ordinal);
+        Assert.Contains("return (int)((General.Map.VisualCamera.Position - vt2.BoundingBox[0]).GetLengthSq()", source, StringComparison.Ordinal);
+        Assert.Contains("if(t.RenderPass != currentpass)", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetSamplerState(TextureAddress.Wrap);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetCullMode(Cull.Clockwise); //mxd", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);
