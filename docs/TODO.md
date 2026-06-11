@@ -1613,6 +1613,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style mesh construction, draw, and dispose operation planning.
   - [x] Add UDB-style mesh disposal and finalizer lifecycle.
   - [x] Add UDB-style mesh disposed-state reporting.
+  - [x] Add UDB-style mesh primitive-count validation planning.
 - [ ] Port text font and text label rendering.
   - [x] Add UDB-style text font byte-indexed glyph table planning.
   - [x] Add UDB-style text font Font.cfg resource discovery and glyph-source parsing.

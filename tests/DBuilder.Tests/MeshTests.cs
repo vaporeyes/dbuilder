@@ -70,4 +70,11 @@ public sealed class MeshTests
         Assert.Equal(1, Mesh.PrimitiveCountFor(5));
         Assert.Equal(2, Mesh.PrimitiveCountFor(6));
     }
+
+    [Fact]
+    public void MeshPlanningRejectsNegativeCounts()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => Mesh.PrimitiveCountFor(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Mesh.BuildDrawPlan(primitiveCount: -1));
+    }
 }

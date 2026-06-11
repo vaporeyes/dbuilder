@@ -85,7 +85,10 @@ public sealed class Mesh : IDisposable
             new[] { MeshBufferKind.Vertex, MeshBufferKind.Index });
 
     public static IReadOnlyList<MeshDrawStep> BuildDrawPlan(int primitiveCount)
-        => new[]
+    {
+        if (primitiveCount < 0) throw new ArgumentOutOfRangeException(nameof(primitiveCount));
+
+        return new[]
         {
             new MeshDrawStep(MeshDrawStepKind.BindVertexBuffer),
             new MeshDrawStep(MeshDrawStepKind.BindIndexBuffer),
@@ -93,10 +96,15 @@ public sealed class Mesh : IDisposable
             new MeshDrawStep(MeshDrawStepKind.UnbindIndexBuffer),
             new MeshDrawStep(MeshDrawStepKind.UnbindVertexBuffer),
         };
+    }
 
     public static MeshDisposePlan BuildDisposePlan()
         => new(new[] { MeshDisposeStepKind.DisposeVertexBuffer, MeshDisposeStepKind.DisposeIndexBuffer });
 
     public static int PrimitiveCountFor(int indexCount)
-        => indexCount / 3;
+    {
+        if (indexCount < 0) throw new ArgumentOutOfRangeException(nameof(indexCount));
+
+        return indexCount / 3;
+    }
 }
