@@ -158,6 +158,48 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
             Renderer3DGeometryLifecyclePlan.BuildMaskedModelPassPlan(maskedModelThingCount: -1));
 
     [Fact]
+    public void BuildMaskPassPlanSkipsWhenNoMaskedGeometryOrThingsExist()
+    {
+        Renderer3DMaskPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildMaskPassPlan(
+            maskedGeometryCount: 0,
+            maskedThingCount: 0);
+
+        Assert.False(plan.ShouldRender);
+        Assert.Empty(plan.Operations);
+    }
+
+    [Theory]
+    [InlineData(2, 0)]
+    [InlineData(0, 3)]
+    public void BuildMaskPassPlanMatchesUdbMaskSequenceWhenMaskedBucketsExist(int maskedGeometryCount, int maskedThingCount)
+    {
+        Renderer3DMaskPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildMaskPassPlan(
+            maskedGeometryCount,
+            maskedThingCount);
+
+        Assert.True(plan.ShouldRender);
+        Assert.Equal(
+            [
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetIdentityWorld),
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetWorldUniform),
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetAlphaTest, Enabled: true),
+                new Renderer3DGeometryPassOperation(
+                    Renderer3DGeometryPassOperationKind.RenderSinglePass,
+                    GeometryBucket: Renderer3DGeometryBucketKind.MaskedGeometry,
+                    ThingBucket: Renderer3DGeometryBucketKind.MaskedThings,
+                    LightBucket: Renderer3DGeometryBucketKind.LightThings),
+            ],
+            plan.Operations);
+    }
+
+    [Theory]
+    [InlineData(-1, 0)]
+    [InlineData(0, -1)]
+    public void BuildMaskPassPlanRejectsNegativeCounts(int maskedGeometryCount, int maskedThingCount)
+        => Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Renderer3DGeometryLifecyclePlan.BuildMaskPassPlan(maskedGeometryCount, maskedThingCount));
+
+    [Fact]
     public void Renderer3DStartGeometryExpressionsMatchUdbWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -190,6 +232,8 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("graphics.SetCullMode(Cull.None);", source, StringComparison.Ordinal);
         Assert.Contains("RenderModels(false, lightthings);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetCullMode(Cull.Clockwise);", source, StringComparison.Ordinal);
+        Assert.Contains("if(maskedgeo.Count > 0 || maskedthings.Count > 0)", source, StringComparison.Ordinal);
+        Assert.Contains("RenderSinglePass(maskedgeo, maskedthings, lightthings);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);

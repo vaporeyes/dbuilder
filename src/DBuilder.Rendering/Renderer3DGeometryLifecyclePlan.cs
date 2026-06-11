@@ -75,6 +75,11 @@ public sealed record Renderer3DModelPassPlan(IReadOnlyList<Renderer3DGeometryPas
     public bool ShouldRender => Operations.Count > 0;
 }
 
+public sealed record Renderer3DMaskPassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations)
+{
+    public bool ShouldRender => Operations.Count > 0;
+}
+
 public static class Renderer3DGeometryLifecyclePlan
 {
     public static Renderer3DStartGeometryPlan BuildStartGeometryPlan()
@@ -141,6 +146,25 @@ public static class Renderer3DGeometryLifecyclePlan
                     ModelBucket: Renderer3DGeometryBucketKind.MaskedModelThings,
                     TranslucentModels: false),
                 new(Renderer3DGeometryPassOperationKind.SetCullMode, CullMode: Cull.Clockwise),
+            ]);
+    }
+
+    public static Renderer3DMaskPassPlan BuildMaskPassPlan(int maskedGeometryCount, int maskedThingCount)
+    {
+        if (maskedGeometryCount < 0) throw new ArgumentOutOfRangeException(nameof(maskedGeometryCount));
+        if (maskedThingCount < 0) throw new ArgumentOutOfRangeException(nameof(maskedThingCount));
+        if (maskedGeometryCount == 0 && maskedThingCount == 0) return new Renderer3DMaskPassPlan([]);
+
+        return new Renderer3DMaskPassPlan(
+            [
+                new(Renderer3DGeometryPassOperationKind.SetIdentityWorld),
+                new(Renderer3DGeometryPassOperationKind.SetWorldUniform),
+                new(Renderer3DGeometryPassOperationKind.SetAlphaTest, Enabled: true),
+                new(
+                    Renderer3DGeometryPassOperationKind.RenderSinglePass,
+                    GeometryBucket: Renderer3DGeometryBucketKind.MaskedGeometry,
+                    ThingBucket: Renderer3DGeometryBucketKind.MaskedThings,
+                    LightBucket: Renderer3DGeometryBucketKind.LightThings),
             ]);
     }
 
