@@ -1,11 +1,49 @@
 // ABOUTME: Verifies UDB-compatible rendering color collections and pixel color helpers.
 // ABOUTME: Covers default palette values, settings keys, and assist color variants.
 using DBuilder.Rendering;
+using System.Drawing;
 
 namespace DBuilder.Tests;
 
 public sealed class ColorCollectionTests
 {
+    [Fact]
+    public void ColorSettingMatchesUdbNamedColorSurface()
+    {
+        var setting = new ColorSetting("Highlight", new PixelColor(255, 0x11, 0x22, 0x33));
+
+        Assert.Equal("Highlight", setting.Name);
+        Assert.Equal(new PixelColor(255, 0x11, 0x22, 0x33), setting.PixelColor);
+        Assert.Equal(Color.FromArgb(unchecked((int)0xFF112233)), setting.Color);
+        Assert.Equal(new PixelColor(0x40, 0x11, 0x22, 0x33), setting.WithAlpha(0x40));
+
+        PixelColor pixel = setting;
+        Color color = setting;
+
+        Assert.Equal(setting.PixelColor, pixel);
+        Assert.Equal(setting.Color, color);
+
+        setting.Color = Color.FromArgb(unchecked((int)0x80102030));
+        Assert.Equal(new PixelColor(0x80, 0x10, 0x20, 0x30), setting.PixelColor);
+
+        setting.PixelColor = new PixelColor(255, 1, 2, 3);
+        Assert.Equal(Color.FromArgb(unchecked((int)0xFF010203)), setting.Color);
+    }
+
+    [Fact]
+    public void ColorSettingEqualityUsesNameLikeUdb()
+    {
+        var first = new ColorSetting("Same", new PixelColor(255, 1, 2, 3));
+        var second = new ColorSetting("Same", new PixelColor(255, 9, 8, 7));
+        var different = new ColorSetting("Different", new PixelColor(255, 1, 2, 3));
+
+        Assert.True(first.Equals(second));
+        Assert.True(first.Equals((object)second));
+        Assert.False(first.Equals(different));
+        Assert.False(first.Equals(null));
+        Assert.Equal(first.GetHashCode(), second.GetHashCode());
+    }
+
     [Fact]
     public void DefaultsMatchUdbColorCollection()
     {
