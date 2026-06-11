@@ -239,6 +239,7 @@ public static class Tools
 
         foreach (LinedefSide side in allLines)
         {
+            bool wasSingleSided = side.Line.Back == null || side.Line.Front == null;
             Sidedef? target = side.Front ? side.Line.Front : side.Line.Back;
             if (target == null)
             {
@@ -254,6 +255,8 @@ public static class Tools
             {
                 target.SetSector(sector);
             }
+
+            ApplySidedFlagsIfSidednessChanged(side.Line, wasSingleSided);
         }
 
         return sector;
@@ -421,9 +424,18 @@ public static class Tools
 
             lineSide.Line.Front?.RemoveUnneededTextures(wasSingleSided, force: false, shiftMiddle: wasSingleSided, autoClearSidedefTextures);
             lineSide.Line.Back?.RemoveUnneededTextures(wasSingleSided, force: false, shiftMiddle: wasSingleSided, autoClearSidedefTextures);
+            ApplySidedFlagsIfSidednessChanged(lineSide.Line, wasSingleSided);
         }
 
         return newSector;
+    }
+
+    private static void ApplySidedFlagsIfSidednessChanged(Linedef line, bool wasSingleSided)
+    {
+        bool isSingleSided = line.Front == null || line.Back == null;
+        if (wasSingleSided == isSingleSided) return;
+
+        line.ApplySidedFlags();
     }
 
     private static Sidedef? GetSide(LinedefSide edge)

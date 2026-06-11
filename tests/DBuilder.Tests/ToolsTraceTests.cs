@@ -1026,6 +1026,9 @@ public class ToolsTraceTests
         Assert.Contains(shared.Front!.Sector, new[] { left, right });
         Assert.Contains(shared.Back!.Sector, new[] { left, right });
         Assert.NotSame(shared.Front.Sector, shared.Back.Sector);
+        Assert.False(shared.IsFlagSet("blocking"));
+        Assert.True(shared.IsFlagSet("twosided"));
+        Assert.Equal(Linedef.TwoSidedFlagBit, shared.Flags & (Linedef.BlockingFlagBit | Linedef.TwoSidedFlagBit));
         Assert.Equal(7, map.Linedefs.Count);
     }
 
@@ -1106,6 +1109,9 @@ public class ToolsTraceTests
         Assert.Equal("-", line.Back.MidTexture);
         Assert.Equal("LOWER", line.Back.LowTexture);
         Assert.Equal("-", other.MidTexture);
+        Assert.False(line.IsFlagSet("blocking"));
+        Assert.True(line.IsFlagSet("twosided"));
+        Assert.Equal(Linedef.TwoSidedFlagBit, line.Flags & (Linedef.BlockingFlagBit | Linedef.TwoSidedFlagBit));
     }
 
     private static double TriArea(Vector2D a, Vector2D b, Vector2D c)
