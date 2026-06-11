@@ -58,6 +58,62 @@ public sealed class ThingBatchRenderPlannerTests
     }
 
     [Fact]
+    public void ArrowTextureBoundsMatchUdbSpriteState()
+    {
+        Assert.Equal(new ThingArrowTextureBounds(0.501f, 0.999f, 0.001f, 0.999f),
+            ThingBatchRenderPlanner.ArrowTextureBounds(spriteSkipped: false));
+        Assert.Equal(new ThingArrowTextureBounds(0.625f, 0.874f, -0.039f, 0.46f),
+            ThingBatchRenderPlanner.ArrowTextureBounds(spriteSkipped: true));
+    }
+
+    [Fact]
+    public void ArrowVerticesMatchUdbRotatedQuadOrder()
+    {
+        FlatVertex[] vertices = ThingBatchRenderPlanner.BuildArrowVertices(
+            screenX: 10,
+            screenY: 20,
+            angleRadians: 0,
+            arrowSize: Math.Sqrt(2),
+            spriteSkipped: false);
+
+        Assert.Equal(6, vertices.Length);
+        AssertVertex(vertices[0], 11, 21, -1, 0.501f, 0.001f);
+        AssertVertex(vertices[1], 9, 21, -1, 0.999f, 0.001f);
+        AssertVertex(vertices[2], 11, 19, -1, 0.501f, 0.999f);
+        Assert.Equal(vertices[1], vertices[3]);
+        Assert.Equal(vertices[2], vertices[4]);
+        AssertVertex(vertices[5], 9, 19, -1, 0.999f, 0.999f);
+    }
+
+    [Fact]
+    public void ArrowVerticesUseLargeArrowTextureWhenSpriteWasSkipped()
+    {
+        FlatVertex[] vertices = ThingBatchRenderPlanner.BuildArrowVertices(
+            screenX: 0,
+            screenY: 0,
+            angleRadians: 0,
+            arrowSize: 1,
+            spriteSkipped: true);
+
+        Assert.Equal(0.625f, vertices[0].u);
+        Assert.Equal(-0.039f, vertices[0].v);
+        Assert.Equal(0.874f, vertices[1].u);
+        Assert.Equal(0.46f, vertices[2].v);
+        Assert.Equal(0.874f, vertices[5].u);
+        Assert.Equal(0.46f, vertices[5].v);
+    }
+
+    [Fact]
+    public void ArrowVerticesRejectInvalidInputs()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildArrowVertices(double.NaN, 0, 0, 1, false));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildArrowVertices(0, double.NaN, 0, 1, false));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildArrowVertices(0, 0, double.NaN, 1, false));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildArrowVertices(0, 0, 0, -1, false));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildArrowVertices(0, 0, 0, double.NaN, false));
+    }
+
+    [Fact]
     public void ThingBatchExpressionsMatchUdbRenderer2DWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -71,5 +127,20 @@ public sealed class ThingBatchRenderPlannerTests
         Assert.Contains("locksize = ((things.Count - totalcount) > THING_BUFFER_SIZE) ? THING_BUFFER_SIZE : (things.Count - totalcount);", source, StringComparison.Ordinal);
         Assert.Contains("locksize = ((framegroup.Value.Count - totalcount) > THING_BUFFER_SIZE) ? THING_BUFFER_SIZE : (framegroup.Value.Count - totalcount);", source, StringComparison.Ordinal);
         Assert.Contains("locksize = ((thingsByPosition.Count - totalcount) > THING_BUFFER_SIZE) ? THING_BUFFER_SIZE : (thingsByPosition.Count - totalcount);", source, StringComparison.Ordinal);
+        Assert.Contains("float sinarrowsize = (float)Math.Sin(t.Angle + Angle2D.PI * 0.25f) * arrowsize;", source, StringComparison.Ordinal);
+        Assert.Contains("float cosarrowsize = (float)Math.Cos(t.Angle + Angle2D.PI * 0.25f) * arrowsize;", source, StringComparison.Ordinal);
+        Assert.Contains("ul = 0.625f;", source, StringComparison.Ordinal);
+        Assert.Contains("ur = 0.874f;", source, StringComparison.Ordinal);
+        Assert.Contains("ul = 0.501f;", source, StringComparison.Ordinal);
+        Assert.Contains("ur = 0.999f;", source, StringComparison.Ordinal);
+    }
+
+    private static void AssertVertex(FlatVertex vertex, float x, float y, int color, float u, float v)
+    {
+        Assert.Equal(x, vertex.x, precision: 5);
+        Assert.Equal(y, vertex.y, precision: 5);
+        Assert.Equal(color, vertex.c);
+        Assert.Equal(u, vertex.u);
+        Assert.Equal(v, vertex.v);
     }
 }
