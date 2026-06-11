@@ -365,6 +365,8 @@ public static class MapAnalysis
         "This thing is stuck in a wall (single-sided line) and will likely not be able to move around.";
     private const string ThingStuckInThingDescription =
         "This thing is stuck in another thing. Both will likely not be able to move around.";
+    private const string InvalidSectorDescription =
+        "This sector has invalid geometry (it has less than 3 sidedefs or linedefs, or it's area is 0). This could cause problems with clipping and rendering in the game.";
 
     public static MapAnalysisModeDescriptor ModeDescriptor { get; } = new(
         "Map Analysis Mode",
@@ -2329,6 +2331,7 @@ public static class MapAnalysis
         return new MapIssue(MapIssueSeverity.Error, MapIssueKind.InvalidSector,
             $"Sector {index} has {sector.Sidedefs.Count} sidedefs")
         {
+            Description = InvalidSectorDescription,
             Target = sector,
             Focus = focus,
             Fixes = new[]
