@@ -556,6 +556,9 @@ public sealed class RenderDevice : IDisposable
         texture.SetPixelsRgba8(texture.Width, texture.Height, pixels, generateMipmaps: false);
     }
 
+    public void ClearTexture(Color4 backColor, Texture texture)
+        => ClearTexture((uint)backColor.ToArgb(), texture);
+
     public void SetPixels(Texture texture, int width, int height, byte[] rgba, bool generateMipmaps = true)
         => texture.SetPixelsRgba8(width, height, rgba, generateMipmaps);
 
@@ -599,6 +602,9 @@ public sealed class RenderDevice : IDisposable
 
     public static TextureOperationPlan BuildClearTexturePlan(uint colorArgb, Texture? texture)
         => new(TextureOperationKind.Clear, 0, texture != null, ColorArgb: colorArgb);
+
+    public static TextureOperationPlan BuildClearTexturePlan(Color4 backColor, Texture? texture)
+        => BuildClearTexturePlan((uint)backColor.ToArgb(), texture);
 
     public static TextureOperationPlan BuildCopyTexturePlan(CubeMapFace face, Texture? texture)
         => new(TextureOperationKind.CopyCubeFace, 0, texture != null, CubeFace: face);

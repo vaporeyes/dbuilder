@@ -68,6 +68,7 @@ public static class RendererArchitectureModel
             "Texture format metadata and 2D/cube allocation planning",
             "Texture 2D format allocation application",
             "Render-device texture operation planning",
+            "Render-device Color4 texture clear overload planning",
             "Render-device 2D texture clear and pixel upload application",
             "Render-device unsafe plotter pixel upload surface",
             "Cube texture resource and render-device cube operation surface",

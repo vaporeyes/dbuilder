@@ -61,6 +61,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Texture format metadata and 2D/cube allocation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Texture 2D format allocation application", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device texture operation planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device Color4 texture clear overload planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device 2D texture clear and pixel upload application", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device unsafe plotter pixel upload surface", replacement.CoveredResponsibilities);
         Assert.Contains("Cube texture resource and render-device cube operation surface", replacement.CoveredResponsibilities);

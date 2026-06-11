@@ -34,6 +34,9 @@ public sealed class RenderDeviceTextureOperationTests
             nameof(RenderDevice.ClearTexture),
             new[] { typeof(uint), typeof(Texture) }));
         Assert.NotNull(typeof(RenderDevice).GetMethod(
+            nameof(RenderDevice.ClearTexture),
+            new[] { typeof(Color4), typeof(Texture) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(
             nameof(RenderDevice.SetPixels),
             new[] { typeof(Texture), typeof(int), typeof(int), typeof(byte[]), typeof(bool) }));
         Assert.Contains(typeof(RenderDevice).GetMethods(), method =>
@@ -66,10 +69,14 @@ public sealed class RenderDeviceTextureOperationTests
     public void BuildClearTexturePlanTracksColorAndTarget()
     {
         TextureOperationPlan plan = RenderDevice.BuildClearTexturePlan(0xff112233, texture: null);
+        TextureOperationPlan colorPlan = RenderDevice.BuildClearTexturePlan(
+            new Color4(unchecked((int)0xff112233)),
+            texture: null);
 
         Assert.Equal(TextureOperationKind.Clear, plan.Kind);
         Assert.Equal(0xff112233u, plan.ColorArgb);
         Assert.False(plan.HasTexture);
+        Assert.Equal(plan, colorPlan);
     }
 
     [Fact]
