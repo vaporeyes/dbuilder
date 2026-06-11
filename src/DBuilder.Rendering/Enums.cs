@@ -55,6 +55,14 @@ public enum ThingRenderMode
     FLATSPRITE = 4,
 }
 
+public enum ViewMode : int
+{
+    Normal = 0,
+    Brightness = 1,
+    FloorTextures = 2,
+    CeilingTextures = 3,
+}
+
 public enum TextAlignmentX : int
 {
     Left = 0,

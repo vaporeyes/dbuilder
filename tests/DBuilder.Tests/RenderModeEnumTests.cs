@@ -57,4 +57,22 @@ public sealed class RenderModeEnumTests
             new[] { "NORMAL", "MODEL", "VOXEL", "WALLSPRITE", "FLATSPRITE" },
             Enum.GetNames<ThingRenderMode>());
     }
+
+    [Fact]
+    public void ViewModeValuesMatchUdbOrdering()
+    {
+        Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(ViewMode)));
+        Assert.Equal(0, (int)ViewMode.Normal);
+        Assert.Equal(1, (int)ViewMode.Brightness);
+        Assert.Equal(2, (int)ViewMode.FloorTextures);
+        Assert.Equal(3, (int)ViewMode.CeilingTextures);
+    }
+
+    [Fact]
+    public void ViewModeNamesMatchUdbSurface()
+    {
+        Assert.Equal(
+            new[] { "Normal", "Brightness", "FloorTextures", "CeilingTextures" },
+            Enum.GetNames<ViewMode>());
+    }
 }
