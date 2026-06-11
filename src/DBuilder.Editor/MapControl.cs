@@ -5143,7 +5143,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 CommentModeFor(_editMode),
                 IsUdmf: _mapFormat == MapFormat.Udmf,
                 RenderComments: _renderComments,
-                Scale: _zoom,
+                Scale: 1.0 / Math.Max(_zoom, 0.001),
                 FixedThingsScale: _fixedThingsScale,
                 Highlighted: HighlightedCommentElement(),
                 SectorLabels: labels));

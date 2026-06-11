@@ -22,6 +22,18 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void CommentIconsUseRendererScaleForUdbGeometry()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int optionsIndex = body.IndexOf("new CommentRenderOptions(", StringComparison.Ordinal);
+        int highlightedIndex = body.IndexOf("Highlighted: HighlightedCommentElement()", optionsIndex, StringComparison.Ordinal);
+        string options = body[optionsIndex..highlightedIndex];
+
+        Assert.Contains("Scale: 1.0 / Math.Max(_zoom, 0.001),", options, StringComparison.Ordinal);
+        Assert.DoesNotContain("Scale: _zoom,", options, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ClassicViewModeDefaultsToUdbNormalSetting()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
