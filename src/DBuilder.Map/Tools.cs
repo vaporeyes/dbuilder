@@ -235,7 +235,7 @@ public static class Tools
         Sector? sector = original.Sector;
         if (sector == null || sector.IsDisposed) return sector;
 
-        SidedefTextureDefaults defaults = SidedefTextureDefaults.From(original, defaultHighTexture, defaultMiddleTexture, defaultLowTexture);
+        SidedefCreationDefaults defaults = SidedefCreationDefaults.From(original, defaultHighTexture, defaultMiddleTexture, defaultLowTexture);
 
         foreach (LinedefSide side in allLines)
         {
@@ -244,7 +244,7 @@ public static class Tools
             {
                 target = map.AddSidedef(side.Line, side.Front, sector);
                 LinkOppositeSidedef(target);
-                ApplyDefaultsToSidedef(target, defaults);
+                ApplyDefaultsToSidedef(target, defaults, copySourceProperties: true);
 
                 Sidedef? other = target.Other;
                 if (other != null)
@@ -273,7 +273,7 @@ public static class Tools
         options ??= new SectorCreationOptions();
         Sector? sourceSector = null;
         Sector? nearestSector = null;
-        SidedefTextureDefaults sourceSide = new(null, null, null, null, null, null);
+        SidedefCreationDefaults sourceSide = new(null, null, null, null, null, null, null, null, null);
         bool foundSideDefaults = false;
 
         foreach (LinedefSide lineSide in allLines)
@@ -367,17 +367,19 @@ public static class Tools
         {
             bool wasSingleSided = lineSide.Line.Back == null || lineSide.Line.Front == null;
             Sidedef? target = lineSide.Front ? lineSide.Line.Front : lineSide.Line.Back;
+            bool targetWasCreated = false;
             if (target == null)
             {
                 target = map.AddSidedef(lineSide.Line, lineSide.Front, newSector);
                 LinkOppositeSidedef(target);
+                targetWasCreated = true;
             }
             else if (!ReferenceEquals(target.Sector, newSector))
             {
                 target.SetSector(newSector);
             }
 
-            ApplyDefaultsToSidedef(target, sourceSide);
+            ApplyDefaultsToSidedef(target, sourceSide, targetWasCreated);
 
             lineSide.Line.Front?.RemoveUnneededTextures(wasSingleSided, force: false, shiftMiddle: wasSingleSided, autoClearSidedefTextures);
             lineSide.Line.Back?.RemoveUnneededTextures(wasSingleSided, force: false, shiftMiddle: wasSingleSided, autoClearSidedefTextures);
@@ -583,41 +585,61 @@ public static class Tools
         return flipped;
     }
 
-    private readonly record struct SidedefTextureDefaults(
+    private readonly record struct SidedefCreationDefaults(
         string? High,
         string? Middle,
         string? Low,
         long? LongHigh,
         long? LongMiddle,
-        long? LongLow)
+        long? LongLow,
+        int? OffsetX,
+        int? OffsetY,
+        SidedefPropertyDefaults? Properties)
     {
-        public static SidedefTextureDefaults From(Sidedef side, string defaultHigh, string defaultMiddle, string defaultLow)
+        public static SidedefCreationDefaults From(Sidedef side, string defaultHigh, string defaultMiddle, string defaultLow)
             => new(
                 IsBlankTexture(side.HighTexture) ? defaultHigh : side.HighTexture,
                 IsBlankTexture(side.MidTexture) ? defaultMiddle : side.MidTexture,
                 IsBlankTexture(side.LowTexture) ? defaultLow : side.LowTexture,
                 IsBlankTexture(side.HighTexture) ? null : side.LongHighTexture,
                 IsBlankTexture(side.MidTexture) ? null : side.LongMiddleTexture,
-                IsBlankTexture(side.LowTexture) ? null : side.LongLowTexture);
+                IsBlankTexture(side.LowTexture) ? null : side.LongLowTexture,
+                side.OffsetX,
+                side.OffsetY,
+                SidedefPropertyDefaults.From(side));
     }
 
-    private static SidedefTextureDefaults TakeSidedefDefaults(SidedefTextureDefaults settings, SectorCreationOptions options)
+    private sealed record SidedefPropertyDefaults(
+        IReadOnlyList<string> UdmfFlags,
+        IReadOnlyDictionary<string, object> Fields)
+    {
+        public static SidedefPropertyDefaults From(Sidedef side)
+            => new(side.UdmfFlags.ToArray(), new Dictionary<string, object>(side.Fields, StringComparer.Ordinal));
+    }
+
+    private static SidedefCreationDefaults TakeSidedefDefaults(SidedefCreationDefaults settings, SectorCreationOptions options)
         => new(
             settings.High ?? options.DefaultHighTexture,
             settings.Middle ?? options.DefaultMiddleTexture,
             settings.Low ?? options.DefaultLowTexture,
             settings.LongHigh,
             settings.LongMiddle,
-            settings.LongLow);
+            settings.LongLow,
+            settings.OffsetX,
+            settings.OffsetY,
+            settings.Properties);
 
-    private static SidedefTextureDefaults TakeSidedefSettings(SidedefTextureDefaults settings, Sidedef side)
+    private static SidedefCreationDefaults TakeSidedefSettings(SidedefCreationDefaults settings, Sidedef side)
         => new(
             settings.High ?? (IsBlankTexture(side.HighTexture) ? null : side.HighTexture),
             settings.Middle ?? (IsBlankTexture(side.MidTexture) ? null : side.MidTexture),
             settings.Low ?? (IsBlankTexture(side.LowTexture) ? null : side.LowTexture),
             settings.LongHigh ?? (IsBlankTexture(side.HighTexture) ? null : side.LongHighTexture),
             settings.LongMiddle ?? (IsBlankTexture(side.MidTexture) ? null : side.LongMiddleTexture),
-            settings.LongLow ?? (IsBlankTexture(side.LowTexture) ? null : side.LongLowTexture));
+            settings.LongLow ?? (IsBlankTexture(side.LowTexture) ? null : side.LongLowTexture),
+            settings.OffsetX ?? side.OffsetX,
+            settings.OffsetY ?? side.OffsetY,
+            settings.Properties ?? SidedefPropertyDefaults.From(side));
 
     private static void LinkOppositeSidedef(Sidedef side)
     {
@@ -626,8 +648,22 @@ public static class Tools
         if (other != null) other.Other = side;
     }
 
-    private static void ApplyDefaultsToSidedef(Sidedef side, SidedefTextureDefaults defaults)
+    private static void ApplyDefaultsToSidedef(Sidedef side, SidedefCreationDefaults defaults, bool copySourceProperties = false)
     {
+        if (copySourceProperties)
+        {
+            if (defaults.OffsetX.HasValue) side.OffsetX = defaults.OffsetX.Value;
+            if (defaults.OffsetY.HasValue) side.OffsetY = defaults.OffsetY.Value;
+            if (defaults.Properties != null)
+            {
+                side.UdmfFlags.Clear();
+                foreach (string flag in defaults.Properties.UdmfFlags) side.UdmfFlags.Add(flag);
+
+                side.Fields.Clear();
+                foreach (var field in defaults.Properties.Fields) side.Fields[field.Key] = field.Value;
+            }
+        }
+
         if (side.HighRequired() && IsBlankTexture(side.HighTexture))
         {
             side.SetTextureHigh(defaults.High);

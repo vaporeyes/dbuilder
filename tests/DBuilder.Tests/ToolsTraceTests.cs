@@ -646,8 +646,12 @@ public class ToolsTraceTests
         source.SetCeilTexture("SRCCEIL");
         source.LongCeilTexture = 102;
         Sidedef sourceSide = map.AddSidedef(lines[0], true, source);
+        sourceSide.OffsetX = 12;
+        sourceSide.OffsetY = -8;
         sourceSide.SetTextureMid("SRCWALL");
         sourceSide.LongMiddleTexture = 201;
+        sourceSide.UdmfFlags.Add("lightabsolute");
+        sourceSide.Fields["offsetx_mid"] = 3.0;
         map.BuildIndexes();
 
         Sector? sector = Tools.MakeSector(map, lines.Select(line => new LinedefSide(line, true)).ToList());
@@ -665,6 +669,10 @@ public class ToolsTraceTests
         Assert.All(lines, line => Assert.Same(sector, line.Front!.Sector));
         Assert.All(lines, line => Assert.Equal("SRCWALL", line.Front!.MidTexture));
         Assert.All(lines, line => Assert.Equal(201, line.Front!.LongMiddleTexture));
+        Assert.All(lines, line => Assert.Equal(12, line.Front!.OffsetX));
+        Assert.All(lines, line => Assert.Equal(-8, line.Front!.OffsetY));
+        Assert.All(lines, line => Assert.Contains("lightabsolute", line.Front!.UdmfFlags));
+        Assert.All(lines, line => Assert.Equal(3.0, line.Front!.Fields["offsetx_mid"]));
     }
 
     [Fact]
