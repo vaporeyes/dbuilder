@@ -1,12 +1,31 @@
 // ABOUTME: Verifies UDB render mode enum names and ordering for rendering namespace compatibility.
 // ABOUTME: Covers ModelRenderMode, LightRenderMode, and ThingRenderMode from Core/Rendering/RenderModeEnums.cs.
 
+using System.Text.RegularExpressions;
 using DBuilder.Rendering;
 
 namespace DBuilder.Tests;
 
 public sealed class RenderModeEnumTests
 {
+    private static string? FindUdbRoot()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "."));
+        string sibling = Path.GetFullPath(Path.Combine(repositoryRoot, "..", "UltimateDoomBuilder"));
+        if (File.Exists(Path.Combine(sibling, "Source", "Core", "Rendering", "Renderer2D.cs"))) return sibling;
+
+        string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string root = Path.Combine(home, "dev", "repos", "UltimateDoomBuilder");
+        return File.Exists(Path.Combine(root, "Source", "Core", "Rendering", "Renderer2D.cs")) ? root : null;
+    }
+
+    private static int Renderer2DIntConstant(string source, string name)
+    {
+        Match match = Regex.Match(source, @"(?:private|internal)\s+const\s+int\s+" + Regex.Escape(name) + @"\s*=\s*(?<value>\d+)");
+        Assert.True(match.Success, "Expected UDB Renderer2D constant " + name + ".");
+        return int.Parse(match.Groups["value"].Value);
+    }
+
     [Fact]
     public void ModelRenderModeValuesMatchUdbOrdering()
     {
@@ -66,6 +85,7 @@ public sealed class RenderModeEnumTests
         Assert.Equal(1, (int)ViewMode.Brightness);
         Assert.Equal(2, (int)ViewMode.FloorTextures);
         Assert.Equal(3, (int)ViewMode.CeilingTextures);
+        Assert.Equal(ViewModeMetadata.Count, Enum.GetValues<ViewMode>().Length);
     }
 
     [Fact]
@@ -74,5 +94,16 @@ public sealed class RenderModeEnumTests
         Assert.Equal(
             new[] { "Normal", "Brightness", "FloorTextures", "CeilingTextures" },
             Enum.GetNames<ViewMode>());
+    }
+
+    [Fact]
+    public void ViewModeCountMatchesUdbRenderer2DWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Source", "Core", "Rendering", "Renderer2D.cs"));
+
+        Assert.Equal(ViewModeMetadata.Count, Renderer2DIntConstant(source, "NUM_VIEW_MODES"));
     }
 }

@@ -63,6 +63,11 @@ public enum ViewMode : int
     CeilingTextures = 3,
 }
 
+public static class ViewModeMetadata
+{
+    public const int Count = 4;
+}
+
 public enum TextAlignmentX : int
 {
     Left = 0,
