@@ -87,6 +87,7 @@ public sealed class TextLabelPlanTests
         Assert.Equal(new TextLabelRectangle(0, 0, 41, 18), layout.BackgroundRectangle);
         Assert.Equal(new TextLabelRectangle(10, 20, 64, 32), layout.ScreenRectangle);
         Assert.False(layout.SkipRendering);
+        Assert.Equal(TextLabelSkipReason.None, layout.SkipReason);
         Assert.Equal(4, layout.Vertices.Length);
     }
 
@@ -144,6 +145,7 @@ public sealed class TextLabelPlanTests
             viewportHeight: 200);
 
         Assert.True(layout.SkipRendering);
+        Assert.Equal(TextLabelSkipReason.Offscreen, layout.SkipReason);
         Assert.Empty(layout.Vertices);
     }
 
@@ -158,6 +160,7 @@ public sealed class TextLabelPlanTests
             viewportHeight: 200);
 
         Assert.True(layout.SkipRendering);
+        Assert.Equal(TextLabelSkipReason.Empty, layout.SkipReason);
         Assert.Equal(new TextLabelSize(0, 0), layout.TextureSize);
         Assert.Empty(layout.Vertices);
     }
@@ -553,6 +556,34 @@ public sealed class TextLabelPlanTests
         Assert.False(plan.CreateVertexBuffer);
         Assert.False(plan.UploadQuadBuffer);
         Assert.Equal(TextLabelInvalidation.Initial, plan.ResultInvalidation);
+    }
+
+    [Fact]
+    public void ResourceUpdatePlanClearsInvalidationForEmptyTextLikeUdb()
+    {
+        TextLabelLayout layout = TextLabelPlan.Build(
+            "",
+            new TextLabelSize(24, 10),
+            new TextLabelPoint(8, 8),
+            alignX: TextLabelAlignmentX.Left,
+            viewportWidth: 320,
+            viewportHeight: 200);
+
+        TextLabelResourceUpdatePlan plan = TextLabelPlan.BuildResourceUpdatePlan(
+            TextLabelInvalidation.Initial,
+            layout,
+            hasTexture: true,
+            hasVertexBuffer: true,
+            vertexBufferDisposed: false);
+
+        Assert.True(layout.SkipRendering);
+        Assert.Equal(TextLabelSkipReason.Empty, layout.SkipReason);
+        Assert.False(plan.DisposeTexture);
+        Assert.False(plan.CreateLabelImage);
+        Assert.False(plan.CreateTexture);
+        Assert.False(plan.CreateVertexBuffer);
+        Assert.False(plan.UploadQuadBuffer);
+        Assert.Equal(TextLabelInvalidation.Clean, plan.ResultInvalidation);
     }
 
     [Fact]

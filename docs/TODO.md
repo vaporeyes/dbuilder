@@ -1606,6 +1606,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style text label transform-cache invalidation planning.
   - [x] Add UDB-style text label texture and vertex-buffer update planning.
   - [x] Add UDB-style text label viewport inclusion planning.
+  - [x] Add UDB-style text label skipped-resource invalidation distinction.
 - [x] Port visual vertex handles.
   - [x] Add UDB-style visual vertex handle model for floor/ceiling pairs, sector-height fallback, height-offset state, and pick bounds.
   - [x] Add UDB-style visual vertex handle visibility gating for UDMF, vertex-height support, and the visual-vertices toggle.

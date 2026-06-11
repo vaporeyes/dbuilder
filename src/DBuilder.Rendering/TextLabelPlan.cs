@@ -39,12 +39,20 @@ public sealed record TextLabelLayout(
     TextLabelRectangle BackgroundRectangle,
     TextLabelRectangle ScreenRectangle,
     bool SkipRendering,
+    TextLabelSkipReason SkipReason,
     FlatVertex[] Vertices);
 
 public enum TextLabelImageStyle
 {
     Plain,
     Background,
+}
+
+public enum TextLabelSkipReason
+{
+    None,
+    Empty,
+    Offscreen,
 }
 
 public sealed record TextLabelImagePlan(
@@ -197,6 +205,7 @@ public static class TextLabelPlan
                 new TextLabelRectangle(0, 0, 0, 0),
                 new TextLabelRectangle(0, 0, 0, 0),
                 SkipRendering: true,
+                TextLabelSkipReason.Empty,
                 Array.Empty<FlatVertex>());
         }
 
@@ -259,6 +268,7 @@ public static class TextLabelPlan
             backgroundRectangle,
             screenRectangle,
             skipRendering,
+            skipRendering ? TextLabelSkipReason.Offscreen : TextLabelSkipReason.None,
             skipRendering ? Array.Empty<FlatVertex>() : BuildVertices(screenRectangle, color ?? new PixelColor(255, 255, 255, 255)));
     }
 
@@ -388,13 +398,17 @@ public static class TextLabelPlan
     {
         if (layout.SkipRendering)
         {
+            TextLabelInvalidation resultInvalidation = layout.SkipReason == TextLabelSkipReason.Empty
+                ? TextLabelInvalidation.Clean
+                : invalidation;
+
             return new TextLabelResourceUpdatePlan(
                 DisposeTexture: false,
                 CreateLabelImage: false,
                 CreateTexture: false,
                 CreateVertexBuffer: false,
                 UploadQuadBuffer: false,
-                invalidation);
+                resultInvalidation);
         }
 
         bool updateTexture = invalidation.TextureUpdateNeeded;
