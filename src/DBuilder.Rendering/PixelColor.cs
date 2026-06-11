@@ -4,7 +4,7 @@ using System.Drawing;
 
 namespace DBuilder.Rendering;
 
-public readonly record struct PixelColor(byte A, byte R, byte G, byte B)
+public struct PixelColor : IEquatable<PixelColor>
 {
     public const float ByteToFloat = 0.00392156862745098f;
     public const int IntBlack = unchecked((int)0xFF000000);
@@ -17,15 +17,47 @@ public readonly record struct PixelColor(byte A, byte R, byte G, byte B)
 
     public static PixelColor Transparent { get; } = new(0, 0, 0, 0);
 
+    public PixelColor(byte a, byte r, byte g, byte b)
+    {
+        A = a;
+        R = r;
+        G = g;
+        B = b;
+    }
+
     public PixelColor(PixelColor color, byte alpha)
-        : this(alpha, color.R, color.G, color.B)
+        : this(alpha, color.r, color.g, color.b)
     {
     }
 
-    public byte a => A;
-    public byte r => R;
-    public byte g => G;
-    public byte b => B;
+    public byte A;
+    public byte R;
+    public byte G;
+    public byte B;
+
+    public byte a
+    {
+        readonly get => A;
+        set => A = value;
+    }
+
+    public byte r
+    {
+        readonly get => R;
+        set => R = value;
+    }
+
+    public byte g
+    {
+        readonly get => G;
+        set => G = value;
+    }
+
+    public byte b
+    {
+        readonly get => B;
+        set => B = value;
+    }
 
     public static PixelColor FromArgb(int argb)
         => new(
@@ -56,7 +88,7 @@ public readonly record struct PixelColor(byte A, byte R, byte G, byte B)
         => new(R * ByteToFloat, G * ByteToFloat, B * ByteToFloat, withalpha);
 
     public PixelColor WithAlpha(byte alpha)
-        => this with { A = alpha };
+        => new(this, alpha);
 
     public PixelColor ApplyAlpha()
         => new(255, (byte)(R * A / 255), (byte)(G * A / 255), (byte)(B * A / 255));
@@ -103,4 +135,19 @@ public readonly record struct PixelColor(byte A, byte R, byte G, byte B)
 
     public override string ToString()
         => $"[A={A}, R={R}, G={G}, B={B}]";
+
+    public readonly bool Equals(PixelColor other)
+        => R == other.R && G == other.G && B == other.B && A == other.A;
+
+    public override readonly bool Equals(object? obj)
+        => obj is PixelColor other && Equals(other);
+
+    public override readonly int GetHashCode()
+        => HashCode.Combine(A, R, G, B);
+
+    public static bool operator ==(PixelColor left, PixelColor right)
+        => left.Equals(right);
+
+    public static bool operator !=(PixelColor left, PixelColor right)
+        => !left.Equals(right);
 }

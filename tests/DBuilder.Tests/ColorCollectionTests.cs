@@ -173,6 +173,25 @@ public sealed class ColorCollectionTests
     }
 
     [Fact]
+    public void PixelColorExposesMutableUdbChannelAliases()
+    {
+        var color = new PixelColor(1, 2, 3, 4);
+
+        color.a = 10;
+        color.r = 20;
+        color.g = 30;
+        color.b = 40;
+
+        Assert.Equal(10, color.A);
+        Assert.Equal(20, color.R);
+        Assert.Equal(30, color.G);
+        Assert.Equal(40, color.B);
+        Assert.Equal(new PixelColor(10, 20, 30, 40), color);
+        Assert.True(color == new PixelColor(10, 20, 30, 40));
+        Assert.True(color != new PixelColor(10, 20, 30, 41));
+    }
+
+    [Fact]
     public void PixelColorBlendMatchesUdbInstanceSurfaceAndChannelMath()
     {
         var color = new PixelColor(255, 0, 0, 0);
