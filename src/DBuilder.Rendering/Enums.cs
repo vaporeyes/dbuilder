@@ -21,6 +21,31 @@ public enum RenderPass
     Additive = 3,
 }
 
+public enum TextAlignmentX
+{
+    Left = 0,
+    Center = 1,
+    Right = 2,
+}
+
+public enum TextAlignmentY
+{
+    Top = 0,
+    Middle = 1,
+    Bottom = 2,
+}
+
+public readonly struct CommentType
+{
+    private const string Regular = "";
+    private const string Info = "[i]";
+    private const string Question = "[?]";
+    private const string Problem = "[!]";
+    private const string Smile = "[:]";
+
+    public static readonly string[] Types = [Regular, Info, Question, Problem, Smile];
+}
+
 public enum UniformType
 {
     Vec4f, Vec3f, Vec2f, Float,
