@@ -1511,6 +1511,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style core visual render pass enum ordering.
   - [x] Add UDB-style text alignment enums and comment type prefixes.
   - [x] Add UDB-style flat quad vertex, UV, and color mapping helper.
+  - [x] Add UDB-style rendering Vector2f and Vector2i structs.
 - [x] Port render modes and view modes.
   - [x] Add UDB-style classic 2D view mode action ids and renderer switching for wireframe, brightness, floor textures, and ceiling textures.
   - [x] Add raw UDB classic view mode and highlight action aliases.
