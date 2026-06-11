@@ -629,6 +629,88 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
     }
 
     [Fact]
+    public void BuildSlopeHandleRenderPlanSkipsWhenSlopeHandlesAreUnavailable()
+    {
+        Renderer3DSlopeHandleRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildSlopeHandleRenderPlan(
+            slopeHandles: null,
+            showSelection: true,
+            verticesColor: unchecked((int)0xff101010),
+            guidelineColor: unchecked((int)0xff202020),
+            selectionColor: unchecked((int)0xffff4000),
+            highlightColor: unchecked((int)0xff00ffff));
+
+        Assert.Empty(plan.StateOperations);
+        Assert.Empty(plan.Draws);
+    }
+
+    [Fact]
+    public void BuildSlopeHandleRenderPlanSkipsWhenSelectionDisplayIsHidden()
+    {
+        Renderer3DSlopeHandleRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildSlopeHandleRenderPlan(
+            [
+                new Renderer3DSlopeHandleCandidate(1, Renderer3DSlopeHandleKind.Line, Pivot: false, Selected: true, Highlighted: false, SmartPivot: false, Length: 64.0),
+            ],
+            showSelection: false,
+            verticesColor: unchecked((int)0xff101010),
+            guidelineColor: unchecked((int)0xff202020),
+            selectionColor: unchecked((int)0xffff4000),
+            highlightColor: unchecked((int)0xff00ffff));
+
+        Assert.Empty(plan.StateOperations);
+        Assert.Empty(plan.Draws);
+    }
+
+    [Fact]
+    public void BuildSlopeHandleRenderPlanMatchesUdbRenderStateSetup()
+    {
+        Renderer3DSlopeHandleRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildSlopeHandleRenderPlan(
+            [],
+            showSelection: true,
+            verticesColor: unchecked((int)0xff101010),
+            guidelineColor: unchecked((int)0xff202020),
+            selectionColor: unchecked((int)0xffff4000),
+            highlightColor: unchecked((int)0xff00ffff));
+
+        Assert.Equal(
+            [
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetAlphaBlend, Enabled: true),
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetAlphaTest, Enabled: false),
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetZWrite, Enabled: false),
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetSourceBlend, Blend: Blend.SourceAlpha),
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetDestinationBlend, Blend: Blend.InverseSourceAlpha),
+                new Renderer3DThingCageRenderOperation(Renderer3DThingCageRenderOperationKind.SetShader, Shader: ShaderName.world3d_slope_handle),
+            ],
+            plan.StateOperations);
+        Assert.Empty(plan.Draws);
+    }
+
+    [Fact]
+    public void BuildSlopeHandleRenderPlanMatchesUdbColorGeometryAndDrawRules()
+    {
+        Renderer3DSlopeHandleRenderPlan plan = Renderer3DGeometryLifecyclePlan.BuildSlopeHandleRenderPlan(
+            [
+                new Renderer3DSlopeHandleCandidate(1, Renderer3DSlopeHandleKind.Line, Pivot: true, Selected: true, Highlighted: true, SmartPivot: false, Length: 64.0),
+                new Renderer3DSlopeHandleCandidate(2, Renderer3DSlopeHandleKind.Line, Pivot: false, Selected: true, Highlighted: true, SmartPivot: false, Length: 32.5),
+                new Renderer3DSlopeHandleCandidate(3, Renderer3DSlopeHandleKind.Vertex, Pivot: false, Selected: false, Highlighted: true, SmartPivot: false, Length: 12.0),
+                new Renderer3DSlopeHandleCandidate(4, Renderer3DSlopeHandleKind.Vertex, Pivot: false, Selected: false, Highlighted: false, SmartPivot: true, Length: 99.0),
+            ],
+            showSelection: true,
+            verticesColor: unchecked((int)0xff101010),
+            guidelineColor: unchecked((int)0xff202020),
+            selectionColor: unchecked((int)0xffff4000),
+            highlightColor: unchecked((int)0xff00ffff));
+
+        Assert.Equal(
+            [
+                new Renderer3DSlopeHandleDrawPlan(1, unchecked((int)0xff202020), Renderer3DSlopeHandleKind.Line, 64.0f, PrimitiveType.TriangleList, StartIndex: 0, PrimitiveCount: 2),
+                new Renderer3DSlopeHandleDrawPlan(2, unchecked((int)0xffff4000), Renderer3DSlopeHandleKind.Line, 32.5f, PrimitiveType.TriangleList, StartIndex: 0, PrimitiveCount: 2),
+                new Renderer3DSlopeHandleDrawPlan(3, unchecked((int)0xff00ffff), Renderer3DSlopeHandleKind.Vertex, 1.0f, PrimitiveType.TriangleList, StartIndex: 0, PrimitiveCount: 1),
+                new Renderer3DSlopeHandleDrawPlan(4, unchecked((int)0xff101010), Renderer3DSlopeHandleKind.Vertex, 1.0f, PrimitiveType.TriangleList, StartIndex: 0, PrimitiveCount: 1),
+            ],
+            plan.Draws);
+    }
+
+    [Fact]
     public void Renderer3DStartGeometryExpressionsMatchUdbWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -705,6 +787,20 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("graphics.SetUniform(UniformName.world, ref world);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetVertexBuffer(v.CeilingVertex ? vertexhandle.Upper : vertexhandle.Lower);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.Draw(PrimitiveType.LineList, 0, 8);", source, StringComparison.Ordinal);
+        Assert.Contains("private void RenderSlopeHandles()", source, StringComparison.Ordinal);
+        Assert.Contains("if (visualslopehandles == null || !showselection) return;", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetDestinationBlend(Blend.InverseSourceAlpha);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetShader(ShaderName.world3d_slope_handle);", source, StringComparison.Ordinal);
+        Assert.Contains("if (handle.Pivot)", source, StringComparison.Ordinal);
+        Assert.Contains("color = General.Colors.Guideline;", source, StringComparison.Ordinal);
+        Assert.Contains("else if (handle.Selected)", source, StringComparison.Ordinal);
+        Assert.Contains("else if (handle == highlighted)", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.slopeHandleLength, (float)handle.Length);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetVertexBuffer(visualslopehandle.LineGeometry);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.Draw(PrimitiveType.TriangleList, 0, 2);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.slopeHandleLength, 1.0f);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetVertexBuffer(visualslopehandle.VertexGeometry);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.Draw(PrimitiveType.TriangleList, 0, 1);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);

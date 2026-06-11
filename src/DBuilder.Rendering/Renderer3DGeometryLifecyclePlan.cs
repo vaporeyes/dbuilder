@@ -210,6 +210,34 @@ public sealed record Renderer3DVisualVertexRenderPlan(
     IReadOnlyList<Renderer3DThingCageRenderOperation> StateOperations,
     IReadOnlyList<Renderer3DVisualVertexDrawPlan> Draws);
 
+public enum Renderer3DSlopeHandleKind
+{
+    Line,
+    Vertex,
+}
+
+public sealed record Renderer3DSlopeHandleCandidate(
+    int Id,
+    Renderer3DSlopeHandleKind Kind,
+    bool Pivot,
+    bool Selected,
+    bool Highlighted,
+    bool SmartPivot,
+    double Length);
+
+public sealed record Renderer3DSlopeHandleDrawPlan(
+    int HandleId,
+    int Color,
+    Renderer3DSlopeHandleKind Geometry,
+    float HandleLength,
+    PrimitiveType PrimitiveType,
+    int StartIndex,
+    int PrimitiveCount);
+
+public sealed record Renderer3DSlopeHandleRenderPlan(
+    IReadOnlyList<Renderer3DThingCageRenderOperation> StateOperations,
+    IReadOnlyList<Renderer3DSlopeHandleDrawPlan> Draws);
+
 public static class Renderer3DGeometryLifecyclePlan
 {
     public static Renderer3DStartGeometryPlan BuildStartGeometryPlan()
@@ -504,6 +532,41 @@ public static class Renderer3DGeometryLifecyclePlan
                 PrimitiveType.LineList,
                 StartIndex: 0,
                 PrimitiveCount: 8)).ToArray());
+    }
+
+    public static Renderer3DSlopeHandleRenderPlan BuildSlopeHandleRenderPlan(
+        IReadOnlyList<Renderer3DSlopeHandleCandidate>? slopeHandles,
+        bool showSelection,
+        int verticesColor,
+        int guidelineColor,
+        int selectionColor,
+        int highlightColor)
+    {
+        if (slopeHandles == null || !showSelection)
+        {
+            return new Renderer3DSlopeHandleRenderPlan([], []);
+        }
+
+        return new Renderer3DSlopeHandleRenderPlan(
+            [
+                new(Renderer3DThingCageRenderOperationKind.SetAlphaBlend, Enabled: true),
+                new(Renderer3DThingCageRenderOperationKind.SetAlphaTest, Enabled: false),
+                new(Renderer3DThingCageRenderOperationKind.SetZWrite, Enabled: false),
+                new(Renderer3DThingCageRenderOperationKind.SetSourceBlend, Blend: Blend.SourceAlpha),
+                new(Renderer3DThingCageRenderOperationKind.SetDestinationBlend, Blend: Blend.InverseSourceAlpha),
+                new(Renderer3DThingCageRenderOperationKind.SetShader, Shader: ShaderName.world3d_slope_handle),
+            ],
+            slopeHandles
+                .Where(handle => handle.Kind is Renderer3DSlopeHandleKind.Line or Renderer3DSlopeHandleKind.Vertex)
+                .Select(handle => new Renderer3DSlopeHandleDrawPlan(
+                    handle.Id,
+                    handle.Pivot ? guidelineColor : handle.Selected ? selectionColor : handle.Highlighted ? highlightColor : verticesColor,
+                    handle.Kind,
+                    handle.Kind == Renderer3DSlopeHandleKind.Line ? (float)handle.Length : 1.0f,
+                    PrimitiveType.TriangleList,
+                    StartIndex: 0,
+                    PrimitiveCount: handle.Kind == Renderer3DSlopeHandleKind.Line ? 2 : 1))
+                .ToArray());
     }
 
     public static Renderer3DFinishGeometryCleanupPlan BuildFinishGeometryCleanupPlan()
