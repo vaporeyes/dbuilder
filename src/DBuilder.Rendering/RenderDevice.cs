@@ -189,6 +189,9 @@ public sealed class RenderDevice : IDisposable
         }
     }
 
+    public void StartRendering(bool clear, Color4 backColor)
+        => StartRendering(clear, (uint)backColor.ToArgb());
+
     public void FinishRendering() { /* nothing to flush yet */ }
 
     public void Present()
@@ -665,8 +668,14 @@ public sealed class RenderDevice : IDisposable
     public static RenderStartPlan BuildStartRenderingPlan(bool clear, uint clearColorArgb)
         => new(clear, clearColorArgb, HasTarget: false, UseDepthBuffer: true);
 
+    public static RenderStartPlan BuildStartRenderingPlan(bool clear, Color4 backColor)
+        => BuildStartRenderingPlan(clear, (uint)backColor.ToArgb());
+
     public static RenderStartPlan BuildStartRenderingPlan(bool clear, uint clearColorArgb, Texture? target, bool useDepthBuffer)
         => new(clear, clearColorArgb, target is not null, useDepthBuffer);
+
+    public static RenderStartPlan BuildStartRenderingPlan(bool clear, Color4 backColor, Texture? target, bool useDepthBuffer)
+        => BuildStartRenderingPlan(clear, (uint)backColor.ToArgb(), target, useDepthBuffer);
 
     public static DrawOperationPlan BuildDrawPlan(PrimitiveType type, int startIndex, int primitiveCount)
         => new(DrawOperationKind.Draw, type, startIndex, primitiveCount);

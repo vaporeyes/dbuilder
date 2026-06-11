@@ -46,6 +46,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Render-device setup settings state application", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device resource registration lifecycle planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device target start-rendering planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device Color4 start-rendering overload planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device inline vertex draw planning and overload", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device finish and present frame handoff planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device named shader and uniform operation planning", replacement.CoveredResponsibilities);
@@ -297,8 +298,14 @@ public class RendererArchitectureModelTests
     [Fact]
     public void RenderDeviceBuildsUdbStartRenderingPlans()
     {
+        Assert.NotNull(typeof(RenderDevice).GetMethod(
+            nameof(RenderDevice.StartRendering),
+            new[] { typeof(bool), typeof(Color4) }));
+
         RenderStartPlan backbuffer = RenderDevice.BuildStartRenderingPlan(clear: true, clearColorArgb: 0xff112233);
         RenderStartPlan target = RenderDevice.BuildStartRenderingPlan(clear: false, clearColorArgb: 0xff445566, target: null, useDepthBuffer: false);
+        RenderStartPlan colorBackbuffer = RenderDevice.BuildStartRenderingPlan(clear: true, new Color4(unchecked((int)0xff112233)));
+        RenderStartPlan colorTarget = RenderDevice.BuildStartRenderingPlan(clear: false, new Color4(unchecked((int)0xff445566)), target: null, useDepthBuffer: false);
 
         Assert.True(backbuffer.Clear);
         Assert.Equal(0xff112233u, backbuffer.ClearColorArgb);
@@ -308,6 +315,8 @@ public class RendererArchitectureModelTests
         Assert.Equal(0xff445566u, target.ClearColorArgb);
         Assert.False(target.HasTarget);
         Assert.False(target.UseDepthBuffer);
+        Assert.Equal(backbuffer, colorBackbuffer);
+        Assert.Equal(target, colorTarget);
     }
 
     [Fact]
