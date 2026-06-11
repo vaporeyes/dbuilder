@@ -13,6 +13,7 @@ public readonly record struct Renderer2DRectangleDrawPlan(
     bool ResetWorldTransformation,
     ShaderName Shader,
     bool BindWhiteTexture,
+    bool BindProvidedTexture,
     PrimitiveType PrimitiveType);
 
 public static class Renderer2DRectangleDrawPlanner
@@ -39,7 +40,32 @@ public static class Renderer2DRectangleDrawPlanner
         (double ltX, double ltY) = Project(left, top, transformRectangle, translateX, translateY, scale);
         (double rbX, double rbY) = Project(right, bottom, transformRectangle, translateX, translateY, scale);
 
-        return BuildPlan([Quad(ltX, ltY, rbX, rbY, color)]);
+        return BuildPlan([Quad(ltX, ltY, rbX, rbY, color)], bindWhiteTexture: true, bindProvidedTexture: false);
+    }
+
+    public static Renderer2DRectangleDrawPlan BuildTexturedFilledPlan(
+        double left,
+        double top,
+        double right,
+        double bottom,
+        int color,
+        bool transformRectangle,
+        double translateX,
+        double translateY,
+        double scale)
+    {
+        if (double.IsNaN(left)) throw new ArgumentOutOfRangeException(nameof(left));
+        if (double.IsNaN(top)) throw new ArgumentOutOfRangeException(nameof(top));
+        if (double.IsNaN(right)) throw new ArgumentOutOfRangeException(nameof(right));
+        if (double.IsNaN(bottom)) throw new ArgumentOutOfRangeException(nameof(bottom));
+        if (double.IsNaN(translateX)) throw new ArgumentOutOfRangeException(nameof(translateX));
+        if (double.IsNaN(translateY)) throw new ArgumentOutOfRangeException(nameof(translateY));
+        if (scale == 0.0 || double.IsNaN(scale)) throw new ArgumentOutOfRangeException(nameof(scale));
+
+        (double ltX, double ltY) = Project(left, top, transformRectangle, translateX, translateY, scale);
+        (double rbX, double rbY) = Project(right, bottom, transformRectangle, translateX, translateY, scale);
+
+        return BuildPlan([Quad(ltX, ltY, rbX, rbY, color)], bindWhiteTexture: false, bindProvidedTexture: true);
     }
 
     public static Renderer2DRectangleDrawPlan BuildBorderPlan(
@@ -73,10 +99,13 @@ public static class Renderer2DRectangleDrawPlanner
             Quad(rbX - borderSize, ltY - borderSize, rbX, rbY + borderSize, color),
         ];
 
-        return BuildPlan(quads);
+        return BuildPlan(quads, bindWhiteTexture: true, bindProvidedTexture: false);
     }
 
-    private static Renderer2DRectangleDrawPlan BuildPlan(FlatQuad[] quads)
+    private static Renderer2DRectangleDrawPlan BuildPlan(
+        FlatQuad[] quads,
+        bool bindWhiteTexture,
+        bool bindProvidedTexture)
     {
         return new Renderer2DRectangleDrawPlan(
             quads,
@@ -87,7 +116,8 @@ public static class Renderer2DRectangleDrawPlanner
             AlphaTestEnabled: false,
             ResetWorldTransformation: true,
             Shader: ShaderName.display2d_normal,
-            BindWhiteTexture: true,
+            BindWhiteTexture: bindWhiteTexture,
+            BindProvidedTexture: bindProvidedTexture,
             PrimitiveType: PrimitiveType.TriangleStrip);
     }
 

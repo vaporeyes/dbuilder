@@ -41,6 +41,7 @@ public sealed class Renderer2DRectangleDrawPlannerTests
         Assert.True(plan.ResetWorldTransformation);
         Assert.Equal(ShaderName.display2d_normal, plan.Shader);
         Assert.True(plan.BindWhiteTexture);
+        Assert.False(plan.BindProvidedTexture);
         Assert.Equal(PrimitiveType.TriangleStrip, plan.PrimitiveType);
         AssertQuad(quad, 2, 20, 22, 40, 0x123456);
     }
@@ -60,6 +61,34 @@ public sealed class Renderer2DRectangleDrawPlannerTests
             scale: 4);
 
         AssertQuad(Assert.Single(plan.Quads), 10, 20, 30, 40, 0x654321);
+    }
+
+    [Fact]
+    public void BuildTexturedFilledPlanBindsProvidedTextureLikeUdb()
+    {
+        Renderer2DRectangleDrawPlan plan = Renderer2DRectangleDrawPlanner.BuildTexturedFilledPlan(
+            left: 0,
+            top: -10,
+            right: 10,
+            bottom: -20,
+            color: 0x123456,
+            transformRectangle: true,
+            translateX: 1,
+            translateY: 0,
+            scale: 2);
+
+        FlatQuad quad = Assert.Single(plan.Quads);
+        Assert.Equal(2, plan.PrimitiveCountPerQuad);
+        Assert.Equal(Cull.None, plan.CullMode);
+        Assert.False(plan.DepthEnabled);
+        Assert.False(plan.AlphaBlendEnabled);
+        Assert.False(plan.AlphaTestEnabled);
+        Assert.True(plan.ResetWorldTransformation);
+        Assert.Equal(ShaderName.display2d_normal, plan.Shader);
+        Assert.False(plan.BindWhiteTexture);
+        Assert.True(plan.BindProvidedTexture);
+        Assert.Equal(PrimitiveType.TriangleStrip, plan.PrimitiveType);
+        AssertQuad(quad, 2, 20, 22, 40, 0x123456);
     }
 
     [Fact]
@@ -86,6 +115,7 @@ public sealed class Renderer2DRectangleDrawPlannerTests
         Assert.True(plan.ResetWorldTransformation);
         Assert.Equal(ShaderName.display2d_normal, plan.Shader);
         Assert.True(plan.BindWhiteTexture);
+        Assert.False(plan.BindProvidedTexture);
         Assert.Equal(PrimitiveType.TriangleStrip, plan.PrimitiveType);
         AssertQuad(plan.Quads[0], 2, 20, 22, 18, 0x123456);
         AssertQuad(plan.Quads[1], 2, 42, 22, 40, 0x123456);
@@ -160,6 +190,16 @@ public sealed class Renderer2DRectangleDrawPlannerTests
             translateX: 0,
             translateY: 0,
             scale: 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer2DRectangleDrawPlanner.BuildTexturedFilledPlan(
+            0,
+            0,
+            1,
+            1,
+            0,
+            transformRectangle: false,
+            translateX: 0,
+            translateY: 0,
+            scale: 0));
     }
 
     [Fact]
@@ -172,6 +212,7 @@ public sealed class Renderer2DRectangleDrawPlannerTests
 
         Assert.Contains("public void RenderRectangle(RectangleF rect, float bordersize, PixelColor c, bool transformrect)", source, StringComparison.Ordinal);
         Assert.Contains("public void RenderRectangleFilled(RectangleF rect, PixelColor c, bool transformrect)", source, StringComparison.Ordinal);
+        Assert.Contains("public void RenderRectangleFilled(RectangleF rect, PixelColor c, bool transformrect, ImageData texture)", source, StringComparison.Ordinal);
         Assert.Contains("lt = lt.GetTransformed(translatex, translatey, scale, -scale);", source, StringComparison.Ordinal);
         Assert.Contains("rb = rb.GetTransformed(translatex, translatey, scale, -scale);", source, StringComparison.Ordinal);
         Assert.Contains("FlatQuad quad = new FlatQuad(PrimitiveType.TriangleStrip, (float)lt.x, (float)lt.y, (float)rb.x, (float)rb.y);", source, StringComparison.Ordinal);
@@ -181,6 +222,7 @@ public sealed class Renderer2DRectangleDrawPlannerTests
         Assert.Contains("quads[0].SetColors(c.ToInt());", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetShader(ShaderName.display2d_normal);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(General.Map.Data.WhiteTexture.Texture);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetTexture(texture.Texture);", source, StringComparison.Ordinal);
         Assert.Contains("quads[3].Render(graphics);", source, StringComparison.Ordinal);
     }
 
