@@ -533,6 +533,7 @@ public class MapAnalysisTests
 
         var issue = Assert.Single(MapAnalysis.Check(map, ctx), i => i.Kind == MapIssueKind.MapTooBig);
         Assert.Equal("Map is wider than 1024 m.u. This can cause rendering and physics issues.", issue.Message);
+        Assert.Equal("Map is too big.", issue.Description);
         Assert.NotNull(issue.Focus);
     }
 

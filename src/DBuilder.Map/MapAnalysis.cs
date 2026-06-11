@@ -365,6 +365,7 @@ public static class MapAnalysis
         "This thing is stuck in a wall (single-sided line) and will likely not be able to move around.";
     private const string ThingStuckInThingDescription =
         "This thing is stuck in another thing. Both will likely not be able to move around.";
+    private const string MapTooBigDescription = "Map is too big.";
     private const string InvalidSectorDescription =
         "This sector has invalid geometry (it has less than 3 sidedefs or linedefs, or it's area is 0). This could cause problems with clipping and rendering in the game.";
 
@@ -2130,6 +2131,7 @@ public static class MapAnalysis
                 : $"Map is taller than {ctx.SafeBoundary} m.u. This can cause rendering and physics issues.";
         issues.Add(new MapIssue(MapIssueSeverity.Warning, MapIssueKind.MapTooBig, message)
         {
+            Description = MapTooBigDescription,
             Focus = new Vector2D((minX + maxX) * 0.5, (minY + maxY) * 0.5),
         });
     }
