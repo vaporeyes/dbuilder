@@ -262,6 +262,8 @@ public class SectorBuilderTests
         var map = new MapSet();
         var src = new Sector
         {
+            Selected = true,
+            Groups = MapSet.GroupMask(2),
             FloorSlope = new Vector3D(1, 0, 2),
             FloorSlopeOffset = 16,
             CeilSlope = new Vector3D(0, 1, 2),
@@ -270,11 +272,15 @@ public class SectorBuilderTests
         src.Tags.AddRange(new[] { 5, 7 });
         src.SetFlag("secret", true);
         src.SetFlag("damagehazard", true);
+        src.IgnoredErrorChecks.Add(MapIssueKind.UnclosedSector);
         src.SetIntegerField("lightcolor", 16711680);
         src.SetStringField("comment", "copied");
 
         var sector = SectorBuilder.CreateSector(map, Square(map, 50, ccw: true), src)!;
 
+        Assert.True(sector.Selected);
+        Assert.True(sector.Marked);
+        Assert.Equal(MapSet.GroupMask(2), sector.Groups);
         Assert.Equal(src.FloorSlope, sector.FloorSlope);
         Assert.Equal(16, sector.FloorSlopeOffset);
         Assert.Equal(src.CeilSlope, sector.CeilSlope);
@@ -282,6 +288,7 @@ public class SectorBuilderTests
         Assert.Equal(new[] { 5, 7 }, sector.Tags);
         Assert.True(sector.IsFlagSet("secret"));
         Assert.True(sector.IsFlagSet("damagehazard"));
+        Assert.Contains(MapIssueKind.UnclosedSector, sector.IgnoredErrorChecks);
         Assert.Equal(16711680, sector.GetIntegerField("lightcolor"));
         Assert.Equal("copied", sector.GetStringField("comment"));
     }

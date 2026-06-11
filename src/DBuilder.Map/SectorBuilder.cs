@@ -146,6 +146,8 @@ public static class SectorBuilder
     {
         if (src == null) return;
 
+        dst.Selected = src.Selected;
+        dst.Groups = src.Groups;
         dst.FloorHeight = src.FloorHeight;
         dst.CeilHeight = src.CeilHeight;
         dst.FloorTexture = src.FloorTexture;
@@ -162,6 +164,8 @@ public static class SectorBuilder
         dst.Tags.AddRange(src.Tags);
         dst.UdmfFlags.Clear();
         foreach (var flag in src.UdmfFlags) dst.UdmfFlags.Add(flag);
+        dst.IgnoredErrorChecks.Clear();
+        foreach (var check in src.IgnoredErrorChecks) dst.IgnoredErrorChecks.Add(check);
         dst.Fields.Clear();
         foreach (var kv in src.Fields) dst.Fields[kv.Key] = kv.Value;
     }
