@@ -270,6 +270,7 @@ public class MapAnalysisTests
     {
         var issue = Assert.Single(MapAnalysis.Check(Square(false)), i => i.Kind == MapIssueKind.UnclosedSector);
         Assert.Equal("Sector 0 is not closed", issue.Message);
+        Assert.Equal("This sector is not a closed region and could cause problems with clipping and rendering in the game. The 'leaks' in the sector are indicated by the colored vertices.", issue.Description);
     }
 
     [Fact]

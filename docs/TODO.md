@@ -2371,6 +2371,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match UDB Polyobj_ExplicitLine mirror-number error text.
   - [x] Match remaining UDB polyobject diagnostic punctuation and suffix text.
   - [x] Use UDB direction-aware sector closure checks for invalid sector detection.
+  - [x] Match UDB unclosed-sector selected-result description text.
   - [x] Match UDB invalid-sector selected-result description text.
   - [x] Match UDB map-size selected-result description text.
 - [x] Port all map error result types and fix actions.

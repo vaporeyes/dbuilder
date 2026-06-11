@@ -366,6 +366,8 @@ public static class MapAnalysis
     private const string ThingStuckInThingDescription =
         "This thing is stuck in another thing. Both will likely not be able to move around.";
     private const string MapTooBigDescription = "Map is too big.";
+    private const string UnclosedSectorDescription =
+        "This sector is not a closed region and could cause problems with clipping and rendering in the game. The 'leaks' in the sector are indicated by the colored vertices.";
     private const string InvalidSectorDescription =
         "This sector has invalid geometry (it has less than 3 sidedefs or linedefs, or it's area is 0). This could cause problems with clipping and rendering in the game.";
 
@@ -2276,7 +2278,7 @@ public static class MapAnalysis
             if (holes.Count > 0)
                 issues.Add(new MapIssue(MapIssueSeverity.Error, MapIssueKind.UnclosedSector,
                     $"Sector {i} is not closed")
-                    { Target = sector, Focus = Centroid(holes) });
+                    { Description = UnclosedSectorDescription, Target = sector, Focus = Centroid(holes) });
             else if (IsInvalidSector(sector))
                 issues.Add(InvalidSectorIssue(sector, i, Centroid(sides.SelectMany(side => new[] { side.Line.Start, side.Line.End }))));
         }
