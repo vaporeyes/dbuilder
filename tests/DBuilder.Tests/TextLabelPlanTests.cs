@@ -377,6 +377,77 @@ public sealed class TextLabelPlanTests
     }
 
     [Fact]
+    public void UpdateTransformCacheIgnoresTransformValuesWhenCoordinatesAreNotTransformed()
+    {
+        var cache = new TextLabelTransformCache(false, 0, 0, 0, 0);
+        TextLabelInvalidation invalidation = TextLabelInvalidation.Clean;
+
+        TextLabelTransformUpdatePlan plan = TextLabelPlan.UpdateTransformCache(
+            transformCoordinates: false,
+            cache,
+            invalidation,
+            translateX: 1,
+            translateY: 2,
+            scaleX: 3,
+            scaleY: 4);
+
+        Assert.Equal(cache, plan.Cache);
+        Assert.Equal(invalidation, plan.Invalidation);
+    }
+
+    [Fact]
+    public void UpdateTransformCacheMarksLayoutDirtyOnFirstTransformedUpdateLikeUdb()
+    {
+        TextLabelTransformUpdatePlan plan = TextLabelPlan.UpdateTransformCache(
+            transformCoordinates: true,
+            new TextLabelTransformCache(false, 0, 0, 0, 0),
+            TextLabelInvalidation.Clean,
+            translateX: 8,
+            translateY: -4,
+            scaleX: 2,
+            scaleY: -2);
+
+        Assert.Equal(new TextLabelTransformCache(true, 8, -4, 2, -2), plan.Cache);
+        Assert.True(plan.Invalidation.LayoutUpdateNeeded);
+        Assert.False(plan.Invalidation.TextureUpdateNeeded);
+    }
+
+    [Fact]
+    public void UpdateTransformCacheKeepsCleanStateWhenTransformedValuesMatch()
+    {
+        var cache = new TextLabelTransformCache(true, 8, -4, 2, -2);
+
+        TextLabelTransformUpdatePlan plan = TextLabelPlan.UpdateTransformCache(
+            transformCoordinates: true,
+            cache,
+            TextLabelInvalidation.Clean,
+            translateX: 8,
+            translateY: -4,
+            scaleX: 2,
+            scaleY: -2);
+
+        Assert.Equal(cache, plan.Cache);
+        Assert.Equal(TextLabelInvalidation.Clean, plan.Invalidation);
+    }
+
+    [Fact]
+    public void UpdateTransformCacheMarksLayoutDirtyWhenTransformedValuesChangeLikeUdb()
+    {
+        TextLabelTransformUpdatePlan plan = TextLabelPlan.UpdateTransformCache(
+            transformCoordinates: true,
+            new TextLabelTransformCache(true, 8, -4, 2, -2),
+            TextLabelInvalidation.Clean,
+            translateX: 8,
+            translateY: -4,
+            scaleX: 3,
+            scaleY: -2);
+
+        Assert.Equal(new TextLabelTransformCache(true, 8, -4, 3, -2), plan.Cache);
+        Assert.True(plan.Invalidation.LayoutUpdateNeeded);
+        Assert.False(plan.Invalidation.TextureUpdateNeeded);
+    }
+
+    [Fact]
     public void ResourceUpdatePlanRefreshesTextureAndUploadsQuadForVisibleDirtyLabel()
     {
         TextLabelLayout layout = TextLabelPlan.Build(

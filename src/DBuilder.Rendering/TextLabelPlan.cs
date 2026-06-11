@@ -89,6 +89,17 @@ public readonly record struct TextLabelInvalidation(bool LayoutUpdateNeeded, boo
     public static TextLabelInvalidation Clean => new(LayoutUpdateNeeded: false, TextureUpdateNeeded: false);
 }
 
+public readonly record struct TextLabelTransformCache(
+    bool HasTransform,
+    double TranslateX,
+    double TranslateY,
+    double ScaleX,
+    double ScaleY);
+
+public sealed record TextLabelTransformUpdatePlan(
+    TextLabelTransformCache Cache,
+    TextLabelInvalidation Invalidation);
+
 public sealed record TextLabelResourceUpdatePlan(
     bool DisposeTexture,
     bool CreateLabelImage,
@@ -339,6 +350,34 @@ public static class TextLabelPlan
 
     public static TextLabelInvalidation MarkUpdated()
         => TextLabelInvalidation.Clean;
+
+    public static TextLabelTransformUpdatePlan UpdateTransformCache(
+        bool transformCoordinates,
+        TextLabelTransformCache cache,
+        TextLabelInvalidation invalidation,
+        double translateX,
+        double translateY,
+        double scaleX,
+        double scaleY)
+    {
+        if (!transformCoordinates)
+        {
+            return new TextLabelTransformUpdatePlan(cache, invalidation);
+        }
+
+        if (cache.HasTransform
+            && cache.TranslateX == translateX
+            && cache.TranslateY == translateY
+            && cache.ScaleX == scaleX
+            && cache.ScaleY == scaleY)
+        {
+            return new TextLabelTransformUpdatePlan(cache, invalidation);
+        }
+
+        return new TextLabelTransformUpdatePlan(
+            new TextLabelTransformCache(true, translateX, translateY, scaleX, scaleY),
+            InvalidateLayout(invalidation));
+    }
 
     public static TextLabelResourceUpdatePlan BuildResourceUpdatePlan(
         TextLabelInvalidation invalidation,
