@@ -124,6 +124,40 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
             Renderer3DGeometryLifecyclePlan.BuildSkySolidPassPlan(skyGeometryCount: -1));
 
     [Fact]
+    public void BuildMaskedModelPassPlanSkipsWhenNoMaskedModelsExist()
+    {
+        Renderer3DModelPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildMaskedModelPassPlan(maskedModelThingCount: 0);
+
+        Assert.False(plan.ShouldRender);
+        Assert.Empty(plan.Operations);
+    }
+
+    [Fact]
+    public void BuildMaskedModelPassPlanMatchesUdbCullAndAlphaTestSequence()
+    {
+        Renderer3DModelPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildMaskedModelPassPlan(maskedModelThingCount: 3);
+
+        Assert.True(plan.ShouldRender);
+        Assert.Equal(
+            [
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetAlphaTest, Enabled: true),
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetCullMode, CullMode: Cull.None),
+                new Renderer3DGeometryPassOperation(
+                    Renderer3DGeometryPassOperationKind.RenderModels,
+                    LightBucket: Renderer3DGeometryBucketKind.LightThings,
+                    ModelBucket: Renderer3DGeometryBucketKind.MaskedModelThings,
+                    TranslucentModels: false),
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.SetCullMode, CullMode: Cull.Clockwise),
+            ],
+            plan.Operations);
+    }
+
+    [Fact]
+    public void BuildMaskedModelPassPlanRejectsNegativeCounts()
+        => Assert.Throws<ArgumentOutOfRangeException>(() =>
+            Renderer3DGeometryLifecyclePlan.BuildMaskedModelPassPlan(maskedModelThingCount: -1));
+
+    [Fact]
     public void Renderer3DStartGeometryExpressionsMatchUdbWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -151,6 +185,11 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("if (skygeo.Count > 0)", source, StringComparison.Ordinal);
         Assert.Contains("RenderSky(skygeo);", source, StringComparison.Ordinal);
         Assert.Contains("RenderSinglePass(solidgeo, solidthings, lightthings);", source, StringComparison.Ordinal);
+        Assert.Contains("if(maskedmodelthings.Count > 0)", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetAlphaTestEnable(true);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetCullMode(Cull.None);", source, StringComparison.Ordinal);
+        Assert.Contains("RenderModels(false, lightthings);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetCullMode(Cull.Clockwise);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);

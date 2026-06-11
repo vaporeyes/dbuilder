@@ -53,15 +53,27 @@ public enum Renderer3DGeometryPassOperationKind
     SetWorldUniform,
     RenderSky,
     RenderSinglePass,
+    SetAlphaTest,
+    SetCullMode,
+    RenderModels,
 }
 
 public sealed record Renderer3DGeometryPassOperation(
     Renderer3DGeometryPassOperationKind Kind,
     Renderer3DGeometryBucketKind? GeometryBucket = null,
     Renderer3DGeometryBucketKind? ThingBucket = null,
-    Renderer3DGeometryBucketKind? LightBucket = null);
+    Renderer3DGeometryBucketKind? LightBucket = null,
+    Renderer3DGeometryBucketKind? ModelBucket = null,
+    bool? Enabled = null,
+    Cull? CullMode = null,
+    bool? TranslucentModels = null);
 
 public sealed record Renderer3DSkySolidPassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations);
+
+public sealed record Renderer3DModelPassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations)
+{
+    public bool ShouldRender => Operations.Count > 0;
+}
 
 public static class Renderer3DGeometryLifecyclePlan
 {
@@ -112,6 +124,24 @@ public static class Renderer3DGeometryLifecyclePlan
             LightBucket: Renderer3DGeometryBucketKind.LightThings));
 
         return new Renderer3DSkySolidPassPlan(operations);
+    }
+
+    public static Renderer3DModelPassPlan BuildMaskedModelPassPlan(int maskedModelThingCount)
+    {
+        if (maskedModelThingCount < 0) throw new ArgumentOutOfRangeException(nameof(maskedModelThingCount));
+        if (maskedModelThingCount == 0) return new Renderer3DModelPassPlan([]);
+
+        return new Renderer3DModelPassPlan(
+            [
+                new(Renderer3DGeometryPassOperationKind.SetAlphaTest, Enabled: true),
+                new(Renderer3DGeometryPassOperationKind.SetCullMode, CullMode: Cull.None),
+                new(
+                    Renderer3DGeometryPassOperationKind.RenderModels,
+                    LightBucket: Renderer3DGeometryBucketKind.LightThings,
+                    ModelBucket: Renderer3DGeometryBucketKind.MaskedModelThings,
+                    TranslucentModels: false),
+                new(Renderer3DGeometryPassOperationKind.SetCullMode, CullMode: Cull.Clockwise),
+            ]);
     }
 
     public static Renderer3DFinishGeometryCleanupPlan BuildFinishGeometryCleanupPlan()
