@@ -131,4 +131,22 @@ public class CurveLinedefsTests
             Assert.True(linedef.End.Marked);
         });
     }
+
+    [Fact]
+    public void ApplyCanRunUdbPostProcessingAfterCurveMaterialization()
+    {
+        var map = new MapSet();
+        Linedef line = map.AddLinedef(map.AddVertex(new Vector2D(0.0004, 0)), map.AddVertex(new Vector2D(128.0004, 0)));
+        line.Selected = true;
+
+        CurveLinedefs.ApplyToSelectedLinedefs(
+            map,
+            new CurveLinedefsOptions(Vertices: 2, Distance: 37),
+            MergeGeometryMode.Classic,
+            snapToAccuracy: true);
+
+        Assert.All(map.Vertices, vertex => Assert.Equal(Math.Round(vertex.Position.x, 3), vertex.Position.x));
+        Assert.All(map.Vertices, vertex => Assert.Equal(Math.Round(vertex.Position.y, 3), vertex.Position.y));
+        Assert.All(map.Vertices, vertex => Assert.NotEmpty(vertex.Linedefs));
+    }
 }

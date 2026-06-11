@@ -119,7 +119,11 @@ public static class CurveLinedefs
         return points;
     }
 
-    public static CurveLinedefsResult ApplyToSelectedLinedefs(MapSet map, CurveLinedefsOptions? options = null)
+    public static CurveLinedefsResult ApplyToSelectedLinedefs(
+        MapSet map,
+        CurveLinedefsOptions? options = null,
+        MergeGeometryMode? mergeMode = null,
+        bool snapToAccuracy = false)
     {
         if (map == null) throw new ArgumentNullException(nameof(map));
 
@@ -143,6 +147,14 @@ public static class CurveLinedefs
                 inserted++;
             }
             curved++;
+        }
+
+        if (curved > 0 && (mergeMode.HasValue || snapToAccuracy))
+        {
+            map.BuildIndexes();
+            if (mergeMode.HasValue) map.StitchGeometry(mergeMode.Value);
+            if (snapToAccuracy) map.SnapAllToAccuracy();
+            map.BuildIndexes();
         }
 
         return new CurveLinedefsResult(curved, inserted);
