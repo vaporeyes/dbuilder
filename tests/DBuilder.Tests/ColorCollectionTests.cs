@@ -139,12 +139,17 @@ public sealed class ColorCollectionTests
         Assert.Equal(PixelColor.IntBlack, PixelColor.INT_BLACK);
         Assert.Equal(PixelColor.IntWhite, PixelColor.INT_WHITE);
         Assert.Equal(PixelColor.IntWhiteNoAlpha, PixelColor.INT_WHITE_NO_ALPHA);
+        Assert.Equal(0x80, color.a);
+        Assert.Equal(0x10, color.r);
+        Assert.Equal(0x20, color.g);
+        Assert.Equal(0x30, color.b);
         Assert.Equal(unchecked((int)0x80102030), color.ToArgb());
         Assert.Equal(unchecked((int)0x80102030), color.ToInt());
         Assert.Equal(color, PixelColor.FromArgb(unchecked((int)0x80102030)));
         Assert.Equal(color, PixelColor.FromInt(unchecked((int)0x80102030)));
         Assert.Equal(color, PixelColor.FromColor(Color.FromArgb(unchecked((int)0x80102030))));
         Assert.Equal(Color.FromArgb(unchecked((int)0x80102030)), color.ToColor());
+        Assert.Equal(new PixelColor(0x40, 0x10, 0x20, 0x30), new PixelColor(color, 0x40));
         Assert.Equal(new PixelColor(0x40, 0x10, 0x20, 0x30), color.WithAlpha(0x40));
         Assert.Equal(0x302010, color.ToInversedColorRef());
         Assert.Equal(new Color4(0x10 * PixelColor.ByteToFloat, 0x20 * PixelColor.ByteToFloat, 0x30 * PixelColor.ByteToFloat, 0x80 * PixelColor.ByteToFloat), color.ToColorValue());

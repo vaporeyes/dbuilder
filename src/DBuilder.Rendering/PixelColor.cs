@@ -17,6 +17,16 @@ public readonly record struct PixelColor(byte A, byte R, byte G, byte B)
 
     public static PixelColor Transparent { get; } = new(0, 0, 0, 0);
 
+    public PixelColor(PixelColor color, byte alpha)
+        : this(alpha, color.R, color.G, color.B)
+    {
+    }
+
+    public byte a => A;
+    public byte r => R;
+    public byte g => G;
+    public byte b => B;
+
     public static PixelColor FromArgb(int argb)
         => new(
             (byte)((argb >> 24) & 0xFF),
