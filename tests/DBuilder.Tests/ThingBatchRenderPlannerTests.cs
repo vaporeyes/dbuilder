@@ -114,6 +114,54 @@ public sealed class ThingBatchRenderPlannerTests
     }
 
     [Fact]
+    public void SpriteVerticesMatchUdbQuadOrder()
+    {
+        FlatVertex[] vertices = ThingBatchRenderPlanner.BuildSpriteVertices(
+            screenX: 10,
+            screenY: 20,
+            width: 3,
+            height: 4,
+            color: 0x123456,
+            mirror: false);
+
+        Assert.Equal(6, vertices.Length);
+        AssertVertex(vertices[0], 7, 16, 0x123456, 0.0f, 0.0f);
+        AssertVertex(vertices[1], 13, 16, 0x123456, 1.0f, 0.0f);
+        AssertVertex(vertices[2], 7, 24, 0x123456, 0.0f, 1.0f);
+        Assert.Equal(vertices[1], vertices[3]);
+        Assert.Equal(vertices[2], vertices[4]);
+        AssertVertex(vertices[5], 13, 24, 0x123456, 1.0f, 1.0f);
+    }
+
+    [Fact]
+    public void SpriteVerticesMirrorHorizontalTextureCoordinatesLikeUdb()
+    {
+        FlatVertex[] vertices = ThingBatchRenderPlanner.BuildSpriteVertices(
+            screenX: 0,
+            screenY: 0,
+            width: 1,
+            height: 1,
+            color: -1,
+            mirror: true);
+
+        Assert.Equal(1.0f, vertices[0].u);
+        Assert.Equal(0.0f, vertices[1].u);
+        Assert.Equal(1.0f, vertices[2].u);
+        Assert.Equal(0.0f, vertices[5].u);
+    }
+
+    [Fact]
+    public void SpriteVerticesRejectInvalidInputs()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildSpriteVertices(double.NaN, 0, 1, 1, -1, false));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildSpriteVertices(0, double.NaN, 1, 1, -1, false));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildSpriteVertices(0, 0, -1, 1, -1, false));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildSpriteVertices(0, 0, double.NaN, 1, -1, false));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildSpriteVertices(0, 0, 1, -1, -1, false));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildSpriteVertices(0, 0, 1, double.NaN, -1, false));
+    }
+
+    [Fact]
     public void ThingBatchExpressionsMatchUdbRenderer2DWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -133,6 +181,11 @@ public sealed class ThingBatchRenderPlannerTests
         Assert.Contains("ur = 0.874f;", source, StringComparison.Ordinal);
         Assert.Contains("ul = 0.501f;", source, StringComparison.Ordinal);
         Assert.Contains("ur = 0.999f;", source, StringComparison.Ordinal);
+        Assert.Contains("float ul = (mirror ? 1f : 0f);", source, StringComparison.Ordinal);
+        Assert.Contains("float ur = (mirror ? 0f : 1f);", source, StringComparison.Ordinal);
+        Assert.Contains("verts[offset].x = (float)screenpos.x - width;", source, StringComparison.Ordinal);
+        Assert.Contains("verts[offset].x = (float)screenpos.x + width;", source, StringComparison.Ordinal);
+        Assert.Contains("verts[offset].y = (float)screenpos.y + height;", source, StringComparison.Ordinal);
     }
 
     private static void AssertVertex(FlatVertex vertex, float x, float y, int color, float u, float v)

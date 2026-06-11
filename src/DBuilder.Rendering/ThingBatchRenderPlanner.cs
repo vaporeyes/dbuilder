@@ -94,12 +94,41 @@ public static class ThingBatchRenderPlanner
         return vertices;
     }
 
+    public static FlatVertex[] BuildSpriteVertices(
+        double screenX,
+        double screenY,
+        double width,
+        double height,
+        int color,
+        bool mirror)
+    {
+        if (double.IsNaN(screenX)) throw new ArgumentOutOfRangeException(nameof(screenX));
+        if (double.IsNaN(screenY)) throw new ArgumentOutOfRangeException(nameof(screenY));
+        if (width < 0 || double.IsNaN(width)) throw new ArgumentOutOfRangeException(nameof(width));
+        if (height < 0 || double.IsNaN(height)) throw new ArgumentOutOfRangeException(nameof(height));
+
+        float left = mirror ? 1.0f : 0.0f;
+        float right = mirror ? 0.0f : 1.0f;
+
+        var vertices = new FlatVertex[VerticesPerThing];
+        vertices[0] = Vertex(screenX - width, screenY - height, color, left, 0.0f);
+        vertices[1] = Vertex(screenX + width, screenY - height, color, right, 0.0f);
+        vertices[2] = Vertex(screenX - width, screenY + height, color, left, 1.0f);
+        vertices[3] = vertices[1];
+        vertices[4] = vertices[2];
+        vertices[5] = Vertex(screenX + width, screenY + height, color, right, 1.0f);
+        return vertices;
+    }
+
     private static FlatVertex Vertex(double x, double y, float u, float v)
+        => Vertex(x, y, -1, u, v);
+
+    private static FlatVertex Vertex(double x, double y, int color, float u, float v)
         => new()
         {
             x = (float)x,
             y = (float)y,
-            c = -1,
+            c = color,
             u = u,
             v = v,
         };

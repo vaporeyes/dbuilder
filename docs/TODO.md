@@ -1501,6 +1501,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style 2D thing screen-size planning.
   - [x] Add UDB-style 2D thing batch draw planning.
   - [x] Add UDB-style 2D thing arrow quad planning.
+  - [x] Add UDB-style 2D thing sprite quad planning.
 - [ ] Port renderer 3D parity.
 - [ ] Port render passes and layers.
   - [x] Add UDB-style 2D presentation layer stack planning.
