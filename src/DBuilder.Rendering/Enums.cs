@@ -3,15 +3,15 @@
 
 namespace DBuilder.Rendering;
 
-public enum VertexFormat { Flat, World }
-public enum Cull { None, Clockwise }
-public enum Blend { InverseSourceAlpha, SourceAlpha, One }
-public enum BlendOperation { Add, ReverseSubtract }
-public enum FillMode { Solid, Wireframe }
-public enum TextureAddress { Wrap, Clamp }
-public enum PrimitiveType { LineList, TriangleList, TriangleStrip }
-public enum TextureFilter { Nearest, Linear }
-public enum MipmapFilter { None, Nearest, Linear }
+public enum VertexFormat : int { Flat = 0, World = 1 }
+public enum Cull : int { None = 0, Clockwise = 1 }
+public enum Blend : int { InverseSourceAlpha = 0, SourceAlpha = 1, One = 2 }
+public enum BlendOperation : int { Add = 0, ReverseSubtract = 1 }
+public enum FillMode : int { Solid = 0, Wireframe = 1 }
+public enum TextureAddress : int { Wrap = 0, Clamp = 1 }
+public enum PrimitiveType : int { LineList = 0, TriangleList = 1, TriangleStrip = 2 }
+public enum TextureFilter : int { Nearest = 0, Linear = 1 }
+public enum MipmapFilter : int { None = 0, Nearest = 1, Linear = 2 }
 
 public enum RenderPass
 {

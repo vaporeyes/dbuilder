@@ -8,6 +8,49 @@ namespace DBuilder.Tests;
 public sealed class RenderingMetadataTests
 {
     [Fact]
+    public void RenderDeviceEnumValuesMatchUdbNativeSurface()
+    {
+        Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(VertexFormat)));
+        Assert.Equal(0, (int)VertexFormat.Flat);
+        Assert.Equal(1, (int)VertexFormat.World);
+
+        Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(Cull)));
+        Assert.Equal(0, (int)Cull.None);
+        Assert.Equal(1, (int)Cull.Clockwise);
+
+        Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(Blend)));
+        Assert.Equal(0, (int)Blend.InverseSourceAlpha);
+        Assert.Equal(1, (int)Blend.SourceAlpha);
+        Assert.Equal(2, (int)Blend.One);
+
+        Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(BlendOperation)));
+        Assert.Equal(0, (int)BlendOperation.Add);
+        Assert.Equal(1, (int)BlendOperation.ReverseSubtract);
+
+        Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(FillMode)));
+        Assert.Equal(0, (int)FillMode.Solid);
+        Assert.Equal(1, (int)FillMode.Wireframe);
+
+        Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(TextureAddress)));
+        Assert.Equal(0, (int)TextureAddress.Wrap);
+        Assert.Equal(1, (int)TextureAddress.Clamp);
+
+        Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(PrimitiveType)));
+        Assert.Equal(0, (int)PrimitiveType.LineList);
+        Assert.Equal(1, (int)PrimitiveType.TriangleList);
+        Assert.Equal(2, (int)PrimitiveType.TriangleStrip);
+
+        Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(TextureFilter)));
+        Assert.Equal(0, (int)TextureFilter.Nearest);
+        Assert.Equal(1, (int)TextureFilter.Linear);
+
+        Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(MipmapFilter)));
+        Assert.Equal(0, (int)MipmapFilter.None);
+        Assert.Equal(1, (int)MipmapFilter.Nearest);
+        Assert.Equal(2, (int)MipmapFilter.Linear);
+    }
+
+    [Fact]
     public void TextAlignmentXValuesMatchUdbOrdering()
     {
         Assert.Equal(0, (int)TextAlignmentX.Left);
