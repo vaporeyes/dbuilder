@@ -43,6 +43,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Render-device multisample antialias compatibility state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device blend-operation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device blend-factor planning", replacement.CoveredResponsibilities);
+        Assert.Contains("Render-device cull and fill raster-state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device sampler-filter overload planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device sampler address-state planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device setup settings planning", replacement.CoveredResponsibilities);
@@ -279,6 +280,21 @@ public class RendererArchitectureModelTests
         Assert.Equal(Blend.InverseSourceAlpha, alpha.DestinationBlend);
         Assert.Equal(Blend.One, additive.SourceBlend);
         Assert.Equal(Blend.One, additive.DestinationBlend);
+    }
+
+    [Fact]
+    public void RenderDeviceBuildsUdbRasterStatePlans()
+    {
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetCullMode), new[] { typeof(Cull) }));
+        Assert.NotNull(typeof(RenderDevice).GetMethod(nameof(RenderDevice.SetFillMode), new[] { typeof(FillMode) }));
+
+        RasterStatePlan normal = RenderDevice.BuildRasterStatePlan(Cull.None, FillMode.Solid);
+        RasterStatePlan wireframe = RenderDevice.BuildRasterStatePlan(Cull.Clockwise, FillMode.Wireframe);
+
+        Assert.Equal(Cull.None, normal.CullMode);
+        Assert.Equal(FillMode.Solid, normal.FillMode);
+        Assert.Equal(Cull.Clockwise, wireframe.CullMode);
+        Assert.Equal(FillMode.Wireframe, wireframe.FillMode);
     }
 
     [Fact]

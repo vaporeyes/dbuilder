@@ -106,6 +106,10 @@ public sealed record BlendFactorPlan(
     Blend SourceBlend,
     Blend DestinationBlend);
 
+public sealed record RasterStatePlan(
+    Cull CullMode,
+    FillMode FillMode);
+
 public sealed record SamplerFilterPlan(
     TextureFilter MinFilter,
     TextureFilter MagFilter,
@@ -855,6 +859,9 @@ public sealed class RenderDevice : IDisposable
 
     public static BlendFactorPlan BuildBlendFactorPlan(Blend sourceBlend, Blend destinationBlend)
         => new(sourceBlend, destinationBlend);
+
+    public static RasterStatePlan BuildRasterStatePlan(Cull cullMode, FillMode fillMode)
+        => new(cullMode, fillMode);
 
     public static RenderDeviceSetupSettingsPlan BuildSetupSettingsPlan(
         bool visualBilinear,
