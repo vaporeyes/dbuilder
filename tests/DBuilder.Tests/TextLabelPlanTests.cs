@@ -529,6 +529,30 @@ public sealed class TextLabelPlanTests
     }
 
     [Fact]
+    public void BuildUnloadResourcePlanDisposesExistingResourcesAndInvalidatesLikeUdb()
+    {
+        TextLabelResourceUnloadPlan plan = TextLabelPlan.BuildUnloadResourcePlan(
+            hasTexture: true,
+            hasVertexBuffer: true);
+
+        Assert.True(plan.DisposeTexture);
+        Assert.True(plan.DisposeVertexBuffer);
+        Assert.Equal(TextLabelInvalidation.Initial, plan.ResultInvalidation);
+    }
+
+    [Fact]
+    public void BuildUnloadResourcePlanSkipsMissingResourcesButStillInvalidates()
+    {
+        TextLabelResourceUnloadPlan plan = TextLabelPlan.BuildUnloadResourcePlan(
+            hasTexture: false,
+            hasVertexBuffer: false);
+
+        Assert.False(plan.DisposeTexture);
+        Assert.False(plan.DisposeVertexBuffer);
+        Assert.Equal(TextLabelInvalidation.Initial, plan.ResultInvalidation);
+    }
+
+    [Fact]
     public void MarkUpdatedClearsLayoutAndTextureFlagsAfterRendering()
     {
         TextLabelInvalidation state = TextLabelPlan.MarkUpdated();

@@ -116,6 +116,11 @@ public sealed record TextLabelResourceUpdatePlan(
     bool UploadQuadBuffer,
     TextLabelInvalidation ResultInvalidation);
 
+public sealed record TextLabelResourceUnloadPlan(
+    bool DisposeTexture,
+    bool DisposeVertexBuffer,
+    TextLabelInvalidation ResultInvalidation);
+
 public sealed record TextLabelFontPlan(
     string RequestedFamily,
     string ResolvedFamily,
@@ -475,6 +480,14 @@ public static class TextLabelPlan
 
     public static TextLabelInvalidation InvalidateResources()
         => TextLabelInvalidation.Initial;
+
+    public static TextLabelResourceUnloadPlan BuildUnloadResourcePlan(
+        bool hasTexture,
+        bool hasVertexBuffer)
+        => new(
+            DisposeTexture: hasTexture,
+            DisposeVertexBuffer: hasVertexBuffer,
+            TextLabelInvalidation.Initial);
 
     public static TextLabelInvalidation MarkUpdated()
         => TextLabelInvalidation.Clean;

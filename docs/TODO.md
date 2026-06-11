@@ -1617,6 +1617,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style skipped-label filtering and render dispatch planning.
   - [x] Add UDB-style text label render-state planning.
   - [x] Add UDB-style text label dirty-state and resource invalidation planning.
+  - [x] Add UDB-style text label unload-resource disposal planning.
   - [x] Add UDB-style text label transform-cache invalidation planning.
   - [x] Add UDB-style text label texture and vertex-buffer update planning.
   - [x] Add UDB-style text label viewport inclusion planning.

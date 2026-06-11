@@ -110,6 +110,7 @@ public static class RendererArchitectureModel
             "Text label render dispatch planning",
             "Text label render-state planning",
             "Text label dirty-state and resource invalidation planning",
+            "Text label unload-resource disposal planning",
             "Text label skipped-resource invalidation planning",
             "Text label texture and vertex-buffer update planning",
             "Text label viewport inclusion planning",
