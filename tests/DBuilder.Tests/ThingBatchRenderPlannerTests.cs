@@ -58,6 +58,29 @@ public sealed class ThingBatchRenderPlannerTests
     }
 
     [Fact]
+    public void SetupPlanMatchesUdbThingBatchRenderState()
+    {
+        ThingBatchSetupPlan plan = ThingBatchRenderPlanner.BuildSetupPlan(0.66f);
+
+        Assert.Equal(Cull.None, plan.CullMode);
+        Assert.False(plan.DepthEnabled);
+        Assert.True(plan.AlphaBlendEnabled);
+        Assert.Equal(Blend.SourceAlpha, plan.SourceBlend);
+        Assert.Equal(Blend.InverseSourceAlpha, plan.DestinationBlend);
+        Assert.False(plan.AlphaTestEnabled);
+        Assert.True(plan.BindThingTexture);
+        Assert.True(plan.ResetWorldTransformation);
+        Assert.Equal(ShaderName.things2d_thing, plan.Shader);
+        Assert.Equal(0.66f, plan.Alpha);
+    }
+
+    [Fact]
+    public void SetupPlanRejectsInvalidAlpha()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildSetupPlan(float.NaN));
+    }
+
+    [Fact]
     public void ArrowTextureBoundsMatchUdbSpriteState()
     {
         Assert.Equal(new ThingArrowTextureBounds(0.501f, 0.999f, 0.001f, 0.999f),
@@ -221,6 +244,16 @@ public sealed class ThingBatchRenderPlannerTests
         string source = File.ReadAllText(Path.Combine(udbRoot, "Source", "Core", "Rendering", "Renderer2D.cs"));
 
         Assert.Contains("FlatVertex[] verts = new FlatVertex[THING_BUFFER_SIZE * 6];", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetCullMode(Cull.None);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetZEnable(false);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetAlphaBlendEnable(true);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetSourceBlend(Blend.SourceAlpha);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetDestinationBlend(Blend.InverseSourceAlpha);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetAlphaTestEnable(false);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetTexture(General.Map.Data.ThingTexture.Texture);", source, StringComparison.Ordinal);
+        Assert.Contains("SetWorldTransformation(false);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetShader(ShaderName.things2d_thing);", source, StringComparison.Ordinal);
+        Assert.Contains("SetThings2DSettings(alpha);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetBufferSubdata(thingsvertices, verts, buffercount * 6);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.Draw(PrimitiveType.TriangleList, 0, buffercount * 2);", source, StringComparison.Ordinal);
         Assert.Contains("locksize = ((things.Count - totalcount) > THING_BUFFER_SIZE) ? THING_BUFFER_SIZE : (things.Count - totalcount);", source, StringComparison.Ordinal);

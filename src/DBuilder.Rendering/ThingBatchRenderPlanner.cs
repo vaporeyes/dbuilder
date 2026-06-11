@@ -26,6 +26,18 @@ public readonly record struct ThingBoxRenderPlan(
     FlatVertex[] Vertices,
     IReadOnlyList<ThingBoxLine> BoundingBoxLines);
 
+public readonly record struct ThingBatchSetupPlan(
+    Cull CullMode,
+    bool DepthEnabled,
+    bool AlphaBlendEnabled,
+    Blend SourceBlend,
+    Blend DestinationBlend,
+    bool AlphaTestEnabled,
+    bool BindThingTexture,
+    bool ResetWorldTransformation,
+    ShaderName Shader,
+    float Alpha);
+
 public static class ThingBatchRenderPlanner
 {
     public const int VerticesPerThing = 6;
@@ -64,6 +76,23 @@ public static class ThingBatchRenderPlanner
         }
 
         return draws;
+    }
+
+    public static ThingBatchSetupPlan BuildSetupPlan(float alpha)
+    {
+        if (float.IsNaN(alpha)) throw new ArgumentOutOfRangeException(nameof(alpha));
+
+        return new ThingBatchSetupPlan(
+            CullMode: Cull.None,
+            DepthEnabled: false,
+            AlphaBlendEnabled: true,
+            SourceBlend: Blend.SourceAlpha,
+            DestinationBlend: Blend.InverseSourceAlpha,
+            AlphaTestEnabled: false,
+            BindThingTexture: true,
+            ResetWorldTransformation: true,
+            Shader: ShaderName.things2d_thing,
+            Alpha: alpha);
     }
 
     public static ThingArrowTextureBounds ArrowTextureBounds(bool spriteSkipped)
