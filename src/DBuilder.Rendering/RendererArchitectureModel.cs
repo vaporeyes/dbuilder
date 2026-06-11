@@ -45,6 +45,7 @@ public static class RendererArchitectureModel
             "2D presentation layer draw dispatch argument planning",
             "2D presentation layer texture binding planning",
             "2D presentation per-layer draw operation sequence planning",
+            "2D presentation planner input validation planning",
             "Render-device alpha-blend state planning",
             "Render-device alpha-test compatibility state planning",
             "Render-device multisample antialias compatibility state planning",

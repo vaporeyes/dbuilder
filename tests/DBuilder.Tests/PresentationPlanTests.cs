@@ -281,6 +281,37 @@ public sealed class PresentationPlanTests
     }
 
     [Fact]
+    public void PresentationPlannersRejectNullInputs()
+    {
+        PresentationPlan presentation = PresentationPlan.Standard(backgroundAlpha: 0.4f, inactiveThingsAlpha: 0.25f);
+        PresentationRenderTargetPlan targets = PresentationRenderTargetPlan.Create(320, 200, presentation);
+        PresentationDisplaySettings setting = targets.BuildDisplaySettings(presentation, qualityDisplay: false)[0];
+        PresentationLayerDrawPlan drawPlan = targets.BuildLayerDrawPlans(
+            presentation,
+            qualityDisplay: false,
+            hasBackgroundVertices: true,
+            hasBackgroundTexture: true)[0];
+
+        Assert.Throws<ArgumentNullException>(() =>
+            PresentationRenderTargetPlan.BuildSetPresentationPlan(null!, existingOverlayTextureCount: 0));
+        Assert.Throws<ArgumentNullException>(() =>
+            targets.BuildDisplaySettings(null!, qualityDisplay: false));
+        Assert.Throws<ArgumentNullException>(() =>
+            targets.BuildDisplaySettingSteps(null!));
+        Assert.Throws<ArgumentNullException>(() =>
+            PresentationRenderTargetPlan.BuildRenderSettingsVector(null!));
+        Assert.Throws<ArgumentNullException>(() =>
+            PresentationRenderTargetPlan.BuildLayerDrawSteps(null!));
+        Assert.Throws<ArgumentNullException>(() =>
+            targets.BuildLayerDrawPlans(null!, qualityDisplay: false, hasBackgroundVertices: true, hasBackgroundTexture: true));
+        Assert.Throws<ArgumentNullException>(() =>
+            targets.BuildFramePlan(null!, qualityDisplay: false));
+
+        Assert.NotNull(setting);
+        Assert.NotNull(drawPlan);
+    }
+
+    [Fact]
     public void LifecyclePlanConstructsSurfaceManagerTargetsAndSuppressesFinalizeLikeUdb()
     {
         PresentationRenderTargetLifecyclePlan plan = PresentationRenderTargetPlan.BuildLifecyclePlan(

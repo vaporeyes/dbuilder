@@ -480,6 +480,7 @@ public sealed record PresentationRenderTargetPlan(
         PresentationPlan presentation,
         int existingOverlayTextureCount)
     {
+        ArgumentNullException.ThrowIfNull(presentation);
         if (existingOverlayTextureCount < 0) throw new ArgumentOutOfRangeException(nameof(existingOverlayTextureCount));
 
         int requestedOverlayLayerCount = presentation.Layers.Count(layer => layer.Layer == PresentationRendererLayer.Overlay);
@@ -567,6 +568,8 @@ public sealed record PresentationRenderTargetPlan(
         bool qualityDisplay,
         bool bilinear = false)
     {
+        ArgumentNullException.ThrowIfNull(presentation);
+
         var settings = new List<PresentationDisplaySettings>(presentation.Layers.Count);
         int overlayIndex = 0;
 
@@ -630,20 +633,30 @@ public sealed record PresentationRenderTargetPlan(
 
     public IReadOnlyList<PresentationDisplaySettingStep> BuildDisplaySettingSteps(
         PresentationDisplaySettings settings)
-        => new[]
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+
+        return new[]
         {
             new PresentationDisplaySettingStep(PresentationDisplaySettingStepKind.SetRenderSettingsUniform, "rendersettings"),
             new PresentationDisplaySettingStep(PresentationDisplaySettingStepKind.SetProjectionUniform, "projection"),
             new PresentationDisplaySettingStep(PresentationDisplaySettingStepKind.SetSamplerFilter, settings.SamplerFilter.ToString()),
         };
+    }
 
     public static PresentationRenderSettingsVector BuildRenderSettingsVector(
         PresentationDisplaySettings settings)
-        => new(settings.TexelX, settings.TexelY, settings.FsaaFactor, settings.Alpha);
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+
+        return new PresentationRenderSettingsVector(settings.TexelX, settings.TexelY, settings.FsaaFactor, settings.Alpha);
+    }
 
     public static IReadOnlyList<PresentationLayerDrawStep> BuildLayerDrawSteps(
         PresentationLayerDrawPlan plan)
     {
+        ArgumentNullException.ThrowIfNull(plan);
+
         if (!plan.Draws) return Array.Empty<PresentationLayerDrawStep>();
 
         var steps = new List<PresentationLayerDrawStep>
@@ -685,6 +698,8 @@ public sealed record PresentationRenderTargetPlan(
         bool hasBackgroundTexture,
         bool bilinear = false)
     {
+        ArgumentNullException.ThrowIfNull(presentation);
+
         IReadOnlyList<PresentationDisplaySettings> settings = BuildDisplaySettings(presentation, qualityDisplay, bilinear);
         var plans = new List<PresentationLayerDrawPlan>(settings.Count);
 
@@ -715,6 +730,8 @@ public sealed record PresentationRenderTargetPlan(
         bool qualityDisplay,
         bool bilinear = false)
     {
+        ArgumentNullException.ThrowIfNull(presentation);
+
         IReadOnlyList<PresentationDrawCommand> commands = presentation.BuildDrawCommands(qualityDisplay);
         IReadOnlyList<PresentationDisplaySettings> settings = BuildDisplaySettings(presentation, qualityDisplay, bilinear);
         var operations = new List<PresentationFrameOperation>(settings.Count + 9)
