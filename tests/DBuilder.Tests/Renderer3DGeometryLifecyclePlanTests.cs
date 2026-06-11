@@ -340,6 +340,28 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
     }
 
     [Fact]
+    public void BuildEventLinesPassPlanSkipsWhenGzEventLinesAreDisabled()
+    {
+        Renderer3DEventLinesPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildEventLinesPassPlan(showGzEventLines: false);
+
+        Assert.False(plan.ShouldRender);
+        Assert.Empty(plan.Operations);
+    }
+
+    [Fact]
+    public void BuildEventLinesPassPlanMatchesUdbEventLineSequenceWhenEnabled()
+    {
+        Renderer3DEventLinesPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildEventLinesPassPlan(showGzEventLines: true);
+
+        Assert.True(plan.ShouldRender);
+        Assert.Equal(
+            [
+                new Renderer3DGeometryPassOperation(Renderer3DGeometryPassOperationKind.RenderArrows),
+            ],
+            plan.Operations);
+    }
+
+    [Fact]
     public void Renderer3DStartGeometryExpressionsMatchUdbWhenCloneIsAvailable()
     {
         string? udbRoot = FindUdbRoot();
@@ -387,6 +409,7 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("RenderVertices();", source, StringComparison.Ordinal);
         Assert.Contains("if (General.Map.UDMF /* && General.Settings.ShowVisualSlopeHandles */)", source, StringComparison.Ordinal);
         Assert.Contains("RenderSlopeHandles();", source, StringComparison.Ordinal);
+        Assert.Contains("if (General.Settings.GZShowEventLines) RenderArrows(eventlines);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(null);", source, StringComparison.Ordinal);
         Assert.Contains("solidgeo = null;", source, StringComparison.Ordinal);
         Assert.Contains("maskedgeo = null;", source, StringComparison.Ordinal);

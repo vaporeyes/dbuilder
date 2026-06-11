@@ -63,6 +63,7 @@ public enum Renderer3DGeometryPassOperationKind
     RenderThingCages,
     RenderVertices,
     RenderSlopeHandles,
+    RenderArrows,
 }
 
 public sealed record Renderer3DGeometryPassOperation(
@@ -101,6 +102,11 @@ public sealed record Renderer3DThingCagePassPlan(IReadOnlyList<Renderer3DGeometr
 public sealed record Renderer3DVisualVerticesPassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations);
 
 public sealed record Renderer3DSlopeHandlesPassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations)
+{
+    public bool ShouldRender => Operations.Count > 0;
+}
+
+public sealed record Renderer3DEventLinesPassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations)
 {
     public bool ShouldRender => Operations.Count > 0;
 }
@@ -257,6 +263,14 @@ public static class Renderer3DGeometryLifecyclePlan
                     new(Renderer3DGeometryPassOperationKind.RenderSlopeHandles),
                 ])
             : new Renderer3DSlopeHandlesPassPlan([]);
+
+    public static Renderer3DEventLinesPassPlan BuildEventLinesPassPlan(bool showGzEventLines)
+        => showGzEventLines
+            ? new Renderer3DEventLinesPassPlan(
+                [
+                    new(Renderer3DGeometryPassOperationKind.RenderArrows),
+                ])
+            : new Renderer3DEventLinesPassPlan([]);
 
     public static Renderer3DFinishGeometryCleanupPlan BuildFinishGeometryCleanupPlan()
         => new(
