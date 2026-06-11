@@ -1484,6 +1484,16 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
     }
 
     [Fact]
+    public void BuildSinglePassGeometryFinishPlanMatchesUdbPostGeometryStateReset()
+    {
+        Renderer3DSinglePassGeometryFinishPlan plan = Renderer3DGeometryLifecyclePlan.BuildSinglePassGeometryFinishPlan();
+
+        Assert.True(plan.ResetSkew);
+        Assert.Equal(new Vector2f(0.0f, 0.0f), plan.Skew);
+        Assert.True(plan.DisableLights);
+    }
+
+    [Fact]
     public void BuildThingShaderPassPlanKeepsBaseShaderWithoutHighlightFogOrVertexColor()
     {
         Renderer3DThingShaderPassPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingShaderPassPlan(

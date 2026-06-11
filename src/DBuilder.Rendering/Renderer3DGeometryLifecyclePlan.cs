@@ -233,6 +233,11 @@ public sealed record Renderer3DGeometryTextureGroupPlan(
 public sealed record Renderer3DGeometryTextureGroupPlanSet(
     IReadOnlyList<Renderer3DGeometryTextureGroupPlan> Groups);
 
+public sealed record Renderer3DSinglePassGeometryFinishPlan(
+    bool ResetSkew,
+    Vector2f Skew,
+    bool DisableLights);
+
 public sealed record Renderer3DModelPassPlan(IReadOnlyList<Renderer3DGeometryPassOperation> Operations)
 {
     public bool ShouldRender => Operations.Count > 0;
@@ -1691,6 +1696,12 @@ public static class Renderer3DGeometryLifecyclePlan
 
         return new Renderer3DGeometryTextureGroupPlanSet(groups);
     }
+
+    public static Renderer3DSinglePassGeometryFinishPlan BuildSinglePassGeometryFinishPlan()
+        => new(
+            ResetSkew: true,
+            Skew: new Vector2f(0.0f, 0.0f),
+            DisableLights: true);
 
     public static Renderer3DThingDrawStatePlanSet BuildThingDrawStatePlan(
         IReadOnlyList<Renderer3DThingDrawStateCandidate> things,
