@@ -81,6 +81,13 @@ public sealed class RenderingMetadataTests
     }
 
     [Fact]
+    public void BufferConstructorsRejectNullGl()
+    {
+        Assert.Throws<ArgumentNullException>(() => new VertexBuffer(null!));
+        Assert.Throws<ArgumentNullException>(() => new IndexBuffer(null!));
+    }
+
+    [Fact]
     public void BufferLengthPlanUsesRequestedVertexFormatStride()
     {
         RenderBufferOperationPlan flat = RenderDevice.BuildSetBufferDataPlan(8, VertexFormat.Flat);

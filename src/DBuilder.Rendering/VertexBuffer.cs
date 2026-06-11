@@ -15,6 +15,8 @@ public sealed class VertexBuffer : IDisposable
 
     public VertexBuffer(GL gl)
     {
+        ArgumentNullException.ThrowIfNull(gl);
+
         _gl = gl;
         Handle = _gl.GenBuffer();
         if (Handle == 0) throw new InvalidOperationException("VertexBuffer allocation failed.");

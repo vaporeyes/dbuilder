@@ -1553,6 +1553,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style vertex and index buffer upload byte-size planning.
   - [x] Add UDB-style vertex and index buffer binding planning.
   - [x] Add UDB-style render-device buffer binding state reporting.
+  - [x] Add UDB-style vertex and index buffer constructor input validation planning.
   - [x] Add UDB-style vertex-buffer disposed-state reporting and allocation failure guard.
   - [x] Add UDB-style vertex-buffer finalizer lifecycle.
 - [ ] Port index buffer behavior.

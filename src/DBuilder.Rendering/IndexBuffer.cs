@@ -14,6 +14,8 @@ public sealed class IndexBuffer : IDisposable
 
     public IndexBuffer(GL gl)
     {
+        ArgumentNullException.ThrowIfNull(gl);
+
         _gl = gl;
         Handle = _gl.GenBuffer();
         if (Handle == 0) throw new InvalidOperationException("IndexBuffer allocation failed.");

@@ -66,6 +66,7 @@ public class RendererArchitectureModelTests
         Assert.Contains("Vertex and index buffer upload byte-size planning", replacement.CoveredResponsibilities);
         Assert.Contains("Vertex and index buffer binding planning", replacement.CoveredResponsibilities);
         Assert.Contains("Render-device vertex and index buffer binding state reporting", replacement.CoveredResponsibilities);
+        Assert.Contains("Vertex and index buffer constructor input validation planning", replacement.CoveredResponsibilities);
         Assert.Contains("Vertex and index buffer disposed-state reporting", replacement.CoveredResponsibilities);
         Assert.Contains("Length-based index-buffer allocation", replacement.CoveredResponsibilities);
         Assert.Contains("Texture disposed-state reporting", replacement.CoveredResponsibilities);
