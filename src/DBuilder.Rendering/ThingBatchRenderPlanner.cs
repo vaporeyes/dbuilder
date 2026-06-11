@@ -38,6 +38,11 @@ public readonly record struct ThingBatchSetupPlan(
     ShaderName Shader,
     float Alpha);
 
+public readonly record struct ThingSpriteRenderDecision(
+    bool SkipForModelRender,
+    bool RenderSprite,
+    bool MarkArrowLarge);
+
 public static class ThingBatchRenderPlanner
 {
     public const int VerticesPerThing = 6;
@@ -45,6 +50,7 @@ public static class ThingBatchRenderPlanner
     public const int SpriteAngleFrameCount = 8;
     public const int SpriteAngleStep = 45;
     public const int SpriteAngleOffset = 270;
+    public const float MinimumSpriteRadius = 8.0f;
     public const float FullArrowTextureLeft = 0.501f;
     public const float FullArrowTextureRight = 0.999f;
     public const float FullArrowTextureTop = 0.001f;
@@ -104,6 +110,35 @@ public static class ThingBatchRenderPlanner
         if (spriteFrameCount != SpriteAngleFrameCount) return 0;
 
         return ClampAngle(-angleDoom + SpriteAngleOffset) / SpriteAngleStep;
+    }
+
+    public static ThingSpriteRenderDecision BuildSpriteRenderDecision(
+        ThingRenderMode renderMode,
+        ModelRenderMode modelRenderMode,
+        bool selected,
+        float alpha,
+        bool forceSpriteRendering,
+        double spriteSize)
+    {
+        if (float.IsNaN(alpha)) throw new ArgumentOutOfRangeException(nameof(alpha));
+        if (spriteSize < 0 || double.IsNaN(spriteSize)) throw new ArgumentOutOfRangeException(nameof(spriteSize));
+
+        bool modelOrVoxel = renderMode is ThingRenderMode.MODEL or ThingRenderMode.VOXEL;
+        bool skipForModelRender = modelOrVoxel
+            && (modelRenderMode == ModelRenderMode.SELECTION && selected
+                || modelRenderMode == ModelRenderMode.ACTIVE_THINGS_FILTER && alpha == 1.0f);
+
+        if (skipForModelRender)
+            return new ThingSpriteRenderDecision(
+                SkipForModelRender: true,
+                RenderSprite: false,
+                MarkArrowLarge: false);
+
+        bool spriteTooSmall = !forceSpriteRendering && spriteSize < MinimumSpriteRadius;
+        return new ThingSpriteRenderDecision(
+            SkipForModelRender: false,
+            RenderSprite: !spriteTooSmall,
+            MarkArrowLarge: spriteTooSmall);
     }
 
     public static ThingArrowTextureBounds ArrowTextureBounds(bool spriteSkipped)

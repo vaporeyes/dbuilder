@@ -111,6 +111,112 @@ public sealed class ThingBatchRenderPlannerTests
     }
 
     [Fact]
+    public void SpriteRenderDecisionSkipsModelSpritesWhenModelRenderWillDrawSelection()
+    {
+        ThingSpriteRenderDecision decision = ThingBatchRenderPlanner.BuildSpriteRenderDecision(
+            ThingRenderMode.MODEL,
+            ModelRenderMode.SELECTION,
+            selected: true,
+            alpha: 0.5f,
+            forceSpriteRendering: false,
+            spriteSize: 32);
+
+        Assert.True(decision.SkipForModelRender);
+        Assert.False(decision.RenderSprite);
+        Assert.False(decision.MarkArrowLarge);
+    }
+
+    [Fact]
+    public void SpriteRenderDecisionSkipsVoxelSpritesForActiveFilterAlpha()
+    {
+        ThingSpriteRenderDecision decision = ThingBatchRenderPlanner.BuildSpriteRenderDecision(
+            ThingRenderMode.VOXEL,
+            ModelRenderMode.ACTIVE_THINGS_FILTER,
+            selected: false,
+            alpha: 1.0f,
+            forceSpriteRendering: false,
+            spriteSize: 32);
+
+        Assert.True(decision.SkipForModelRender);
+        Assert.False(decision.RenderSprite);
+        Assert.False(decision.MarkArrowLarge);
+    }
+
+    [Fact]
+    public void SpriteRenderDecisionKeepsModelSpriteWhenModeDoesNotDrawModel()
+    {
+        ThingSpriteRenderDecision decision = ThingBatchRenderPlanner.BuildSpriteRenderDecision(
+            ThingRenderMode.MODEL,
+            ModelRenderMode.SELECTION,
+            selected: false,
+            alpha: 1.0f,
+            forceSpriteRendering: false,
+            spriteSize: 32);
+
+        Assert.False(decision.SkipForModelRender);
+        Assert.True(decision.RenderSprite);
+        Assert.False(decision.MarkArrowLarge);
+    }
+
+    [Fact]
+    public void SpriteRenderDecisionMarksArrowLargeWhenSpriteIsTooSmall()
+    {
+        ThingSpriteRenderDecision decision = ThingBatchRenderPlanner.BuildSpriteRenderDecision(
+            ThingRenderMode.NORMAL,
+            ModelRenderMode.NONE,
+            selected: false,
+            alpha: 1.0f,
+            forceSpriteRendering: false,
+            spriteSize: ThingBatchRenderPlanner.MinimumSpriteRadius - 0.01);
+
+        Assert.False(decision.SkipForModelRender);
+        Assert.False(decision.RenderSprite);
+        Assert.True(decision.MarkArrowLarge);
+    }
+
+    [Fact]
+    public void SpriteRenderDecisionForceRendersSmallSpritesLikeUdb()
+    {
+        ThingSpriteRenderDecision decision = ThingBatchRenderPlanner.BuildSpriteRenderDecision(
+            ThingRenderMode.NORMAL,
+            ModelRenderMode.NONE,
+            selected: false,
+            alpha: 1.0f,
+            forceSpriteRendering: true,
+            spriteSize: 1);
+
+        Assert.False(decision.SkipForModelRender);
+        Assert.True(decision.RenderSprite);
+        Assert.False(decision.MarkArrowLarge);
+    }
+
+    [Fact]
+    public void SpriteRenderDecisionRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildSpriteRenderDecision(
+            ThingRenderMode.NORMAL,
+            ModelRenderMode.NONE,
+            selected: false,
+            alpha: float.NaN,
+            forceSpriteRendering: false,
+            spriteSize: 1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildSpriteRenderDecision(
+            ThingRenderMode.NORMAL,
+            ModelRenderMode.NONE,
+            selected: false,
+            alpha: 1,
+            forceSpriteRendering: false,
+            spriteSize: -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingBatchRenderPlanner.BuildSpriteRenderDecision(
+            ThingRenderMode.NORMAL,
+            ModelRenderMode.NONE,
+            selected: false,
+            alpha: 1,
+            forceSpriteRendering: false,
+            spriteSize: double.NaN));
+    }
+
+    [Fact]
     public void ArrowTextureBoundsMatchUdbSpriteState()
     {
         Assert.Equal(new ThingArrowTextureBounds(0.501f, 0.999f, 0.001f, 0.999f),
@@ -287,6 +393,11 @@ public sealed class ThingBatchRenderPlannerTests
         Assert.Contains("if(info.SpriteFrame.Length == 8)", source, StringComparison.Ordinal);
         Assert.Contains("int spriteangle = General.ClampAngle(-t.AngleDoom + 270) / 45;", source, StringComparison.Ordinal);
         Assert.Contains("thingsbyangle[0] = group.Value;", source, StringComparison.Ordinal);
+        Assert.Contains("if((t.RenderMode == ThingRenderMode.MODEL || t.RenderMode == ThingRenderMode.VOXEL)", source, StringComparison.Ordinal);
+        Assert.Contains("&& ((General.Settings.GZDrawModelsMode == ModelRenderMode.SELECTION && t.Selected) || (General.Settings.GZDrawModelsMode == ModelRenderMode.ACTIVE_THINGS_FILTER && alpha == 1.0f)))", source, StringComparison.Ordinal);
+        Assert.Contains("float spritesize = Math.Max(spritewidth, spriteheight);", source, StringComparison.Ordinal);
+        Assert.Contains("if(!forcespriterendering && spritesize < MINIMUM_SPRITE_RADIUS)", source, StringComparison.Ordinal);
+        Assert.Contains("v.z = -1;", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetBufferSubdata(thingsvertices, verts, buffercount * 6);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.Draw(PrimitiveType.TriangleList, 0, buffercount * 2);", source, StringComparison.Ordinal);
         Assert.Contains("locksize = ((things.Count - totalcount) > THING_BUFFER_SIZE) ? THING_BUFFER_SIZE : (things.Count - totalcount);", source, StringComparison.Ordinal);
