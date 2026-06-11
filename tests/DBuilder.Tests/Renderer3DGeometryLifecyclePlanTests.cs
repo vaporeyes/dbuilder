@@ -2023,6 +2023,121 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
             new Vector3D()));
     }
 
+    [Fact]
+    public void BuildTranslucentThingDrawStatePlanMatchesUdbSpriteTextureFogAndDrawRules()
+    {
+        Renderer3DTranslucentThingDrawStatePlanSet plan = Renderer3DGeometryLifecyclePlan.BuildTranslucentThingDrawStatePlan(
+            [
+                new Renderer3DTranslucentThingDrawStateCandidate(1, new Vector3D(4.0, 0.0, 0.0), RenderPass.Alpha, DistanceCheckSq: double.MaxValue, TextureLongName: 100, DrawPaletted: false, HasUnknownTexture: false, HasGeometryBuffer: true, Highlighted: false, Selected: false, HasSector: true, SectorHasFog: true, SectorBrightness: 128, SectorFogColor: unchecked((int)0xff010203), SectorDesaturation: 0.25, FogFactor: 0.5, LightInternal: false, LightIsSun: false, DrawLights: false, HasDynamicLights: false, LitColorNonZero: false, Triangles: 6),
+                new Renderer3DTranslucentThingDrawStateCandidate(2, new Vector3D(3.0, 0.0, 0.0), RenderPass.Alpha, DistanceCheckSq: double.MaxValue, TextureLongName: 100, DrawPaletted: false, HasUnknownTexture: false, HasGeometryBuffer: true, Highlighted: true, Selected: false, HasSector: true, SectorHasFog: true, SectorBrightness: 160, SectorFogColor: unchecked((int)0xff040506), SectorDesaturation: 0.5, FogFactor: 0.5, LightInternal: true, LightIsSun: false, DrawLights: true, HasDynamicLights: true, LitColorNonZero: true, Triangles: 12),
+                new Renderer3DTranslucentThingDrawStateCandidate(3, new Vector3D(2.0, 0.0, 0.0), RenderPass.Additive, DistanceCheckSq: double.MaxValue, TextureLongName: 200, DrawPaletted: true, HasUnknownTexture: false, HasGeometryBuffer: true, Highlighted: false, Selected: false, HasSector: true, SectorHasFog: false, SectorBrightness: 192, SectorFogColor: unchecked((int)0xff070809), SectorDesaturation: 0.75, FogFactor: 0.0, LightInternal: false, LightIsSun: false, DrawLights: true, HasDynamicLights: true, LitColorNonZero: true, Triangles: 24),
+            ],
+            new Vector3D(),
+            fullBrightness: false,
+            drawFog: true,
+            classicRendering: false,
+            showHighlight: true,
+            showSelection: true);
+
+        Assert.Equal(ShaderName.world3d_main, plan.InitialShader);
+        Assert.Equal(TextureAddress.Clamp, plan.InitialTextureAddress);
+        Assert.Equal(Cull.None, plan.InitialCullMode);
+        Assert.True(plan.ResetStencilAfterThings);
+        Assert.Equal(TextureAddress.Wrap, plan.RestoredTextureAddress);
+        Assert.Equal(Cull.Clockwise, plan.RestoredCullMode);
+        Assert.Equal(
+            [
+                new Renderer3DTranslucentThingDrawStatePlan(1, RenderPass.Alpha, UpdateThing: true, CalculateCameraDistance: false, SkippedByDistance: false, UpdateSpriteFrame: true, SkipUnknownTexture: false, DestinationBlendChange: Blend.InverseSourceAlpha, SetTexture: true, TextureLongName: 100, DrawPaletted: false, HasGeometryBuffer: true, WantedShader: ShaderName.world3d_main_fog, SwitchShader: true, SetModelNormalForFog: true, SetCameraFogUniform: true, FogFactor: 0.5, VertexColorSource: Renderer3DThingVertexColorSource.None, SetSectorLightLevel: true, SectorBrightness: 128, SetSectorFogColor: true, SectorFogColor: unchecked((int)0xff010203), SetVertexColor: true, SetHighlightColor: true, SetStencilColor: true, SetDesaturation: true, SectorDesaturation: 0.25, SetWorldMatrix: true, BindGeometryBuffer: true, Draw: true, PrimitiveType: PrimitiveType.TriangleList, StartIndex: 0, Triangles: 6),
+                new Renderer3DTranslucentThingDrawStatePlan(2, RenderPass.Alpha, UpdateThing: true, CalculateCameraDistance: false, SkippedByDistance: false, UpdateSpriteFrame: true, SkipUnknownTexture: false, DestinationBlendChange: null, SetTexture: false, TextureLongName: null, DrawPaletted: null, HasGeometryBuffer: true, WantedShader: ShaderName.world3d_main_highlight_fog_vertexcolor, SwitchShader: true, SetModelNormalForFog: true, SetCameraFogUniform: false, FogFactor: null, VertexColorSource: Renderer3DThingVertexColorSource.InternalLight, SetSectorLightLevel: true, SectorBrightness: 160, SetSectorFogColor: true, SectorFogColor: unchecked((int)0xff040506), SetVertexColor: true, SetHighlightColor: true, SetStencilColor: true, SetDesaturation: true, SectorDesaturation: 0.5, SetWorldMatrix: true, BindGeometryBuffer: true, Draw: true, PrimitiveType: PrimitiveType.TriangleList, StartIndex: 0, Triangles: 12),
+                new Renderer3DTranslucentThingDrawStatePlan(3, RenderPass.Additive, UpdateThing: true, CalculateCameraDistance: false, SkippedByDistance: false, UpdateSpriteFrame: true, SkipUnknownTexture: false, DestinationBlendChange: Blend.One, SetTexture: true, TextureLongName: 200, DrawPaletted: true, HasGeometryBuffer: true, WantedShader: ShaderName.world3d_main_vertexcolor, SwitchShader: true, SetModelNormalForFog: false, SetCameraFogUniform: false, FogFactor: null, VertexColorSource: Renderer3DThingVertexColorSource.DynamicLight, SetSectorLightLevel: true, SectorBrightness: 192, SetSectorFogColor: true, SectorFogColor: unchecked((int)0xff070809), SetVertexColor: true, SetHighlightColor: true, SetStencilColor: true, SetDesaturation: true, SectorDesaturation: 0.75, SetWorldMatrix: true, BindGeometryBuffer: true, Draw: true, PrimitiveType: PrimitiveType.TriangleList, StartIndex: 0, Triangles: 24),
+            ],
+            plan.Draws);
+    }
+
+    [Fact]
+    public void BuildTranslucentThingDrawStatePlanSkipsDistanceUnknownTextureAndMissingBuffer()
+    {
+        Renderer3DTranslucentThingDrawStatePlanSet plan = Renderer3DGeometryLifecyclePlan.BuildTranslucentThingDrawStatePlan(
+            [
+                new Renderer3DTranslucentThingDrawStateCandidate(1, new Vector3D(30.0, 0.0, 0.0), RenderPass.Alpha, DistanceCheckSq: 25.0, TextureLongName: 100, DrawPaletted: false, HasUnknownTexture: false, HasGeometryBuffer: true, Highlighted: false, Selected: false, HasSector: true, SectorHasFog: false, SectorBrightness: 128, SectorFogColor: 0, SectorDesaturation: 0.0, FogFactor: 0.0, LightInternal: false, LightIsSun: false, DrawLights: false, HasDynamicLights: false, LitColorNonZero: false, Triangles: 6),
+                new Renderer3DTranslucentThingDrawStateCandidate(2, new Vector3D(20.0, 0.0, 0.0), RenderPass.Alpha, DistanceCheckSq: double.MaxValue, TextureLongName: 200, DrawPaletted: false, HasUnknownTexture: true, HasGeometryBuffer: true, Highlighted: false, Selected: false, HasSector: true, SectorHasFog: false, SectorBrightness: 128, SectorFogColor: 0, SectorDesaturation: 0.0, FogFactor: 0.0, LightInternal: false, LightIsSun: false, DrawLights: false, HasDynamicLights: false, LitColorNonZero: false, Triangles: 6),
+                new Renderer3DTranslucentThingDrawStateCandidate(3, new Vector3D(10.0, 0.0, 0.0), RenderPass.Additive, DistanceCheckSq: double.MaxValue, TextureLongName: 300, DrawPaletted: true, HasUnknownTexture: false, HasGeometryBuffer: false, Highlighted: false, Selected: false, HasSector: true, SectorHasFog: false, SectorBrightness: 128, SectorFogColor: 0, SectorDesaturation: 0.0, FogFactor: 0.0, LightInternal: false, LightIsSun: false, DrawLights: false, HasDynamicLights: false, LitColorNonZero: false, Triangles: 6),
+            ],
+            new Vector3D(),
+            fullBrightness: false,
+            drawFog: false,
+            classicRendering: false,
+            showHighlight: true,
+            showSelection: true);
+
+        Assert.Equal([1, 2, 3], plan.Draws.Select(draw => draw.ThingId).ToArray());
+        Assert.True(plan.Draws[0].SkippedByDistance);
+        Assert.False(plan.Draws[0].UpdateSpriteFrame);
+        Assert.True(plan.Draws[1].UpdateSpriteFrame);
+        Assert.True(plan.Draws[1].SkipUnknownTexture);
+        Assert.False(plan.Draws[2].HasGeometryBuffer);
+        Assert.Equal(Blend.One, plan.Draws[2].DestinationBlendChange);
+        Assert.True(plan.Draws[2].SetTexture);
+        Assert.False(plan.Draws[2].Draw);
+    }
+
+    [Fact]
+    public void BuildTranslucentThingDrawStatePlanRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentNullException>(() => Renderer3DGeometryLifecyclePlan.BuildTranslucentThingDrawStatePlan(null!, new Vector3D(), fullBrightness: false, drawFog: false, classicRendering: false, showHighlight: true, showSelection: true));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildTranslucentThingDrawStatePlan([], new Vector3D(double.NaN, 0.0, 0.0), fullBrightness: false, drawFog: false, classicRendering: false, showHighlight: true, showSelection: true));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildTranslucentThingDrawStatePlan(
+            [
+                new Renderer3DTranslucentThingDrawStateCandidate(1, new Vector3D(double.NaN, 0.0, 0.0), RenderPass.Alpha, DistanceCheckSq: double.MaxValue, TextureLongName: 100, DrawPaletted: false, HasUnknownTexture: false, HasGeometryBuffer: true, Highlighted: false, Selected: false, HasSector: true, SectorHasFog: false, SectorBrightness: 128, SectorFogColor: 0, SectorDesaturation: 0.0, FogFactor: 0.0, LightInternal: false, LightIsSun: false, DrawLights: false, HasDynamicLights: false, LitColorNonZero: false, Triangles: 1),
+            ],
+            new Vector3D(),
+            fullBrightness: false,
+            drawFog: false,
+            classicRendering: false,
+            showHighlight: true,
+            showSelection: true));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildTranslucentThingDrawStatePlan(
+            [
+                new Renderer3DTranslucentThingDrawStateCandidate(1, new Vector3D(), RenderPass.Alpha, DistanceCheckSq: -1.0, TextureLongName: 100, DrawPaletted: false, HasUnknownTexture: false, HasGeometryBuffer: true, Highlighted: false, Selected: false, HasSector: true, SectorHasFog: false, SectorBrightness: 128, SectorFogColor: 0, SectorDesaturation: 0.0, FogFactor: 0.0, LightInternal: false, LightIsSun: false, DrawLights: false, HasDynamicLights: false, LitColorNonZero: false, Triangles: 1),
+            ],
+            new Vector3D(),
+            fullBrightness: false,
+            drawFog: false,
+            classicRendering: false,
+            showHighlight: true,
+            showSelection: true));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildTranslucentThingDrawStatePlan(
+            [
+                new Renderer3DTranslucentThingDrawStateCandidate(1, new Vector3D(), RenderPass.Alpha, DistanceCheckSq: double.MaxValue, TextureLongName: 100, DrawPaletted: false, HasUnknownTexture: false, HasGeometryBuffer: true, Highlighted: false, Selected: false, HasSector: true, SectorHasFog: false, SectorBrightness: 128, SectorFogColor: 0, SectorDesaturation: double.NaN, FogFactor: 0.0, LightInternal: false, LightIsSun: false, DrawLights: false, HasDynamicLights: false, LitColorNonZero: false, Triangles: 1),
+            ],
+            new Vector3D(),
+            fullBrightness: false,
+            drawFog: false,
+            classicRendering: false,
+            showHighlight: true,
+            showSelection: true));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildTranslucentThingDrawStatePlan(
+            [
+                new Renderer3DTranslucentThingDrawStateCandidate(1, new Vector3D(), RenderPass.Alpha, DistanceCheckSq: double.MaxValue, TextureLongName: 100, DrawPaletted: false, HasUnknownTexture: false, HasGeometryBuffer: true, Highlighted: false, Selected: false, HasSector: true, SectorHasFog: false, SectorBrightness: 128, SectorFogColor: 0, SectorDesaturation: 0.0, FogFactor: double.PositiveInfinity, LightInternal: false, LightIsSun: false, DrawLights: false, HasDynamicLights: false, LitColorNonZero: false, Triangles: 1),
+            ],
+            new Vector3D(),
+            fullBrightness: false,
+            drawFog: false,
+            classicRendering: false,
+            showHighlight: true,
+            showSelection: true));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildTranslucentThingDrawStatePlan(
+            [
+                new Renderer3DTranslucentThingDrawStateCandidate(1, new Vector3D(), RenderPass.Alpha, DistanceCheckSq: double.MaxValue, TextureLongName: 100, DrawPaletted: false, HasUnknownTexture: false, HasGeometryBuffer: true, Highlighted: false, Selected: false, HasSector: true, SectorHasFog: false, SectorBrightness: 128, SectorFogColor: 0, SectorDesaturation: 0.0, FogFactor: 0.0, LightInternal: false, LightIsSun: false, DrawLights: false, HasDynamicLights: false, LitColorNonZero: false, Triangles: -1),
+            ],
+            new Vector3D(),
+            fullBrightness: false,
+            drawFog: false,
+            classicRendering: false,
+            showHighlight: true,
+            showSelection: true));
+    }
+
     [Theory]
     [InlineData(false, ShaderName.world3d_main_vertexcolor, ShaderName.world3d_main_highlight_vertexcolor)]
     [InlineData(true, ShaderName.world3d_fullbright, ShaderName.world3d_fullbright_highlight)]
@@ -3021,7 +3136,20 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("graphics.SetCullMode(Cull.None); //mxd. Disable backside culling", source, StringComparison.Ordinal);
         Assert.Contains("thingspass.Sort(delegate(VisualThing vt1, VisualThing vt2)", source, StringComparison.Ordinal);
         Assert.Contains("return (int)((General.Map.VisualCamera.Position - vt2.BoundingBox[0]).GetLengthSq()", source, StringComparison.Ordinal);
+        Assert.Contains("t.UpdateSpriteFrame(); // Set correct texture, geobuffer and triangles count", source, StringComparison.Ordinal);
+        Assert.Contains("if(t.Texture is UnknownImage) continue;", source, StringComparison.Ordinal);
         Assert.Contains("if(t.RenderPass != currentpass)", source, StringComparison.Ordinal);
+        Assert.Contains("if(t.Texture.LongName != curtexturename)", source, StringComparison.Ordinal);
+        Assert.Contains("curtexturename = t.Texture.LongName;", source, StringComparison.Ordinal);
+        Assert.Contains("if(t.GeometryBuffer != null)", source, StringComparison.Ordinal);
+        Assert.Contains("world = CreateThingPositionMatrix(t);", source, StringComparison.Ordinal);
+        Assert.Contains("if(wantedshaderpass > ShaderName.world3d_p7)", source, StringComparison.Ordinal);
+        Assert.Contains("if (t.FogFactor != fogfactor)", source, StringComparison.Ordinal);
+        Assert.Contains("fogfactor = t.FogFactor;", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.world, world);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetVertexBuffer(t.GeometryBuffer);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.Draw(PrimitiveType.TriangleList, 0, t.Triangles);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.stencilColor, new Color4(1f, 1f, 1f, 0f));", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetSamplerState(TextureAddress.Wrap);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetCullMode(Cull.Clockwise); //mxd", source, StringComparison.Ordinal);
         Assert.Contains("private Matrix CreateThingPositionMatrix(VisualThing t)", source, StringComparison.Ordinal);

@@ -567,6 +567,74 @@ public sealed record Renderer3DTranslucentThingOrderPlan(
     TextureAddress RestoredTextureAddress,
     Cull RestoredCullMode);
 
+public sealed record Renderer3DTranslucentThingDrawStateCandidate(
+    int Id,
+    Vector3D BoundingBoxCenter,
+    RenderPass RenderPass,
+    double DistanceCheckSq,
+    long TextureLongName,
+    bool DrawPaletted,
+    bool HasUnknownTexture,
+    bool HasGeometryBuffer,
+    bool Highlighted,
+    bool Selected,
+    bool HasSector,
+    bool SectorHasFog,
+    int SectorBrightness,
+    int SectorFogColor,
+    double SectorDesaturation,
+    double FogFactor,
+    bool LightInternal,
+    bool LightIsSun,
+    bool DrawLights,
+    bool HasDynamicLights,
+    bool LitColorNonZero,
+    int Triangles);
+
+public sealed record Renderer3DTranslucentThingDrawStatePlan(
+    int ThingId,
+    RenderPass RenderPass,
+    bool UpdateThing,
+    bool CalculateCameraDistance,
+    bool SkippedByDistance,
+    bool UpdateSpriteFrame,
+    bool SkipUnknownTexture,
+    Blend? DestinationBlendChange,
+    bool SetTexture,
+    long? TextureLongName,
+    bool? DrawPaletted,
+    bool HasGeometryBuffer,
+    ShaderName? WantedShader,
+    bool SwitchShader,
+    bool SetModelNormalForFog,
+    bool SetCameraFogUniform,
+    double? FogFactor,
+    Renderer3DThingVertexColorSource VertexColorSource,
+    bool SetSectorLightLevel,
+    int? SectorBrightness,
+    bool SetSectorFogColor,
+    int? SectorFogColor,
+    bool SetVertexColor,
+    bool SetHighlightColor,
+    bool SetStencilColor,
+    bool SetDesaturation,
+    double SectorDesaturation,
+    bool SetWorldMatrix,
+    bool BindGeometryBuffer,
+    bool Draw,
+    PrimitiveType PrimitiveType,
+    int StartIndex,
+    int Triangles);
+
+public sealed record Renderer3DTranslucentThingDrawStatePlanSet(
+    ShaderName InitialShader,
+    TextureAddress InitialTextureAddress,
+    Cull InitialCullMode,
+    IReadOnlyList<Renderer3DTranslucentThingDrawStatePlan> Draws,
+    bool ResetStencilAfterThings,
+    TextureAddress RestoredTextureAddress,
+    Cull RestoredCullMode);
+
 public sealed record Renderer3DModelThingCandidate(
     int Id,
     Vector3D BoundingBoxCenter,
@@ -1868,6 +1936,252 @@ public static class Renderer3DGeometryLifecyclePlan
             draws,
             TextureAddress.Wrap,
             Cull.Clockwise);
+    }
+
+    public static Renderer3DTranslucentThingDrawStatePlanSet BuildTranslucentThingDrawStatePlan(
+        IReadOnlyList<Renderer3DTranslucentThingDrawStateCandidate> things,
+        Vector3D cameraPosition,
+        bool fullBrightness,
+        bool drawFog,
+        bool classicRendering,
+        bool showHighlight,
+        bool showSelection)
+    {
+        ArgumentNullException.ThrowIfNull(things);
+        if (!cameraPosition.IsFinite()) throw new ArgumentOutOfRangeException(nameof(cameraPosition));
+
+        foreach (Renderer3DTranslucentThingDrawStateCandidate thing in things)
+        {
+            if (!thing.BoundingBoxCenter.IsFinite()) throw new ArgumentOutOfRangeException(nameof(things));
+            if (!double.IsFinite(thing.DistanceCheckSq) || thing.DistanceCheckSq < 0.0) throw new ArgumentOutOfRangeException(nameof(things));
+            if (!double.IsFinite(thing.SectorDesaturation)) throw new ArgumentOutOfRangeException(nameof(things));
+            if (!double.IsFinite(thing.FogFactor)) throw new ArgumentOutOfRangeException(nameof(things));
+            if (thing.Triangles < 0) throw new ArgumentOutOfRangeException(nameof(things));
+        }
+
+        Renderer3DTranslucentThingDrawStateCandidate[] ordered = things
+            .OrderByDescending(thing => (cameraPosition - thing.BoundingBoxCenter).GetLengthSq())
+            .ToArray();
+
+        ShaderName shaderPass = fullBrightness ? ShaderName.world3d_fullbright : ShaderName.world3d_main;
+        ShaderName currentShaderPass = shaderPass;
+        RenderPass currentPass = RenderPass.Solid;
+        long currentTextureLongName = 0;
+        double currentFogFactor = -1.0;
+        var draws = new List<Renderer3DTranslucentThingDrawStatePlan>(ordered.Length);
+
+        foreach (Renderer3DTranslucentThingDrawStateCandidate thing in ordered)
+        {
+            bool calculateCameraDistance = thing.DistanceCheckSq < double.MaxValue;
+            double cameraDistance = calculateCameraDistance ? (cameraPosition - thing.BoundingBoxCenter).GetLengthSq() : 0.0;
+            bool skippedByDistance = calculateCameraDistance && cameraDistance > thing.DistanceCheckSq;
+            if (skippedByDistance)
+            {
+                draws.Add(new Renderer3DTranslucentThingDrawStatePlan(
+                    thing.Id,
+                    thing.RenderPass,
+                    UpdateThing: true,
+                    CalculateCameraDistance: true,
+                    SkippedByDistance: true,
+                    UpdateSpriteFrame: false,
+                    SkipUnknownTexture: false,
+                    DestinationBlendChange: null,
+                    SetTexture: false,
+                    TextureLongName: null,
+                    DrawPaletted: null,
+                    HasGeometryBuffer: thing.HasGeometryBuffer,
+                    WantedShader: null,
+                    SwitchShader: false,
+                    SetModelNormalForFog: false,
+                    SetCameraFogUniform: false,
+                    FogFactor: null,
+                    VertexColorSource: Renderer3DThingVertexColorSource.None,
+                    SetSectorLightLevel: false,
+                    SectorBrightness: null,
+                    SetSectorFogColor: false,
+                    SectorFogColor: null,
+                    SetVertexColor: false,
+                    SetHighlightColor: false,
+                    SetStencilColor: false,
+                    SetDesaturation: false,
+                    SectorDesaturation: 0.0,
+                    SetWorldMatrix: false,
+                    BindGeometryBuffer: false,
+                    Draw: false,
+                    PrimitiveType: PrimitiveType.TriangleList,
+                    StartIndex: 0,
+                    Triangles: 0));
+                continue;
+            }
+
+            if (thing.HasUnknownTexture)
+            {
+                draws.Add(new Renderer3DTranslucentThingDrawStatePlan(
+                    thing.Id,
+                    thing.RenderPass,
+                    UpdateThing: true,
+                    CalculateCameraDistance: calculateCameraDistance,
+                    SkippedByDistance: false,
+                    UpdateSpriteFrame: true,
+                    SkipUnknownTexture: true,
+                    DestinationBlendChange: null,
+                    SetTexture: false,
+                    TextureLongName: null,
+                    DrawPaletted: null,
+                    HasGeometryBuffer: thing.HasGeometryBuffer,
+                    WantedShader: null,
+                    SwitchShader: false,
+                    SetModelNormalForFog: false,
+                    SetCameraFogUniform: false,
+                    FogFactor: null,
+                    VertexColorSource: Renderer3DThingVertexColorSource.None,
+                    SetSectorLightLevel: false,
+                    SectorBrightness: null,
+                    SetSectorFogColor: false,
+                    SectorFogColor: null,
+                    SetVertexColor: false,
+                    SetHighlightColor: false,
+                    SetStencilColor: false,
+                    SetDesaturation: false,
+                    SectorDesaturation: 0.0,
+                    SetWorldMatrix: false,
+                    BindGeometryBuffer: false,
+                    Draw: false,
+                    PrimitiveType: PrimitiveType.TriangleList,
+                    StartIndex: 0,
+                    Triangles: 0));
+                continue;
+            }
+
+            Blend? destinationBlend = null;
+            if (thing.RenderPass != currentPass)
+            {
+                destinationBlend = thing.RenderPass switch
+                {
+                    RenderPass.Additive => Blend.One,
+                    RenderPass.Alpha => Blend.InverseSourceAlpha,
+                    _ => null,
+                };
+                currentPass = thing.RenderPass;
+            }
+
+            bool setTexture = thing.TextureLongName != currentTextureLongName;
+            if (setTexture)
+            {
+                currentTextureLongName = thing.TextureLongName;
+            }
+
+            if (!thing.HasGeometryBuffer)
+            {
+                draws.Add(new Renderer3DTranslucentThingDrawStatePlan(
+                    thing.Id,
+                    thing.RenderPass,
+                    UpdateThing: true,
+                    CalculateCameraDistance: calculateCameraDistance,
+                    SkippedByDistance: false,
+                    UpdateSpriteFrame: true,
+                    SkipUnknownTexture: false,
+                    DestinationBlendChange: destinationBlend,
+                    SetTexture: setTexture,
+                    TextureLongName: setTexture ? thing.TextureLongName : null,
+                    DrawPaletted: setTexture ? thing.DrawPaletted : null,
+                    HasGeometryBuffer: false,
+                    WantedShader: null,
+                    SwitchShader: false,
+                    SetModelNormalForFog: false,
+                    SetCameraFogUniform: false,
+                    FogFactor: null,
+                    VertexColorSource: Renderer3DThingVertexColorSource.None,
+                    SetSectorLightLevel: false,
+                    SectorBrightness: null,
+                    SetSectorFogColor: false,
+                    SectorFogColor: null,
+                    SetVertexColor: false,
+                    SetHighlightColor: false,
+                    SetStencilColor: false,
+                    SetDesaturation: false,
+                    SectorDesaturation: 0.0,
+                    SetWorldMatrix: false,
+                    BindGeometryBuffer: false,
+                    Draw: false,
+                    PrimitiveType: PrimitiveType.TriangleList,
+                    StartIndex: 0,
+                    Triangles: 0));
+                continue;
+            }
+
+            Renderer3DThingShaderPassPlan shaderPlan = BuildThingShaderPassPlan(
+                shaderPass,
+                thing.Highlighted,
+                showHighlight,
+                thing.Selected,
+                showSelection,
+                drawFog,
+                fullBrightness,
+                classicRendering,
+                thing.HasSector && thing.SectorHasFog,
+                thing.LightInternal,
+                thing.LightIsSun,
+                thing.DrawLights,
+                thing.HasDynamicLights,
+                thing.LitColorNonZero);
+
+            bool switchShader = currentShaderPass != shaderPlan.WantedShader;
+            if (switchShader)
+            {
+                currentShaderPass = shaderPlan.WantedShader;
+            }
+
+            bool setCameraFogUniform = shaderPlan.AppliesFogUniforms && thing.FogFactor != currentFogFactor;
+            if (setCameraFogUniform)
+            {
+                currentFogFactor = thing.FogFactor;
+            }
+
+            draws.Add(new Renderer3DTranslucentThingDrawStatePlan(
+                thing.Id,
+                thing.RenderPass,
+                UpdateThing: true,
+                CalculateCameraDistance: calculateCameraDistance,
+                SkippedByDistance: false,
+                UpdateSpriteFrame: true,
+                SkipUnknownTexture: false,
+                DestinationBlendChange: destinationBlend,
+                SetTexture: setTexture,
+                TextureLongName: setTexture ? thing.TextureLongName : null,
+                DrawPaletted: setTexture ? thing.DrawPaletted : null,
+                HasGeometryBuffer: true,
+                WantedShader: shaderPlan.WantedShader,
+                SwitchShader: switchShader,
+                SetModelNormalForFog: shaderPlan.AppliesFogUniforms,
+                SetCameraFogUniform: setCameraFogUniform,
+                FogFactor: setCameraFogUniform ? thing.FogFactor : null,
+                VertexColorSource: shaderPlan.VertexColorSource,
+                SetSectorLightLevel: thing.HasSector,
+                SectorBrightness: thing.HasSector ? thing.SectorBrightness : null,
+                SetSectorFogColor: thing.HasSector,
+                SectorFogColor: thing.HasSector ? thing.SectorFogColor : null,
+                SetVertexColor: true,
+                SetHighlightColor: true,
+                SetStencilColor: true,
+                SetDesaturation: true,
+                SectorDesaturation: thing.HasSector ? thing.SectorDesaturation : 0.0,
+                SetWorldMatrix: true,
+                BindGeometryBuffer: true,
+                Draw: true,
+                PrimitiveType: PrimitiveType.TriangleList,
+                StartIndex: 0,
+                Triangles: thing.Triangles));
+        }
+
+        return new Renderer3DTranslucentThingDrawStatePlanSet(
+            shaderPass,
+            TextureAddress.Clamp,
+            Cull.None,
+            draws,
+            ResetStencilAfterThings: things.Count > 0,
+            RestoredTextureAddress: TextureAddress.Wrap,
+            RestoredCullMode: Cull.Clockwise);
     }
 
     public static Renderer3DModelRenderPlan BuildModelRenderPlan(
