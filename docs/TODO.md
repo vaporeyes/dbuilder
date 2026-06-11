@@ -1525,6 +1525,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style shader name enum surface.
   - [x] Add UDB-style text alignment enum underlying types.
   - [x] Add UDB-style uniform type enum underlying type.
+  - [x] Add UDB-style uniform name enum surface.
 - [x] Port render modes and view modes.
   - [x] Add UDB-style rendering render mode enum surfaces.
   - [x] Add UDB-style rendering view mode enum surface.

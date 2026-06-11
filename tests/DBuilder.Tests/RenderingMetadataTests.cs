@@ -107,6 +107,46 @@ public sealed class RenderingMetadataTests
     }
 
     [Fact]
+    public void UniformNameValuesMatchUdbOrdering()
+    {
+        Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(UniformName)));
+        Assert.Equal(
+            new[]
+            {
+                "rendersettings",
+                "projection",
+                "desaturation",
+                "highlightcolor",
+                "view",
+                "world",
+                "modelnormal",
+                "FillColor",
+                "vertexColor",
+                "stencilColor",
+                "lightPosAndRadius",
+                "lightOrientation",
+                "light2Radius",
+                "lightColor",
+                "ignoreNormals",
+                "spotLight",
+                "campos",
+                "fogsettings",
+                "fogcolor",
+                "sectorfogcolor",
+                "lightsEnabled",
+                "slopeHandleLength",
+                "drawPaletted",
+                "colormapSize",
+                "sectorLightLevel",
+                "doomlightlevels",
+                "skew",
+                "lightStrengthAndLinearity",
+                "useLightStrength",
+            },
+            Enum.GetNames<UniformName>());
+    }
+
+    [Fact]
     public void TextAlignmentXValuesMatchUdbOrdering()
     {
         Assert.Equal(typeof(int), Enum.GetUnderlyingType(typeof(TextAlignmentX)));

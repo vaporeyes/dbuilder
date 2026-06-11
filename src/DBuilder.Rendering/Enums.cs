@@ -126,3 +126,36 @@ public enum UniformType : int
     Vec4i, Vec3i, Vec2i, Int,
     Vec4fArray, Vec3fArray, Vec2fArray
 }
+
+public enum UniformName : int
+{
+    rendersettings,
+    projection,
+    desaturation,
+    highlightcolor,
+    view,
+    world,
+    modelnormal,
+    FillColor,
+    vertexColor,
+    stencilColor,
+    lightPosAndRadius,
+    lightOrientation,
+    light2Radius,
+    lightColor,
+    ignoreNormals,
+    spotLight,
+    campos,
+    fogsettings,
+    fogcolor,
+    sectorfogcolor,
+    lightsEnabled,
+    slopeHandleLength,
+    drawPaletted,
+    colormapSize,
+    sectorLightLevel,
+    doomlightlevels,
+    skew,
+    lightStrengthAndLinearity,
+    useLightStrength,
+}
