@@ -302,6 +302,32 @@ public sealed record Renderer3DThingShaderPassPlan(
     Renderer3DThingVertexColorSource VertexColorSource,
     bool AppliesFogUniforms);
 
+public sealed record Renderer3DThingLightingCandidate(
+    int Id,
+    int ThingIndex,
+    Vector3f Center,
+    float Radius,
+    Color4 Color,
+    Renderer3DDynamicLightRenderStyle RenderStyle,
+    bool SpotLight,
+    Vector3f SpotDirection,
+    float SpotRadius1Degrees,
+    float SpotRadius2Degrees,
+    float Linearity);
+
+public sealed record Renderer3DThingLightContributionPlan(
+    int LightId,
+    bool SkippedSelfLight,
+    bool InsideRadius,
+    float Attenuation,
+    float SpotScale,
+    float ContributionScale,
+    Color4 Contribution);
+
+public sealed record Renderer3DThingLitColorPlan(
+    Color4 LitColor,
+    IReadOnlyList<Renderer3DThingLightContributionPlan> Contributions);
+
 public enum Renderer3DVisualGeometryType
 {
     Floor,
@@ -950,6 +976,105 @@ public static class Renderer3DGeometryLifecyclePlan
             AppliesFogUniforms: wantedShader > ShaderName.world3d_p7);
     }
 
+    public static Renderer3DThingLitColorPlan BuildThingLitColorPlan(
+        int thingIndex,
+        bool thingTypeDoesNotLightSelf,
+        Vector3f thingCenter,
+        IReadOnlyList<Renderer3DThingLightingCandidate> lights,
+        bool inverseSquareLightAttenuation)
+    {
+        ArgumentNullException.ThrowIfNull(lights);
+        if (!IsFinite(thingCenter)) throw new ArgumentOutOfRangeException(nameof(thingCenter));
+
+        Color4 litColor = new();
+        var contributions = new List<Renderer3DThingLightContributionPlan>(lights.Count);
+        foreach (Renderer3DThingLightingCandidate light in lights)
+        {
+            if (!IsFinite(light.Center)) throw new ArgumentOutOfRangeException(nameof(lights));
+            if (!double.IsFinite(light.Radius) || light.Radius < 0.0f) throw new ArgumentOutOfRangeException(nameof(lights));
+            if (!IsFinite(light.Color)) throw new ArgumentOutOfRangeException(nameof(lights));
+            if (!IsFinite(light.SpotDirection)) throw new ArgumentOutOfRangeException(nameof(lights));
+            if (!double.IsFinite(light.SpotRadius1Degrees)) throw new ArgumentOutOfRangeException(nameof(lights));
+            if (!double.IsFinite(light.SpotRadius2Degrees)) throw new ArgumentOutOfRangeException(nameof(lights));
+            if (!double.IsFinite(light.Linearity)) throw new ArgumentOutOfRangeException(nameof(lights));
+
+            bool skippedSelfLight = thingTypeDoesNotLightSelf && thingIndex == light.ThingIndex;
+            if (skippedSelfLight)
+            {
+                contributions.Add(new Renderer3DThingLightContributionPlan(
+                    light.Id,
+                    SkippedSelfLight: true,
+                    InsideRadius: false,
+                    Attenuation: 0.0f,
+                    SpotScale: 0.0f,
+                    ContributionScale: 0.0f,
+                    new Color4()));
+                continue;
+            }
+
+            float distanceSquared = Vector3f.DistanceSquared(light.Center, thingCenter);
+            float radiusSquared = light.Radius * light.Radius;
+            bool insideRadius = distanceSquared < radiusSquared;
+            if (!insideRadius)
+            {
+                contributions.Add(new Renderer3DThingLightContributionPlan(
+                    light.Id,
+                    SkippedSelfLight: false,
+                    InsideRadius: false,
+                    Attenuation: 0.0f,
+                    SpotScale: 0.0f,
+                    ContributionScale: 0.0f,
+                    new Color4()));
+                continue;
+            }
+
+            int sign = light.RenderStyle == Renderer3DDynamicLightRenderStyle.Subtractive ? -1 : 1;
+            Vector3f lightToThing = thingCenter - light.Center;
+            float distance = lightToThing.Length();
+            float attenuation = inverseSquareLightAttenuation
+                ? BuildInverseSquareDistanceAttenuation(
+                    Math.Max(distance, (float)Math.Sqrt(light.Radius) * 2.0f),
+                    light.Radius * 2.0f,
+                    Math.Min(1500.0f, (light.Radius * 2.0f) * (light.Radius * 2.0f) / 10.0f),
+                    light.Linearity)
+                : 1.0f - distance / light.Radius;
+
+            float scaler = attenuation * light.Color.Alpha;
+            float spotScale = 1.0f;
+            if (light.SpotLight)
+            {
+                lightToThing.Normalize();
+                float cosDirection = Vector3f.Dot(-lightToThing, light.SpotDirection);
+                spotScale = Smoothstep(CosDegrees(light.SpotRadius2Degrees), CosDegrees(light.SpotRadius1Degrees), cosDirection);
+                scaler *= spotScale;
+            }
+
+            Color4 contribution = new();
+            if (scaler > 0.0f)
+            {
+                contribution = new Color4(
+                    light.Color.Red * scaler * sign,
+                    light.Color.Green * scaler * sign,
+                    light.Color.Blue * scaler * sign,
+                    0.0f);
+                litColor.Red += contribution.Red;
+                litColor.Green += contribution.Green;
+                litColor.Blue += contribution.Blue;
+            }
+
+            contributions.Add(new Renderer3DThingLightContributionPlan(
+                light.Id,
+                SkippedSelfLight: false,
+                InsideRadius: true,
+                attenuation,
+                spotScale,
+                scaler,
+                contribution));
+        }
+
+        return new Renderer3DThingLitColorPlan(litColor, contributions);
+    }
+
     public static Renderer3DTranslucentGeometryOrderPlan BuildTranslucentGeometryOrderPlan(
         IReadOnlyList<Renderer3DTranslucentGeometryCandidate> geometry,
         Vector3D cameraPosition)
@@ -1317,4 +1442,29 @@ public static class Renderer3DGeometryLifecyclePlan
 
     private static float CosDegrees(double angleDegrees)
         => (float)Math.Cos(angleDegrees * Math.PI / 180.0);
+
+    private static float BuildInverseSquareDistanceAttenuation(float distance, float radius, float strength, float linearity)
+    {
+        float a = distance / radius;
+        float b = Clamp(1.0f - a * a * a * a, 0.0f, 1.0f);
+        return Mix((b * b) / (distance * distance + 1.0f) * strength, Clamp((radius - distance) / radius, 0.0f, 1.0f), linearity);
+    }
+
+    private static float Smoothstep(float edge0, float edge1, float value)
+    {
+        double t = Math.Min(Math.Max((value - edge0) / (edge1 - edge0), 0.0), 1.0);
+        return (float)(t * t * (3.0 - 2.0 * t));
+    }
+
+    private static float Clamp(float value, float minimum, float maximum)
+        => Math.Min(Math.Max(value, minimum), maximum);
+
+    private static float Mix(float first, float second, float amount)
+        => first * (1.0f - amount) + second * amount;
+
+    private static bool IsFinite(Vector3f vector)
+        => float.IsFinite(vector.X) && float.IsFinite(vector.Y) && float.IsFinite(vector.Z);
+
+    private static bool IsFinite(Color4 color)
+        => float.IsFinite(color.Red) && float.IsFinite(color.Green) && float.IsFinite(color.Blue) && float.IsFinite(color.Alpha);
 }

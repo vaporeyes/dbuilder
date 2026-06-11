@@ -1095,6 +1095,110 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
     }
 
     [Fact]
+    public void BuildThingLitColorPlanAppliesLinearDynamicLightsInsideRadius()
+    {
+        Renderer3DThingLitColorPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingLitColorPlan(
+            thingIndex: 1,
+            thingTypeDoesNotLightSelf: false,
+            thingCenter: new Vector3f(3.0f, 0.0f, 0.0f),
+            [
+                new Renderer3DThingLightingCandidate(
+                    10,
+                    ThingIndex: 2,
+                    Center: new Vector3f(0.0f, 0.0f, 0.0f),
+                    Radius: 6.0f,
+                    new Color4(0.2f, 0.4f, 0.6f, 0.5f),
+                    Renderer3DDynamicLightRenderStyle.Normal,
+                    SpotLight: false,
+                    SpotDirection: new Vector3f(1.0f, 0.0f, 0.0f),
+                    SpotRadius1Degrees: 0.0f,
+                    SpotRadius2Degrees: 0.0f,
+                    Linearity: 0.0f),
+            ],
+            inverseSquareLightAttenuation: false);
+
+        Renderer3DThingLightContributionPlan contribution = Assert.Single(plan.Contributions);
+        Assert.False(contribution.SkippedSelfLight);
+        Assert.True(contribution.InsideRadius);
+        Assert.Equal(0.5f, contribution.Attenuation, precision: 5);
+        Assert.Equal(1.0f, contribution.SpotScale, precision: 5);
+        Assert.Equal(0.25f, contribution.ContributionScale, precision: 5);
+        AssertColor(new Color4(0.05f, 0.1f, 0.15f, 0.0f), contribution.Contribution);
+        AssertColor(new Color4(0.05f, 0.1f, 0.15f, 0.0f), plan.LitColor);
+    }
+
+    [Fact]
+    public void BuildThingLitColorPlanAppliesSubtractiveSignAndSkipsSelfOrOutOfRadiusLights()
+    {
+        Renderer3DThingLitColorPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingLitColorPlan(
+            thingIndex: 7,
+            thingTypeDoesNotLightSelf: true,
+            thingCenter: new Vector3f(5.0f, 0.0f, 0.0f),
+            [
+                new Renderer3DThingLightingCandidate(1, ThingIndex: 7, Center: new Vector3f(0.0f, 0.0f, 0.0f), Radius: 20.0f, new Color4(1.0f, 1.0f, 1.0f, 1.0f), Renderer3DDynamicLightRenderStyle.Normal, SpotLight: false, SpotDirection: new Vector3f(1.0f, 0.0f, 0.0f), SpotRadius1Degrees: 0.0f, SpotRadius2Degrees: 0.0f, Linearity: 0.0f),
+                new Renderer3DThingLightingCandidate(2, ThingIndex: 8, Center: new Vector3f(0.0f, 0.0f, 0.0f), Radius: 10.0f, new Color4(0.4f, 0.2f, 0.1f, 1.0f), Renderer3DDynamicLightRenderStyle.Subtractive, SpotLight: false, SpotDirection: new Vector3f(1.0f, 0.0f, 0.0f), SpotRadius1Degrees: 0.0f, SpotRadius2Degrees: 0.0f, Linearity: 0.0f),
+                new Renderer3DThingLightingCandidate(3, ThingIndex: 9, Center: new Vector3f(100.0f, 0.0f, 0.0f), Radius: 4.0f, new Color4(1.0f, 1.0f, 1.0f, 1.0f), Renderer3DDynamicLightRenderStyle.Normal, SpotLight: false, SpotDirection: new Vector3f(1.0f, 0.0f, 0.0f), SpotRadius1Degrees: 0.0f, SpotRadius2Degrees: 0.0f, Linearity: 0.0f),
+            ],
+            inverseSquareLightAttenuation: false);
+
+        Assert.True(plan.Contributions[0].SkippedSelfLight);
+        Assert.False(plan.Contributions[0].InsideRadius);
+        Assert.False(plan.Contributions[2].SkippedSelfLight);
+        Assert.False(plan.Contributions[2].InsideRadius);
+        AssertColor(new Color4(-0.2f, -0.1f, -0.05f, 0.0f), plan.Contributions[1].Contribution);
+        AssertColor(new Color4(-0.2f, -0.1f, -0.05f, 0.0f), plan.LitColor);
+    }
+
+    [Fact]
+    public void BuildThingLitColorPlanAppliesInverseSquareAttenuationAndSpotFalloff()
+    {
+        Renderer3DThingLitColorPlan plan = Renderer3DGeometryLifecyclePlan.BuildThingLitColorPlan(
+            thingIndex: 1,
+            thingTypeDoesNotLightSelf: false,
+            thingCenter: new Vector3f(-1.0f, 0.0f, 0.0f),
+            [
+                new Renderer3DThingLightingCandidate(1, ThingIndex: 2, Center: new Vector3f(0.0f, 0.0f, 0.0f), Radius: 10.0f, new Color4(1.0f, 0.5f, 0.25f, 1.0f), Renderer3DDynamicLightRenderStyle.Normal, SpotLight: true, SpotDirection: new Vector3f(1.0f, 0.0f, 0.0f), SpotRadius1Degrees: 30.0f, SpotRadius2Degrees: 60.0f, Linearity: 0.0f),
+            ],
+            inverseSquareLightAttenuation: true);
+
+        float distance = (float)Math.Sqrt(10.0f) * 2.0f;
+        float diameter = 20.0f;
+        float strength = 40.0f;
+        float a = distance / diameter;
+        float b = Math.Clamp(1.0f - a * a * a * a, 0.0f, 1.0f);
+        float expectedAttenuation = b * b / (distance * distance + 1.0f) * strength;
+
+        Renderer3DThingLightContributionPlan contribution = Assert.Single(plan.Contributions);
+        Assert.Equal(expectedAttenuation, contribution.Attenuation, precision: 5);
+        Assert.Equal(1.0f, contribution.SpotScale, precision: 5);
+        Assert.Equal(expectedAttenuation, contribution.ContributionScale, precision: 5);
+        AssertColor(new Color4(expectedAttenuation, expectedAttenuation * 0.5f, expectedAttenuation * 0.25f, 0.0f), plan.LitColor);
+    }
+
+    [Fact]
+    public void BuildThingLitColorPlanRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentNullException>(() => Renderer3DGeometryLifecyclePlan.BuildThingLitColorPlan(1, thingTypeDoesNotLightSelf: false, new Vector3f(), null!, inverseSquareLightAttenuation: false));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildThingLitColorPlan(1, thingTypeDoesNotLightSelf: false, new Vector3f(float.NaN, 0.0f, 0.0f), [], inverseSquareLightAttenuation: false));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildThingLitColorPlan(
+            1,
+            thingTypeDoesNotLightSelf: false,
+            new Vector3f(),
+            [
+                new Renderer3DThingLightingCandidate(1, ThingIndex: 2, Center: new Vector3f(float.NaN, 0.0f, 0.0f), Radius: 1.0f, new Color4(), Renderer3DDynamicLightRenderStyle.Normal, SpotLight: false, SpotDirection: new Vector3f(), SpotRadius1Degrees: 0.0f, SpotRadius2Degrees: 0.0f, Linearity: 0.0f),
+            ],
+            inverseSquareLightAttenuation: false));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Renderer3DGeometryLifecyclePlan.BuildThingLitColorPlan(
+            1,
+            thingTypeDoesNotLightSelf: false,
+            new Vector3f(),
+            [
+                new Renderer3DThingLightingCandidate(1, ThingIndex: 2, Center: new Vector3f(), Radius: -1.0f, new Color4(), Renderer3DDynamicLightRenderStyle.Normal, SpotLight: false, SpotDirection: new Vector3f(), SpotRadius1Degrees: 0.0f, SpotRadius2Degrees: 0.0f, Linearity: 0.0f),
+            ],
+            inverseSquareLightAttenuation: false));
+    }
+
+    [Fact]
     public void BuildTranslucentGeometryOrderPlanSortsWallsBackToFrontByCameraDistance()
     {
         Renderer3DTranslucentGeometryOrderPlan plan = Renderer3DGeometryLifecyclePlan.BuildTranslucentGeometryOrderPlan(
@@ -1937,6 +2041,15 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Contains("wantedshaderpass += 4; // Render using one of passes, which uses World3D.VertexColor", source, StringComparison.Ordinal);
         Assert.Contains("else if(General.Settings.GZDrawLightsMode != LightRenderMode.NONE && !fullbrightness && !General.Settings.ClassicRendering && lightthings.Count > 0)", source, StringComparison.Ordinal);
         Assert.Contains("if(litcolor.ToArgb() != 0)", source, StringComparison.Ordinal);
+        Assert.Contains("private Color4 GetLitColorForThing(VisualThing t)", source, StringComparison.Ordinal);
+        Assert.Contains("if(General.Map.Data.GldefsEntries.ContainsKey(t.Thing.Type) && General.Map.Data.GldefsEntries[t.Thing.Type].DontLightSelf && t.Thing.Index == lt.Thing.Index)", source, StringComparison.Ordinal);
+        Assert.Contains("float distSquared = Vector3f.DistanceSquared(lt.Center, t.Center);", source, StringComparison.Ordinal);
+        Assert.Contains("if(distSquared < radiusSquared)", source, StringComparison.Ordinal);
+        Assert.Contains("int sign = (lt.LightType.LightRenderStyle == GZGeneral.LightRenderStyle.SUBTRACTIVE ? -1 : 1);", source, StringComparison.Ordinal);
+        Assert.Contains("attn = InverseSquareDistanceAttenuation(Math.Max(dist, (float)Math.Sqrt(lt.LightRadius) * 2), diameter, Math.Min(1500.0f, (diameter * diameter) / 10), lt.LightLinearity);", source, StringComparison.Ordinal);
+        Assert.Contains("attn = 1 - dist / lt.LightRadius;", source, StringComparison.Ordinal);
+        Assert.Contains("scaler *= (float)Smoothstep(CosDeg(lt.LightSpotRadius2), CosDeg(lt.LightSpotRadius1), cosDir);", source, StringComparison.Ordinal);
+        Assert.Contains("litColor.Red += lt.LightColor.Red * scaler * sign;", source, StringComparison.Ordinal);
         Assert.Contains("private void RenderTranslucentPass(List<VisualGeometry> geopass, List<VisualThing> thingspass, List<VisualThing> lights)", source, StringComparison.Ordinal);
         Assert.Contains("geopass.Sort(delegate(VisualGeometry vg1, VisualGeometry vg2)", source, StringComparison.Ordinal);
         Assert.Contains("vg1.GeometryType == VisualGeometryType.FLOOR || vg1.GeometryType == VisualGeometryType.CEILING", source, StringComparison.Ordinal);
@@ -2019,5 +2132,13 @@ public sealed class Renderer3DGeometryLifecyclePlanTests
         Assert.Equal(color, vertex.c);
         Assert.Equal(0.0f, vertex.u);
         Assert.Equal(0.0f, vertex.v);
+    }
+
+    private static void AssertColor(Color4 expected, Color4 actual)
+    {
+        Assert.Equal(expected.Red, actual.Red, precision: 5);
+        Assert.Equal(expected.Green, actual.Green, precision: 5);
+        Assert.Equal(expected.Blue, actual.Blue, precision: 5);
+        Assert.Equal(expected.Alpha, actual.Alpha, precision: 5);
     }
 }
