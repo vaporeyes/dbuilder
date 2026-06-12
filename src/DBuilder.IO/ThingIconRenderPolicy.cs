@@ -70,6 +70,32 @@ public static class ThingIconRenderPolicy
     public static bool OverviewCullCellsOverlap((int X, int Y) first, (int X, int Y) second)
         => Math.Abs(first.X - second.X) <= 1 && Math.Abs(first.Y - second.Y) <= 1;
 
+    public static bool ShouldRenderOverviewScreenThing(
+        double screenX,
+        double screenY,
+        IReadOnlyList<(double X, double Y)> renderedScreenPositions,
+        double viewScale,
+        bool thingArrows,
+        bool selected)
+    {
+        if (double.IsNaN(screenX) || double.IsInfinity(screenX)) throw new ArgumentOutOfRangeException(nameof(screenX));
+        if (double.IsNaN(screenY) || double.IsInfinity(screenY)) throw new ArgumentOutOfRangeException(nameof(screenY));
+        if (viewScale <= 0 || double.IsNaN(viewScale) || double.IsInfinity(viewScale)) throw new ArgumentOutOfRangeException(nameof(viewScale));
+        if (selected || !UseOverviewMarkers(viewScale, thingArrows)) return true;
+
+        double spacing = OverviewCullCellPixelsFor(viewScale, thingArrows) * 0.5;
+        double spacingSquared = spacing * spacing;
+        foreach ((double x, double y) in renderedScreenPositions)
+        {
+            double dx = screenX - x;
+            double dy = screenY - y;
+            if ((dx * dx) + (dy * dy) < spacingSquared)
+                return false;
+        }
+
+        return true;
+    }
+
     public static double OverviewCullCellPixelsFor(double viewScale, bool thingArrows)
     {
         if (!UseOverviewMarkers(viewScale, thingArrows)) return OverviewCullCellPixels;

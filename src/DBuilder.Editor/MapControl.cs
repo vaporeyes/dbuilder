@@ -5186,6 +5186,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 compactThingMarkers);
             Gldefs? gldefs = _resources?.GetGldefs();
             System.Collections.Generic.Dictionary<(int X, int Y), Thing>? overviewRepresentatives = null;
+            var renderedOverviewThingScreens = new System.Collections.Generic.List<(double X, double Y)>();
             if (ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(_zoom, _thingArrows))
             {
                 var candidates = new System.Collections.Generic.List<ThingOverviewCullCandidate<Thing>>();
@@ -5251,6 +5252,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                     var cell = ThingOverviewCell(screen);
                     if (!overviewRepresentatives.TryGetValue(cell, out Thing? representative)
                         || !ReferenceEquals(t, representative)) continue;
+                    if (!ThingIconRenderPolicy.ShouldRenderOverviewScreenThing(
+                        screen.X,
+                        screen.Y,
+                        renderedOverviewThingScreens,
+                        _zoom,
+                        _thingArrows,
+                        t.Selected)) continue;
+                    renderedOverviewThingScreens.Add(screen);
                 }
                 // Arrow mode: Doom-Builder-style colored disc + direction arrow (no sprites).
                 if (_thingArrows)

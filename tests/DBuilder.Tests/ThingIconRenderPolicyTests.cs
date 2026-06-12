@@ -612,6 +612,44 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
+    public void OverviewScreenSpacingSuppressesNonSelectedPileups()
+    {
+        Assert.False(ThingIconRenderPolicy.ShouldRenderOverviewScreenThing(
+            screenX: 140,
+            screenY: 120,
+            renderedScreenPositions: [(100, 100)],
+            viewScale: 1.0,
+            thingArrows: false,
+            selected: false));
+        Assert.True(ThingIconRenderPolicy.ShouldRenderOverviewScreenThing(
+            screenX: 470,
+            screenY: 120,
+            renderedScreenPositions: [(100, 100)],
+            viewScale: 1.0,
+            thingArrows: false,
+            selected: false));
+    }
+
+    [Fact]
+    public void OverviewScreenSpacingKeepsSelectedAndCloseZoomThings()
+    {
+        Assert.True(ThingIconRenderPolicy.ShouldRenderOverviewScreenThing(
+            screenX: 140,
+            screenY: 120,
+            renderedScreenPositions: [(100, 100)],
+            viewScale: 1.0,
+            thingArrows: false,
+            selected: true));
+        Assert.True(ThingIconRenderPolicy.ShouldRenderOverviewScreenThing(
+            screenX: 140,
+            screenY: 120,
+            renderedScreenPositions: [(100, 100)],
+            viewScale: ThingIconRenderPolicy.OverviewMarkerScaleThreshold - 0.01,
+            thingArrows: false,
+            selected: false));
+    }
+
+    [Fact]
     public void OverviewCellRepresentativeSelectionPrefersSelectedThingsAcrossOverlap()
     {
         var representatives = ThingIconRenderPolicy.SelectOverviewCellRepresentatives(new[]
