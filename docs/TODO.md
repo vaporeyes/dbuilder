@@ -3112,7 +3112,7 @@ section of `docs/PARITY_MATRIX.md`.
   - [x] Port Hexen-format THINGS and LINEDEFS codecs with tid, z, special, and args round-trip tests.
   - [x] Port the UDMF universal text parser (global fields, element blocks, typed values, comments).
   - [x] Port the UDMF writer with CRLF output, string escaping, and float round-trip preservation.
-  - [ ] Compare UDMF writer float formatting and element ordering byte-for-byte against UDB output.
+  - [x] Compare UDMF writer float formatting and element ordering byte-for-byte against UDB output.
 - [ ] Port the map model (`MapSet`, map elements, blockmap) into a `dbuilder-map` crate.
   - [x] Create the `dbuilder-map` crate with plain element records and Doom-lump MapSet assembly.
   - [x] Skip invalid, out-of-range, and zero-length linedefs during assembly like the C# loader.

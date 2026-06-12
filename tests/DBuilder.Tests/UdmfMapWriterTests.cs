@@ -72,6 +72,124 @@ public class UdmfMapWriterTests
     }
 
     [Fact]
+    public void WritesUdbStyleByteLayoutForOrderingAndNumericFormatting()
+    {
+        var map = new MapSet { Namespace = "ZDoom" };
+        map.UnknownUdmfData.Add(new UnknownUdmfEntry("editorstate", new List<UnknownUdmfEntry>
+        {
+            new("label", "kept"),
+            new("weight", 1.25),
+        }));
+        map.Fields["mapfloat"] = 1.25f;
+        map.Fields["mapdouble"] = 1.25;
+
+        var v0 = new Vertex(new Vector2D(12.5, -3.25));
+        v0.Fields["vertexfloat"] = 2.5f;
+        var v1 = new Vertex(new Vector2D(24, -3.25));
+        map.Vertices.Add(v0);
+        map.Vertices.Add(v1);
+
+        var sector = new Sector
+        {
+            Index = 0,
+            FloorHeight = -8,
+            CeilHeight = 128,
+            FloorTexture = "FLOOR1",
+            CeilTexture = "CEIL1",
+            Brightness = 176,
+        };
+        map.Sectors.Add(sector);
+
+        var side = new Sidedef
+        {
+            Sector = sector,
+            OffsetX = 4,
+            OffsetY = -2,
+            MidTexture = "STARTAN",
+        };
+        map.Sidedefs.Add(side);
+
+        var line = new Linedef(v0, v1) { Front = side, Action = 80 };
+        line.Args[1] = 9;
+        line.UdmfFlags.Add("blocking");
+        side.Line = line;
+        map.Linedefs.Add(line);
+
+        map.Things.Add(new Thing
+        {
+            Position = new Vector2D(16.75, -1.5),
+            Type = 3001,
+            Angle = 45,
+            ScaleX = 1.5,
+        });
+
+        string written = UdmfMapWriter.Write(map);
+        string expected = string.Join("\r\n",
+            "namespace = \"ZDoom\";",
+            "editorstate",
+            "{",
+            "\tlabel = \"kept\";",
+            "\tweight = 1.25;",
+            "}",
+            "mapfloat = 1.250;",
+            "mapdouble = 1.25;",
+            "",
+            "vertex // 0",
+            "{",
+            "\tx = 12.5;",
+            "\ty = -3.25;",
+            "\tvertexfloat = 2.500;",
+            "}",
+            "",
+            "vertex // 1",
+            "{",
+            "\tx = 24.0;",
+            "\ty = -3.25;",
+            "}",
+            "",
+            "linedef // 0",
+            "{",
+            "\tv1 = 0;",
+            "\tv2 = 1;",
+            "\tsidefront = 0;",
+            "\tsideback = -1;",
+            "\tspecial = 80;",
+            "\targ1 = 9;",
+            "\tblocking = true;",
+            "}",
+            "",
+            "sidedef // 0",
+            "{",
+            "\toffsetx = 4;",
+            "\toffsety = -2;",
+            "\ttexturemiddle = \"STARTAN\";",
+            "\tsector = 0;",
+            "}",
+            "",
+            "sector // 0",
+            "{",
+            "\theightfloor = -8;",
+            "\theightceiling = 128;",
+            "\ttexturefloor = \"FLOOR1\";",
+            "\ttextureceiling = \"CEIL1\";",
+            "\tlightlevel = 176;",
+            "}",
+            "",
+            "thing // 0",
+            "{",
+            "\tx = 16.75;",
+            "\ty = -1.5;",
+            "\tangle = 45;",
+            "\tscalex = 1.5;",
+            "\ttype = 3001;",
+            "}",
+            "",
+            "");
+
+        Assert.Equal(expected, written);
+    }
+
+    [Fact]
     public void WritesUdbStyleCrlfLineEndings()
     {
         var map = UdmfMapLoader.Load(SimpleRoom, out _)!;
