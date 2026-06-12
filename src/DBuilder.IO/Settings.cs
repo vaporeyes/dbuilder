@@ -109,6 +109,7 @@ public sealed class Settings
     public bool UseHighlight { get; set; } = true;
     public bool AlphaBasedTextureHighlighting { get; set; } = true;
     public bool SelectAdjacentVisualVertexSlopeHandles { get; set; }
+    public bool UseOppositeSmartPivotHandle { get; set; } = true;
     public bool ToastsEnabled { get; set; } = true;
     public ToastAnchor ToastAnchor { get; set; } = ToastPreferences.DefaultAnchor;
     public int? ToastDurationMilliseconds { get; set; }

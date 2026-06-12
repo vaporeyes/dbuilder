@@ -235,6 +235,12 @@ public class SettingsTests
     }
 
     [Fact]
+    public void OppositeSmartPivotHandleDefaultsEnabledLikeUdb()
+    {
+        Assert.True(new Settings().UseOppositeSmartPivotHandle);
+    }
+
+    [Fact]
     public void ToastPreferencesDefaultLikeUdb()
     {
         var settings = new Settings();
@@ -423,6 +429,7 @@ public class SettingsTests
                 SwitchViewModes = true,
                 AlphaBasedTextureHighlighting = false,
                 SelectAdjacentVisualVertexSlopeHandles = true,
+                UseOppositeSmartPivotHandle = false,
                 RenderGrid = false,
                 DynamicGridSize = false,
                 DefaultViewMode = 3,
@@ -608,6 +615,7 @@ public class SettingsTests
             Assert.True(loaded.SwitchViewModes);
             Assert.False(loaded.AlphaBasedTextureHighlighting);
             Assert.True(loaded.SelectAdjacentVisualVertexSlopeHandles);
+            Assert.False(loaded.UseOppositeSmartPivotHandle);
             Assert.False(loaded.RenderGrid);
             Assert.False(loaded.DynamicGridSize);
             Assert.Equal(3, loaded.DefaultViewMode);

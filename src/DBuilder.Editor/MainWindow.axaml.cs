@@ -201,6 +201,11 @@ public partial class MainWindow : Window
                 _settings.SelectAdjacentVisualVertexSlopeHandles = MapView.SelectAdjacentVisualVertexSlopeHandles;
                 SaveSettings();
             }
+            if (_settings.UseOppositeSmartPivotHandle != MapView.UseOppositeSmartPivotHandle)
+            {
+                _settings.UseOppositeSmartPivotHandle = MapView.UseOppositeSmartPivotHandle;
+                SaveSettings();
+            }
             UpdateCommandAvailability();
             UpdateStatusDetails();
         };
@@ -252,6 +257,7 @@ public partial class MainWindow : Window
         MapView.SetFixedThingsScale(_settings.FixedThingsScale);
         MapView.SetAlwaysShowVertices(_settings.AlwaysShowVertices);
         MapView.SetSelectAdjacentVisualVertexSlopeHandles(_settings.SelectAdjacentVisualVertexSlopeHandles);
+        MapView.SetUseOppositeSmartPivotHandle(_settings.UseOppositeSmartPivotHandle);
         MapView.SetViewMode2D((MapControl.ClassicViewMode)_settings.NormalizedDefaultViewMode);
         ApplySectorDefaultSettings();
         ApplyAutosaveSettings();
@@ -1446,6 +1452,7 @@ public partial class MainWindow : Window
         _settings.FixedThingsScale = dlg.FixedThingsScale;
         _settings.AlwaysShowVertices = dlg.AlwaysShowVertices;
         _settings.SelectAdjacentVisualVertexSlopeHandles = dlg.SelectAdjacentVisualVertexSlopeHandles;
+        _settings.UseOppositeSmartPivotHandle = dlg.UseOppositeSmartPivotHandle;
         _settings.ToastsEnabled = dlg.ToastsEnabled;
         _settings.ToastAnchor = dlg.ToastAnchor;
         _settings.ToastDurationMilliseconds = dlg.ToastDurationMilliseconds;
@@ -1492,6 +1499,7 @@ public partial class MainWindow : Window
         MapView.SetFixedThingsScale(_settings.FixedThingsScale);
         MapView.SetAlwaysShowVertices(_settings.AlwaysShowVertices);
         MapView.SetSelectAdjacentVisualVertexSlopeHandles(_settings.SelectAdjacentVisualVertexSlopeHandles);
+        MapView.SetUseOppositeSmartPivotHandle(_settings.UseOppositeSmartPivotHandle);
         MapView.SetViewMode2D((MapControl.ClassicViewMode)_settings.NormalizedDefaultViewMode);
         ApplyShortcutBindings();
         _statusHistory.SetCapacity(_settings.NormalizedStatusHistoryLimit);

@@ -14,7 +14,7 @@ public sealed class SettingsWindow : PropertyDialog
 
     private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _testSkill, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _autosaveCount, _autosaveInterval, _defaultSectorFloorHeight, _defaultSectorCeilingHeight, _defaultSectorBrightness, _imageBrightness, _doubleSidedAlpha, _visualFov, _viewDistance, _moveSpeed, _mouseSpeed, _autoScrollSpeed, _statusHistoryLimit, _toastDuration, _toastDisabledActions, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _mergeGeometryMode, _toastAnchor, _pasteTagMode;
-    private readonly CheckBox _testMonsters, _autosave, _autoClearSidedefTextures, _autoMerge, _splitJoinedSectors, _dynamicGridSize, _switchViewModes, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _qualityDisplay, _classicBilinear, _visualBilinear, _blackBrowsers, _flatShadeVertices, _markExtraFloors, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _showErrorsWindow, _fixedThingsScale, _alwaysShowVertices, _selectAdjacentVisualVertexSlopeHandles, _toastsEnabled, _pasteRemoveActions;
+    private readonly CheckBox _testMonsters, _autosave, _autoClearSidedefTextures, _autoMerge, _splitJoinedSectors, _dynamicGridSize, _switchViewModes, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _qualityDisplay, _classicBilinear, _visualBilinear, _blackBrowsers, _flatShadeVertices, _markExtraFloors, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _showErrorsWindow, _fixedThingsScale, _alwaysShowVertices, _selectAdjacentVisualVertexSlopeHandles, _useOppositeSmartPivotHandle, _toastsEnabled, _pasteRemoveActions;
     private readonly bool _drawLineShowGuidelines;
     private readonly int _drawRectangleSubdivisions, _drawRectangleBevelWidth;
     private readonly bool _drawRectangleShowGuidelines;
@@ -63,6 +63,7 @@ public sealed class SettingsWindow : PropertyDialog
     public bool FixedThingsScale;
     public bool AlwaysShowVertices;
     public bool SelectAdjacentVisualVertexSlopeHandles;
+    public bool UseOppositeSmartPivotHandle;
     public bool ToastsEnabled;
     public ToastAnchor ToastAnchor;
     public int ToastDurationMilliseconds;
@@ -171,6 +172,7 @@ public sealed class SettingsWindow : PropertyDialog
         _fixedThingsScale = AddCheckBox("Fixed things scale", s.FixedThingsScale);
         _alwaysShowVertices = AddCheckBox("Always show vertices", s.AlwaysShowVertices);
         _selectAdjacentVisualVertexSlopeHandles = AddCheckBox("Select adjacent visual vertex slope handles", s.SelectAdjacentVisualVertexSlopeHandles);
+        _useOppositeSmartPivotHandle = AddCheckBox("Opposite side/vertex is smart pivot handle on triangular sectors", s.UseOppositeSmartPivotHandle);
         _defaultViewMode = AddCombo("Default view mode", DefaultViewModeItems(), s.NormalizedDefaultViewMode);
         _modelRenderMode = AddCombo("Model render mode", ModelRenderModeItems(), (int)s.NormalizedModelRenderMode);
         _lightRenderMode = AddCombo("Light render mode", LightRenderModeItems(), (int)s.NormalizedLightRenderMode);
@@ -229,6 +231,7 @@ public sealed class SettingsWindow : PropertyDialog
         FixedThingsScale = _fixedThingsScale.IsChecked == true;
         AlwaysShowVertices = _alwaysShowVertices.IsChecked == true;
         SelectAdjacentVisualVertexSlopeHandles = _selectAdjacentVisualVertexSlopeHandles.IsChecked == true;
+        UseOppositeSmartPivotHandle = _useOppositeSmartPivotHandle.IsChecked == true;
         ToastsEnabled = _toastsEnabled.IsChecked == true;
         ToastAnchor = (ToastAnchor)ComboNumber(_toastAnchor, (int)ToastPreferences.DefaultAnchor);
         ToastDurationMilliseconds = ToastPreferences.AcceptDurationSecondsText(_toastDuration.Text);

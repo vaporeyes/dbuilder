@@ -2150,9 +2150,11 @@ public sealed class MapControlCommandTests
         Assert.Contains("VisualSlopeHandle? highlightedHandle = HighlightedVisualSlopeLineHandle3D();", body[slopeIndex..archIndex], StringComparison.Ordinal);
         Assert.Contains("IReadOnlyList<VisualSlopeHandle> handles = VisualSlopeLineHandlesForActions3D(selectedHandles, highlightedHandle);", body[slopeIndex..archIndex], StringComparison.Ordinal);
         Assert.Contains("VisualSlopeHandles.ApplySlopeBetweenSelectedHandles(", body[slopeIndex..archIndex], StringComparison.Ordinal);
+        Assert.Contains("useOppositeSmartPivotHandle: _useOppositeSmartPivotHandle", body[slopeIndex..archIndex], StringComparison.Ordinal);
         Assert.Contains("VisualSlopeHandle? highlightedHandle = HighlightedVisualSlopeLineHandle3D();", body[archIndex..nearestIndex], StringComparison.Ordinal);
         Assert.Contains("IReadOnlyList<VisualSlopeHandle> handles = VisualSlopeLineHandlesForActions3D(selectedHandles, highlightedHandle);", body[archIndex..nearestIndex], StringComparison.Ordinal);
         Assert.Contains("VisualSlopeHandles.ApplyArchBetweenSelectedHandles(", body[archIndex..nearestIndex], StringComparison.Ordinal);
+        Assert.Contains("useOppositeSmartPivotHandle: _useOppositeSmartPivotHandle", body[archIndex..nearestIndex], StringComparison.Ordinal);
         Assert.Contains("VisualSlopeHandles.RaiseSelectedSlopeHandleToNearest(handles, affectedLevels: levels)", body[nearestIndex..nearestResultIndex], StringComparison.Ordinal);
         Assert.Contains("VisualSlopeHandles.LowerSelectedSlopeHandleToNearest(handles, affectedLevels: levels)", body[nearestIndex..nearestResultIndex], StringComparison.Ordinal);
         Assert.Contains("VisualSlopeLevel.Floor(floor)", body[levelsIndex..handlesIndex], StringComparison.Ordinal);

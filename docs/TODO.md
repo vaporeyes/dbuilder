@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 6916 tests.
+- Current verified baseline: `scripts/verify.sh` passes 6917 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 - A Rust port of the codebase is underway in `rust/`; see the Rust Port section below.
 
@@ -1357,6 +1357,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Clamp spline control point planning to UDB form minimums before endpoint expansion.
 - [ ] Port slope editing behavior fully.
   - [x] Pass selected visual levels into slope-handle smart-pivot resolution for slope and arch actions.
+  - [x] Persist and apply UDB-style opposite smart pivot preference for triangular visual slope handles.
 - [ ] Port sound propagation editing behavior fully.
   - [x] Block sound propagation across closed-height two-sided lines.
   - [x] Honor UDMF `blocksound` flags in editor sound reachability tracing.

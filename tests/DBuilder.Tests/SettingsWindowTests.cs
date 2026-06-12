@@ -513,10 +513,15 @@ public class SettingsWindowTests
         string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
 
         Assert.NotNull(type.GetField("SelectAdjacentVisualVertexSlopeHandles", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("UseOppositeSmartPivotHandle", BindingFlags.Instance | BindingFlags.Public));
         Assert.Contains("AddCheckBox(\"Select adjacent visual vertex slope handles\", s.SelectAdjacentVisualVertexSlopeHandles)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Opposite side/vertex is smart pivot handle on triangular sectors\", s.UseOppositeSmartPivotHandle)", body, StringComparison.Ordinal);
         Assert.Contains("SelectAdjacentVisualVertexSlopeHandles = _selectAdjacentVisualVertexSlopeHandles.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("UseOppositeSmartPivotHandle = _useOppositeSmartPivotHandle.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("_settings.SelectAdjacentVisualVertexSlopeHandles = dlg.SelectAdjacentVisualVertexSlopeHandles;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.UseOppositeSmartPivotHandle = dlg.UseOppositeSmartPivotHandle;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.SetSelectAdjacentVisualVertexSlopeHandles(_settings.SelectAdjacentVisualVertexSlopeHandles);", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.SetUseOppositeSmartPivotHandle(_settings.UseOppositeSmartPivotHandle);", mainWindow, StringComparison.Ordinal);
     }
 
     [Fact]

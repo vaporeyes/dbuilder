@@ -1212,6 +1212,7 @@ public sealed class MainWindowCommandTests
 
         Assert.Contains("MapView.SetFixedThingsScale(_settings.FixedThingsScale);", code, StringComparison.Ordinal);
         Assert.Contains("MapView.SetAlwaysShowVertices(_settings.AlwaysShowVertices);", code, StringComparison.Ordinal);
+        Assert.Contains("MapView.SetUseOppositeSmartPivotHandle(_settings.UseOppositeSmartPivotHandle);", code, StringComparison.Ordinal);
         Assert.Contains("MapView.DoubleSidedAlphaByte = _settings.NormalizedDoubleSidedAlphaByte;", code, StringComparison.Ordinal);
         Assert.Contains("MapView.VisualFovDegrees = _settings.NormalizedVisualFov;", code, StringComparison.Ordinal);
         Assert.Contains("MapView.ViewDistance = _settings.NormalizedViewDistance;", code, StringComparison.Ordinal);
@@ -1220,6 +1221,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("MapView.SetMarkExtraFloors(_settings.MarkExtraFloors);", code, StringComparison.Ordinal);
         Assert.Contains("_settings.FixedThingsScale = MapView.FixedThingsScale;", code, StringComparison.Ordinal);
         Assert.Contains("_settings.AlwaysShowVertices = MapView.AlwaysShowVertices;", code, StringComparison.Ordinal);
+        Assert.Contains("_settings.UseOppositeSmartPivotHandle = MapView.UseOppositeSmartPivotHandle;", code, StringComparison.Ordinal);
         Assert.Contains("SetChecked(ToggleFixedThingsScaleMenuItem, MapView.FixedThingsScale);", code, StringComparison.Ordinal);
         Assert.Contains("SetChecked(ToggleAlwaysShowVerticesMenuItem, MapView.AlwaysShowVertices);", code, StringComparison.Ordinal);
     }

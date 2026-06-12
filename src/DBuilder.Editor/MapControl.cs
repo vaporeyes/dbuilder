@@ -237,6 +237,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private int _autoScrollSpeed;
     private bool _alphaBasedTextureHighlighting = true;
     private bool _selectAdjacentVisualVertexSlopeHandles;
+    private bool _useOppositeSmartPivotHandle = true;
     private bool _markExtraFloors = true;
     private VisualSlopePickingMode _visualSlopePickingMode;
     private ClassicViewMode _classicViewMode = ClassicViewMode.Wireframe;
@@ -302,6 +303,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     }
     public bool AlphaBasedTextureHighlighting => _alphaBasedTextureHighlighting;
     public bool SelectAdjacentVisualVertexSlopeHandles => _selectAdjacentVisualVertexSlopeHandles;
+    public bool UseOppositeSmartPivotHandle => _useOppositeSmartPivotHandle;
     public bool MarkExtraFloors => _markExtraFloors;
     public VisualSlopePickingMode CurrentVisualSlopePickingMode => _visualSlopePickingMode;
     public ClassicViewMode ViewMode2D => _classicViewMode;
@@ -628,6 +630,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         ActionStateChanged?.Invoke();
         RequestNextFrameRendering();
         return _selectAdjacentVisualVertexSlopeHandles;
+    }
+
+    public bool SetUseOppositeSmartPivotHandle(bool enabled)
+    {
+        if (_useOppositeSmartPivotHandle == enabled) return _useOppositeSmartPivotHandle;
+        _useOppositeSmartPivotHandle = enabled;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _useOppositeSmartPivotHandle;
     }
 
     public bool SetMarkExtraFloors(bool enabled)
@@ -3442,7 +3453,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         VisualSlopeBetweenHandlesApplyResult result = VisualSlopeHandles.ApplySlopeBetweenSelectedHandles(
             levels,
             handles,
-            highlightedHandle);
+            highlightedHandle,
+            useOppositeSmartPivotHandle: _useOppositeSmartPivotHandle);
         ApplyVisualSlopeBetweenHandlesResult(result);
     }
 
@@ -3458,7 +3470,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         VisualSlopeBetweenHandlesApplyResult result = VisualSlopeHandles.ApplyArchBetweenSelectedHandles(
             levels,
             handles,
-            highlightedHandle);
+            highlightedHandle,
+            useOppositeSmartPivotHandle: _useOppositeSmartPivotHandle);
         ApplyVisualSlopeBetweenHandlesResult(result);
     }
 
