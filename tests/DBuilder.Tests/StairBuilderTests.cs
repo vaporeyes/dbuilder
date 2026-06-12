@@ -642,6 +642,44 @@ public class StairBuilderTests
         Assert.All(plan.SelectMany(sector => sector.Vertices), vertex => Assert.True(vertex.IsFinite()));
     }
 
+    [Theory]
+    [InlineData(0, 3)]
+    [InlineData(1, 3)]
+    [InlineData(4, 6)]
+    public void SplineControlPointCountAddsUdbEndpointControlPoints(int textBoxValue, int expected)
+        => Assert.Equal(expected, StairBuilder.SplineControlPointCount(textBoxValue));
+
+    [Fact]
+    public void SplineLinePlanClampsControlPointTextBoxValueLikeUdbForm()
+    {
+        var map = new MapSet();
+        Linedef first = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        Linedef second = map.AddLinedef(map.AddVertex(new Vector2D(0, 64)), map.AddVertex(new Vector2D(64, 64)));
+
+        IReadOnlyList<StairBuilderSectorPlan> clamped = StairBuilder.PlanSplineSectorsFromLines(
+            new[] { first, second },
+            new StairBuilderSplineOptions
+            {
+                NumberOfSectors = 2,
+                InnerVertexMultiplier = 1,
+                OuterVertexMultiplier = 1,
+                NumberOfControlPoints = 0
+            });
+        IReadOnlyList<StairBuilderSectorPlan> minimum = StairBuilder.PlanSplineSectorsFromLines(
+            new[] { first, second },
+            new StairBuilderSplineOptions
+            {
+                NumberOfSectors = 2,
+                InnerVertexMultiplier = 1,
+                OuterVertexMultiplier = 1,
+                NumberOfControlPoints = 1
+            });
+
+        Assert.Equal(minimum.Count, clamped.Count);
+        for (int i = 0; i < minimum.Count; i++)
+            AssertEqualVertices(minimum[i].Vertices, clamped[i].Vertices);
+    }
+
     [Fact]
     public void SplineLinePlanHonorsVertexMultipliers()
     {

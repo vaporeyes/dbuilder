@@ -425,7 +425,7 @@ public static class StairBuilder
         var sectors = new List<StairBuilderSectorPlan>();
         if (selectedLinedefs.Count <= 1) return sectors;
 
-        int controlPointCount = Math.Max(options.NumberOfControlPoints + 2, 2);
+        int controlPointCount = SplineControlPointCount(options.NumberOfControlPoints);
         for (int l1 = 0; l1 < selectedLinedefs.Count - 1; l1++)
         {
             int l2 = l1 + 1;
@@ -459,6 +459,9 @@ public static class StairBuilder
 
         return sectors;
     }
+
+    public static int SplineControlPointCount(int numberOfControlPoints)
+        => Math.Max(numberOfControlPoints, 1) + 2;
 
     public static IReadOnlyList<Sector> CreateSectorsFromPlans(
         MapSet map,
