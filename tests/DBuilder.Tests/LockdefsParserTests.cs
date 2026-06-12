@@ -95,4 +95,23 @@ lock 3 { $title ""Valid"" mapcolor 255 128 0 }";
         Assert.Equal("4", lockDef.Id);
         Assert.Equal((0, 128, 255), lockDef.MapColor);
     }
+
+    [Fact]
+    public void ClearLocksInsideLockBlockStopsParsingLikeUdb()
+    {
+        const string text = @"
+lock 1 { $title ""Before"" }
+lock 2
+{
+    $title ""Broken""
+    clearlocks
+}
+lock 3 { $title ""After"" }";
+
+        var defs = LockdefsParser.Parse(text);
+
+        var lockDef = Assert.Single(defs.Locks);
+        Assert.Equal("1", lockDef.Id);
+        Assert.Equal("Before", lockDef.Title);
+    }
 }

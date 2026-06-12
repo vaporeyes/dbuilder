@@ -68,6 +68,7 @@ public static class LockdefsParser
                     if (!ReadMapColor(t, ref i, out var mapColor)) return false;
                     lockDef.MapColor = mapColor;
                 }
+                else if (prop == "clearlocks") return false;
                 else if ((prop == "any" || prop == "all") && i < t.Count && t[i] == "{") lockDef.KeyGroups.Add(ReadKeyGroup(prop, t, ref i));
                 else if (i < t.Count && t[i] == "{") SkipBlock(t, ref i);
             }
