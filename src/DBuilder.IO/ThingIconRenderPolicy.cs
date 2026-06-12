@@ -44,6 +44,7 @@ public static class ThingIconRenderPolicy
     public const double FarOverviewMarkerBaseSize = 0.5;
     public const double OverviewMarkerBaseSize = 0.75;
     public const double OverviewCullCellPixels = 48.0;
+    public const double OverviewScreenSpacingFactor = 0.9;
     public const double FarOverviewCullCellPixels = 192.0;
     public const double MaxFarOverviewCullCellPixels = 640.0;
     public const double CompactMarkerBaseSize = 4.0;
@@ -91,7 +92,7 @@ public static class ThingIconRenderPolicy
         if (viewScale <= 0 || double.IsNaN(viewScale) || double.IsInfinity(viewScale)) throw new ArgumentOutOfRangeException(nameof(viewScale));
         if (selected || !UseOverviewMarkers(viewScale, thingArrows)) return true;
 
-        double spacing = OverviewCullCellPixelsFor(viewScale, thingArrows) * 0.75;
+        double spacing = OverviewCullCellPixelsFor(viewScale, thingArrows) * OverviewScreenSpacingFactor;
         double spacingSquared = spacing * spacing;
         foreach ((double x, double y) in renderedScreenPositions)
         {

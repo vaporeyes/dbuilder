@@ -628,6 +628,7 @@ public sealed class ThingIconRenderPolicyTests
             viewScale: 1.0,
             thingArrows: false,
             selected: false));
+        Assert.Equal(0.9, ThingIconRenderPolicy.OverviewScreenSpacingFactor);
     }
 
     [Fact]
@@ -665,7 +666,7 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
-    public void DeepOverviewScreenSpacingSuppressesWideThingIconPileups()
+    public void DeepOverviewScreenSpacingKeepsThingIconsSparse()
     {
         Assert.False(ThingIconRenderPolicy.ShouldRenderOverviewScreenThing(
             screenX: 570,
@@ -675,7 +676,7 @@ public sealed class ThingIconRenderPolicyTests
             thingArrows: false,
             selected: false));
         Assert.True(ThingIconRenderPolicy.ShouldRenderOverviewScreenThing(
-            screenX: 590,
+            screenX: 700,
             screenY: 100,
             renderedScreenPositions: [(100, 100)],
             viewScale: 0.8,
