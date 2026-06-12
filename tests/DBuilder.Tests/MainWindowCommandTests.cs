@@ -1195,6 +1195,7 @@ public sealed class MainWindowCommandTests
 
         Assert.Contains("MapView.SetFixedThingsScale(_settings.FixedThingsScale);", code, StringComparison.Ordinal);
         Assert.Contains("MapView.SetAlwaysShowVertices(_settings.AlwaysShowVertices);", code, StringComparison.Ordinal);
+        Assert.Contains("MapView.DoubleSidedAlphaByte = _settings.NormalizedDoubleSidedAlphaByte;", code, StringComparison.Ordinal);
         Assert.Contains("_settings.FixedThingsScale = MapView.FixedThingsScale;", code, StringComparison.Ordinal);
         Assert.Contains("_settings.AlwaysShowVertices = MapView.AlwaysShowVertices;", code, StringComparison.Ordinal);
         Assert.Contains("SetChecked(ToggleFixedThingsScaleMenuItem, MapView.FixedThingsScale);", code, StringComparison.Ordinal);

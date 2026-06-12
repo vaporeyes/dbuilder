@@ -12,7 +12,7 @@ public sealed class SettingsWindow : PropertyDialog
 {
     private const string ShortcutOverrideWatermark = "command.id=Shortcut; use None or Unassigned to clear; separate entries with semicolons, commas, or new lines";
 
-    private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _testSkill, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _autosaveCount, _autosaveInterval, _defaultSectorFloorHeight, _defaultSectorCeilingHeight, _defaultSectorBrightness, _imageBrightness, _statusHistoryLimit, _toastDuration, _toastDisabledActions, _shortcutOverrides;
+    private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _testSkill, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _autosaveCount, _autosaveInterval, _defaultSectorFloorHeight, _defaultSectorCeilingHeight, _defaultSectorBrightness, _imageBrightness, _doubleSidedAlpha, _statusHistoryLimit, _toastDuration, _toastDisabledActions, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _mergeGeometryMode, _toastAnchor, _pasteTagMode;
     private readonly CheckBox _testMonsters, _autosave, _autoClearSidedefTextures, _autoMerge, _splitJoinedSectors, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _qualityDisplay, _classicBilinear, _visualBilinear, _blackBrowsers, _flatShadeVertices, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _fixedThingsScale, _alwaysShowVertices, _selectAdjacentVisualVertexSlopeHandles, _toastsEnabled, _pasteRemoveActions;
     private readonly bool _drawLineShowGuidelines;
@@ -42,6 +42,7 @@ public sealed class SettingsWindow : PropertyDialog
     public bool EnhancedRenderingEffects;
     public bool ClassicRendering;
     public int? ImageBrightness;
+    public double? DoubleSidedAlpha;
     public bool QualityDisplay;
     public bool ClassicBilinear;
     public bool VisualBilinear;
@@ -96,6 +97,7 @@ public sealed class SettingsWindow : PropertyDialog
         _defaultSectorCeilingHeight = AddField("Default ceiling height", Settings.DefaultSectorCeilingHeightText(s));
         _defaultSectorBrightness = AddField("Default brightness", Settings.DefaultSectorBrightnessText(s));
         _imageBrightness = AddField("Image brightness", Settings.ImageBrightnessText(s));
+        _doubleSidedAlpha = AddField("Double-sided alpha", Settings.DoubleSidedAlphaText(s));
         _statusHistoryLimit = AddField("Status history", Settings.StatusHistoryLimitText(s));
         _toastsEnabled = AddCheckBox("Show toasts", s.ToastsEnabled);
         _toastDuration = AddField("Toast duration", ToastPreferences.DurationSecondsText(s.NormalizedToastDurationMilliseconds));
@@ -190,6 +192,7 @@ public sealed class SettingsWindow : PropertyDialog
         EnhancedRenderingEffects = _enhancedRenderingEffects.IsChecked == true;
         ClassicRendering = _classicRendering.IsChecked == true;
         ImageBrightness = Settings.AcceptImageBrightnessText(_imageBrightness.Text);
+        DoubleSidedAlpha = Settings.AcceptDoubleSidedAlphaText(_doubleSidedAlpha.Text);
         QualityDisplay = _qualityDisplay.IsChecked == true;
         ClassicBilinear = _classicBilinear.IsChecked == true;
         VisualBilinear = _visualBilinear.IsChecked == true;

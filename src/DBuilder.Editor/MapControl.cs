@@ -222,6 +222,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _drawSky = true;
     private bool _showEventLines = true;
     private bool _showVisualVertices = true;
+    private byte _doubleSidedAlphaByte = Settings.DefaultDoubleSidedAlphaByte;
     private bool _alphaBasedTextureHighlighting = true;
     private bool _selectAdjacentVisualVertexSlopeHandles;
     private VisualSlopePickingMode _visualSlopePickingMode;
@@ -243,6 +244,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool DrawSky => _drawSky;
     public bool ShowEventLines => _showEventLines;
     public bool ShowVisualVertices => _showVisualVertices;
+    public byte DoubleSidedAlphaByte
+    {
+        get => _doubleSidedAlphaByte;
+        set
+        {
+            if (_doubleSidedAlphaByte == value) return;
+            _doubleSidedAlphaByte = value;
+            _geometryDirty = true;
+            RequestNextFrameRendering();
+        }
+    }
     public bool AlphaBasedTextureHighlighting => _alphaBasedTextureHighlighting;
     public bool SelectAdjacentVisualVertexSlopeHandles => _selectAdjacentVisualVertexSlopeHandles;
     public VisualSlopePickingMode CurrentVisualSlopePickingMode => _visualSlopePickingMode;
@@ -5508,7 +5520,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return unchecked((int)0xff00ccff);                                   // cyan
         bool twoSided = l.Front != null && l.Back != null;
         if (LinedefColorPresetModel.TryGetColor(l, _linedefColorPresets, _mapFormat == MapFormat.Udmf, out int presetColor))
-            return twoSided ? LinedefColorPresetModel.WithAlpha(presetColor, LinedefColorPresetModel.DefaultDoubleSidedAlpha) : presetColor;
+            return twoSided ? LinedefColorPresetModel.WithAlpha(presetColor, _doubleSidedAlphaByte) : presetColor;
         return twoSided ? unchecked((int)0xff8090a0) : unchecked((int)0xffe0e0e0);
     }
 

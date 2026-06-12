@@ -170,6 +170,13 @@ public class SettingsTests
         Assert.Equal(0, Settings.AcceptImageBrightnessText("-5"));
         Assert.Equal(10, Settings.AcceptImageBrightnessText("30"));
         Assert.Null(Settings.AcceptImageBrightnessText("bad"));
+        Assert.Equal(0.4, settings.NormalizedDoubleSidedAlpha);
+        Assert.Equal(102, settings.NormalizedDoubleSidedAlphaByte);
+        Assert.Equal(0.4, Settings.AcceptDoubleSidedAlphaText("40"));
+        Assert.Equal(0.25, Settings.AcceptDoubleSidedAlphaText("0.25"));
+        Assert.Equal(0.0, Settings.AcceptDoubleSidedAlphaText("-10"));
+        Assert.Equal(1.0, Settings.AcceptDoubleSidedAlphaText("200"));
+        Assert.Null(Settings.AcceptDoubleSidedAlphaText("bad"));
         Assert.True(settings.QualityDisplay);
         Assert.False(settings.ClassicBilinear);
         Assert.False(settings.VisualBilinear);
@@ -386,6 +393,7 @@ public class SettingsTests
                 EnhancedRenderingEffects = false,
                 ClassicRendering = true,
                 ImageBrightness = 7,
+                DoubleSidedAlpha = 0.25,
                 QualityDisplay = false,
                 ClassicBilinear = true,
                 VisualBilinear = true,
@@ -563,6 +571,8 @@ public class SettingsTests
             Assert.True(loaded.ClassicRendering);
             Assert.Equal(7, loaded.ImageBrightness);
             Assert.Equal(7, loaded.NormalizedImageBrightness);
+            Assert.Equal(0.25, loaded.DoubleSidedAlpha);
+            Assert.Equal(63, loaded.NormalizedDoubleSidedAlphaByte);
             Assert.False(loaded.QualityDisplay);
             Assert.True(loaded.ClassicBilinear);
             Assert.True(loaded.VisualBilinear);

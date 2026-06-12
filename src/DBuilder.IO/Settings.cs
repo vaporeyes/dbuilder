@@ -34,6 +34,8 @@ public sealed class Settings
     public const int DefaultImageBrightness = 3;
     public const int MinImageBrightness = 0;
     public const int MaxImageBrightness = 10;
+    public const double DefaultDoubleSidedAlpha = 0.4;
+    public const byte DefaultDoubleSidedAlphaByte = 102;
 
     public string? ConfigDir { get; set; }
     public string? LastUsedConfigName { get; set; }
@@ -70,6 +72,7 @@ public sealed class Settings
     public bool EnhancedRenderingEffects { get; set; } = true;
     public bool ClassicRendering { get; set; }
     public int? ImageBrightness { get; set; }
+    public double? DoubleSidedAlpha { get; set; }
     public bool QualityDisplay { get; set; } = true;
     public bool ClassicBilinear { get; set; }
     public bool VisualBilinear { get; set; }
@@ -149,6 +152,12 @@ public sealed class Settings
     public int NormalizedImageBrightness =>
         Math.Clamp(ImageBrightness ?? DefaultImageBrightness, MinImageBrightness, MaxImageBrightness);
 
+    public double NormalizedDoubleSidedAlpha =>
+        Math.Clamp(DoubleSidedAlpha ?? DefaultDoubleSidedAlpha, 0.0, 1.0);
+
+    public byte NormalizedDoubleSidedAlphaByte =>
+        AlphaToByte(NormalizedDoubleSidedAlpha);
+
     public ToastAnchor NormalizedToastAnchor =>
         ToastPreferences.NormalizeAnchor(ToastAnchor);
 
@@ -194,6 +203,16 @@ public sealed class Settings
     public static int? AcceptImageBrightnessText(string? text)
         => int.TryParse(text, out int value) ? Math.Clamp(value, MinImageBrightness, MaxImageBrightness) : null;
 
+    public static double? AcceptDoubleSidedAlphaText(string? text)
+    {
+        if (!double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out double value)) return null;
+        if (value > 1.0) value /= 100.0;
+        return Math.Clamp(value, 0.0, 1.0);
+    }
+
+    public static byte AlphaToByte(double alpha)
+        => (byte)(Math.Clamp(alpha, 0.0, 1.0) * 255.0);
+
     public static string MaxRecentFilesText(Settings settings)
         => settings.NormalizedMaxRecentFiles.ToString(CultureInfo.InvariantCulture);
 
@@ -220,6 +239,9 @@ public sealed class Settings
 
     public static string ImageBrightnessText(Settings settings)
         => settings.NormalizedImageBrightness.ToString(CultureInfo.InvariantCulture);
+
+    public static string DoubleSidedAlphaText(Settings settings)
+        => (settings.NormalizedDoubleSidedAlpha * 100.0).ToString("0.###", CultureInfo.InvariantCulture);
 
     public int NormalizedDefaultViewMode =>
         Math.Clamp(DefaultViewMode ?? 0, 0, 3);

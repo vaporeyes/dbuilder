@@ -246,6 +246,7 @@ public partial class MainWindow : Window
         MapView.SetDrawSky(_settings.DrawSky);
         MapView.SetShowEventLines(_settings.ShowEventLines);
         MapView.SetShowVisualVertices(_settings.ShowVisualVertices);
+        MapView.DoubleSidedAlphaByte = _settings.NormalizedDoubleSidedAlphaByte;
         MapView.SetFixedThingsScale(_settings.FixedThingsScale);
         MapView.SetAlwaysShowVertices(_settings.AlwaysShowVertices);
         MapView.SetSelectAdjacentVisualVertexSlopeHandles(_settings.SelectAdjacentVisualVertexSlopeHandles);
@@ -1428,6 +1429,7 @@ public partial class MainWindow : Window
         _settings.EnhancedRenderingEffects = dlg.EnhancedRenderingEffects;
         _settings.ClassicRendering = dlg.ClassicRendering;
         _settings.ImageBrightness = dlg.ImageBrightness;
+        _settings.DoubleSidedAlpha = dlg.DoubleSidedAlpha;
         _settings.QualityDisplay = dlg.QualityDisplay;
         _settings.ClassicBilinear = dlg.ClassicBilinear;
         _settings.VisualBilinear = dlg.VisualBilinear;
@@ -1476,6 +1478,7 @@ public partial class MainWindow : Window
         MapView.SetDrawSky(_settings.DrawSky);
         MapView.SetShowEventLines(_settings.ShowEventLines);
         MapView.SetShowVisualVertices(_settings.ShowVisualVertices);
+        MapView.DoubleSidedAlphaByte = _settings.NormalizedDoubleSidedAlphaByte;
         MapView.SetFixedThingsScale(_settings.FixedThingsScale);
         MapView.SetAlwaysShowVertices(_settings.AlwaysShowVertices);
         MapView.SetSelectAdjacentVisualVertexSlopeHandles(_settings.SelectAdjacentVisualVertexSlopeHandles);
