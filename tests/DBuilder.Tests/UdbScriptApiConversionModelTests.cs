@@ -3409,6 +3409,70 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void CommonUdbScriptCreateLinePortalWorkflowUsesMapAndLineWrappersTogether()
+    {
+        var map = new MapSet();
+        Linedef first = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+        Linedef second = map.AddLinedef(map.AddVertex(new Vector2D(128, 0)), map.AddVertex(new Vector2D(192, 0)));
+        first.Selected = true;
+        second.Selected = true;
+        first.Action = 80;
+        first.Args[2] = 7;
+        second.Action = 81;
+        second.Args[3] = 9;
+        map.BuildIndexes();
+        var wrapper = new UdbScriptMapWrapper(map, mapFormat: MapFormat.Udmf);
+        UdbScriptLinedefWrapper[] lines = wrapper.getSelectedLinedefs();
+
+        Assert.True(wrapper.isUDMF);
+        Assert.Equal(2, lines.Length);
+        Assert.Equal(lines[0].line.getLength(), lines[1].line.getLength());
+        int tag = wrapper.getNewTag();
+        lines[0].action = 301;
+        lines[1].action = 301;
+        for (int i = 0; i <= 4; i++)
+        {
+            lines[0].args[i] = 0;
+            lines[1].args[i] = 0;
+        }
+
+        lines[0].tag = tag;
+        lines[1].tag = tag;
+
+        ExecuteCreateLinePortalDrawPortalSector(wrapper, lines[0].line);
+        ExecuteCreateLinePortalDrawPortalSector(wrapper, lines[1].line);
+
+        Assert.Equal(301, first.Action);
+        Assert.Equal(301, second.Action);
+        Assert.Equal(tag, first.Tag);
+        Assert.Equal(tag, second.Tag);
+        Assert.Equal(new[] { 0, 0, 0, 0, 0 }, first.Args);
+        Assert.Equal(new[] { 0, 0, 0, 0, 0 }, second.Args);
+        Assert.True(map.Linedefs.Count > 2);
+        Assert.Contains(map.Linedefs, line => line.Front?.MidTexture == "FIREBLU1");
+        Assert.Contains(map.Sectors, sector => sector.Sidedefs.Count >= 4);
+    }
+
+    [Fact]
+    public void CommonUdbScriptCreateLinePortalExampleUsesCoveredApisWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Assets", "Common", "UDBScript", "Scripts", "Examples", "Geometry", "createlineportal.js"));
+
+        Assert.Contains("let origin = line.v1", source, StringComparison.Ordinal);
+        Assert.Contains("new UDB.Vector2D(0, depth)", source, StringComparison.Ordinal);
+        Assert.Contains("points[i].getRotated(line.getAngle() - 90)", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.drawLines(points)", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.getMarkedLinedefs().filter", source, StringComparison.Ordinal);
+        Assert.Contains("if(!UDB.Map.isUDMF)", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.getSelectedLinedefs()", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.getNewTag()", source, StringComparison.Ordinal);
+        Assert.Contains("lines[0].action = lines[1].action = 301", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void CommonUdbScriptSelectConnectedLinedefsWorkflowUsesMapWrappersTogether()
     {
         var map = new MapSet();
@@ -4238,6 +4302,32 @@ localsidedeftextureoffsets = true;
         startSpot.angle = polyobjectNumber;
         UdbScriptThingWrapper anchor = wrapper.createThing(anchorPosition, 9300);
         anchor.angle = polyobjectNumber;
+    }
+
+    private static void ExecuteCreateLinePortalDrawPortalSector(UdbScriptMapWrapper wrapper, UdbScriptLine2DWrapper line)
+    {
+        const int depth = 64;
+        const string texture = "FIREBLU1";
+        UdbScriptVector2DWrapper origin = line.v1;
+        var points = new[]
+        {
+            new UdbScriptVector2DWrapper(0, 0),
+            new UdbScriptVector2DWrapper(0, depth),
+            new UdbScriptVector2DWrapper(line.getLength(), depth),
+            new UdbScriptVector2DWrapper(line.getLength(), 0),
+            new UdbScriptVector2DWrapper(0, 0),
+        };
+
+        for (int i = 0; i < points.Length; i++)
+        {
+            UdbScriptVector2DWrapper rotated = points[i].getRotated(line.getAngle() - 90);
+            points[i] = new UdbScriptVector2DWrapper(origin.x + rotated.x, origin.y + rotated.y);
+        }
+
+        Assert.True(wrapper.drawLines(points));
+
+        foreach (UdbScriptLinedefWrapper markedLine in wrapper.getMarkedLinedefs().Where(candidate => candidate.back == null))
+            markedLine.front!.middleTexture = texture;
     }
 
     private static void ExecuteImpsToArchVilesWorkflow(UdbScriptMapWrapper wrapper)
