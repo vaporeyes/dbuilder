@@ -121,6 +121,8 @@ public sealed class SoundEnvironmentWindow : Window
             Foreground = row.Warning ? Brushes.OrangeRed : Brushes.LightGray,
             TextWrapping = TextWrapping.Wrap,
         });
+        if (row.WarningMessage != null)
+            ToolTip.SetTip(panel, row.WarningMessage);
         return panel;
     }
 

@@ -1878,6 +1878,14 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void SoundEnvironmentWindowUsesWarningMessagesAsTooltips()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SoundEnvironmentWindow.cs"));
+
+        Assert.Contains("ToolTip.SetTip(panel, row.WarningMessage);", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void HelpMenuTooltipsRefreshFromEffectiveShortcutBindings()
     {
         string code = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
