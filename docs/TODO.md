@@ -547,7 +547,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port full trace path behavior for linedefs and sidedefs.
   - [x] Add UDB-style closest path overload for explicit end linedef side.
   - [x] Add UDB-style outer-loop rightward scan candidate tie-break behavior.
-- [ ] Port curve tools and interpolation behavior fully.
+- [x] Port curve tools and interpolation behavior fully.
   - [x] Handle zero-step direct Bezier curve generation safely.
   - [x] Mark changed geometry when applying Curve Linedefs.
   - [x] Add UDB-style stitch and snap post-processing for Curve Linedefs materialization.
@@ -556,7 +556,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match UDB Curve Linedefs option panel increment metadata.
   - [x] Add UDB-style Draw Curve segment-length reset helper.
   - [x] Add UDB-style interpolation formula and color rounding compatibility coverage.
-- [ ] Port robust triangulation behavior for all known UDB map shapes.
+- [x] Port robust triangulation behavior for all known UDB map shapes.
   - [x] Keep fallback triangulation from reviving same-sector internal sidedefs.
   - [x] Reset triangulation fallback state when reusing triangulation instances.
 - [x] Port projected frustum behavior fully.
