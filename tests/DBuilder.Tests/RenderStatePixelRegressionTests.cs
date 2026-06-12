@@ -61,6 +61,34 @@ public sealed class RenderStatePixelRegressionTests
     }
 
     [Fact]
+    public void StandardPresentationStackCompositesThingsBeforeGeometry()
+    {
+        IReadOnlyList<PresentationDrawCommand> commands = PresentationPlan
+            .Standard(backgroundAlpha: 1.0f, inactiveThingsAlpha: 0.25f)
+            .BuildDrawCommands(qualityDisplay: false);
+        PixelColor pixel = new(255, 0, 0, 0);
+
+        pixel = Composite(commands[0], source: new PixelColor(255, 20, 40, 80), pixel);
+        pixel = Composite(commands[1], source: new PixelColor(0, 200, 0, 0), pixel);
+        pixel = Composite(commands[2], source: new PixelColor(255, 220, 20, 20), pixel);
+        Assert.Equal(new PixelColor(255, 70, 35, 65), pixel);
+        pixel = Composite(commands[3], source: new PixelColor(0, 255, 255, 255), pixel);
+        pixel = Composite(commands[4], source: new PixelColor(255, 40, 180, 60), pixel);
+
+        Assert.Equal(
+            [
+                PresentationRendererLayer.Background,
+                PresentationRendererLayer.Surface,
+                PresentationRendererLayer.Things,
+                PresentationRendererLayer.Grid,
+                PresentationRendererLayer.Geometry,
+                PresentationRendererLayer.Overlay,
+            ],
+            commands.Select(command => command.Layer).ToArray());
+        Assert.Equal(new PixelColor(255, 40, 180, 60), pixel);
+    }
+
+    [Fact]
     public void FarOverviewThingMarkersCullOverlappingPixelsToSelectedRepresentative()
     {
         const int width = 64;
