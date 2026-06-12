@@ -252,6 +252,7 @@ public partial class MainWindow : Window
         MapView.ViewDistance = _settings.NormalizedViewDistance;
         MapView.MoveSpeed = _settings.NormalizedMoveSpeed;
         MapView.MouseSpeed = _settings.NormalizedMouseSpeed;
+        MapView.AutoScrollSpeed = _settings.NormalizedAutoScrollSpeed;
         MapView.SetMarkExtraFloors(_settings.MarkExtraFloors);
         MapView.SetFixedThingsScale(_settings.FixedThingsScale);
         MapView.SetAlwaysShowVertices(_settings.AlwaysShowVertices);
@@ -1442,6 +1443,7 @@ public partial class MainWindow : Window
         _settings.ViewDistance = dlg.ViewDistance;
         _settings.MoveSpeed = dlg.MoveSpeed;
         _settings.MouseSpeed = dlg.MouseSpeed;
+        _settings.AutoScrollSpeed = dlg.AutoScrollSpeed;
         _settings.QualityDisplay = dlg.QualityDisplay;
         _settings.ClassicBilinear = dlg.ClassicBilinear;
         _settings.VisualBilinear = dlg.VisualBilinear;
@@ -1497,6 +1499,7 @@ public partial class MainWindow : Window
         MapView.ViewDistance = _settings.NormalizedViewDistance;
         MapView.MoveSpeed = _settings.NormalizedMoveSpeed;
         MapView.MouseSpeed = _settings.NormalizedMouseSpeed;
+        MapView.AutoScrollSpeed = _settings.NormalizedAutoScrollSpeed;
         MapView.SetMarkExtraFloors(_settings.MarkExtraFloors);
         MapView.SetFixedThingsScale(_settings.FixedThingsScale);
         MapView.SetAlwaysShowVertices(_settings.AlwaysShowVertices);

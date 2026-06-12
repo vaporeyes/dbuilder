@@ -12,7 +12,7 @@ public sealed class SettingsWindow : PropertyDialog
 {
     private const string ShortcutOverrideWatermark = "command.id=Shortcut; use None or Unassigned to clear; separate entries with semicolons, commas, or new lines";
 
-    private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _testSkill, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _autosaveCount, _autosaveInterval, _defaultSectorFloorHeight, _defaultSectorCeilingHeight, _defaultSectorBrightness, _imageBrightness, _doubleSidedAlpha, _visualFov, _viewDistance, _moveSpeed, _mouseSpeed, _statusHistoryLimit, _toastDuration, _toastDisabledActions, _shortcutOverrides;
+    private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _testSkill, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _autosaveCount, _autosaveInterval, _defaultSectorFloorHeight, _defaultSectorCeilingHeight, _defaultSectorBrightness, _imageBrightness, _doubleSidedAlpha, _visualFov, _viewDistance, _moveSpeed, _mouseSpeed, _autoScrollSpeed, _statusHistoryLimit, _toastDuration, _toastDisabledActions, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _mergeGeometryMode, _toastAnchor, _pasteTagMode;
     private readonly CheckBox _testMonsters, _autosave, _autoClearSidedefTextures, _autoMerge, _splitJoinedSectors, _dynamicGridSize, _switchViewModes, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _qualityDisplay, _classicBilinear, _visualBilinear, _blackBrowsers, _flatShadeVertices, _markExtraFloors, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _showErrorsWindow, _fixedThingsScale, _alwaysShowVertices, _selectAdjacentVisualVertexSlopeHandles, _toastsEnabled, _pasteRemoveActions;
     private readonly bool _drawLineShowGuidelines;
@@ -48,6 +48,7 @@ public sealed class SettingsWindow : PropertyDialog
     public int? ViewDistance;
     public int? MoveSpeed;
     public int? MouseSpeed;
+    public int? AutoScrollSpeed;
     public bool QualityDisplay;
     public bool ClassicBilinear;
     public bool VisualBilinear;
@@ -109,6 +110,7 @@ public sealed class SettingsWindow : PropertyDialog
         _viewDistance = AddField("View distance", Settings.ViewDistanceText(s));
         _moveSpeed = AddField("Move speed", Settings.MoveSpeedText(s));
         _mouseSpeed = AddField("Mouse speed", Settings.MouseSpeedText(s));
+        _autoScrollSpeed = AddField("Auto-scroll speed", Settings.AutoScrollSpeedText(s));
         _statusHistoryLimit = AddField("Status history", Settings.StatusHistoryLimitText(s));
         _toastsEnabled = AddCheckBox("Show toasts", s.ToastsEnabled);
         _toastDuration = AddField("Toast duration", ToastPreferences.DurationSecondsText(s.NormalizedToastDurationMilliseconds));
@@ -212,6 +214,7 @@ public sealed class SettingsWindow : PropertyDialog
         ViewDistance = Settings.AcceptViewDistanceText(_viewDistance.Text);
         MoveSpeed = Settings.AcceptMoveSpeedText(_moveSpeed.Text);
         MouseSpeed = Settings.AcceptMouseSpeedText(_mouseSpeed.Text);
+        AutoScrollSpeed = Settings.AcceptAutoScrollSpeedText(_autoScrollSpeed.Text);
         QualityDisplay = _qualityDisplay.IsChecked == true;
         ClassicBilinear = _classicBilinear.IsChecked == true;
         VisualBilinear = _visualBilinear.IsChecked == true;

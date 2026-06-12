@@ -48,6 +48,9 @@ public sealed class Settings
     public const int DefaultMouseSpeed = 100;
     public const int MinMouseSpeed = 100;
     public const int MaxMouseSpeed = 2000;
+    public const int DefaultAutoScrollSpeed = 0;
+    public const int MinAutoScrollSpeed = 0;
+    public const int MaxAutoScrollSpeed = 5;
 
     public string? ConfigDir { get; set; }
     public string? LastUsedConfigName { get; set; }
@@ -90,6 +93,7 @@ public sealed class Settings
     public int? ViewDistance { get; set; }
     public int? MoveSpeed { get; set; }
     public int? MouseSpeed { get; set; }
+    public int? AutoScrollSpeed { get; set; }
     public bool QualityDisplay { get; set; } = true;
     public bool ClassicBilinear { get; set; }
     public bool VisualBilinear { get; set; }
@@ -189,6 +193,9 @@ public sealed class Settings
     public int NormalizedMouseSpeed =>
         Math.Clamp(MouseSpeed ?? DefaultMouseSpeed, MinMouseSpeed, MaxMouseSpeed);
 
+    public int NormalizedAutoScrollSpeed =>
+        Math.Clamp(AutoScrollSpeed ?? DefaultAutoScrollSpeed, MinAutoScrollSpeed, MaxAutoScrollSpeed);
+
     public ToastAnchor NormalizedToastAnchor =>
         ToastPreferences.NormalizeAnchor(ToastAnchor);
 
@@ -253,6 +260,9 @@ public sealed class Settings
     public static int? AcceptMouseSpeedText(string? text)
         => int.TryParse(text, out int value) ? Math.Clamp(value, MinMouseSpeed, MaxMouseSpeed) : null;
 
+    public static int? AcceptAutoScrollSpeedText(string? text)
+        => int.TryParse(text, out int value) ? Math.Clamp(value, MinAutoScrollSpeed, MaxAutoScrollSpeed) : null;
+
     public static byte AlphaToByte(double alpha)
         => (byte)(Math.Clamp(alpha, 0.0, 1.0) * 255.0);
 
@@ -297,6 +307,11 @@ public sealed class Settings
 
     public static string MouseSpeedText(Settings settings)
         => settings.NormalizedMouseSpeed.ToString(CultureInfo.InvariantCulture);
+
+    public static string AutoScrollSpeedText(Settings settings)
+        => settings.NormalizedAutoScrollSpeed == 0
+            ? "0"
+            : settings.NormalizedAutoScrollSpeed.ToString(CultureInfo.InvariantCulture);
 
     public int NormalizedDefaultViewMode =>
         Math.Clamp(DefaultViewMode ?? 0, 0, 3);

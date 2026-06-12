@@ -118,6 +118,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Persist the UDB auto-clear sidedef textures preference.
   - [x] Expose dynamic grid size in the Settings dialog.
   - [x] Persist and apply UDB-style same-classic-mode view switching.
+  - [x] Persist and apply UDB-style 2D auto-scroll speed.
   - [x] Expose merge geometry mode in the Settings dialog.
   - [x] Expose draw-line continuous and auto-close preferences in the Settings dialog.
   - [x] Expose draw-rectangle continuous, radial, and thing placement preferences in the Settings dialog.

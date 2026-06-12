@@ -871,6 +871,35 @@ public sealed class MapControlCommandTests
         Assert.True(body.IndexOf("_geometryDirty = true;", restoreIndex, StringComparison.Ordinal) > restoreIndex);
     }
 
+    [Fact]
+    public void AutoPanDeltaMatchesUdbEdgeSpeedFormula()
+    {
+        var left = MapControl.AutoPanDelta(new Avalonia.Point(50, 250), width: 800, height: 600, speed: 2, worldUnitsPerPixel: 0.5, elapsedMilliseconds: 16);
+        var topRight = MapControl.AutoPanDelta(new Avalonia.Point(760, 40), width: 800, height: 600, speed: 5, worldUnitsPerPixel: 1, elapsedMilliseconds: 10);
+        var center = MapControl.AutoPanDelta(new Avalonia.Point(400, 300), width: 800, height: 600, speed: 5, worldUnitsPerPixel: 1, elapsedMilliseconds: 10);
+        var off = MapControl.AutoPanDelta(new Avalonia.Point(50, 50), width: 800, height: 600, speed: 0, worldUnitsPerPixel: 1, elapsedMilliseconds: 10);
+
+        Assert.Equal(-4, left.X, precision: 6);
+        Assert.Equal(0, left.Y, precision: 6);
+        Assert.Equal(18, topRight.X, precision: 6);
+        Assert.Equal(18, topRight.Y, precision: 6);
+        Assert.Equal(default, center);
+        Assert.Equal(default, off);
+    }
+
+    [Fact]
+    public void AutoPanTimerUsesPersistedSpeedAndStopsWhenDisabled()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("private const double AutoPanBorderSize = 100.0;", body, StringComparison.Ordinal);
+        Assert.Contains("private readonly DispatcherTimer _autoPanTimer = new() { Interval = TimeSpan.FromMilliseconds(16) };", body, StringComparison.Ordinal);
+        Assert.Contains("_autoPanTimer.Tick += (_, _) => ApplyAutoPanTimerTick();", body, StringComparison.Ordinal);
+        Assert.Contains("_autoScrollSpeed = Math.Clamp(value, Settings.MinAutoScrollSpeed, Settings.MaxAutoScrollSpeed);", body, StringComparison.Ordinal);
+        Assert.Contains("if (_autoScrollSpeed == 0) StopAutoPan();", body, StringComparison.Ordinal);
+        Assert.Contains("StopAutoPan();\n        foreach (var b in _fillBuckets)", body, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("map2d.increasesubdivlevel", "AdjustDrawSubdivision(increase: true)")]
     [InlineData("map2d.decreasesubdivlevel", "AdjustDrawSubdivision(increase: false)")]

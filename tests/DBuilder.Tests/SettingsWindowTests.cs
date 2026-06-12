@@ -388,12 +388,14 @@ public class SettingsWindowTests
         Assert.NotNull(type.GetField("ViewDistance", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("MoveSpeed", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("MouseSpeed", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("AutoScrollSpeed", BindingFlags.Instance | BindingFlags.Public));
         Assert.Contains("AddField(\"Image brightness\", Settings.ImageBrightnessText(s))", body, StringComparison.Ordinal);
         Assert.Contains("AddField(\"Double-sided alpha\", Settings.DoubleSidedAlphaText(s))", body, StringComparison.Ordinal);
         Assert.Contains("AddField(\"Visual FOV\", Settings.VisualFovText(s))", body, StringComparison.Ordinal);
         Assert.Contains("AddField(\"View distance\", Settings.ViewDistanceText(s))", body, StringComparison.Ordinal);
         Assert.Contains("AddField(\"Move speed\", Settings.MoveSpeedText(s))", body, StringComparison.Ordinal);
         Assert.Contains("AddField(\"Mouse speed\", Settings.MouseSpeedText(s))", body, StringComparison.Ordinal);
+        Assert.Contains("AddField(\"Auto-scroll speed\", Settings.AutoScrollSpeedText(s))", body, StringComparison.Ordinal);
         Assert.Contains("AddCheckBox(\"High quality rendering\", s.QualityDisplay)", body, StringComparison.Ordinal);
         Assert.Contains("AddCheckBox(\"Bilinear filtering in classic modes\", s.ClassicBilinear)", body, StringComparison.Ordinal);
         Assert.Contains("AddCheckBox(\"Bilinear filtering in visual modes\", s.VisualBilinear)", body, StringComparison.Ordinal);
@@ -406,6 +408,7 @@ public class SettingsWindowTests
         Assert.Contains("ViewDistance = Settings.AcceptViewDistanceText(_viewDistance.Text);", body, StringComparison.Ordinal);
         Assert.Contains("MoveSpeed = Settings.AcceptMoveSpeedText(_moveSpeed.Text);", body, StringComparison.Ordinal);
         Assert.Contains("MouseSpeed = Settings.AcceptMouseSpeedText(_mouseSpeed.Text);", body, StringComparison.Ordinal);
+        Assert.Contains("AutoScrollSpeed = Settings.AcceptAutoScrollSpeedText(_autoScrollSpeed.Text);", body, StringComparison.Ordinal);
         Assert.Contains("QualityDisplay = _qualityDisplay.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("ClassicBilinear = _classicBilinear.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("VisualBilinear = _visualBilinear.IsChecked == true;", body, StringComparison.Ordinal);
@@ -418,6 +421,8 @@ public class SettingsWindowTests
         Assert.Contains("_settings.ViewDistance = dlg.ViewDistance;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.MoveSpeed = dlg.MoveSpeed;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.MouseSpeed = dlg.MouseSpeed;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.AutoScrollSpeed = dlg.AutoScrollSpeed;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.AutoScrollSpeed = _settings.NormalizedAutoScrollSpeed;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.QualityDisplay = dlg.QualityDisplay;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.ClassicBilinear = dlg.ClassicBilinear;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.VisualBilinear = dlg.VisualBilinear;", mainWindow, StringComparison.Ordinal);

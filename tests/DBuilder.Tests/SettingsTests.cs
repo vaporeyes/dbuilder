@@ -201,6 +201,12 @@ public class SettingsTests
         Assert.Equal(100, Settings.AcceptMouseSpeedText("20"));
         Assert.Equal(2000, Settings.AcceptMouseSpeedText("90000"));
         Assert.Null(Settings.AcceptMouseSpeedText("bad"));
+        Assert.Equal(0, settings.NormalizedAutoScrollSpeed);
+        Assert.Equal(0, new Settings { AutoScrollSpeed = -5 }.NormalizedAutoScrollSpeed);
+        Assert.Equal(5, new Settings { AutoScrollSpeed = 30 }.NormalizedAutoScrollSpeed);
+        Assert.Equal(0, Settings.AcceptAutoScrollSpeedText("-5"));
+        Assert.Equal(5, Settings.AcceptAutoScrollSpeedText("30"));
+        Assert.Null(Settings.AcceptAutoScrollSpeedText("bad"));
         Assert.True(settings.QualityDisplay);
         Assert.False(settings.ClassicBilinear);
         Assert.False(settings.VisualBilinear);
@@ -424,6 +430,7 @@ public class SettingsTests
                 ViewDistance = 12000,
                 MoveSpeed = 500,
                 MouseSpeed = 300,
+                AutoScrollSpeed = 4,
                 QualityDisplay = false,
                 ClassicBilinear = true,
                 VisualBilinear = true,
@@ -614,6 +621,8 @@ public class SettingsTests
             Assert.Equal(500, loaded.NormalizedMoveSpeed);
             Assert.Equal(300, loaded.MouseSpeed);
             Assert.Equal(300, loaded.NormalizedMouseSpeed);
+            Assert.Equal(4, loaded.AutoScrollSpeed);
+            Assert.Equal(4, loaded.NormalizedAutoScrollSpeed);
             Assert.False(loaded.QualityDisplay);
             Assert.True(loaded.ClassicBilinear);
             Assert.True(loaded.VisualBilinear);

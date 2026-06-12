@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -12,6 +13,7 @@ using Avalonia.Input;
 using Avalonia.OpenGL;
 using Avalonia.OpenGL.Controls;
 using Avalonia.Rendering;
+using Avalonia.Threading;
 using DBuilder.Geometry;
 using DBuilder.IO;
 using DBuilder.Map;
@@ -34,6 +36,8 @@ namespace DBuilder.Editor;
 public class MapControl : OpenGlControlBase, ICustomHitTest
 {
     private static readonly int ThreeDFloorLineColor = new ColorCollection().ThreeDFloor.ToArgb();
+    private const double AutoPanBorderSize = 100.0;
+    private const double AutoPanScale = 0.0001;
 
     public enum ClassicViewMode
     {
@@ -159,6 +163,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public MapControl()
     {
         Focusable = true; // required to receive keyboard input for the 3D fly camera
+        _autoPanTimer.Tick += (_, _) => ApplyAutoPanTimerTick();
     }
 
     private ResourceManager? _resources;
@@ -229,6 +234,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private int _viewDistance = Settings.DefaultViewDistance;
     private int _moveSpeed = Settings.DefaultMoveSpeed;
     private int _mouseSpeed = Settings.DefaultMouseSpeed;
+    private int _autoScrollSpeed;
     private bool _alphaBasedTextureHighlighting = true;
     private bool _selectAdjacentVisualVertexSlopeHandles;
     private bool _markExtraFloors = true;
@@ -299,6 +305,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool MarkExtraFloors => _markExtraFloors;
     public VisualSlopePickingMode CurrentVisualSlopePickingMode => _visualSlopePickingMode;
     public ClassicViewMode ViewMode2D => _classicViewMode;
+    public int AutoScrollSpeed
+    {
+        get => _autoScrollSpeed;
+        set
+        {
+            _autoScrollSpeed = Math.Clamp(value, Settings.MinAutoScrollSpeed, Settings.MaxAutoScrollSpeed);
+            if (_autoScrollSpeed == 0) StopAutoPan();
+        }
+    }
     public bool ImageExampleMode { get; private set; }
     public bool AutomapMode { get; private set; }
     public bool WadAuthorMode { get; private set; }
@@ -1754,6 +1769,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     // Right-button: a drag pans, a click splits the nearest line. Decided on release.
     private bool _rightPressed, _rightDragging;
     private bool _heldPanView, _heldPanViewWaitingForPointer;
+    private readonly DispatcherTimer _autoPanTimer = new() { Interval = TimeSpan.FromMilliseconds(16) };
+    private readonly Stopwatch _autoPanClock = new();
+    private Point? _autoPanPointer;
     // Rubber-band box selection (left-drag over empty space).
     private bool _boxAdditive;
     private Vec2D _boxStartWorld, _boxCurWorld;
@@ -2007,6 +2025,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     protected override void OnOpenGlDeinit(GlInterface gl)
     {
+        StopAutoPan();
         foreach (var b in _fillBuckets) b.Vb.Dispose();
         _fillBuckets.Clear();
         foreach (var b in _floor3D) b.Vb.Dispose();
@@ -9559,6 +9578,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         base.OnPointerMoved(e);
         var pos = e.GetCurrentPoint(this).Position;
+        UpdateAutoPanPointer(pos);
 
         // 3D: left-drag rotates the camera; right-drag changes the captured surface/thing height.
         if (_mode3D)
@@ -9741,6 +9761,87 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _camY += screenDy * _zoom;
         _geometryDirty = true;
         RequestNextFrameRendering();
+    }
+
+    public static Avalonia.Vector AutoPanDelta(
+        Point pointer,
+        double width,
+        double height,
+        int speed,
+        double worldUnitsPerPixel,
+        double elapsedMilliseconds)
+    {
+        if (speed <= 0 || width <= 0 || height <= 0 || worldUnitsPerPixel <= 0 || elapsedMilliseconds <= 0)
+            return default;
+
+        double x = 0;
+        if (pointer.X < AutoPanBorderSize)
+            x = -AutoPanBorderSize + pointer.X;
+        else if (pointer.X > width - AutoPanBorderSize)
+            x = pointer.X - (width - AutoPanBorderSize);
+
+        double y = 0;
+        if (pointer.Y < AutoPanBorderSize)
+            y = AutoPanBorderSize - pointer.Y;
+        else if (pointer.Y > height - AutoPanBorderSize)
+            y = -(pointer.Y - (height - AutoPanBorderSize));
+
+        if (x == 0 && y == 0) return default;
+        return new Avalonia.Vector(
+            x * Math.Abs(x) * AutoPanScale * speed * worldUnitsPerPixel * elapsedMilliseconds,
+            y * Math.Abs(y) * AutoPanScale * speed * worldUnitsPerPixel * elapsedMilliseconds);
+    }
+
+    private void UpdateAutoPanPointer(Point pointer)
+    {
+        if (_autoScrollSpeed == 0 || _mode3D || Bounds.Width <= 0 || Bounds.Height <= 0)
+        {
+            StopAutoPan();
+            return;
+        }
+
+        _autoPanPointer = pointer;
+        if (AutoPanDelta(pointer, Bounds.Width, Bounds.Height, _autoScrollSpeed, _zoom, elapsedMilliseconds: 1) == default)
+        {
+            StopAutoPan();
+            return;
+        }
+
+        if (!_autoPanTimer.IsEnabled)
+        {
+            _autoPanClock.Restart();
+            _autoPanTimer.Start();
+        }
+    }
+
+    private void ApplyAutoPanTimerTick()
+    {
+        if (_autoPanPointer is not { } pointer)
+        {
+            StopAutoPan();
+            return;
+        }
+
+        double elapsed = _autoPanClock.Elapsed.TotalMilliseconds;
+        _autoPanClock.Restart();
+        Avalonia.Vector delta = AutoPanDelta(pointer, Bounds.Width, Bounds.Height, _autoScrollSpeed, _zoom, elapsed);
+        if (delta == default)
+        {
+            StopAutoPan();
+            return;
+        }
+
+        _camX += delta.X;
+        _camY += delta.Y;
+        _geometryDirty = true;
+        RequestNextFrameRendering();
+    }
+
+    private void StopAutoPan()
+    {
+        _autoPanPointer = null;
+        _autoPanTimer.Stop();
+        _autoPanClock.Reset();
     }
 
     // Clears the selection and selects the single nearest element (vertex -> thing -> linedef -> sector).
