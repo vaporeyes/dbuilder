@@ -300,6 +300,60 @@ public sealed class SurfaceRenderPlanTests
     }
 
     [Fact]
+    public void BuildRenderOperationsBindsTextureThenDrawsEntriesWithDesaturation()
+    {
+        var batches = new[]
+        {
+            new SurfaceRenderBatch(11, new[]
+            {
+                EntryForCommand(numVertices: 3, bufferIndex: 0, vertexOffset: 0, desaturation: 0.25),
+                EntryForCommand(numVertices: 3, bufferIndex: 0, vertexOffset: 6, desaturation: 0.5),
+            }),
+            new SurfaceRenderBatch(22, new[]
+            {
+                EntryForCommand(numVertices: 6, bufferIndex: 1, vertexOffset: 12, desaturation: 0.75),
+            }),
+        };
+
+        IReadOnlyList<SurfaceRenderOperation> operations =
+            SurfaceRenderPlan.BuildRenderOperations(batches, SurfaceRenderPass.Floor);
+
+        Assert.Equal(
+            new[]
+            {
+                new SurfaceRenderOperation(SurfaceRenderOperationKind.SetTexture, Texture: 11),
+                new SurfaceRenderOperation(SurfaceRenderOperationKind.SetDesaturation, Desaturation: 0.25),
+                new SurfaceRenderOperation(SurfaceRenderOperationKind.SetVertexBuffer, BufferIndex: 0),
+                new SurfaceRenderOperation(SurfaceRenderOperationKind.Draw, VertexOffset: 0, PrimitiveCount: 1),
+                new SurfaceRenderOperation(SurfaceRenderOperationKind.SetDesaturation, Desaturation: 0.5),
+                new SurfaceRenderOperation(SurfaceRenderOperationKind.Draw, VertexOffset: 6, PrimitiveCount: 1),
+                new SurfaceRenderOperation(SurfaceRenderOperationKind.SetTexture, Texture: 22),
+                new SurfaceRenderOperation(SurfaceRenderOperationKind.SetDesaturation, Desaturation: 0.75),
+                new SurfaceRenderOperation(SurfaceRenderOperationKind.SetVertexBuffer, BufferIndex: 1),
+                new SurfaceRenderOperation(SurfaceRenderOperationKind.Draw, VertexOffset: 12, PrimitiveCount: 2),
+                new SurfaceRenderOperation(SurfaceRenderOperationKind.ResetDesaturation, Desaturation: 0.0),
+            },
+            operations);
+    }
+
+    [Fact]
+    public void BuildRenderOperationsOffsetsCeilingDraws()
+    {
+        var batch = new SurfaceRenderBatch(21, new[]
+        {
+            EntryForCommand(numVertices: 6, bufferIndex: 0, vertexOffset: 24, desaturation: 0.25),
+        });
+
+        IReadOnlyList<SurfaceRenderOperation> operations =
+            SurfaceRenderPlan.BuildRenderOperations(new[] { batch }, SurfaceRenderPass.Ceiling);
+
+        Assert.Contains(new SurfaceRenderOperation(
+            SurfaceRenderOperationKind.Draw,
+            VertexOffset: 30,
+            PrimitiveCount: 2), operations);
+    }
+
+    [Fact]
     public void BuildRenderStatePlanSelectsFullbrightShaderOutsideBrightnessPass()
     {
         SurfaceRenderStatePlan floor = SurfaceRenderPlan.BuildRenderStatePlan(
@@ -371,6 +425,19 @@ public sealed class SurfaceRenderPlanTests
         entry.UpdateBounds();
         return entry;
     }
+
+    private static SurfaceEntry EntryForCommand(int numVertices, int bufferIndex, int vertexOffset, double desaturation)
+        => new(numVertices, bufferIndex, vertexOffset)
+        {
+            Desaturation = desaturation,
+            FloorVertices = Vertices(numVertices),
+            CeilingVertices = Vertices(numVertices),
+        };
+
+    private static FlatVertex[] Vertices(int count)
+        => Enumerable.Range(0, count)
+            .Select(i => Vertex(i, i))
+            .ToArray();
 
     private static FlatVertex Vertex(float x, float y)
         => new() { x = x, y = y };

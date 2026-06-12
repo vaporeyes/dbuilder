@@ -21,6 +21,23 @@ public sealed record SurfaceRenderCommand(
 
 public sealed record SurfaceBufferBinding(int CommandIndex, int BufferIndex);
 
+public enum SurfaceRenderOperationKind
+{
+    SetTexture,
+    SetDesaturation,
+    SetVertexBuffer,
+    Draw,
+    ResetDesaturation,
+}
+
+public sealed record SurfaceRenderOperation(
+    SurfaceRenderOperationKind Kind,
+    long? Texture = null,
+    int? BufferIndex = null,
+    int? VertexOffset = null,
+    int? PrimitiveCount = null,
+    double? Desaturation = null);
+
 public enum SurfaceTextureFallback
 {
     Source,
@@ -148,6 +165,50 @@ public static class SurfaceRenderPlan
         }
 
         return bindings;
+    }
+
+    public static IReadOnlyList<SurfaceRenderOperation> BuildRenderOperations(
+        IEnumerable<SurfaceRenderBatch> batches,
+        SurfaceRenderPass pass)
+    {
+        IReadOnlyList<SurfaceRenderCommand> commands = BuildCommands(batches, pass);
+        var operations = new List<SurfaceRenderOperation>();
+        long? lastTexture = null;
+        int? lastBuffer = null;
+
+        foreach (SurfaceRenderCommand command in commands)
+        {
+            if (command.Texture != lastTexture)
+            {
+                operations.Add(new SurfaceRenderOperation(
+                    SurfaceRenderOperationKind.SetTexture,
+                    Texture: command.Texture));
+                lastTexture = command.Texture;
+                lastBuffer = null;
+            }
+
+            operations.Add(new SurfaceRenderOperation(
+                SurfaceRenderOperationKind.SetDesaturation,
+                Desaturation: command.Desaturation));
+
+            if (command.BufferIndex != lastBuffer)
+            {
+                operations.Add(new SurfaceRenderOperation(
+                    SurfaceRenderOperationKind.SetVertexBuffer,
+                    BufferIndex: command.BufferIndex));
+                lastBuffer = command.BufferIndex;
+            }
+
+            operations.Add(new SurfaceRenderOperation(
+                SurfaceRenderOperationKind.Draw,
+                VertexOffset: command.VertexOffset,
+                PrimitiveCount: command.PrimitiveCount));
+        }
+
+        operations.Add(new SurfaceRenderOperation(
+            SurfaceRenderOperationKind.ResetDesaturation,
+            Desaturation: 0.0));
+        return operations;
     }
 
     public static SurfaceRenderStatePlan BuildRenderStatePlan(
