@@ -1750,6 +1750,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style mesh constructor input validation planning.
   - [x] Add UDB-style mesh primitive-count validation planning.
   - [x] Add UDB-style mesh draw availability planning.
+  - [x] Suppress empty UDB-style mesh draw plans.
 - [x] Port text font and text label rendering.
   - [x] Add UDB-style text font byte-indexed glyph table planning.
   - [x] Add UDB-style text font Font.cfg resource discovery and glyph-source parsing.

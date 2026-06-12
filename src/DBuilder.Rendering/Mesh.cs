@@ -103,6 +103,7 @@ public sealed class Mesh : IDisposable
     public static IReadOnlyList<MeshDrawStep> BuildDrawPlan(int primitiveCount)
     {
         if (primitiveCount < 0) throw new ArgumentOutOfRangeException(nameof(primitiveCount));
+        if (primitiveCount == 0) return Array.Empty<MeshDrawStep>();
 
         return new[]
         {

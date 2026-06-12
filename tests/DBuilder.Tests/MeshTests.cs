@@ -55,6 +55,12 @@ public sealed class MeshTests
     }
 
     [Fact]
+    public void DrawPlanSkipsEmptyMeshesLikeLiveDrawPath()
+    {
+        Assert.Empty(Mesh.BuildDrawPlan(primitiveCount: 0));
+    }
+
+    [Fact]
     public void DrawAvailabilitySkipsDisposedAndEmptyMeshes()
     {
         Assert.Equal(new MeshDrawAvailabilityPlan(
