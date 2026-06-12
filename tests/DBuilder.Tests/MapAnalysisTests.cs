@@ -1660,6 +1660,37 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void MissingUpperAndLowerTextureChecksHonorLongNamePresenceLikeUdb()
+    {
+        var map = new MapSet();
+        var front = map.AddSector();
+        front.FloorHeight = 0;
+        front.CeilHeight = 64;
+        var back = map.AddSector();
+        back.FloorHeight = 32;
+        back.CeilHeight = 128;
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var line = map.AddLinedef(a, b);
+        var side = map.AddSidedef(line, true, front);
+        var other = map.AddSidedef(line, false, back);
+        side.HighTexture = "-";
+        side.LowTexture = "-";
+        side.LongHighTexture = 101;
+        side.LongLowTexture = 102;
+        other.HighTexture = "BACKHI";
+        other.LowTexture = "BACKLO";
+        map.BuildIndexes();
+
+        var issues = MapAnalysis.Check(map, new MapCheckContext())
+            .Where(issue => issue.Kind == MapIssueKind.MissingTexture)
+            .ToArray();
+
+        Assert.DoesNotContain(issues, issue =>
+            ReferenceEquals(issue.Target, line) && issue.Message.Contains("front side", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void UnusedUpperAndLowerTexturesAreFlaggedWhenWallPartsAreNotRequired()
     {
         var map = new MapSet();
@@ -1682,6 +1713,35 @@ public class MapAnalysisTests
 
         Assert.Contains(issues, i => i.Message.Contains("upper texture", StringComparison.Ordinal));
         Assert.Contains(issues, i => i.Message.Contains("lower texture", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void UnusedUpperAndLowerTextureChecksHonorLongNamePresenceLikeUdb()
+    {
+        var map = new MapSet();
+        var front = map.AddSector();
+        front.FloorHeight = 0;
+        front.CeilHeight = 128;
+        var back = map.AddSector();
+        back.FloorHeight = 0;
+        back.CeilHeight = 128;
+        var a = map.AddVertex(new Vector2D(0, 0));
+        var b = map.AddVertex(new Vector2D(128, 0));
+        var line = map.AddLinedef(a, b);
+        var side = map.AddSidedef(line, true, front);
+        map.AddSidedef(line, false, back);
+        side.HighTexture = "-";
+        side.LowTexture = "-";
+        side.LongHighTexture = 201;
+        side.LongLowTexture = 202;
+        map.BuildIndexes();
+
+        var issues = MapAnalysis.Check(map, new MapCheckContext())
+            .Where(issue => issue.Kind == MapIssueKind.UnusedTexture)
+            .ToArray();
+
+        Assert.Contains(issues, issue => issue.Message.Contains("upper texture", StringComparison.Ordinal));
+        Assert.Contains(issues, issue => issue.Message.Contains("lower texture", StringComparison.Ordinal));
     }
 
     [Fact]

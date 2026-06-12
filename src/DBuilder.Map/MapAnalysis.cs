@@ -590,14 +590,14 @@ public static class MapAnalysis
                     bool heightGapNeedsUpper = side.HighRequired() && !IsSkyFlat(ctx, other.Sector.CeilTexture);
                     bool actionNeedsUpper = ctx.ActionRequiresUpperTexture?.Invoke(l.Action) == true || IsSkyTransferStaticInit(l, ctx);
                     if ((heightGapNeedsUpper || actionNeedsUpper || threeDFloorTextures.RequiresUpperTexture(side)) &&
-                        IsBlank(side.HighTexture) &&
+                        TextureSlotEmpty(side.HighTexture, side.LongHighTexture) &&
                         !SuppressPlaneAlignTexture(l, ctx, ceiling: true))
                         issues.Add(MissingTextureIssue(l, side, SidedefPart.Upper, ctx,
                             $"Linedef {index} has missing upper texture ({which} side)", mid));
                     if ((other.Sector.FloorHeight > side.Sector.FloorHeight && !IsSkyFlat(ctx, other.Sector.FloorTexture) ||
                          actionTextures.RequiresLowerTexture(side) ||
                          threeDFloorTextures.RequiresLowerTexture(side)) &&
-                        IsBlank(side.LowTexture) &&
+                        TextureSlotEmpty(side.LowTexture, side.LongLowTexture) &&
                         !SuppressPlaneAlignTexture(l, ctx, ceiling: false))
                         issues.Add(MissingTextureIssue(l, side, SidedefPart.Lower, ctx,
                             $"Linedef {index} has missing lower texture ({which} side)", mid));
@@ -615,7 +615,7 @@ public static class MapAnalysis
                         issues.Add(UnknownTextureIssue(l, side, part, ctx,
                             $"Linedef {index} has unknown {slot} texture \"{name}\" ({which} side)", mid));
 
-            if (!IsBlank(side.HighTexture) &&
+            if (TextureSlotPresent(side.HighTexture, side.LongHighTexture) &&
                 !side.HighRequired() &&
                 ctx.ActionRequiresUpperTexture?.Invoke(l.Action) != true &&
                 !IsSkyTransferStaticInit(l, ctx) &&
@@ -623,7 +623,7 @@ public static class MapAnalysis
                 issues.Add(UnusedTextureIssue(l, side, SidedefPart.Upper,
                     $"Sidedef {map.IndexOfSidedef(side)} has unused upper texture \"{side.HighTexture}\"", mid));
 
-            if (!IsBlank(side.LowTexture) &&
+            if (TextureSlotPresent(side.LowTexture, side.LongLowTexture) &&
                 !side.LowRequired() &&
                 !IsSkyTransferStaticInit(l, ctx) &&
                 !actionTextures.RequiresLowerTexture(side) &&
@@ -1875,6 +1875,8 @@ public static class MapAnalysis
     };
 
     private static bool IsBlank(string? tex) => string.IsNullOrEmpty(tex) || tex == "-";
+    private static bool TextureSlotEmpty(string? tex, long longName) => IsBlank(tex) && longName == MapSet.EmptyLongName;
+    private static bool TextureSlotPresent(string? tex, long longName) => !TextureSlotEmpty(tex, longName);
 
     private static bool IsSkyFlat(MapCheckContext ctx, string? flat)
         => !IsBlank(flat) && ctx.IsSkyFlat?.Invoke(flat!) == true;
