@@ -141,6 +141,41 @@ public sealed class RenderStatePixelRegressionTests
     }
 
     [Fact]
+    public void Translucent3DThingsCompositeAlphaAndAdditivePassesBackToFront()
+    {
+        Renderer3DTranslucentThingOrderPlan plan = Renderer3DGeometryLifecyclePlan.BuildTranslucentThingOrderPlan(
+            [
+                new Renderer3DTranslucentThingCandidate(1, new Vector3D(4, 0, 0), RenderPass.Alpha),
+                new Renderer3DTranslucentThingCandidate(2, new Vector3D(3, 0, 0), RenderPass.Additive),
+                new Renderer3DTranslucentThingCandidate(3, new Vector3D(2, 0, 0), RenderPass.Alpha),
+            ],
+            new Vector3D());
+        var sourceColors = new Dictionary<int, PixelColor>
+        {
+            [1] = new(128, 120, 40, 20),
+            [2] = new(128, 30, 120, 90),
+            [3] = new(128, 220, 70, 30),
+        };
+        PixelColor pixel = new(255, 8, 16, 24);
+
+        foreach (Renderer3DTranslucentThingDrawPlan draw in plan.Draws)
+            pixel = Composite3D(draw.RenderPass, sourceColors[draw.ThingId], pixel);
+
+        Assert.Equal(TextureAddress.Clamp, plan.InitialTextureAddress);
+        Assert.Equal(Cull.None, plan.InitialCullMode);
+        Assert.Equal(
+            [
+                new Renderer3DTranslucentThingDrawPlan(1, RenderPass.Alpha, Blend.InverseSourceAlpha),
+                new Renderer3DTranslucentThingDrawPlan(2, RenderPass.Additive, Blend.One),
+                new Renderer3DTranslucentThingDrawPlan(3, RenderPass.Alpha, Blend.InverseSourceAlpha),
+            ],
+            plan.Draws);
+        Assert.Equal(TextureAddress.Wrap, plan.RestoredTextureAddress);
+        Assert.Equal(Cull.Clockwise, plan.RestoredCullMode);
+        Assert.Equal(new PixelColor(255, 149, 78, 47), pixel);
+    }
+
+    [Fact]
     public void ThingsPresentationStackReappliesThingsAfterGeometryLikeUdb()
     {
         IReadOnlyList<PresentationDrawCommand> commands = PresentationPlan
