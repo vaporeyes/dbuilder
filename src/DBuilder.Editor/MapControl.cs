@@ -223,6 +223,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _showEventLines = true;
     private bool _showVisualVertices = true;
     private byte _doubleSidedAlphaByte = Settings.DefaultDoubleSidedAlphaByte;
+    private int _visualFovDegrees = Settings.DefaultVisualFov;
     private bool _alphaBasedTextureHighlighting = true;
     private bool _selectAdjacentVisualVertexSlopeHandles;
     private VisualSlopePickingMode _visualSlopePickingMode;
@@ -252,6 +253,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             if (_doubleSidedAlphaByte == value) return;
             _doubleSidedAlphaByte = value;
             _geometryDirty = true;
+            RequestNextFrameRendering();
+        }
+    }
+    public int VisualFovDegrees
+    {
+        get => _visualFovDegrees;
+        set
+        {
+            int clamped = Math.Clamp(value, Settings.MinVisualFov, Settings.MaxVisualFov);
+            if (_visualFovDegrees == clamped) return;
+            _visualFovDegrees = clamped;
             RequestNextFrameRendering();
         }
     }
@@ -2111,7 +2123,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         var pos = _cam3DPos;
         var view = Matrix4x4.CreateLookAt(pos, pos + Cam3DForward(), new Vector3(0, 0, 1));
         float aspect = ph > 0 ? (float)pw / ph : 1f;
-        var persp = Matrix4x4.CreatePerspectiveFieldOfView((float)(75.0 * Math.PI / 180.0), aspect, 1f, 20000f);
+        var persp = Matrix4x4.CreatePerspectiveFieldOfView((float)(_visualFovDegrees * Math.PI / 180.0), aspect, 1f, 20000f);
         _device.SetUniform("projection", view * persp);
 
         DrawBuckets3D(_floor3D, wall: false);
@@ -2447,7 +2459,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _pitch,
             near: 1.0,
             far: 20000.0,
-            fovDegrees: 75.0);
+            fovDegrees: _visualFovDegrees);
 
         return VisualCulling.BuildPlan(
             _blockmapCache,

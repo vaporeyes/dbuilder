@@ -177,6 +177,12 @@ public class SettingsTests
         Assert.Equal(0.0, Settings.AcceptDoubleSidedAlphaText("-10"));
         Assert.Equal(1.0, Settings.AcceptDoubleSidedAlphaText("200"));
         Assert.Null(Settings.AcceptDoubleSidedAlphaText("bad"));
+        Assert.Equal(80, settings.NormalizedVisualFov);
+        Assert.Equal(50, new Settings { VisualFov = 20 }.NormalizedVisualFov);
+        Assert.Equal(170, new Settings { VisualFov = 200 }.NormalizedVisualFov);
+        Assert.Equal(50, Settings.AcceptVisualFovText("20"));
+        Assert.Equal(170, Settings.AcceptVisualFovText("200"));
+        Assert.Null(Settings.AcceptVisualFovText("bad"));
         Assert.True(settings.QualityDisplay);
         Assert.False(settings.ClassicBilinear);
         Assert.False(settings.VisualBilinear);
@@ -394,6 +400,7 @@ public class SettingsTests
                 ClassicRendering = true,
                 ImageBrightness = 7,
                 DoubleSidedAlpha = 0.25,
+                VisualFov = 100,
                 QualityDisplay = false,
                 ClassicBilinear = true,
                 VisualBilinear = true,
@@ -573,6 +580,8 @@ public class SettingsTests
             Assert.Equal(7, loaded.NormalizedImageBrightness);
             Assert.Equal(0.25, loaded.DoubleSidedAlpha);
             Assert.Equal(63, loaded.NormalizedDoubleSidedAlphaByte);
+            Assert.Equal(100, loaded.VisualFov);
+            Assert.Equal(100, loaded.NormalizedVisualFov);
             Assert.False(loaded.QualityDisplay);
             Assert.True(loaded.ClassicBilinear);
             Assert.True(loaded.VisualBilinear);

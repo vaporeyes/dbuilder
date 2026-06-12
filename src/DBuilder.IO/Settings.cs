@@ -36,6 +36,9 @@ public sealed class Settings
     public const int MaxImageBrightness = 10;
     public const double DefaultDoubleSidedAlpha = 0.4;
     public const byte DefaultDoubleSidedAlphaByte = 102;
+    public const int DefaultVisualFov = 80;
+    public const int MinVisualFov = 50;
+    public const int MaxVisualFov = 170;
 
     public string? ConfigDir { get; set; }
     public string? LastUsedConfigName { get; set; }
@@ -73,6 +76,7 @@ public sealed class Settings
     public bool ClassicRendering { get; set; }
     public int? ImageBrightness { get; set; }
     public double? DoubleSidedAlpha { get; set; }
+    public int? VisualFov { get; set; }
     public bool QualityDisplay { get; set; } = true;
     public bool ClassicBilinear { get; set; }
     public bool VisualBilinear { get; set; }
@@ -158,6 +162,9 @@ public sealed class Settings
     public byte NormalizedDoubleSidedAlphaByte =>
         AlphaToByte(NormalizedDoubleSidedAlpha);
 
+    public int NormalizedVisualFov =>
+        Math.Clamp(VisualFov ?? DefaultVisualFov, MinVisualFov, MaxVisualFov);
+
     public ToastAnchor NormalizedToastAnchor =>
         ToastPreferences.NormalizeAnchor(ToastAnchor);
 
@@ -210,6 +217,9 @@ public sealed class Settings
         return Math.Clamp(value, 0.0, 1.0);
     }
 
+    public static int? AcceptVisualFovText(string? text)
+        => int.TryParse(text, out int value) ? Math.Clamp(value, MinVisualFov, MaxVisualFov) : null;
+
     public static byte AlphaToByte(double alpha)
         => (byte)(Math.Clamp(alpha, 0.0, 1.0) * 255.0);
 
@@ -242,6 +252,9 @@ public sealed class Settings
 
     public static string DoubleSidedAlphaText(Settings settings)
         => (settings.NormalizedDoubleSidedAlpha * 100.0).ToString("0.###", CultureInfo.InvariantCulture);
+
+    public static string VisualFovText(Settings settings)
+        => settings.NormalizedVisualFov.ToString(CultureInfo.InvariantCulture);
 
     public int NormalizedDefaultViewMode =>
         Math.Clamp(DefaultViewMode ?? 0, 0, 3);
