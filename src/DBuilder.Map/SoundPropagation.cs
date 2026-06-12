@@ -280,7 +280,7 @@ public sealed record SoundEnvironmentModeModel(
                 if (warningsOnly && !warning) continue;
                 string dormant = SoundPropagation.ThingDormant(thing, udmf) ? " (dormant)" : "";
                 rows.Add(new SoundEnvironmentRow(
-                    Text: $"Thing type {thing.Type}{dormant}",
+                    Text: $"Thing {thing.Index}{dormant}",
                     Depth: 1,
                     Warning: warning,
                     Color: environment.Color,
@@ -294,7 +294,7 @@ public sealed record SoundEnvironmentModeModel(
                 bool warning = LineHasWarning(environment, line);
                 if (warningsOnly && !warning) continue;
                 rows.Add(new SoundEnvironmentRow(
-                    Text: "Boundary linedef",
+                    Text: $"Linedef {line.Index}",
                     Depth: 1,
                     Warning: warning,
                     Color: environment.Color,

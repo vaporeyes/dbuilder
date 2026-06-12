@@ -660,6 +660,8 @@ public class SoundPropagationTests
         Assert.True(rows[0].Warning);
         Assert.True(rows[1].Warning);
         Assert.True(rows[2].Warning);
+        Assert.Equal($"Thing {first.Index}", rows[1].Text);
+        Assert.Equal($"Thing {second.Index}", rows[2].Text);
 
         IReadOnlyList<SoundEnvironmentRow> warnings = model.Rows(warningsOnly: true);
         Assert.Equal(rows, warnings);
@@ -693,6 +695,22 @@ public class SoundPropagationTests
         Assert.Equal(environment, rows[0].Environment);
         Assert.True(rows[1].Warning);
         Assert.Equal(line, rows[1].Linedef);
+        Assert.Equal($"Linedef {line.Index}", rows[1].Text);
+    }
+
+    [Fact]
+    public void SoundEnvironmentRowsLabelDormantThingsByUdbIndex()
+    {
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        Thing thing = map.AddThing(new Vector2D(0, 0), SoundPropagation.SoundEnvironmentThingType);
+        thing.Sector = sector;
+        SoundPropagation.SetThingDormant(thing, true);
+
+        SoundEnvironmentModeModel model = SoundPropagation.BuildSoundEnvironmentModel(map);
+
+        SoundEnvironmentRow row = Assert.Single(model.Rows(), row => row.Thing == thing);
+        Assert.Equal($"Thing {thing.Index} (dormant)", row.Text);
     }
 
     [Fact]
