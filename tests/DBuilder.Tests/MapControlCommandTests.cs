@@ -983,11 +983,19 @@ public sealed class MapControlCommandTests
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
         int commandIndex = body.IndexOf("case \"map2d.edit-properties\":", StringComparison.Ordinal);
         int aliasIndex = body.IndexOf("case \"map2d.classicedit\":", commandIndex, StringComparison.Ordinal);
-        int eventIndex = body.IndexOf("EditRequested?.Invoke();", commandIndex, StringComparison.Ordinal);
+        int helperIndex = body.IndexOf("EditPropertiesOrAutoDraw();", commandIndex, StringComparison.Ordinal);
+        int methodIndex = body.IndexOf("private void EditPropertiesOrAutoDraw()", StringComparison.Ordinal);
 
         Assert.True(commandIndex >= 0);
         Assert.True(aliasIndex > commandIndex);
-        Assert.True(eventIndex > commandIndex);
+        Assert.True(helperIndex > commandIndex);
+        Assert.True(methodIndex >= 0);
+        Assert.Contains("if (CurrentPropertySelectionCount() > 0)", body, StringComparison.Ordinal);
+        Assert.Contains("if (CurrentPropertyHighlight() is { } highlight)", body, StringComparison.Ordinal);
+        Assert.Contains("if (!_autoDrawOnEdit) return;", body, StringComparison.Ordinal);
+        Assert.Contains("InsertThingAt(_cursorWorld);", body, StringComparison.Ordinal);
+        Assert.Contains("ToggleDrawMode(linesOnly: false);", body, StringComparison.Ordinal);
+        Assert.Contains("PlaceDrawPoint(_cursorWorld);", body, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 6943 tests.
+- Current verified baseline: `scripts/verify.sh` passes 6944 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 - A Rust port of the codebase is underway in `rust/`; see the Rust Port section below.
 
@@ -152,6 +152,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Persist and apply UDB-style 3D-floor classic line marking preference.
   - [x] Persist and apply UDB-style additive selection and additive paint selection preferences.
   - [x] Persist and apply UDB-style synchronized thing editing preference.
+  - [x] Persist and apply UDB-style auto-draw-on-edit preference.
   - [x] Persist and apply UDB-style event-line label visibility, label style, and distinct-color preferences.
 - [x] Port pre-command and post-command support.
   - [x] Execute configured before/after Test Map commands.

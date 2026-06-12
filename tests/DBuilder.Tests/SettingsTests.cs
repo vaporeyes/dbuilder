@@ -166,6 +166,12 @@ public class SettingsTests
     }
 
     [Fact]
+    public void AutoDrawOnEditDefaultsEnabledLikeUdb()
+    {
+        Assert.True(new Settings().AutoDrawOnEdit);
+    }
+
+    [Fact]
     public void AdditiveSelectionDefaultsDisabledAndPaintFallsBackLikeUdb()
     {
         var settings = new Settings();
@@ -520,6 +526,7 @@ public class SettingsTests
                 VisualModeClearSelection = true,
                 EditNewThing = false,
                 EditNewSector = true,
+                AutoDrawOnEdit = false,
                 AdditiveSelect = true,
                 AdditivePaintSelect = false,
                 ChangeHeightBySidedef = 3,
@@ -722,6 +729,7 @@ public class SettingsTests
             Assert.True(loaded.VisualModeClearSelection);
             Assert.False(loaded.EditNewThing);
             Assert.True(loaded.EditNewSector);
+            Assert.False(loaded.AutoDrawOnEdit);
             Assert.True(loaded.AdditiveSelect);
             Assert.False(loaded.AdditivePaintSelect);
             Assert.False(loaded.NormalizedAdditivePaintSelect);

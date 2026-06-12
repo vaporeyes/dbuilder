@@ -243,6 +243,7 @@ public partial class MainWindow : Window
         MapView.VisualModeClearSelection = _settings.VisualModeClearSelection;
         MapView.EditNewThing = _settings.EditNewThing;
         MapView.EditNewSector = _settings.EditNewSector;
+        MapView.AutoDrawOnEdit = _settings.AutoDrawOnEdit;
         MapView.AdditiveSelect = _settings.AdditiveSelect;
         MapView.AdditivePaintSelect = _settings.NormalizedAdditivePaintSelect;
         MapView.SynchronizedThingEditing = _settings.SynchronizedThingEditing;
@@ -1450,6 +1451,7 @@ public partial class MainWindow : Window
         _settings.VisualModeClearSelection = dlg.VisualModeClearSelection;
         _settings.EditNewThing = dlg.EditNewThing;
         _settings.EditNewSector = dlg.EditNewSector;
+        _settings.AutoDrawOnEdit = dlg.AutoDrawOnEdit;
         _settings.AdditiveSelect = dlg.AdditiveSelect;
         _settings.AdditivePaintSelect = dlg.AdditivePaintSelect;
         _settings.SynchronizedThingEditing = dlg.SynchronizedThingEditing;
@@ -1518,6 +1520,7 @@ public partial class MainWindow : Window
         MapView.VisualModeClearSelection = _settings.VisualModeClearSelection;
         MapView.EditNewThing = _settings.EditNewThing;
         MapView.EditNewSector = _settings.EditNewSector;
+        MapView.AutoDrawOnEdit = _settings.AutoDrawOnEdit;
         MapView.AdditiveSelect = _settings.AdditiveSelect;
         MapView.AdditivePaintSelect = _settings.NormalizedAdditivePaintSelect;
         MapView.SynchronizedThingEditing = _settings.SynchronizedThingEditing;

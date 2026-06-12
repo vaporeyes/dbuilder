@@ -90,6 +90,7 @@ public sealed class Settings
     public bool VisualModeClearSelection { get; set; }
     public bool EditNewThing { get; set; } = true;
     public bool EditNewSector { get; set; }
+    public bool AutoDrawOnEdit { get; set; } = true;
     public bool AdditiveSelect { get; set; }
     public bool? AdditivePaintSelect { get; set; }
     public int? ChangeHeightBySidedef { get; set; }

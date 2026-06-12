@@ -225,6 +225,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _visualModeClearSelection;
     private bool _editNewThing = true;
     private bool _editNewSector;
+    private bool _autoDrawOnEdit = true;
     private bool _additiveSelect;
     private bool _additivePaintSelect;
     private ThingModelRenderMode _modelRenderMode = ThingModelRenderMode.All;
@@ -293,6 +294,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         get => _editNewSector;
         set => _editNewSector = value;
+    }
+    public bool AutoDrawOnEdit
+    {
+        get => _autoDrawOnEdit;
+        set => _autoDrawOnEdit = value;
     }
     public bool AdditiveSelect
     {
@@ -6714,7 +6720,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 return true;
             case "map2d.edit-properties":
             case "map2d.classicedit":
-                EditRequested?.Invoke();
+                EditPropertiesOrAutoDraw();
                 return true;
             case "map2d.draw-sector":
                 ToggleDrawMode(linesOnly: false);
@@ -9052,6 +9058,38 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     /// <summary>The thing type used by the insert tool; remembers the last value edited via the dialog.</summary>
     public int InsertThingType { get; set; } = 1;
+
+    private void EditPropertiesOrAutoDraw()
+    {
+        if (_map == null) return;
+
+        if (CurrentPropertySelectionCount() > 0)
+        {
+            EditRequested?.Invoke();
+            return;
+        }
+
+        if (CurrentPropertyHighlight() is { } highlight)
+        {
+            _map.ClearAllSelected();
+            highlight.Selected = true;
+            MarkGeometryDirty();
+            Changed?.Invoke();
+            EditRequested?.Invoke();
+            return;
+        }
+
+        if (!_autoDrawOnEdit) return;
+
+        if (_editMode == EditMode.Things)
+        {
+            InsertThingAt(_cursorWorld);
+            return;
+        }
+
+        ToggleDrawMode(linesOnly: false);
+        PlaceDrawPoint(_cursorWorld);
+    }
 
     // Insert tool (I): in Things mode drops a thing at the snapped cursor; otherwise inserts a vertex,
     // splitting the nearest line if the cursor is close to one, else placing a free vertex. Undoable.

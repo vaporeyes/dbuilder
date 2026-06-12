@@ -1217,6 +1217,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("MapView.VisualModeClearSelection = _settings.VisualModeClearSelection;", code, StringComparison.Ordinal);
         Assert.Contains("MapView.EditNewThing = _settings.EditNewThing;", code, StringComparison.Ordinal);
         Assert.Contains("MapView.EditNewSector = _settings.EditNewSector;", code, StringComparison.Ordinal);
+        Assert.Contains("MapView.AutoDrawOnEdit = _settings.AutoDrawOnEdit;", code, StringComparison.Ordinal);
         Assert.Contains("MapView.AdditiveSelect = _settings.AdditiveSelect;", code, StringComparison.Ordinal);
         Assert.Contains("MapView.AdditivePaintSelect = _settings.NormalizedAdditivePaintSelect;", code, StringComparison.Ordinal);
         Assert.Contains("MapView.DoubleSidedAlphaByte = _settings.NormalizedDoubleSidedAlphaByte;", code, StringComparison.Ordinal);

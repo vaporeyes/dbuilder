@@ -541,6 +541,7 @@ public class SettingsWindowTests
         Assert.NotNull(type.GetField("VisualModeClearSelection", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("EditNewThing", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("EditNewSector", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("AutoDrawOnEdit", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("AdditiveSelect", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("AdditivePaintSelect", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("ChangeHeightBySidedef", BindingFlags.Instance | BindingFlags.Public));
@@ -550,6 +551,7 @@ public class SettingsWindowTests
         Assert.Contains("AddCheckBox(\"Automatically clear selection in Visual Mode\", s.VisualModeClearSelection)", body, StringComparison.Ordinal);
         Assert.Contains("AddCheckBox(\"Edit thing properties when inserting a new thing\", s.EditNewThing)", body, StringComparison.Ordinal);
         Assert.Contains("AddCheckBox(\"Edit sector properties after drawing a new sector\", s.EditNewSector)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Start drawing when editing empty space\", s.AutoDrawOnEdit)", body, StringComparison.Ordinal);
         Assert.Contains("AddCheckBox(\"Additive selecting without holding Shift\", s.AdditiveSelect)", body, StringComparison.Ordinal);
         Assert.Contains("AddCheckBox(\"Additive paint selecting without holding Shift\", s.NormalizedAdditivePaintSelect)", body, StringComparison.Ordinal);
         Assert.Contains("AddCombo(\"When changing height on a wall in Visual Mode\", ChangeHeightBySidedefItems(), s.NormalizedChangeHeightBySidedef)", body, StringComparison.Ordinal);
@@ -559,6 +561,7 @@ public class SettingsWindowTests
         Assert.Contains("VisualModeClearSelection = _visualModeClearSelection.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("EditNewThing = _editNewThing.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("EditNewSector = _editNewSector.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("AutoDrawOnEdit = _autoDrawOnEdit.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("AdditiveSelect = _additiveSelect.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("AdditivePaintSelect = _additivePaintSelect.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("ChangeHeightBySidedef = ComboNumber(_changeHeightBySidedef, Settings.DefaultChangeHeightBySidedef);", body, StringComparison.Ordinal);
@@ -568,6 +571,7 @@ public class SettingsWindowTests
         Assert.Contains("_settings.VisualModeClearSelection = dlg.VisualModeClearSelection;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.EditNewThing = dlg.EditNewThing;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.EditNewSector = dlg.EditNewSector;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.AutoDrawOnEdit = dlg.AutoDrawOnEdit;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.AdditiveSelect = dlg.AdditiveSelect;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.AdditivePaintSelect = dlg.AdditivePaintSelect;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.ChangeHeightBySidedef = dlg.ChangeHeightBySidedef;", mainWindow, StringComparison.Ordinal);
@@ -575,6 +579,7 @@ public class SettingsWindowTests
         Assert.Contains("MapView.VisualModeClearSelection = _settings.VisualModeClearSelection;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.EditNewThing = _settings.EditNewThing;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.EditNewSector = _settings.EditNewSector;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.AutoDrawOnEdit = _settings.AutoDrawOnEdit;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.AdditiveSelect = _settings.AdditiveSelect;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.AdditivePaintSelect = _settings.NormalizedAdditivePaintSelect;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.ChangeHeightBySidedef = _settings.NormalizedChangeHeightBySidedef;", mainWindow, StringComparison.Ordinal);
