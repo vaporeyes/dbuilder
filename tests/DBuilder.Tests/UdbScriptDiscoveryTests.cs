@@ -9,6 +9,17 @@ namespace DBuilder.Tests;
 
 public class UdbScriptDiscoveryTests
 {
+    private static string? FindUdbRoot()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "."));
+        string sibling = Path.GetFullPath(Path.Combine(repositoryRoot, "..", "UltimateDoomBuilder"));
+        if (File.Exists(Path.Combine(sibling, "Source", "Plugins", "UDBScript", "ScriptOption.cs"))) return sibling;
+
+        string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string root = Path.Combine(home, "dev", "repos", "UltimateDoomBuilder");
+        return File.Exists(Path.Combine(root, "Source", "Plugins", "UDBScript", "ScriptOption.cs")) ? root : null;
+    }
+
     [Fact]
     public void ParsesLeadingTemplateMetadata()
     {
@@ -62,6 +73,31 @@ public class UdbScriptDiscoveryTests
         {
             Directory.Delete(dir, recursive: true);
         }
+    }
+
+    [Fact]
+    public void ValidOptionTypesMatchUdbScriptOptionSurfaceWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Source", "Plugins", "UDBScript", "ScriptOption.cs"));
+        int start = source.IndexOf("public static readonly UniversalType[] ValidTypes", StringComparison.Ordinal);
+        int end = source.IndexOf("#endregion", start, StringComparison.Ordinal);
+        Assert.True(start >= 0 && end > start, "Expected UDBScript ScriptOption.ValidTypes block.");
+
+        string block = source[start..end];
+        var upstream = block
+            .Split('\n')
+            .Select(line => line.Trim())
+            .Where(line => line.StartsWith("UniversalType.", StringComparison.Ordinal))
+            .Select(line => line.TrimEnd(',').Replace("UniversalType.", "", StringComparison.Ordinal))
+            .ToArray();
+
+        Assert.Equal(
+            upstream,
+            UdbScriptDiscovery.ValidOptionTypes.Select(type => type.ToString()).ToArray());
+        Assert.Contains(nameof(UniversalType.PolyobjectNumber), upstream);
     }
 
     [Fact]

@@ -108,6 +108,27 @@ public class UdbScriptQueryOptionsModelTests
     }
 
     [Fact]
+    public void AddOptionAcceptsPolyobjectNumbersLikeUdb()
+    {
+        var model = new UdbScriptQueryOptionsModel();
+
+        UdbScriptQueryOptionAddResult added = model.AddOption(
+            "poly.js",
+            "polyobject",
+            "Polyobject",
+            (int)UniversalType.PolyobjectNumber,
+            7);
+
+        Assert.True(added.Added);
+        UdbScriptOption option = Assert.Single(model.Options);
+        Assert.Equal((int)UniversalType.PolyobjectNumber, option.Type);
+        Assert.Equal(7, option.DefaultValue);
+        Assert.True(model.SetValue("polyobject", "22"));
+
+        Assert.Equal(22, model.GetScriptOptions()["polyobject"]);
+    }
+
+    [Fact]
     public void AddOptionRejectsInvalidTypesWithUdbErrorText()
     {
         var model = new UdbScriptQueryOptionsModel();
