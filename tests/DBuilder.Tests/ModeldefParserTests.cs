@@ -68,6 +68,23 @@ model TransformThing
     }
 
     [Fact]
+    public void ParsesSingleValueScaleAsUniformScaleLikeUdb()
+    {
+        const string text = @"
+model UniformScaleThing
+{
+    Model 0 ""thing.md3""
+    Scale 1.5
+    Offset 1 2 3
+}";
+
+        var def = ModeldefParser.Parse(text).Single();
+
+        Assert.Equal(new ModeldefVector(1.5f, 1.5f, 1.5f), def.Scale);
+        Assert.Equal(new ModeldefVector(1.0f, 2.0f, 3.0f), def.Offset);
+    }
+
+    [Fact]
     public void InheritActorPitchClearsUseActorPitchLikeUdb()
     {
         const string text = @"

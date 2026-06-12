@@ -3159,6 +3159,7 @@ section of `docs/PARITY_MATRIX.md`.
   - [x] Skip ANIMDEFS warp blocks without treating their inner texture names as animations.
   - [x] Reject nested LOCKDEFS `clearlocks` directives like UDB.
   - [x] Use UDB-style default LOCKDEFS titles when `$title` is omitted.
+  - [x] Accept UDB-style single-value MODELDEF uniform scale.
 - [ ] Decide the Rust editor shell strategy (UI toolkit and renderer) before porting editor behavior.
   - [x] Create the `dbuilder-rendering` crate with 2D view transforms, cursor-fixed zoom, and linedef line batches (GPU-independent).
   - [x] Add grid and thing-marker batch building with facing ticks.

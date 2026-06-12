@@ -129,7 +129,7 @@ public static class ModeldefParser
                     if (!ParseSurfaceSkin(def, t, ref i)) valid = false;
                     break;
                 case "scale":
-                    if (!ParseVector(t, ref i, out ModeldefVector scale)) valid = false;
+                    if (!ParseScale(t, ref i, out ModeldefVector scale)) valid = false;
                     else def.Scale = new ModeldefVector(scale.Y, scale.X, scale.Z);
                     break;
                 case "offset":
@@ -310,6 +310,21 @@ public static class ModeldefParser
         if (!ReadFloat(t, ref i, out float y)) return false;
         if (!ReadFloat(t, ref i, out float z)) return false;
         vector = new ModeldefVector(x, y, z);
+        return true;
+    }
+
+    private static bool ParseScale(List<string> t, ref int i, out ModeldefVector scale)
+    {
+        scale = new ModeldefVector(0.0f, 0.0f, 0.0f);
+        if (!ReadFloat(t, ref i, out float x)) return false;
+        if (i >= t.Count || IsKeyword(t[i]) || t[i] == "}")
+        {
+            scale = new ModeldefVector(x, x, x);
+            return true;
+        }
+        if (!ReadFloat(t, ref i, out float y)) return false;
+        if (!ReadFloat(t, ref i, out float z)) return false;
+        scale = new ModeldefVector(x, y, z);
         return true;
     }
 
