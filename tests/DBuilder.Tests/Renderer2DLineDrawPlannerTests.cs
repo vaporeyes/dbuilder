@@ -42,6 +42,7 @@ public sealed class Renderer2DLineDrawPlannerTests
         Assert.True(plan.ResetWorldTransformation);
         Assert.Equal(ShaderName.display2d_normal, plan.Shader);
         Assert.True(plan.BindWhiteTexture);
+        Assert.True(plan.UseClassicBilinear);
         Assert.Equal(PrimitiveType.TriangleStrip, plan.PrimitiveType);
         AssertVertex(plan.Vertices[0], 0, 18, 0x123456);
         AssertVertex(plan.Vertices[1], 0, 22, 0x123456);
@@ -145,6 +146,7 @@ public sealed class Renderer2DLineDrawPlannerTests
         Assert.Contains("verts[3].y = (float)(end.y + dn.y + dn.x);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetShader(ShaderName.display2d_normal);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(General.Map.Data.WhiteTexture.Texture);", source, StringComparison.Ordinal);
+        Assert.Contains("SetDisplay2DSettings(1f, 1f, 0f, 1f, General.Settings.ClassicBilinear);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.Draw(PrimitiveType.TriangleStrip, 0, 2, verts);", source, StringComparison.Ordinal);
     }
 

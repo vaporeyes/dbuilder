@@ -13,6 +13,7 @@ public readonly record struct Renderer2DLineDrawPlan(
     bool ResetWorldTransformation,
     ShaderName Shader,
     bool BindWhiteTexture,
+    bool UseClassicBilinear,
     PrimitiveType PrimitiveType);
 
 public static class Renderer2DLineDrawPlanner
@@ -65,6 +66,7 @@ public static class Renderer2DLineDrawPlanner
             ResetWorldTransformation: true,
             Shader: ShaderName.display2d_normal,
             BindWhiteTexture: true,
+            UseClassicBilinear: true,
             PrimitiveType: PrimitiveType.TriangleStrip);
     }
 
