@@ -2515,6 +2515,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add compatibility coverage for UDB generalized action and sector effect exclusions.
   - [x] Add compatibility coverage for UDB ACS script action specials.
   - [x] Add compatibility coverage for UDB named ACS script field detection.
+  - [x] Add compatibility coverage for UDB UDMF-gated named ACS script checks.
   - [x] Match UDB empty named ACS script field error checks.
 - [x] Port all map error result types and fix actions.
   - [x] Add UDB-style fix actions for stray vertices, missing textures, unused textures, and missing flats.
