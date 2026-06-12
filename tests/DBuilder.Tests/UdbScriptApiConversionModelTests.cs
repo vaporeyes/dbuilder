@@ -226,6 +226,49 @@ public class UdbScriptApiConversionModelTests
     }
 
     [Fact]
+    public void CommonUdbScriptLogicAssertionsWorkflowUsesVectorAndLineWrappersTogether()
+    {
+        Assert.Equal(new UdbScriptVector2DWrapper(4, 5), new UdbScriptVector2DWrapper(2, 3) + (object)new UdbScriptVector2DWrapper(2, 2));
+        Assert.Equal(new UdbScriptVector2DWrapper(0, 1), new UdbScriptVector2DWrapper(2, 3) - new object[] { 2.0, 2.0 });
+        Assert.Equal(new UdbScriptVector2DWrapper(4, 6), new UdbScriptVector2DWrapper(2, 3) * 2.0);
+        Assert.Equal(new UdbScriptVector2DWrapper(0.5, 2), 4.0 / new UdbScriptVector2DWrapper(2, 8));
+        Assert.True(new UdbScriptVector2DWrapper(1, 2) == new object[] { 1.0, 2.0 });
+        Assert.False(new UdbScriptVector2DWrapper(2, 1) == new object[] { 1.0, 2.0 });
+
+        Assert.Equal(new UdbScriptVector3DWrapper(4, 5, 6), new UdbScriptVector3DWrapper(2, 3, 4) + new object[] { 2.0, 2.0, 2.0 });
+        Assert.Equal(new UdbScriptVector3DWrapper(4, 5, 2), (object)new UdbScriptVector2DWrapper(2, 3) + new UdbScriptVector3DWrapper(2, 2, 2));
+        Assert.Equal(new UdbScriptVector3DWrapper(0, 1, -2), (object)new UdbScriptVector2DWrapper(2, 3) - new UdbScriptVector3DWrapper(2, 2, 2));
+        Assert.Equal(new UdbScriptVector3DWrapper(4, 6, 0), new UdbScriptVector3DWrapper(2, 3, 4) * (object)new UdbScriptVector2DWrapper(2, 2));
+        Assert.Equal(new UdbScriptVector3DWrapper(1, 1.5, double.PositiveInfinity), new UdbScriptVector3DWrapper(2, 3, 4) / (object)new UdbScriptVector2DWrapper(2, 2));
+        Assert.True(new UdbScriptVector3DWrapper(1, 2, 3) == new object[] { 1.0, 2.0, 3.0 });
+        Assert.False(new UdbScriptVector3DWrapper(3, 2, 1) == new object[] { 1.0, 2.0, 3.0 });
+
+        var line1 = new UdbScriptLine2DWrapper(new object[] { 32.0, 32.0 }, new object[] { 32.0, -32.0 });
+        var line2 = new UdbScriptLine2DWrapper(new object[] { 0.0, 16.0 }, new object[] { 64.0, 16.0 });
+        Assert.True(UdbScriptLine2DWrapper.areIntersecting(line1, line2));
+    }
+
+    [Fact]
+    public void CommonUdbScriptLogicAssertionsExampleUsesCoveredApisWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Assets", "Common", "UDBScript", "Scripts", "Examples", "Information", "assertions.js"));
+
+        Assert.Contains("new UDB.Vector2D(2, 3) + new UDB.Vector2D(2, 2)", source, StringComparison.Ordinal);
+        Assert.Contains("new UDB.Vector2D(2, 3) - [ 2, 2 ]", source, StringComparison.Ordinal);
+        Assert.Contains("new UDB.Vector2D(2, 3) * 2", source, StringComparison.Ordinal);
+        Assert.Contains("4 / new UDB.Vector2D(2, 8)", source, StringComparison.Ordinal);
+        Assert.Contains("new UDB.Vector2D(1, 2)", source, StringComparison.Ordinal);
+        Assert.Contains("new UDB.Vector3D(2, 3, 4) + [ 2, 2, 2 ]", source, StringComparison.Ordinal);
+        Assert.Contains("new UDB.Vector2D(2, 3) + new UDB.Vector3D(2, 2, 2)", source, StringComparison.Ordinal);
+        Assert.Contains("new UDB.Vector3D(2, 3, 4) / new UDB.Vector2D(2, 2)", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Line2D.areIntersecting(line1, line2)", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.showMessage(assertion_log)", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Line2DWrapperExposesUdbInstanceGeometryHelpers()
     {
         var line = new UdbScriptLine2DWrapper(new object[] { 0.0, 0.0 }, new object[] { 3.0, 4.0 });
