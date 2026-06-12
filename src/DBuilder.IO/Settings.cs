@@ -92,6 +92,7 @@ public sealed class Settings
     public bool EditNewSector { get; set; }
     public bool AutoDrawOnEdit { get; set; } = true;
     public bool AutoAlignTextureOffsetsOnCreate { get; set; }
+    public bool DontMoveGeometryOutsideMapBoundary { get; set; }
     public bool AdditiveSelect { get; set; }
     public bool? AdditivePaintSelect { get; set; }
     public int? ChangeHeightBySidedef { get; set; }

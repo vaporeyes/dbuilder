@@ -255,6 +255,7 @@ public partial class MainWindow : Window
         MapView.EditNewSector = _settings.EditNewSector;
         MapView.AutoDrawOnEdit = _settings.AutoDrawOnEdit;
         MapView.AutoAlignTextureOffsetsOnCreate = _settings.AutoAlignTextureOffsetsOnCreate;
+        MapView.DontMoveGeometryOutsideMapBoundary = _settings.DontMoveGeometryOutsideMapBoundary;
         MapView.AdditiveSelect = _settings.AdditiveSelect;
         MapView.AdditivePaintSelect = _settings.NormalizedAdditivePaintSelect;
         MapView.SynchronizedThingEditing = _settings.SynchronizedThingEditing;
@@ -1466,6 +1467,7 @@ public partial class MainWindow : Window
         _settings.EditNewSector = dlg.EditNewSector;
         _settings.AutoDrawOnEdit = dlg.AutoDrawOnEdit;
         _settings.AutoAlignTextureOffsetsOnCreate = dlg.AutoAlignTextureOffsetsOnCreate;
+        _settings.DontMoveGeometryOutsideMapBoundary = dlg.DontMoveGeometryOutsideMapBoundary;
         _settings.AdditiveSelect = dlg.AdditiveSelect;
         _settings.AdditivePaintSelect = dlg.AdditivePaintSelect;
         _settings.SynchronizedThingEditing = dlg.SynchronizedThingEditing;
@@ -1538,6 +1540,7 @@ public partial class MainWindow : Window
         MapView.EditNewSector = _settings.EditNewSector;
         MapView.AutoDrawOnEdit = _settings.AutoDrawOnEdit;
         MapView.AutoAlignTextureOffsetsOnCreate = _settings.AutoAlignTextureOffsetsOnCreate;
+        MapView.DontMoveGeometryOutsideMapBoundary = _settings.DontMoveGeometryOutsideMapBoundary;
         MapView.AdditiveSelect = _settings.AdditiveSelect;
         MapView.AdditivePaintSelect = _settings.NormalizedAdditivePaintSelect;
         MapView.SynchronizedThingEditing = _settings.SynchronizedThingEditing;

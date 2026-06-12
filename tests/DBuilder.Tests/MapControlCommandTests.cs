@@ -231,6 +231,21 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void DraggedSelectionCanBeClampedToMapBoundary()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("public bool DontMoveGeometryOutsideMapBoundary", body, StringComparison.Ordinal);
+        Assert.Contains("private Vec2D ClampSelectionMoveDelta(Vec2D delta)", body, StringComparison.Ordinal);
+        Assert.Contains("delta = ClampSelectionMoveDelta(delta);", body, StringComparison.Ordinal);
+        Assert.Contains("SelectionBoundaryClamp.ClampDelta(", body, StringComparison.Ordinal);
+        Assert.Contains("_gameConfig.LeftBoundary", body, StringComparison.Ordinal);
+        Assert.Contains("_gameConfig.RightBoundary", body, StringComparison.Ordinal);
+        Assert.Contains("_gameConfig.BottomBoundary", body, StringComparison.Ordinal);
+        Assert.Contains("_gameConfig.TopBoundary", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void LinedefRenderingUsesUdbColorPresetModel()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));

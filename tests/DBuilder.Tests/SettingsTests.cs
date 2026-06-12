@@ -225,6 +225,12 @@ public class SettingsTests
     }
 
     [Fact]
+    public void DontMoveGeometryOutsideMapBoundaryDefaultsDisabledLikeUdb()
+    {
+        Assert.False(new Settings().DontMoveGeometryOutsideMapBoundary);
+    }
+
+    [Fact]
     public void ModelRenderModeDefaultsToAllLikeUdb()
     {
         Assert.Equal(ThingModelRenderMode.All, new Settings().NormalizedModelRenderMode);
@@ -546,6 +552,7 @@ public class SettingsTests
                 EditNewSector = true,
                 AutoDrawOnEdit = false,
                 AutoAlignTextureOffsetsOnCreate = true,
+                DontMoveGeometryOutsideMapBoundary = true,
                 AdditiveSelect = true,
                 AdditivePaintSelect = false,
                 ChangeHeightBySidedef = 3,
@@ -750,6 +757,7 @@ public class SettingsTests
             Assert.True(loaded.EditNewSector);
             Assert.False(loaded.AutoDrawOnEdit);
             Assert.True(loaded.AutoAlignTextureOffsetsOnCreate);
+            Assert.True(loaded.DontMoveGeometryOutsideMapBoundary);
             Assert.True(loaded.AdditiveSelect);
             Assert.False(loaded.AdditivePaintSelect);
             Assert.False(loaded.NormalizedAdditivePaintSelect);

@@ -944,6 +944,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private int _defaultSectorCeilingHeight = Settings.DefaultSectorCeilingHeight;
     private int _defaultSectorBrightness = Settings.DefaultSectorBrightness;
     private bool _autoAlignTextureOffsetsOnCreate;
+    private bool _dontMoveGeometryOutsideMapBoundary;
     public ShapeKind CurrentShape => _shapeKind;
 
     public DrawLineModeSettings DrawLineSettings
@@ -992,6 +993,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         get => _autoAlignTextureOffsetsOnCreate;
         set => _autoAlignTextureOffsetsOnCreate = value;
+    }
+
+    public bool DontMoveGeometryOutsideMapBoundary
+    {
+        get => _dontMoveGeometryOutsideMapBoundary;
+        set => _dontMoveGeometryOutsideMapBoundary = value;
     }
 
     public AutomapModeSettings AutomapSettings
@@ -10111,6 +10118,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             var delta = _snapToGrid
                 ? SnapToGrid(ToWorld(pos)) - SnapToGrid(ToWorld(_lastPointer))
                 : ToWorld(pos) - ToWorld(_lastPointer);
+            delta = ClampSelectionMoveDelta(delta);
             if (delta.x != 0 || delta.y != 0)
             {
                 if (_moveVerts != null) foreach (var v in _moveVerts) v.Position += delta;
@@ -10120,6 +10128,25 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             }
         }
         _lastPointer = pos;
+    }
+
+    private Vec2D ClampSelectionMoveDelta(Vec2D delta)
+    {
+        if (!_dontMoveGeometryOutsideMapBoundary || _map == null || _gameConfig == null) return delta;
+
+        var positions = new System.Collections.Generic.List<Vec2D>();
+        if (_moveVerts != null)
+            positions.AddRange(_moveVerts.Select(vertex => vertex.Position));
+        positions.AddRange(_map.GetSelectedThings().Select(thing => thing.Position));
+
+        return SelectionBoundaryClamp.ClampDelta(
+            positions,
+            delta,
+            new MapDragBoundary(
+                _gameConfig.LeftBoundary,
+                _gameConfig.RightBoundary,
+                _gameConfig.BottomBoundary,
+                _gameConfig.TopBoundary));
     }
 
     private void PanViewByPointerDelta(Point pos)

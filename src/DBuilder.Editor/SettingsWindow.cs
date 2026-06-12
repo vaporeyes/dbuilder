@@ -14,7 +14,7 @@ public sealed class SettingsWindow : PropertyDialog
 
     private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _testSkill, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _autosaveCount, _autosaveInterval, _defaultSectorFloorHeight, _defaultSectorCeilingHeight, _defaultSectorBrightness, _imageBrightness, _doubleSidedAlpha, _visualFov, _viewDistance, _moveSpeed, _mouseSpeed, _mouseSelectionThreshold, _stitchRange, _highlightRange, _thingHighlightRange, _splitLinedefsRange, _autoScrollSpeed, _statusHistoryLimit, _toastDuration, _toastDisabledActions, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _changeHeightBySidedef, _eventLineLabelVisibility, _eventLineLabelStyle, _mergeGeometryMode, _toastAnchor, _pasteTagMode;
-    private readonly CheckBox _testMonsters, _autosave, _autoClearSidedefTextures, _autoMerge, _splitJoinedSectors, _autoClearSelection, _visualModeClearSelection, _editNewThing, _editNewSector, _autoDrawOnEdit, _autoAlignTextureOffsetsOnCreate, _additiveSelect, _additivePaintSelect, _synchronizedThingEditing, _dynamicGridSize, _switchViewModes, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _qualityDisplay, _classicBilinear, _visualBilinear, _blackBrowsers, _flatShadeVertices, _markExtraFloors, _drawFog, _drawSky, _showEventLines, _showLightRadii, _showSoundRadii, _eventLineDistinctColors, _showVisualVertices, _showErrorsWindow, _fixedThingsScale, _alwaysShowVertices, _selectAdjacentVisualVertexSlopeHandles, _useOppositeSmartPivotHandle, _toastsEnabled, _pasteRemoveActions;
+    private readonly CheckBox _testMonsters, _autosave, _autoClearSidedefTextures, _autoMerge, _splitJoinedSectors, _autoClearSelection, _visualModeClearSelection, _editNewThing, _editNewSector, _autoDrawOnEdit, _autoAlignTextureOffsetsOnCreate, _dontMoveGeometryOutsideMapBoundary, _additiveSelect, _additivePaintSelect, _synchronizedThingEditing, _dynamicGridSize, _switchViewModes, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _qualityDisplay, _classicBilinear, _visualBilinear, _blackBrowsers, _flatShadeVertices, _markExtraFloors, _drawFog, _drawSky, _showEventLines, _showLightRadii, _showSoundRadii, _eventLineDistinctColors, _showVisualVertices, _showErrorsWindow, _fixedThingsScale, _alwaysShowVertices, _selectAdjacentVisualVertexSlopeHandles, _useOppositeSmartPivotHandle, _toastsEnabled, _pasteRemoveActions;
     private readonly bool _drawLineShowGuidelines;
     private readonly int _drawRectangleSubdivisions, _drawRectangleBevelWidth;
     private readonly bool _drawRectangleShowGuidelines;
@@ -42,6 +42,7 @@ public sealed class SettingsWindow : PropertyDialog
     public bool EditNewSector;
     public bool AutoDrawOnEdit;
     public bool AutoAlignTextureOffsetsOnCreate;
+    public bool DontMoveGeometryOutsideMapBoundary;
     public bool AdditiveSelect;
     public bool AdditivePaintSelect;
     public int ChangeHeightBySidedef;
@@ -170,6 +171,7 @@ public sealed class SettingsWindow : PropertyDialog
         _editNewSector = AddCheckBox("Edit sector properties after drawing a new sector", s.EditNewSector);
         _autoDrawOnEdit = AddCheckBox("Start drawing when editing empty space", s.AutoDrawOnEdit);
         _autoAlignTextureOffsetsOnCreate = AddCheckBox("Auto-align texture offsets on create", s.AutoAlignTextureOffsetsOnCreate);
+        _dontMoveGeometryOutsideMapBoundary = AddCheckBox("Don't move selection if any part of it is outside of map boundary", s.DontMoveGeometryOutsideMapBoundary);
         _additiveSelect = AddCheckBox("Additive selecting without holding Shift", s.AdditiveSelect);
         _additivePaintSelect = AddCheckBox("Additive paint selecting without holding Shift", s.NormalizedAdditivePaintSelect);
         _synchronizedThingEditing = AddCheckBox("Synchronized thing editing", s.SynchronizedThingEditing);
@@ -250,6 +252,7 @@ public sealed class SettingsWindow : PropertyDialog
         EditNewSector = _editNewSector.IsChecked == true;
         AutoDrawOnEdit = _autoDrawOnEdit.IsChecked == true;
         AutoAlignTextureOffsetsOnCreate = _autoAlignTextureOffsetsOnCreate.IsChecked == true;
+        DontMoveGeometryOutsideMapBoundary = _dontMoveGeometryOutsideMapBoundary.IsChecked == true;
         AdditiveSelect = _additiveSelect.IsChecked == true;
         AdditivePaintSelect = _additivePaintSelect.IsChecked == true;
         SynchronizedThingEditing = _synchronizedThingEditing.IsChecked == true;
