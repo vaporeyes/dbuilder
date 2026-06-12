@@ -225,6 +225,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private byte _doubleSidedAlphaByte = Settings.DefaultDoubleSidedAlphaByte;
     private int _visualFovDegrees = Settings.DefaultVisualFov;
     private int _viewDistance = Settings.DefaultViewDistance;
+    private int _moveSpeed = Settings.DefaultMoveSpeed;
     private bool _alphaBasedTextureHighlighting = true;
     private bool _selectAdjacentVisualVertexSlopeHandles;
     private VisualSlopePickingMode _visualSlopePickingMode;
@@ -278,6 +279,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             _viewDistance = clamped;
             RequestNextFrameRendering();
         }
+    }
+    public int MoveSpeed
+    {
+        get => _moveSpeed;
+        set => _moveSpeed = Math.Clamp(value, Settings.MinMoveSpeed, Settings.MaxMoveSpeed);
     }
     public bool AlphaBasedTextureHighlighting => _alphaBasedTextureHighlighting;
     public bool SelectAdjacentVisualVertexSlopeHandles => _selectAdjacentVisualVertexSlopeHandles;
@@ -7550,7 +7556,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         float dt = (float)Math.Min(0.05, now - _lastTime); // clamp to avoid jumps after a stall
         _lastTime = now;
 
-        float move = dt * 320f;
+        float move = dt * 3.2f * _moveSpeed;
         float look = dt * 1.6f;
         if (_heldKeys.Contains(Key.Left)) _yaw += look;
         if (_heldKeys.Contains(Key.Right)) _yaw -= look;
