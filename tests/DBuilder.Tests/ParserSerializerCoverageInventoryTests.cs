@@ -75,6 +75,23 @@ public sealed class ParserSerializerCoverageInventoryTests
             Assert.True(tests.Contains(testClass), $"{surface} coverage points at missing test class {testClass}.");
     }
 
+    [Fact]
+    public void DeclaredCoverageOwnersContainRunnableXunitTests()
+    {
+        HashSet<string> ownerNames = CoveredBy.Values.ToHashSet(StringComparer.Ordinal);
+        Dictionary<string, Type> tests = Assembly.GetExecutingAssembly()
+            .GetTypes()
+            .Where(type => type.Namespace == typeof(ParserSerializerCoverageInventoryTests).Namespace)
+            .Where(type => ownerNames.Contains(type.Name))
+            .ToDictionary(type => type.Name, StringComparer.Ordinal);
+
+        foreach ((string surface, string testClass) in CoveredBy)
+        {
+            Type owner = Assert.Contains(testClass, tests);
+            Assert.True(HasXunitTest(owner), $"{surface} coverage owner {testClass} has no runnable xUnit tests.");
+        }
+    }
+
     private static bool IsParserSerializerSurface(Type type)
     {
         if (type.Namespace != "DBuilder.IO") return false;
@@ -86,4 +103,9 @@ public sealed class ParserSerializerCoverageInventoryTests
         if (type.Name.EndsWith("Stream", StringComparison.Ordinal)) return true;
         return type.Name is "DoomPatchNames" or "DoomPalette";
     }
+
+    private static bool HasXunitTest(Type type)
+        => type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+            .Any(method => method.GetCustomAttributes(inherit: false)
+                .Any(attribute => attribute is FactAttribute or TheoryAttribute));
 }
