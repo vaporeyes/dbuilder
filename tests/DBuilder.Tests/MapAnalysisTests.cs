@@ -1866,6 +1866,44 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void MissingFlatChecksHonorLongFlatPresence()
+    {
+        var map = Square(true);
+        var sector = map.Sectors[0];
+        sector.FloorTexture = "-";
+        sector.CeilTexture = "-";
+        sector.LongFloorTexture = 101;
+        sector.LongCeilTexture = 102;
+
+        var issues = MapAnalysis.Check(map, new MapCheckContext());
+
+        Assert.DoesNotContain(issues, i => i.Kind == MapIssueKind.MissingFlat);
+    }
+
+    [Fact]
+    public void UnknownFlatChecksUseLongFlatIds()
+    {
+        var map = Square(true);
+        var sector = map.Sectors[0];
+        sector.FloorTexture = "FLOOR_OK";
+        sector.LongFloorTexture = 101;
+        sector.CeilTexture = "-";
+        sector.LongCeilTexture = 202;
+        var ctx = new MapCheckContext
+        {
+            FlatExists = _ => false,
+            LongFlatExists = longName => longName == 101,
+        };
+
+        var issues = MapAnalysis.Check(map, ctx)
+            .Where(i => i.Kind == MapIssueKind.UnknownFlat)
+            .ToArray();
+
+        Assert.DoesNotContain(issues, i => i.Message.Contains("floor flat", StringComparison.Ordinal));
+        Assert.Contains(issues, i => i.Message.Contains("ceiling flat", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void UnknownFlatIssueCanAddDefaultFlat()
     {
         var map = Square(true);

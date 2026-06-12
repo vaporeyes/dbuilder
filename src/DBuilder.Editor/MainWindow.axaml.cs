@@ -7182,7 +7182,7 @@ public partial class MainWindow : Window
     private MapCheckContext BuildCheckContext()
     {
         Func<string, bool>? texExists = null, flatExists = null, isSkyFlat = null;
-        Func<long, bool>? longTexExists = null;
+        Func<long, bool>? longTexExists = null, longFlatExists = null;
         Func<string, (int Width, int Height)?>? textureSize = null;
         if (_resources != null)
         {
@@ -7193,10 +7193,14 @@ public partial class MainWindow : Window
             var longTexSet = texSet
                 .Select(name => Lump.MakeLongName(name, useLongTextureNames))
                 .ToHashSet();
+            var longFlatSet = flatSet
+                .Select(name => Lump.MakeLongName(name, useLongTextureNames))
+                .ToHashSet();
             texExists = n => texSet.Contains(n);
             longTexExists = n => longTexSet.Contains(n);
             textureSize = n => resources.GetWallTexture(n) is { } img ? (img.Width, img.Height) : null;
             flatExists = n => flatSet.Contains(n);
+            longFlatExists = n => longFlatSet.Contains(n);
         }
         Func<int, bool>? thingKnown = null, actionKnown = null, sectorEffectKnown = null, actionRequiresUpperTexture = null, actionRequiresActivation = null;
         Func<int, string?>? thingObsoleteMessage = null;
@@ -7283,6 +7287,7 @@ public partial class MainWindow : Window
             LongTextureExists = longTexExists,
             TextureSize = textureSize,
             FlatExists = flatExists,
+            LongFlatExists = longFlatExists,
             IsSkyFlat = isSkyFlat,
             ThingTypeKnown = thingKnown,
             ThingTitle = type => _config?.ThingTitle(type) ?? type.ToString(System.Globalization.CultureInfo.InvariantCulture),

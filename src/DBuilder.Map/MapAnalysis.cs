@@ -198,6 +198,8 @@ public sealed class MapCheckContext
     public Func<string, (int Width, int Height)?>? TextureSize { get; init; }
     /// <summary>Returns true when a flat name resolves in the loaded resources.</summary>
     public Func<string, bool>? FlatExists { get; init; }
+    /// <summary>Returns true when a UDB long flat id resolves in the loaded resources.</summary>
+    public Func<long, bool>? LongFlatExists { get; init; }
     /// <summary>Returns true when a flat name is the configured sky flat marker.</summary>
     public Func<string, bool>? IsSkyFlat { get; init; }
     /// <summary>Returns true when a thing editor number is known to the game config.</summary>
@@ -648,12 +650,16 @@ public static class MapAnalysis
         for (int i = 0; i < map.Sectors.Count; i++)
         {
             var s = map.Sectors[i];
-            foreach (var (slot, name) in new[] { ("floor", s.FloorTexture), ("ceiling", s.CeilTexture) })
+            foreach (var (slot, name, longName) in new[]
             {
-                if (IsBlank(name))
+                ("floor", s.FloorTexture, s.LongFloorTexture),
+                ("ceiling", s.CeilTexture, s.LongCeilTexture),
+            })
+            {
+                if (TextureSlotEmpty(name, longName))
                     issues.Add(MissingFlatIssue(s, slot == "ceiling", ctx,
                         $"Sector {i} has no {slot} flat."));
-                else if (ctx.FlatExists != null && !ctx.FlatExists(name))
+                else if ((ctx.FlatExists != null || ctx.LongFlatExists != null) && !FlatExists(ctx, name, longName))
                     issues.Add(UnknownFlatIssue(s, slot == "ceiling", ctx,
                         $"Sector {i} has unknown {slot} flat \"{name}\""));
             }
@@ -1887,6 +1893,13 @@ public static class MapAnalysis
         if (longName != MapSet.EmptyLongName && ctx.LongTextureExists != null)
             return ctx.LongTextureExists(longName);
         return !IsBlank(tex) && ctx.TextureExists?.Invoke(tex!) == true;
+    }
+
+    private static bool FlatExists(MapCheckContext ctx, string? flat, long longName)
+    {
+        if (longName != MapSet.EmptyLongName && ctx.LongFlatExists != null)
+            return ctx.LongFlatExists(longName);
+        return !IsBlank(flat) && ctx.FlatExists?.Invoke(flat!) == true;
     }
 
     private static bool IsSkyFlat(MapCheckContext ctx, string? flat)
