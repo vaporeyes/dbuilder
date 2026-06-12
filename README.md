@@ -18,6 +18,7 @@ The authoritative trackers are:
 - [docs/MAP_IO_AND_RESOURCES.md](docs/MAP_IO_AND_RESOURCES.md): map IO and resource loading behavior.
 - [docs/RENDERING.md](docs/RENDERING.md): current renderer and shader compiler replacement baseline.
 - [docs/PLATFORMS_AND_TOOLS.md](docs/PLATFORMS_AND_TOOLS.md): supported OS targets and external tool discovery rules.
+- [docs/MIGRATION.md](docs/MIGRATION.md): current migration guidance for Ultimate Doom Builder users.
 - [docs/DEVELOPMENT_PROCESS.md](docs/DEVELOPMENT_PROCESS.md): testing, contribution, manual QA, and release process.
 - [docs/UPDATE_POLICY.md](docs/UPDATE_POLICY.md): update behavior for development builds.
 

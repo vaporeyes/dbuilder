@@ -59,7 +59,7 @@ This document summarizes what DBuilder can currently do and which Ultimate Doom 
 ### Packaging And Release
 
 - Packaged macOS, Windows, and Linux builds are not complete.
-- Default configuration asset bundling, app icons and metadata, external dependency discovery, release scripts, packaged smoke tests, migration documentation, manual QA documentation, and release process documentation remain open.
+- Default configuration asset bundling, app icons and metadata, release scripts, and packaged smoke tests remain open.
 - Automatic update checking is intentionally replaced by `docs/UPDATE_POLICY.md` until packaged release artifacts exist.
 
 ## How To Read This Status
