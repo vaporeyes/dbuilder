@@ -64,6 +64,10 @@ The script does not sign, notarize, create installers, delete prior artifacts, o
 
 The editor project defines the app title, product name, package description, Windows DPI manifest, and package icon metadata. The shared icon source is `assets/main.png`, which is linked into publish output as `main.png` and packed as the package icon.
 
+## Default Configuration Assets
+
+Packaged builds publish an `assets` tree next to the editor binaries. The editor prefers `assets/Common/Configurations` from the publish directory, then falls back to a development Ultimate Doom Builder checkout when that bundled path is absent. Compiler and script configuration discovery resolve from the same asset root.
+
 ## Release Packaging Implications
 
 Packaged builds must preserve these rules:
@@ -71,6 +75,7 @@ Packaged builds must preserve these rules:
 - Do not bundle copyrighted game assets.
 - Do not silently guess source ports, node builders, or compilers.
 - Provide stable settings locations for configured tool paths.
+- Keep bundled game, compiler, and script configuration assets under the published `assets` tree.
 - Document platform-specific install paths once macOS, Windows, and Linux packages exist.
 
 Open packaging work remains tracked in `docs/TODO.md`.

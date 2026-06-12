@@ -30,6 +30,9 @@
 
   <ItemGroup>
     <None Include="..\..\assets\main.png" Link="main.png" Pack="true" PackagePath="" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\assets\Common\**\*" Link="assets\Common\%(RecursiveDir)%(Filename)%(Extension)" Pack="true" PackagePath="assets\Common\%(RecursiveDir)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\assets\Linux\**\*" Link="assets\Linux\%(RecursiveDir)%(Filename)%(Extension)" Pack="true" PackagePath="assets\Linux\%(RecursiveDir)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\assets\Windows\**\*" Link="assets\Windows\%(RecursiveDir)%(Filename)%(Extension)" Pack="true" PackagePath="assets\Windows\%(RecursiveDir)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

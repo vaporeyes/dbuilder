@@ -54,10 +54,8 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _autosaveTimer = new() { Interval = TimeSpan.FromSeconds(30) };
     private readonly DispatcherTimer _toastTimer = new();
 
-    // Default directory holding the bundled UDB game configurations (the default config lives here too).
-    private static string DefaultConfigDir =>
-        System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            "dev", "repos", "UltimateDoomBuilder", "Assets", "Common", "Configurations");
+    // Default directory holding packaged game configurations, falling back to a development UDB checkout.
+    private static string DefaultConfigDir => EditorAssetPaths.DefaultConfigDir(AppContext.BaseDirectory);
 
     // Standard macOS GZDoom install, used by Test Map when no port is configured.
     private const string DefaultGzdoomPath = "/Applications/GZDoom.app/Contents/MacOS/gzdoom";
@@ -92,11 +90,9 @@ public partial class MainWindow : Window
     {
         get
         {
-            string platform = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "Windows" : "Linux";
-            string? assetsRoot = AssetsRootFromConfigDir(ConfigDir);
-            return assetsRoot is null
-                ? ""
-                : System.IO.Path.Combine(assetsRoot, platform, "Compilers", "Nodebuilders");
+            return EditorAssetPaths.NodebuilderConfigDir(
+                ConfigDir,
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
         }
     }
 
@@ -104,8 +100,7 @@ public partial class MainWindow : Window
     {
         get
         {
-            string? assetsRoot = AssetsRootFromConfigDir(ConfigDir);
-            return assetsRoot is null ? "" : System.IO.Path.Combine(assetsRoot, "Common", "Scripting");
+            return EditorAssetPaths.ScriptConfigDir(ConfigDir);
         }
     }
 
@@ -594,13 +589,6 @@ public partial class MainWindow : Window
         ErrorLog.Append(exception, context);
         SetStatus($"{context}: {exception.Message}", StatusHistoryKind.Warning);
         ShowErrorLogWindowIfPreferred();
-    }
-
-    private static string? AssetsRootFromConfigDir(string configDir)
-    {
-        var dir = new System.IO.DirectoryInfo(configDir);
-        if (!dir.Exists || dir.Name != "Configurations" || dir.Parent?.Name != "Common") return null;
-        return dir.Parent.Parent?.FullName;
     }
 
     private void ReloadCompilerConfiguration()
