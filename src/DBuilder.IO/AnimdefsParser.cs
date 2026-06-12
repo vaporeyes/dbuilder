@@ -60,6 +60,7 @@ public static class AnimdefsParser
             {
                 if (!ParseCameraTexture(result, t, ref i)) return result;
             }
+            else if (kw == "warp" || kw == "warp2") SkipDirectiveBlock(t, ref i);
             else if (t[i] == "{") SkipBlock(t, ref i); // unknown directive's block (warp/cameratexture/...)
             else i++;
         }
@@ -158,6 +159,12 @@ public static class AnimdefsParser
         result.CameraTextures.Add(new CameraTextureDef(name, width, height, scaleX, scaleY, worldPanning, fitTexture));
         if (i < t.Count && t[i] == "{") SkipBlock(t, ref i);
         return true;
+    }
+
+    private static void SkipDirectiveBlock(List<string> t, ref int i)
+    {
+        while (i < t.Count && t[i] != "{") i++;
+        if (i < t.Count) SkipBlock(t, ref i);
     }
 
     private static bool IsGameQualifier(string s) =>

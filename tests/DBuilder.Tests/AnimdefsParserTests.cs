@@ -77,6 +77,32 @@ switch SW1COMP on pic SW2COMP tics 0";
     }
 
     [Fact]
+    public void SkipsWarpBlocksWithoutTreatingInnerTextureAsAnimation()
+    {
+        const string text = @"
+warp texture WARPA
+{
+    speed 2
+}
+warp2 flat WARPF
+{
+    speed 1
+}
+texture SLADRIP
+{
+    pic SLADRIP1 tics 4
+    pic SLADRIP2 tics 4
+}";
+
+        var a = AnimdefsParser.Parse(text);
+        var animation = Assert.Single(a.Animations);
+
+        Assert.Equal(AnimKind.Texture, animation.Kind);
+        Assert.Equal("SLADRIP", animation.FirstName);
+        Assert.Equal(new[] { "SLADRIP1", "SLADRIP2" }, animation.Frames.Select(frame => frame.Texture).ToArray());
+    }
+
+    [Fact]
     public void ParsesMultipleCameraTextures()
     {
         const string text = @"
