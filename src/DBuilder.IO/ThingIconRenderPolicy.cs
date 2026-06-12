@@ -83,7 +83,7 @@ public static class ThingIconRenderPolicy
         if (viewScale <= 0 || double.IsNaN(viewScale) || double.IsInfinity(viewScale)) throw new ArgumentOutOfRangeException(nameof(viewScale));
         if (selected || !UseOverviewMarkers(viewScale, thingArrows)) return true;
 
-        double spacing = OverviewCullCellPixelsFor(viewScale, thingArrows) * 0.5;
+        double spacing = OverviewCullCellPixelsFor(viewScale, thingArrows) * 0.75;
         double spacingSquared = spacing * spacing;
         foreach ((double x, double y) in renderedScreenPositions)
         {

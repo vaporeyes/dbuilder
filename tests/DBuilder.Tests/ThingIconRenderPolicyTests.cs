@@ -622,10 +622,29 @@ public sealed class ThingIconRenderPolicyTests
             thingArrows: false,
             selected: false));
         Assert.True(ThingIconRenderPolicy.ShouldRenderOverviewScreenThing(
-            screenX: 470,
+            screenX: 700,
             screenY: 120,
             renderedScreenPositions: [(100, 100)],
             viewScale: 1.0,
+            thingArrows: false,
+            selected: false));
+    }
+
+    [Fact]
+    public void DeepOverviewScreenSpacingSuppressesWideThingIconPileups()
+    {
+        Assert.False(ThingIconRenderPolicy.ShouldRenderOverviewScreenThing(
+            screenX: 570,
+            screenY: 100,
+            renderedScreenPositions: [(100, 100)],
+            viewScale: 0.8,
+            thingArrows: false,
+            selected: false));
+        Assert.True(ThingIconRenderPolicy.ShouldRenderOverviewScreenThing(
+            screenX: 590,
+            screenY: 100,
+            renderedScreenPositions: [(100, 100)],
+            viewScale: 0.8,
             thingArrows: false,
             selected: false));
     }
