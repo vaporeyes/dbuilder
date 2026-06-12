@@ -268,6 +268,56 @@ public sealed class TabbedDockerLayoutModelTests
     }
 
     [Fact]
+    public void CollapseGroupStoresExpandedSizeAndActiveTab()
+    {
+        TabbedDockerGroup group = TabbedDockerLayoutModel.BuildGroups(
+            new[] { "window.tag-explorer", "window.comments-panel" },
+            new Dictionary<TabbedDockerArea, string>
+            {
+                [TabbedDockerArea.Right] = "comments",
+            })[0];
+
+        TabbedDockerCollapseState state = TabbedDockerLayoutModel.CollapseGroup(group, 320);
+
+        Assert.Equal(TabbedDockerArea.Right, state.Area);
+        Assert.True(state.IsCollapsed);
+        Assert.Equal(320, state.ExpandedSize);
+        Assert.Equal("comments", state.ExpandedActiveTabKey);
+    }
+
+    [Fact]
+    public void ExpandGroupRestoresVisibleCollapsedActiveTab()
+    {
+        TabbedDockerGroup group = TabbedDockerLayoutModel.BuildGroups(
+            new[] { "window.tag-explorer", "window.comments-panel" },
+            new Dictionary<TabbedDockerArea, string>
+            {
+                [TabbedDockerArea.Right] = "tag-explorer",
+            })[0];
+        var state = new TabbedDockerCollapseState(TabbedDockerArea.Right, true, 320, "comments");
+
+        TabbedDockerGroup expanded = TabbedDockerLayoutModel.ExpandGroup(group, state);
+
+        Assert.Equal("comments", expanded.ActiveTabKey);
+    }
+
+    [Fact]
+    public void ExpandGroupFallsBackWhenCollapsedActiveTabIsHidden()
+    {
+        TabbedDockerGroup group = TabbedDockerLayoutModel.BuildGroups(
+            new[] { "window.tag-explorer" },
+            new Dictionary<TabbedDockerArea, string>
+            {
+                [TabbedDockerArea.Right] = "tag-explorer",
+            })[0];
+        var state = new TabbedDockerCollapseState(TabbedDockerArea.Right, true, 320, "comments");
+
+        TabbedDockerGroup expanded = TabbedDockerLayoutModel.ExpandGroup(group, state);
+
+        Assert.Equal("tag-explorer", expanded.ActiveTabKey);
+    }
+
+    [Fact]
     public void SettingsRoundTripPreservesActiveDockersAndTabs()
     {
         var state = new TabbedDockerLayoutState(

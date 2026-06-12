@@ -31,6 +31,12 @@ public sealed record TabbedDockerLayoutState(
     IReadOnlyList<string> ActiveCommandIds,
     IReadOnlyDictionary<TabbedDockerArea, string> ActiveTabKeysByArea);
 
+public sealed record TabbedDockerCollapseState(
+    TabbedDockerArea Area,
+    bool IsCollapsed,
+    int ExpandedSize,
+    string? ExpandedActiveTabKey);
+
 public static class TabbedDockerLayoutModel
 {
     public const string ActiveDockersSettingKey = "activedockers";
@@ -154,6 +160,24 @@ public static class TabbedDockerLayoutModel
         return active
             ? HideDocker(activeCommandIds, activeTabKeysByArea, commandId)
             : ShowDocker(activeCommandIds, activeTabKeysByArea, commandId);
+    }
+
+    public static TabbedDockerCollapseState CollapseGroup(TabbedDockerGroup group, int currentSize)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(currentSize);
+
+        return new TabbedDockerCollapseState(group.Area, true, currentSize, group.ActiveTabKey);
+    }
+
+    public static TabbedDockerGroup ExpandGroup(TabbedDockerGroup group, TabbedDockerCollapseState state)
+    {
+        if (state.Area != group.Area)
+            throw new ArgumentException("Collapse state area must match the docker group area.", nameof(state));
+
+        string? activeTabKey = group.Tabs.Any(tab => tab.Key == state.ExpandedActiveTabKey)
+            ? state.ExpandedActiveTabKey
+            : ActiveTabKey(group.Area, group.Tabs, activeTabKeysByArea: null);
+        return group with { ActiveTabKey = activeTabKey };
     }
 
     public static TabbedDockerLayoutState ReadSettings(IReadOnlyDictionary<string, object?> settings)
