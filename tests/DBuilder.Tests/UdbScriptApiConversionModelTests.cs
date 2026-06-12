@@ -3651,6 +3651,87 @@ localsidedeftextureoffsets = true;
         Assert.Contains("e.upperTexture = 'FIREBLU1'", source, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void CommonUdbScriptFlipTriangularSectorsWorkflowUsesMapWrappersTogether()
+    {
+        var map = new MapSet();
+        Sector first = map.AddSector();
+        Sector second = map.AddSector();
+        Vertex a = map.AddVertex(new Vector2D(0, 0));
+        Vertex b = map.AddVertex(new Vector2D(64, 0));
+        Vertex c = map.AddVertex(new Vector2D(64, 64));
+        Vertex d = map.AddVertex(new Vector2D(0, 64));
+        Linedef ab = map.AddLinedef(a, b);
+        Linedef bd = map.AddLinedef(b, d);
+        Linedef da = map.AddLinedef(d, a);
+        Linedef bc = map.AddLinedef(b, c);
+        Linedef cd = map.AddLinedef(c, d);
+        map.AddSidedef(ab, isFront: true, first);
+        map.AddSidedef(bd, isFront: true, first);
+        map.AddSidedef(da, isFront: true, first);
+        map.AddSidedef(bd, isFront: false, second);
+        map.AddSidedef(bc, isFront: true, second);
+        map.AddSidedef(cd, isFront: true, second);
+        first.Selected = true;
+        second.Selected = true;
+        map.BuildIndexes();
+        var wrapper = new UdbScriptMapWrapper(map);
+        UdbScriptSectorWrapper[] sectors = wrapper.getSelectedSectors();
+        var vertices = new HashSet<UdbScriptVertexWrapper>();
+        UdbScriptLinedefWrapper? sharedLine = null;
+
+        foreach (UdbScriptSectorWrapper sector in sectors)
+        {
+            UdbScriptSidedefWrapper[] sidedefs = sector.getSidedefs();
+            Assert.Equal(3, sidedefs.Length);
+
+            foreach (UdbScriptSidedefWrapper side in sidedefs)
+            {
+                if (side.other != null &&
+                    side.sector != null &&
+                    side.other.sector != null &&
+                    sectors.Contains(side.sector) &&
+                    sectors.Contains(side.other.sector))
+                {
+                    sharedLine = side.line;
+                }
+
+                vertices.Add(side.line.start);
+                vertices.Add(side.line.end);
+            }
+        }
+
+        Assert.NotNull(sharedLine);
+        Assert.True(vertices.Remove(sharedLine.start));
+        Assert.True(vertices.Remove(sharedLine.end));
+        Assert.Equal(2, vertices.Count);
+        Assert.Contains(vertices, vertex => vertex.position == new UdbScriptVector2DWrapper(0, 0));
+        Assert.Contains(vertices, vertex => vertex.position == new UdbScriptVector2DWrapper(64, 64));
+
+        wrapper.mergeSectors(sectors);
+        Assert.True(wrapper.drawLines(vertices.Select(vertex => vertex.position).ToArray()));
+
+        Assert.DoesNotContain(map.Linedefs, line => HasEndpoints(line, new Vector2D(64, 0), new Vector2D(0, 64)));
+        Assert.Contains(map.Linedefs, line => HasEndpoints(line, new Vector2D(0, 0), new Vector2D(64, 64)));
+        Assert.Single(map.Sectors);
+    }
+
+    [Fact]
+    public void CommonUdbScriptFlipTriangularSectorsExampleUsesCoveredApisWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Assets", "Common", "UDBScript", "Scripts", "Examples", "fliptriangularsectors.js"));
+
+        Assert.Contains("UDB.Map.getSelectedSectors()", source, StringComparison.Ordinal);
+        Assert.Contains("s.getSidedefs()", source, StringComparison.Ordinal);
+        Assert.Contains("sd.other != null", source, StringComparison.Ordinal);
+        Assert.Contains("vertices.delete(sharedline.start)", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.mergeSectors(sectors)", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.drawLines(Array.from(vertices, v => v.position))", source, StringComparison.Ordinal);
+    }
+
     private static Sector CreateSquareSector()
     {
         var sector = new Sector();
@@ -3673,6 +3754,12 @@ localsidedeftextureoffsets = true;
 
         sector.UpdateBBox();
         return sector;
+    }
+
+    private static bool HasEndpoints(Linedef line, Vector2D first, Vector2D second)
+    {
+        return (line.Start.Position == first && line.End.Position == second) ||
+            (line.Start.Position == second && line.End.Position == first);
     }
 
     private static (MapSet Map, Sector First, Sector Second, Linedef Shared) CreateTwoSharedSectors()
