@@ -221,6 +221,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _alwaysShowVertices = true;
     private bool _fullBrightness = true;
     private bool _useHighlight = true;
+    private bool _autoClearSelection;
     private ThingModelRenderMode _modelRenderMode = ThingModelRenderMode.All;
     private ThingLightRenderMode _lightRenderMode = ThingLightRenderMode.All;
     private bool _enhancedRenderingEffects = true;
@@ -255,6 +256,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool AlwaysShowVertices => _alwaysShowVertices;
     public bool FullBrightness => _fullBrightness;
     public bool UseHighlight => _useHighlight;
+    public bool AutoClearSelection
+    {
+        get => _autoClearSelection;
+        set => _autoClearSelection = value;
+    }
     public ThingModelRenderMode ModelRenderMode => _modelRenderMode;
     public ThingLightRenderMode LightRenderMode => _lightRenderMode;
     public bool EnhancedRenderingEffects => _enhancedRenderingEffects;
@@ -9973,20 +9979,22 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private void Pick(Vec2D world, bool additive)
     {
         if (_map == null) return;
-        if (!additive) _map.ClearAllSelected();
 
-        // Vertices/things are handled on press; here Linedefs/Sectors modes pick their element (else just clear).
         string desc = "nothing";
+        ISelectable? target = null;
         if (_editMode == EditMode.Linedefs)
         {
-            var l = _map.NearestLinedef(world, HighlightRangeWorld());
-            if (l != null) { l.Selected = !l.Selected; desc = $"linedef {_map.Linedefs.IndexOf(l)}"; }
+            target = _map.NearestLinedef(world, HighlightRangeWorld());
+            if (target is Linedef l) desc = $"linedef {_map.Linedefs.IndexOf(l)}";
         }
         else if (_editMode == EditMode.Sectors)
         {
-            var s = _map.GetSectorAt(world);
-            if (s != null) { s.Selected = !s.Selected; desc = $"sector {s.Index}"; }
+            target = _map.GetSectorAt(world);
+            if (target is Sector s) desc = $"sector {s.Index}";
         }
+
+        if (!additive && (target != null || _autoClearSelection)) _map.ClearAllSelected();
+        if (target != null) target.Selected = !target.Selected;
         MarkGeometryDirty();
         Picked?.Invoke(desc);
     }

@@ -142,6 +142,12 @@ public class SettingsTests
     }
 
     [Fact]
+    public void AutoClearSelectionDefaultsDisabledLikeUdb()
+    {
+        Assert.False(new Settings().AutoClearSelection);
+    }
+
+    [Fact]
     public void ModelRenderModeDefaultsToAllLikeUdb()
     {
         Assert.Equal(ThingModelRenderMode.All, new Settings().NormalizedModelRenderMode);
@@ -456,6 +462,7 @@ public class SettingsTests
                 AutoClearSidedefTextures = false,
                 AutoMerge = false,
                 SplitJoinedSectors = true,
+                AutoClearSelection = true,
                 SwitchViewModes = true,
                 AlphaBasedTextureHighlighting = false,
                 SelectAdjacentVisualVertexSlopeHandles = true,
@@ -647,6 +654,7 @@ public class SettingsTests
             Assert.False(loaded.AutoClearSidedefTextures);
             Assert.False(loaded.AutoMerge);
             Assert.True(loaded.SplitJoinedSectors);
+            Assert.True(loaded.AutoClearSelection);
             Assert.True(loaded.SwitchViewModes);
             Assert.False(loaded.AlphaBasedTextureHighlighting);
             Assert.True(loaded.SelectAdjacentVisualVertexSlopeHandles);

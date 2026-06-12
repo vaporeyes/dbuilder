@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 6921 tests.
+- Current verified baseline: `scripts/verify.sh` passes 6923 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 - A Rust port of the codebase is underway in `rust/`; see the Rust Port section below.
 
@@ -1962,6 +1962,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Persist and apply UDB-style linedef split range preference for insert and split actions.
   - [x] Persist and apply UDB-style stitch range preference for dragged vertex merging.
   - [x] Persist and apply UDB-style mouse selection threshold for drag activation.
+  - [x] Persist and apply UDB-style classic auto-clear selection preference.
   - [x] Add UDB-style model render mode gating and MODELDEF/thing transform planning for future mesh rendering.
   - [x] Add UDB-style model render mode cycling, persistence, menu state, and 3D billboard fallback gating.
   - [x] Add UDB-style Toggle models rendering action alias for model render mode cycling.

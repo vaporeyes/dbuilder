@@ -234,6 +234,7 @@ public partial class MainWindow : Window
         MapView.DrawGridSettings = _settings.NormalizedDrawGridSettings;
         MapView.AutomapSettings = _settings.NormalizedAutomapSettings;
         MapView.LinedefColorPresets = _settings.NormalizedLinedefColorPresets;
+        MapView.AutoClearSelection = _settings.AutoClearSelection;
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
         MapView.RenderGridEnabled = _settings.RenderGrid;
         MapView.DynamicGridSizeEnabled = _settings.DynamicGridSize;
@@ -1430,6 +1431,7 @@ public partial class MainWindow : Window
         _settings.AutoClearSidedefTextures = dlg.AutoClearSidedefTextures;
         _settings.AutoMerge = dlg.AutoMerge;
         _settings.SplitJoinedSectors = dlg.SplitJoinedSectors;
+        _settings.AutoClearSelection = dlg.AutoClearSelection;
         _settings.DynamicGridSize = dlg.DynamicGridSize;
         _settings.SwitchViewModes = dlg.SwitchViewModes;
         _settings.UseHighlight = dlg.UseHighlight;
@@ -1487,6 +1489,7 @@ public partial class MainWindow : Window
         MapView.CurveLinedefsSettings = _settings.NormalizedCurveLinedefsSettings;
         MapView.MergeGeometryMode = _settings.NormalizedMergeGeometryMode;
         MapView.DrawGridSettings = _settings.NormalizedDrawGridSettings;
+        MapView.AutoClearSelection = _settings.AutoClearSelection;
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
         MapView.DynamicGridSizeEnabled = _settings.DynamicGridSize;
         MapView.SetUseHighlight(_settings.UseHighlight);

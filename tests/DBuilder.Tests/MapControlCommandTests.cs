@@ -108,6 +108,19 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void ClassicEmptyClickClearsSelectionOnlyWhenUdbPreferenceIsEnabled()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int pickIndex = body.IndexOf("private void Pick(Vec2D world, bool additive)", StringComparison.Ordinal);
+        string method = body[pickIndex..];
+
+        Assert.Contains("private bool _autoClearSelection;", body, StringComparison.Ordinal);
+        Assert.Contains("public bool AutoClearSelection", body, StringComparison.Ordinal);
+        Assert.Contains("if (!additive && (target != null || _autoClearSelection)) _map.ClearAllSelected();", method, StringComparison.Ordinal);
+        Assert.DoesNotContain("if (!additive) _map.ClearAllSelected();", method, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ClassicViewModeDefaultsToUdbNormalSetting()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
@@ -150,6 +163,7 @@ public sealed class MapControlCommandTests
         Assert.Contains("public int MoveSpeed", body, StringComparison.Ordinal);
         Assert.Contains("public int MouseSpeed", body, StringComparison.Ordinal);
         Assert.Contains("public int MouseSelectionThreshold", body, StringComparison.Ordinal);
+        Assert.Contains("public bool AutoClearSelection", body, StringComparison.Ordinal);
         Assert.Contains("public int StitchRange", body, StringComparison.Ordinal);
         Assert.Contains("public int HighlightRange", body, StringComparison.Ordinal);
         Assert.Contains("public int ThingHighlightRange", body, StringComparison.Ordinal);
