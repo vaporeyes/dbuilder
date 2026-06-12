@@ -2889,6 +2889,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript compatibility coverage for the bundled Randomize Selection Order workflow.
   - [x] Add UDBScript compatibility coverage for the bundled Delete Sector Tag workflow.
   - [x] Add UDBScript compatibility coverage for the bundled Reorder Things Indices workflow.
+  - [x] Add UDBScript compatibility coverage for the bundled Apply Selected Surface Textures workflow.
 
 ## Specialized Plugin Detail
 

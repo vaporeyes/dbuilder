@@ -3586,6 +3586,71 @@ localsidedeftextureoffsets = true;
         Assert.Contains("copies.reverse().forEach(t => t.delete())", source, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void CommonUdbScriptApplySelectedSurfaceTexturesWorkflowUsesMapWrappersTogether()
+    {
+        var map = new MapSet();
+        Sector selectedSector = map.AddSector();
+        Vertex start = map.AddVertex(new Vector2D(0, 0));
+        Vertex end = map.AddVertex(new Vector2D(64, 0));
+        Linedef selectedLine = map.AddLinedef(start, end);
+        Sidedef selectedSide = map.AddSidedef(selectedLine, isFront: true, selectedSector);
+        selectedSector.Selected = true;
+        selectedLine.Selected = true;
+        map.BuildIndexes();
+        var wrapper = new UdbScriptMapWrapper(map);
+        var elements = new List<object>();
+        elements.AddRange(wrapper.getSelectedOrHighlightedSectors());
+        elements.AddRange(wrapper.getSidedefsFromSelectedOrHighlightedLinedefs());
+
+        foreach (object element in elements)
+        {
+            switch (element)
+            {
+                case UdbScriptSectorWrapper sector:
+                    if (sector.floorSelected || sector.floorHighlighted)
+                        sector.floorTexture = "LAVA1";
+
+                    if (sector.ceilingSelected || sector.ceilingHighlighted)
+                        sector.ceilingTexture = "LAVA1";
+                    break;
+                case UdbScriptSidedefWrapper side:
+                    if (side.lowerSelected || side.lowerHighlighted)
+                        side.lowerTexture = "FIREBLU1";
+
+                    if (side.middleSelected || side.middleHighlighted)
+                        side.middleTexture = "FIREBLU1";
+
+                    if (side.upperSelected || side.upperHighlighted)
+                        side.upperTexture = "FIREBLU1";
+                    break;
+            }
+        }
+
+        Assert.Equal("LAVA1", selectedSector.FloorTexture);
+        Assert.Equal("LAVA1", selectedSector.CeilTexture);
+        Assert.Equal("FIREBLU1", selectedSide.HighTexture);
+        Assert.Equal("FIREBLU1", selectedSide.MidTexture);
+        Assert.Equal("FIREBLU1", selectedSide.LowTexture);
+    }
+
+    [Fact]
+    public void CommonUdbScriptApplySelectedSurfaceTexturesExampleUsesCoveredApisWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Assets", "Common", "UDBScript", "Scripts", "Examples", "applysectorsidedeftextures.js"));
+
+        Assert.Contains("UDB.Map.getSelectedOrHighlightedSectors()", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.getSidedefsFromSelectedOrHighlightedLinedefs()", source, StringComparison.Ordinal);
+        Assert.Contains("e.floorTexture = 'LAVA1'", source, StringComparison.Ordinal);
+        Assert.Contains("e.ceilingTexture = 'LAVA1'", source, StringComparison.Ordinal);
+        Assert.Contains("e.lowerTexture = 'FIREBLU1'", source, StringComparison.Ordinal);
+        Assert.Contains("e.middleTexture = 'FIREBLU1'", source, StringComparison.Ordinal);
+        Assert.Contains("e.upperTexture = 'FIREBLU1'", source, StringComparison.Ordinal);
+    }
+
     private static Sector CreateSquareSector()
     {
         var sector = new Sector();
