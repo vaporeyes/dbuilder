@@ -35,6 +35,16 @@ public class UdmfMapWriterTests
         thing { x = 64.0;  y = 64.0;  angle = 0;  type = 2014; }
         """;
 
+    private static void WriteDirectoryEntry(BinaryWriter writer, int offset, int length, string name)
+    {
+        writer.Write(offset);
+        writer.Write(length);
+        var fixedName = new byte[8];
+        var nameBytes = System.Text.Encoding.ASCII.GetBytes(name);
+        System.Array.Copy(nameBytes, 0, fixedName, 0, System.Math.Min(nameBytes.Length, fixedName.Length));
+        writer.Write(fixedName);
+    }
+
     [Fact]
     public void RoundTripPreservesCountsAndNamespace()
     {
@@ -459,6 +469,114 @@ public class UdmfMapWriterTests
         Assert.True(rwad.Lumps[1].Length > 0);
         Assert.Equal(0, rwad.Lumps[0].Length);
         Assert.Equal(0, rwad.Lumps[2].Length);
+    }
+
+    [Fact]
+    public void WriteMapProducesDeterministicPwadGoldenBytes()
+    {
+        var map = new MapSet { Namespace = "Doom" };
+        var v0 = new Vertex(new Vector2D(0, 0));
+        var v1 = new Vertex(new Vector2D(64, 0));
+        map.Vertices.Add(v0);
+        map.Vertices.Add(v1);
+
+        var sector = new Sector
+        {
+            Index = 0,
+            FloorHeight = 0,
+            CeilHeight = 64,
+            FloorTexture = "FLOOR1",
+            CeilTexture = "CEIL1",
+            Brightness = 160,
+        };
+        map.Sectors.Add(sector);
+
+        var side = new Sidedef { Sector = sector, MidTexture = "STARTAN" };
+        map.Sidedefs.Add(side);
+
+        var line = new Linedef(v0, v1) { Front = side, Action = 80 };
+        line.UdmfFlags.Add("blocking");
+        side.Line = line;
+        map.Linedefs.Add(line);
+
+        map.Things.Add(new Thing
+        {
+            Position = new Vector2D(32, 16),
+            Type = 3001,
+            Angle = 90,
+        });
+
+        string textmap = string.Join("\r\n",
+            "namespace = \"Doom\";",
+            "",
+            "vertex // 0",
+            "{",
+            "\tx = 0.0;",
+            "\ty = 0.0;",
+            "}",
+            "",
+            "vertex // 1",
+            "{",
+            "\tx = 64.0;",
+            "\ty = 0.0;",
+            "}",
+            "",
+            "linedef // 0",
+            "{",
+            "\tv1 = 0;",
+            "\tv2 = 1;",
+            "\tsidefront = 0;",
+            "\tsideback = -1;",
+            "\tspecial = 80;",
+            "\tblocking = true;",
+            "}",
+            "",
+            "sidedef // 0",
+            "{",
+            "\ttexturemiddle = \"STARTAN\";",
+            "\tsector = 0;",
+            "}",
+            "",
+            "sector // 0",
+            "{",
+            "\theightfloor = 0;",
+            "\theightceiling = 64;",
+            "\ttexturefloor = \"FLOOR1\";",
+            "\ttextureceiling = \"CEIL1\";",
+            "\tlightlevel = 160;",
+            "}",
+            "",
+            "thing // 0",
+            "{",
+            "\tx = 32.0;",
+            "\ty = 16.0;",
+            "\tangle = 90;",
+            "\ttype = 3001;",
+            "}",
+            "",
+            "");
+        byte[] textmapBytes = System.Text.Encoding.ASCII.GetBytes(textmap);
+
+        var expected = new MemoryStream();
+        using (var writer = new BinaryWriter(expected, System.Text.Encoding.ASCII, leaveOpen: true))
+        {
+            writer.Write(System.Text.Encoding.ASCII.GetBytes("PWAD"));
+            writer.Write(3);
+            writer.Write(12 + textmapBytes.Length);
+            writer.Write(textmapBytes);
+            WriteDirectoryEntry(writer, 12, 0, "MAP01");
+            WriteDirectoryEntry(writer, 12, textmapBytes.Length, "TEXTMAP");
+            WriteDirectoryEntry(writer, 12 + textmapBytes.Length, 0, "ENDMAP");
+        }
+
+        var actual = new MemoryStream();
+        using (var wad = new WAD(actual))
+        {
+            UdmfMapWriter.WriteMap(map, wad, "MAP01", 0);
+        }
+
+        Assert.Equal(textmap, UdmfMapWriter.Write(map));
+        Assert.Equal(expected.ToArray(), actual.ToArray());
     }
 
     [Fact]
