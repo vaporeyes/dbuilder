@@ -236,6 +236,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _drawSky = true;
     private bool _showEventLines = true;
     private bool _showLightRadii = true;
+    private bool _showSoundRadii = true;
     private int _eventLineLabelVisibility = Settings.DefaultEventLineLabelVisibility;
     private int _eventLineLabelStyle = Settings.DefaultEventLineLabelStyle;
     private bool _eventLineDistinctColors = true;
@@ -319,6 +320,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool DrawSky => _drawSky;
     public bool ShowEventLines => _showEventLines;
     public bool ShowLightRadii => _showLightRadii;
+    public bool ShowSoundRadii => _showSoundRadii;
     public int EventLineLabelVisibility
     {
         get => _eventLineLabelVisibility;
@@ -664,6 +666,16 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         ActionStateChanged?.Invoke();
         RequestNextFrameRendering();
         return _showLightRadii;
+    }
+
+    public bool SetShowSoundRadii(bool enabled)
+    {
+        if (_showSoundRadii == enabled) return _showSoundRadii;
+        _showSoundRadii = enabled;
+        _geometryDirty = true;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _showSoundRadii;
     }
 
     public bool ToggleComments()
@@ -5336,12 +5348,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         {
             var dv = new System.Collections.Generic.List<FlatVertex>();
             Gldefs? gldefs = _resources?.GetGldefs();
-            if (_showLightRadii && _editMode == EditMode.Things)
+            SndInfo? sndInfo = _showSoundRadii ? _resources?.GetSndInfo(SndInfoBaseGame(_gameConfig, _mapFormat)) : null;
+            if ((_showLightRadii || sndInfo != null) && _editMode == EditMode.Things)
             {
                 foreach (var t in _map.Things)
                 {
                     if (ThingHidden2D(t)) continue;
-                    AddThingLightRadiusLines(dv, t, gldefs);
+                    if (_showLightRadii) AddThingLightRadiusLines(dv, t, gldefs);
+                    if (sndInfo != null) AddThingSoundRadiusLines(dv, t, sndInfo);
                 }
             }
             if (ThingIconRenderPolicy.ShouldDrawDirectionTicks(_zoom, _thingArrows))
@@ -5756,6 +5770,41 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         int color = DynamicLightDisplay.ThingColor(thing, _gameConfig, gldefs) ?? unchecked((int)0xffd0d8e0);
         AddCircleLines(list, thing.Position, radius.Value, color, segments: 48);
     }
+
+    private void AddThingSoundRadiusLines(System.Collections.Generic.List<FlatVertex> list, Thing thing, SndInfo sndInfo)
+    {
+        ThingTypeInfo? info = _gameConfig?.GetThing(thing.Type);
+        AmbientSoundRadii? radii = SoundRadiusDisplay.ThingRadii(thing, info, sndInfo, doomMap: _mapFormat == MapFormat.Doom);
+        if (radii == null) return;
+
+        int color = info != null ? Color16(info.Color) : ThingColor(thing.Type);
+        if (radii.MinimumRadius is > 0) AddVisibleCircleLines(list, thing.Position, radii.MinimumRadius.Value, color);
+        if (radii.MaximumRadius is > 0) AddVisibleCircleLines(list, thing.Position, radii.MaximumRadius.Value, color);
+    }
+
+    private void AddVisibleCircleLines(System.Collections.Generic.List<FlatVertex> list, Vec2D center, double radius, int color)
+    {
+        var screen = ThingScreenPosition(center);
+        double screenRadius = radius / Math.Max(_zoom, 0.001);
+        if (!ThingIconRenderPolicy.IsThingOnScreen(
+            screen.X,
+            screen.Y,
+            screenRadius,
+            Bounds.Width,
+            Bounds.Height)) return;
+
+        AddCircleLines(list, center, radius, color, segments: 48);
+    }
+
+    private static TerrainBaseGame? SndInfoBaseGame(GameConfiguration? config, MapFormat format)
+        => config?.BaseGame.ToLowerInvariant() switch
+        {
+            "doom" or "chex" => TerrainBaseGame.Doom,
+            "heretic" => TerrainBaseGame.Heretic,
+            "hexen" => TerrainBaseGame.Hexen,
+            "strife" => TerrainBaseGame.Strife,
+            _ => format == MapFormat.Hexen ? TerrainBaseGame.Hexen : format == MapFormat.Doom ? TerrainBaseGame.Doom : null,
+        };
 
     private static void AddCircleLines(
         System.Collections.Generic.List<FlatVertex> list,

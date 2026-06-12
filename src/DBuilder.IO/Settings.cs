@@ -129,6 +129,7 @@ public sealed class Settings
     public bool DrawSky { get; set; } = true;
     public bool ShowEventLines { get; set; } = true;
     public bool ShowLightRadii { get; set; } = true;
+    public bool ShowSoundRadii { get; set; } = true;
     public bool ShowVisualVertices { get; set; } = true;
     public bool SynchronizedThingEditing { get; set; } = true;
     public bool ShowErrorsWindow { get; set; } = true;

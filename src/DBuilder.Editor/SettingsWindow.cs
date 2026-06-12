@@ -14,7 +14,7 @@ public sealed class SettingsWindow : PropertyDialog
 
     private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _testSkill, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _autosaveCount, _autosaveInterval, _defaultSectorFloorHeight, _defaultSectorCeilingHeight, _defaultSectorBrightness, _imageBrightness, _doubleSidedAlpha, _visualFov, _viewDistance, _moveSpeed, _mouseSpeed, _mouseSelectionThreshold, _stitchRange, _highlightRange, _thingHighlightRange, _splitLinedefsRange, _autoScrollSpeed, _statusHistoryLimit, _toastDuration, _toastDisabledActions, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _changeHeightBySidedef, _eventLineLabelVisibility, _eventLineLabelStyle, _mergeGeometryMode, _toastAnchor, _pasteTagMode;
-    private readonly CheckBox _testMonsters, _autosave, _autoClearSidedefTextures, _autoMerge, _splitJoinedSectors, _autoClearSelection, _visualModeClearSelection, _editNewThing, _editNewSector, _autoDrawOnEdit, _additiveSelect, _additivePaintSelect, _synchronizedThingEditing, _dynamicGridSize, _switchViewModes, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _qualityDisplay, _classicBilinear, _visualBilinear, _blackBrowsers, _flatShadeVertices, _markExtraFloors, _drawFog, _drawSky, _showEventLines, _showLightRadii, _eventLineDistinctColors, _showVisualVertices, _showErrorsWindow, _fixedThingsScale, _alwaysShowVertices, _selectAdjacentVisualVertexSlopeHandles, _useOppositeSmartPivotHandle, _toastsEnabled, _pasteRemoveActions;
+    private readonly CheckBox _testMonsters, _autosave, _autoClearSidedefTextures, _autoMerge, _splitJoinedSectors, _autoClearSelection, _visualModeClearSelection, _editNewThing, _editNewSector, _autoDrawOnEdit, _additiveSelect, _additivePaintSelect, _synchronizedThingEditing, _dynamicGridSize, _switchViewModes, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _qualityDisplay, _classicBilinear, _visualBilinear, _blackBrowsers, _flatShadeVertices, _markExtraFloors, _drawFog, _drawSky, _showEventLines, _showLightRadii, _showSoundRadii, _eventLineDistinctColors, _showVisualVertices, _showErrorsWindow, _fixedThingsScale, _alwaysShowVertices, _selectAdjacentVisualVertexSlopeHandles, _useOppositeSmartPivotHandle, _toastsEnabled, _pasteRemoveActions;
     private readonly bool _drawLineShowGuidelines;
     private readonly int _drawRectangleSubdivisions, _drawRectangleBevelWidth;
     private readonly bool _drawRectangleShowGuidelines;
@@ -72,6 +72,7 @@ public sealed class SettingsWindow : PropertyDialog
     public bool DrawSky;
     public bool ShowEventLines;
     public bool ShowLightRadii;
+    public bool ShowSoundRadii;
     public int EventLineLabelVisibility;
     public int EventLineLabelStyle;
     public bool EventLineDistinctColors;
@@ -200,6 +201,7 @@ public sealed class SettingsWindow : PropertyDialog
         _drawSky = AddCheckBox("Draw sky", s.DrawSky);
         _showEventLines = AddCheckBox("Show event lines", s.ShowEventLines);
         _showLightRadii = AddCheckBox("Show light radii", s.ShowLightRadii);
+        _showSoundRadii = AddCheckBox("Show sound radii", s.ShowSoundRadii);
         _eventLineLabelVisibility = AddCombo("Event line labels", EventLineLabelVisibilityItems(), s.NormalizedEventLineLabelVisibility);
         _eventLineLabelStyle = AddCombo("Event line label text", EventLineLabelStyleItems(), s.NormalizedEventLineLabelStyle);
         _eventLineDistinctColors = AddCheckBox("Use distinct event line colors", s.EventLineDistinctColors);
@@ -277,6 +279,7 @@ public sealed class SettingsWindow : PropertyDialog
         DrawSky = _drawSky.IsChecked == true;
         ShowEventLines = _showEventLines.IsChecked == true;
         ShowLightRadii = _showLightRadii.IsChecked == true;
+        ShowSoundRadii = _showSoundRadii.IsChecked == true;
         EventLineLabelVisibility = ComboNumber(_eventLineLabelVisibility, Settings.DefaultEventLineLabelVisibility);
         EventLineLabelStyle = ComboNumber(_eventLineLabelStyle, Settings.DefaultEventLineLabelStyle);
         EventLineDistinctColors = _eventLineDistinctColors.IsChecked == true;

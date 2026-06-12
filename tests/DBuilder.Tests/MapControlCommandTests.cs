@@ -1365,10 +1365,23 @@ public sealed class MapControlCommandTests
 
         Assert.Contains("public bool ShowLightRadii => _showLightRadii;", body, StringComparison.Ordinal);
         Assert.Contains("public bool SetShowLightRadii(bool enabled)", body, StringComparison.Ordinal);
-        Assert.Contains("if (_showLightRadii && _editMode == EditMode.Things)", body, StringComparison.Ordinal);
+        Assert.Contains("if ((_showLightRadii || sndInfo != null) && _editMode == EditMode.Things)", body, StringComparison.Ordinal);
         Assert.Contains("AddThingLightRadiusLines(dv, t, gldefs);", body, StringComparison.Ordinal);
         Assert.Contains("DynamicLightDisplay.ThingRadius(thing, _gameConfig, gldefs)", body, StringComparison.Ordinal);
         Assert.Contains("AddCircleLines(list, thing.Position, radius.Value, color, segments: 48);", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SoundRadiiSettingDrawsAmbientSoundRadiusLinesInThingsMode()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("public bool ShowSoundRadii => _showSoundRadii;", body, StringComparison.Ordinal);
+        Assert.Contains("public bool SetShowSoundRadii(bool enabled)", body, StringComparison.Ordinal);
+        Assert.Contains("SndInfo? sndInfo = _showSoundRadii ? _resources?.GetSndInfo(SndInfoBaseGame(_gameConfig, _mapFormat)) : null;", body, StringComparison.Ordinal);
+        Assert.Contains("if (sndInfo != null) AddThingSoundRadiusLines(dv, t, sndInfo);", body, StringComparison.Ordinal);
+        Assert.Contains("SoundRadiusDisplay.ThingRadii(thing, info, sndInfo, doomMap: _mapFormat == MapFormat.Doom)", body, StringComparison.Ordinal);
+        Assert.Contains("AddVisibleCircleLines(list, thing.Position, radii.MinimumRadius.Value, color);", body, StringComparison.Ordinal);
     }
 
     [Theory]

@@ -213,6 +213,12 @@ public class SettingsTests
     }
 
     [Fact]
+    public void ShowSoundRadiiDefaultsEnabledLikeUdb()
+    {
+        Assert.True(new Settings().ShowSoundRadii);
+    }
+
+    [Fact]
     public void ModelRenderModeDefaultsToAllLikeUdb()
     {
         Assert.Equal(ThingModelRenderMode.All, new Settings().NormalizedModelRenderMode);

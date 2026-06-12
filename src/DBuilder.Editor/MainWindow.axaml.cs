@@ -186,6 +186,11 @@ public partial class MainWindow : Window
                 _settings.ShowLightRadii = MapView.ShowLightRadii;
                 SaveSettings();
             }
+            if (_settings.ShowSoundRadii != MapView.ShowSoundRadii)
+            {
+                _settings.ShowSoundRadii = MapView.ShowSoundRadii;
+                SaveSettings();
+            }
             if (_settings.ShowVisualVertices != MapView.ShowVisualVertices)
             {
                 _settings.ShowVisualVertices = MapView.ShowVisualVertices;
@@ -266,6 +271,7 @@ public partial class MainWindow : Window
         MapView.SetDrawSky(_settings.DrawSky);
         MapView.SetShowEventLines(_settings.ShowEventLines);
         MapView.SetShowLightRadii(_settings.ShowLightRadii);
+        MapView.SetShowSoundRadii(_settings.ShowSoundRadii);
         MapView.EventLineLabelVisibility = _settings.NormalizedEventLineLabelVisibility;
         MapView.EventLineLabelStyle = _settings.NormalizedEventLineLabelStyle;
         MapView.EventLineDistinctColors = _settings.EventLineDistinctColors;
@@ -1490,6 +1496,7 @@ public partial class MainWindow : Window
         _settings.DrawSky = dlg.DrawSky;
         _settings.ShowEventLines = dlg.ShowEventLines;
         _settings.ShowLightRadii = dlg.ShowLightRadii;
+        _settings.ShowSoundRadii = dlg.ShowSoundRadii;
         _settings.EventLineLabelVisibility = dlg.EventLineLabelVisibility;
         _settings.EventLineLabelStyle = dlg.EventLineLabelStyle;
         _settings.EventLineDistinctColors = dlg.EventLineDistinctColors;
@@ -1544,6 +1551,7 @@ public partial class MainWindow : Window
         MapView.SetDrawSky(_settings.DrawSky);
         MapView.SetShowEventLines(_settings.ShowEventLines);
         MapView.SetShowLightRadii(_settings.ShowLightRadii);
+        MapView.SetShowSoundRadii(_settings.ShowSoundRadii);
         MapView.EventLineLabelVisibility = _settings.NormalizedEventLineLabelVisibility;
         MapView.EventLineLabelStyle = _settings.NormalizedEventLineLabelStyle;
         MapView.EventLineDistinctColors = _settings.EventLineDistinctColors;
