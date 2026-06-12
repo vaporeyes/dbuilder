@@ -60,6 +60,8 @@ Script compilers use the same UDB-style compiler configuration source as nodebui
 
 The script does not sign, notarize, create installers, delete prior artifacts, or bundle copyrighted assets. Platform packages remain open work.
 
+`bash scripts/package-smoke.sh` checks published runtime directories for the editor launch file, .NET runtime metadata files, app icon, and bundled asset layout. It accepts one or more runtime IDs or discovers all runtime directories under `artifacts/release`.
+
 ## App Metadata And Icon
 
 The editor project defines the app title, product name, package description, Windows DPI manifest, and package icon metadata. The shared icon source is `assets/main.png`, which is linked into publish output as `main.png` and packed as the package icon.
