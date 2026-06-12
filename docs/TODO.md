@@ -3055,6 +3055,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Add unit tests for every parser and serializer.
 - [ ] Add round-trip tests for every supported map format.
 - [ ] Add golden-file tests for WAD output where deterministic output is expected.
+  - [x] Add a full PWAD byte-layout golden test for Doom-format map output.
 - [ ] Add parser regression tests from representative real-world mods.
 - [ ] Add property tests for geometry operations.
 - [x] Add editor-model tests for undo and redo.

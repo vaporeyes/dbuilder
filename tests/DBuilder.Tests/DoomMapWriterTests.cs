@@ -77,6 +77,9 @@ public class DoomMapWriterTests
         return bytes;
     }
 
+    private static string CompactHex(string text)
+        => new(text.Where(c => !char.IsWhiteSpace(c)).ToArray());
+
     // Loads the synthetic map from in-memory WAD bytes, returning the parsed MapSet.
     private static MapSet LoadSynthetic()
     {
@@ -225,6 +228,37 @@ public class DoomMapWriterTests
             wad.Lumps.Select(l => l.Name).ToArray());
         Assert.Equal(0, wad.Lumps[6].Length);
         Assert.Equal(0, wad.Lumps[7].Length);
+    }
+
+    [Fact]
+    public void WriteMapProducesDeterministicPwadGoldenBytes()
+    {
+        var map = LoadSynthetic();
+        var ms = new MemoryStream();
+
+        using (var wad = new WAD(ms))
+        {
+            DoomMapWriter.WriteMap(map, wad, "MAP01", 0);
+        }
+
+        string expected = CompactHex("""
+            505741440800000064000000
+            800040005A00B90B0F00
+            0000010021000B002A000000FFFF
+            0400080055505045520000004C4F5745520000004D4944444C4500000000
+            0000000000010000
+            00008000464C4F4F523100004345494C31000000A00000000700
+            0C000000000000004D41503031000000
+            0C0000000A0000005448494E47530000
+            160000000E0000004C494E4544454653
+            240000001E0000005349444544454653
+            42000000080000005645525445584553
+            4A0000001A000000534543544F525300
+            640000000000000052454A4543540000
+            6400000000000000424C4F434B4D4150
+            """);
+
+        Assert.Equal(expected, System.Convert.ToHexString(ms.ToArray()));
     }
 
     [Fact]
