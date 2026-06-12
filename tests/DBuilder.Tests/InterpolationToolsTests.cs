@@ -34,6 +34,15 @@ public class InterpolationToolsTests
         Assert.Equal(InterpolationTools.Mode.LINEAR, InterpolationTools.NormalizeMode((InterpolationTools.Mode)999));
     }
 
+    [Theory]
+    [InlineData(InterpolationTools.Mode.EASE_IN_SINE, 2.9289321881345254)]
+    [InlineData(InterpolationTools.Mode.EASE_OUT_SINE, 7.071067811865475)]
+    [InlineData(InterpolationTools.Mode.EASE_IN_OUT_SINE, 4.999999999999999)]
+    public void EasingModesMatchUdbFormulasAtMidpoint(InterpolationTools.Mode mode, double expected)
+    {
+        Assert.Equal(expected, InterpolationTools.Interpolate(0.0, 10.0, 0.5, mode), 1e-12);
+    }
+
     [Fact]
     public void InterpolateThrowsForUnknownModes()
     {
@@ -56,6 +65,26 @@ public class InterpolationToolsTests
         Assert.InRange(r, 126, 128);
         Assert.InRange(g, 126, 128);
         Assert.InRange(b, 126, 128);
+    }
+
+    [Fact]
+    public void InterpolateColorWithoutModeTruncatesChannelsLikeUdb()
+    {
+        uint color = InterpolationTools.InterpolateColor(0x00000000u, 0xffffffffu, 0.5);
+
+        Assert.Equal(0x7f7f7f7fu, color);
+    }
+
+    [Fact]
+    public void InterpolateColorWithModeRoundsChannelsLikeUdb()
+    {
+        uint color = InterpolationTools.InterpolateColor(
+            0x00000000u,
+            0xffffffffu,
+            0.5,
+            InterpolationTools.Mode.LINEAR);
+
+        Assert.Equal(0x80808080u, color);
     }
 
     [Fact]
