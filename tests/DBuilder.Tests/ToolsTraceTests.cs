@@ -762,6 +762,30 @@ public class ToolsTraceTests
     }
 
     [Fact]
+    public void MakeSectorFillsMissingSidedefDefaultsFromLaterTracedSidesLikeUdb()
+    {
+        var map = new MapSet();
+        var lines = BuildSidelessSquare(map);
+        Sector source = map.AddSector();
+        Sidedef blankSourceSide = map.AddSidedef(lines[0], true, source);
+        blankSourceSide.OffsetX = 24;
+        blankSourceSide.Fields["alpha"] = 0.5;
+        Sidedef wallSourceSide = map.AddSidedef(lines[1], true, source);
+        wallSourceSide.SetTextureMid("SIDEWALL");
+        wallSourceSide.LongMiddleTexture = 2201;
+        map.BuildIndexes();
+
+        Sector? sector = Tools.MakeSector(map, lines.Select(line => new LinedefSide(line, true)).ToList());
+        map.BuildIndexes();
+
+        Assert.NotNull(sector);
+        Assert.Equal("SIDEWALL", lines[2].Front!.MidTexture);
+        Assert.Equal(2201, lines[2].Front!.LongMiddleTexture);
+        Assert.Equal(24, lines[2].Front!.OffsetX);
+        Assert.Equal(0.5, lines[2].Front!.Fields["alpha"]);
+    }
+
+    [Fact]
     public void MakeSectorAppliesOverridesAfterSourceCopy()
     {
         var map = new MapSet();

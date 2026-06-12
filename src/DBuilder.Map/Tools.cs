@@ -325,7 +325,6 @@ public static class Tools
             sourceSector ??= side.Sector;
             sourceSide = TakeSidedefSettings(sourceSide, side);
             foundSideDefaults = true;
-            break;
         }
 
         foreach (LinedefSide lineSide in allLines)
@@ -336,7 +335,6 @@ public static class Tools
             sourceSector ??= side.Sector;
             sourceSide = TakeSidedefSettings(sourceSide, side);
             foundSideDefaults = true;
-            break;
         }
 
         if (nearbyLines != null && allLines.Count > 0 && (!foundSideDefaults || sourceSector == null))
