@@ -19,6 +19,7 @@ public sealed class TabbedDockerLayoutModelTests
         {
             Assert.False(string.IsNullOrWhiteSpace(descriptor.Title));
             Assert.NotNull(EditorCommandCatalog.Find(descriptor.CommandId));
+            Assert.All(descriptor.Aliases, alias => Assert.NotNull(EditorCommandCatalog.Find(alias)));
         });
     }
 
@@ -48,12 +49,12 @@ public sealed class TabbedDockerLayoutModelTests
     {
         IReadOnlyList<TabbedDockerGroup> groups = TabbedDockerLayoutModel.BuildGroups(new[]
         {
-            "window.reject-explorer",
+            "window.rejectexplorermode",
             "missing",
             "window.comments-panel",
             "window.tag-explorer",
             "window.reject-explorer",
-            "window.show-errors",
+            "window.showerrors",
         });
 
         Assert.Equal(new[] { TabbedDockerArea.Right, TabbedDockerArea.Bottom }, groups.Select(group => group.Area).ToArray());
@@ -64,11 +65,12 @@ public sealed class TabbedDockerLayoutModelTests
     [Fact]
     public void FindByCommandIdReturnsDescriptor()
     {
-        TabbedDockerDescriptor? descriptor = TabbedDockerLayoutModel.FindByCommandId("window.udbscripts");
+        TabbedDockerDescriptor? descriptor = TabbedDockerLayoutModel.FindByCommandId("window.openscripteditor");
 
         Assert.NotNull(descriptor);
         Assert.Equal("scripts", descriptor.Key);
         Assert.Equal("Scripts", descriptor.Title);
         Assert.Equal(TabbedDockerArea.Right, descriptor.Area);
+        Assert.Equal("window.udbscripts", descriptor.CommandId);
     }
 }

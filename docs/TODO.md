@@ -1418,6 +1418,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add a tested selected-element count to the status bar.
 - [ ] Port dockers and tabbed dock panels.
   - [x] Add shared tabbed docker layout metadata for existing editor panel commands.
+  - [x] Resolve UDB-style docker command aliases in shared tabbed layout metadata.
 - [x] Port info panels for vertices, linedefs, sidedefs, sectors, and things.
   - [x] Add structured single-vertex info panel details.
   - [x] Add tested single-vertex info panel model.

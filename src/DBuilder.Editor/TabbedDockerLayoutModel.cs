@@ -18,7 +18,8 @@ public sealed record TabbedDockerDescriptor(
     string Title,
     string CommandId,
     TabbedDockerArea Area,
-    int Order);
+    int Order,
+    IReadOnlyList<string> Aliases);
 
 public sealed record TabbedDockerGroup(
     TabbedDockerArea Area,
@@ -30,20 +31,25 @@ public static class TabbedDockerLayoutModel
     {
         Descriptor("tag-explorer", TagExplorerModel.DockerTitle, "window.tag-explorer", TabbedDockerArea.Right, 10),
         Descriptor("comments", CommentsPanelModel.DockerTitle, "window.comments-panel", TabbedDockerArea.Right, 20),
-        Descriptor("scripts", UdbScriptDockerModel.DockerTitle, "window.udbscripts", TabbedDockerArea.Right, 30),
-        Descriptor("sound-environments", SoundEnvironmentModeModel.DockerTitle, "window.sound-environment-mode", TabbedDockerArea.Right, 40),
-        Descriptor("blockmap-explorer", "Blockmap Explorer", "window.blockmap-explorer", TabbedDockerArea.Bottom, 10),
-        Descriptor("reject-explorer", "Reject Explorer", "window.reject-explorer", TabbedDockerArea.Bottom, 20),
-        Descriptor("nodes-viewer", "Nodes Viewer", "window.nodes-viewer", TabbedDockerArea.Bottom, 30),
+        Descriptor("scripts", UdbScriptDockerModel.DockerTitle, "window.udbscripts", TabbedDockerArea.Right, 30, "window.openscripteditor"),
+        Descriptor("sound-environments", SoundEnvironmentModeModel.DockerTitle, "window.sound-environment-mode", TabbedDockerArea.Right, 40, "window.soundenvironmentmode"),
+        Descriptor("blockmap-explorer", "Blockmap Explorer", "window.blockmap-explorer", TabbedDockerArea.Bottom, 10, "window.blockmapexplorermode"),
+        Descriptor("reject-explorer", "Reject Explorer", "window.reject-explorer", TabbedDockerArea.Bottom, 20, "window.rejectexplorermode"),
+        Descriptor("nodes-viewer", "Nodes Viewer", "window.nodes-viewer", TabbedDockerArea.Bottom, 30, "window.nodesviewermode"),
         Descriptor("status-history", "Status History", "window.status-history", TabbedDockerArea.Bottom, 40),
-        Descriptor("error-log", "Error Log", "window.show-errors", TabbedDockerArea.Bottom, 50),
+        Descriptor("error-log", "Error Log", "window.show-errors", TabbedDockerArea.Bottom, 50, "window.showerrors"),
     };
 
     public static IReadOnlyList<TabbedDockerGroup> BuildGroups(IEnumerable<string> activeCommandIds)
     {
-        var active = new HashSet<string>(activeCommandIds.Where(id => !string.IsNullOrWhiteSpace(id)), StringComparer.Ordinal);
+        var active = activeCommandIds
+            .Select(FindByCommandId)
+            .Where(descriptor => descriptor is not null)
+            .Select(descriptor => descriptor!)
+            .DistinctBy(descriptor => descriptor.Key);
+
         return All
-            .Where(descriptor => active.Contains(descriptor.CommandId))
+            .Where(active.Contains)
             .OrderBy(descriptor => descriptor.Area)
             .ThenBy(descriptor => descriptor.Order)
             .GroupBy(descriptor => descriptor.Area)
@@ -52,16 +58,19 @@ public static class TabbedDockerLayoutModel
     }
 
     public static TabbedDockerDescriptor? FindByCommandId(string commandId)
-        => All.FirstOrDefault(descriptor => descriptor.CommandId == commandId);
+        => All.FirstOrDefault(descriptor =>
+            descriptor.CommandId == commandId
+            || descriptor.Aliases.Contains(commandId, StringComparer.Ordinal));
 
     private static TabbedDockerDescriptor Descriptor(
         string key,
         string title,
         string commandId,
         TabbedDockerArea area,
-        int order)
+        int order,
+        params string[] aliases)
     {
         EditorCommandDescriptor? command = EditorCommandCatalog.Find(commandId);
-        return new TabbedDockerDescriptor(key, title, command?.Id ?? commandId, area, order);
+        return new TabbedDockerDescriptor(key, title, command?.Id ?? commandId, area, order, aliases);
     }
 }
