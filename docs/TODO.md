@@ -3208,6 +3208,7 @@ section of `docs/PARITY_MATRIX.md`.
 - [ ] Every UDB core source folder is marked `ported` or has an explicitly documented replacement.
   - [x] Add clone-backed coverage that every UDB `Source/Core` folder has a parity-matrix entry.
 - [ ] Every bundled UDB plugin is marked `ported`, intentionally omitted, or replaced with equivalent behavior.
+  - [x] Add clone-backed coverage that every bundled UDB plugin has a parity-matrix entry.
 - [ ] Editor app builds from the main solution.
 - [ ] All automated tests pass on supported platforms.
 - [ ] Representative maps from Doom, Doom II, Heretic, Hexen, Boom, MBF, ZDoom, and GZDoom load, edit, save, and reload correctly.

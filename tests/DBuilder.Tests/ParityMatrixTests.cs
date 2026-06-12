@@ -48,6 +48,48 @@ public sealed class ParityMatrixTests
         }
     }
 
+    [Fact]
+    public void PluginParityMatrixCoversEveryBundledUdbPluginWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string sourcePlugins = Path.Combine(udbRoot, "Source", "Plugins");
+        Assert.True(Directory.Exists(sourcePlugins), $"Expected UDB Source/Plugins folder at {sourcePlugins}.");
+
+        string[] expected = Directory.EnumerateDirectories(sourcePlugins)
+            .Select(Path.GetFileName)
+            .Where(name => name != null)
+            .Select(name => name!)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        string[] actual = ReadPluginParityNames()
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void PluginParityMatrixEntriesDeclareStatusAndReplacementLocation()
+    {
+        string path = RepositoryPath("docs/parity-matrix.json");
+        using JsonDocument document = JsonDocument.Parse(File.ReadAllText(path));
+
+        foreach (JsonElement entry in document.RootElement.GetProperty("plugins").EnumerateArray())
+        {
+            string plugin = entry.GetProperty("udbPlugin").GetString() ?? "";
+            string status = entry.GetProperty("status").GetString() ?? "";
+            string location = entry.GetProperty("dbuilderLocation").GetString() ?? "";
+
+            Assert.False(string.IsNullOrWhiteSpace(plugin), "Plugin parity entries need an explicit UDB plugin name.");
+            Assert.Contains(status, new[] { "ported", "partial", "missing" });
+            if (status != "missing")
+                Assert.False(string.IsNullOrWhiteSpace(location), $"{plugin} needs an explicit DBuilder replacement location.");
+        }
+    }
+
     private static IReadOnlyList<string> ReadCoreParityAreas()
     {
         string path = RepositoryPath("docs/parity-matrix.json");
@@ -56,6 +98,16 @@ public sealed class ParityMatrixTests
             .EnumerateArray()
             .Select(entry => entry.GetProperty("udbArea").GetString() ?? "")
             .Where(area => area.StartsWith("Source/Core/", StringComparison.Ordinal))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<string> ReadPluginParityNames()
+    {
+        string path = RepositoryPath("docs/parity-matrix.json");
+        using JsonDocument document = JsonDocument.Parse(File.ReadAllText(path));
+        return document.RootElement.GetProperty("plugins")
+            .EnumerateArray()
+            .Select(entry => entry.GetProperty("udbPlugin").GetString() ?? "")
             .ToArray();
     }
 
