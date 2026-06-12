@@ -643,6 +643,17 @@ public sealed class ThingIconRenderPolicyTests
         Assert.DoesNotContain((4, 4), representatives.Keys);
     }
 
+    [Theory]
+    [InlineData(-1.0)]
+    [InlineData(double.NaN)]
+    [InlineData(double.PositiveInfinity)]
+    public void OverviewCellRepresentativeSelectionRejectsInvalidThingRadii(double mapRadius)
+        => Assert.Throws<ArgumentOutOfRangeException>(() =>
+            ThingIconRenderPolicy.SelectOverviewCellRepresentatives(new[]
+            {
+                new ThingOverviewCullCandidate<string>("bad", (4, 4), Selected: false, MapRadius: mapRadius),
+            }));
+
     [Fact]
     public void SkipsThingsWhoseProjectedRadiusIsTooSmall()
     {

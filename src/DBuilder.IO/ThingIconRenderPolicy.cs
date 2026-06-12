@@ -100,6 +100,9 @@ public static class ThingIconRenderPolicy
         var representatives = new Dictionary<(int X, int Y), ThingOverviewCullCandidate<TThing>>();
         foreach (var candidate in candidates)
         {
+            if (candidate.MapRadius < 0 || double.IsNaN(candidate.MapRadius) || double.IsInfinity(candidate.MapRadius))
+                throw new ArgumentOutOfRangeException(nameof(candidates));
+
             ThingOverviewCullCandidate<TThing>? strongestOverlap = null;
             foreach (var pair in representatives)
             {
