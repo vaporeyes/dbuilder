@@ -3406,6 +3406,71 @@ localsidedeftextureoffsets = true;
         Assert.Contains("orthogonalPercentage", source, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void CommonUdbScriptRandomizeSelectionOrderWorkflowUsesMapWrappersTogether()
+    {
+        var map = new MapSet();
+        Vertex first = map.AddVertex(new Vector2D(0, 0));
+        Vertex second = map.AddVertex(new Vector2D(64, 0));
+        Linedef line = map.AddLinedef(first, second);
+        Sector sector = map.AddSector();
+        map.AddSidedef(line, isFront: true, sector);
+        Thing thing = map.AddThing(new Vector2D(16, 16), 3001);
+        first.Selected = true;
+        line.Selected = true;
+        sector.Selected = true;
+        thing.Selected = true;
+        map.BuildIndexes();
+        var wrapper = new UdbScriptMapWrapper(map);
+        var elements = new List<object>();
+        elements.AddRange(wrapper.getSelectedThings());
+        elements.AddRange(wrapper.getSelectedVertices());
+        elements.AddRange(wrapper.getSelectedLinedefs());
+        elements.AddRange(wrapper.getSelectedSectors());
+
+        wrapper.clearAllSelected();
+        foreach (object element in elements)
+        {
+            switch (element)
+            {
+                case UdbScriptThingWrapper selectedThing:
+                    selectedThing.selected = true;
+                    break;
+                case UdbScriptVertexWrapper selectedVertex:
+                    selectedVertex.selected = true;
+                    break;
+                case UdbScriptLinedefWrapper selectedLine:
+                    selectedLine.selected = true;
+                    break;
+                case UdbScriptSectorWrapper selectedSector:
+                    selectedSector.selected = true;
+                    break;
+            }
+        }
+
+        Assert.True(thing.Selected);
+        Assert.True(first.Selected);
+        Assert.True(line.Selected);
+        Assert.True(sector.Selected);
+        Assert.False(second.Selected);
+    }
+
+    [Fact]
+    public void CommonUdbScriptRandomizeSelectionOrderExampleUsesCoveredApisWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Assets", "Common", "UDBScript", "Scripts", "Examples", "randomizeselectionorder.js"));
+
+        Assert.Contains("...UDB.Map.getSelectedThings()", source, StringComparison.Ordinal);
+        Assert.Contains("...UDB.Map.getSelectedVertices()", source, StringComparison.Ordinal);
+        Assert.Contains("...UDB.Map.getSelectedLinedefs()", source, StringComparison.Ordinal);
+        Assert.Contains("...UDB.Map.getSelectedSectors()", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.clearAllSelected()", source, StringComparison.Ordinal);
+        Assert.Contains("elements[index].selected = true", source, StringComparison.Ordinal);
+    }
+
     private static Sector CreateSquareSector()
     {
         var sector = new Sector();
