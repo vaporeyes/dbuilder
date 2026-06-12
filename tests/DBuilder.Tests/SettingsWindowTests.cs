@@ -268,6 +268,23 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesShowErrorsWindowPreference()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+        string errorLogWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/ErrorLogWindow.cs"));
+
+        Assert.NotNull(type.GetField("ShowErrorsWindow", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCheckBox(\"Show errors window\", s.ShowErrorsWindow)", body, StringComparison.Ordinal);
+        Assert.Contains("ShowErrorsWindow = _showErrorsWindow.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.ShowErrorsWindow = dlg.ShowErrorsWindow;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("if (_settings.ShowErrorsWindow) ShowErrorLogWindow();", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.ShowErrorsWindow,", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("Content = \"Show this window when errors occur\"", errorLogWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesDrawSkyPreference()
     {
         Type type = typeof(SettingsWindow);

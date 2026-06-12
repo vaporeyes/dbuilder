@@ -77,6 +77,7 @@ public partial class MainWindow : Window
     private UdbScriptInfo? _pendingUdbScript;
     private IReadOnlyDictionary<int, UdbScriptInfo?> _udbScriptSlotAssignments = new Dictionary<int, UdbScriptInfo?>();
     private BlockmapExplorerWindow? _blockmapExplorer;
+    private ErrorLogWindow? _errorLogWindow;
     private SoundEnvironmentWindow? _soundEnvironments;
     private SoundEnvironmentModeModel? _soundEnvironmentModel;
     private Sector? _soundLeakStartSector;
@@ -591,6 +592,7 @@ public partial class MainWindow : Window
     {
         ErrorLog.Append(exception, context);
         SetStatus($"{context}: {exception.Message}", StatusHistoryKind.Warning);
+        ShowErrorLogWindowIfPreferred();
     }
 
     private static string? AssetsRootFromConfigDir(string configDir)
@@ -1449,6 +1451,7 @@ public partial class MainWindow : Window
         _settings.DrawSky = dlg.DrawSky;
         _settings.ShowEventLines = dlg.ShowEventLines;
         _settings.ShowVisualVertices = dlg.ShowVisualVertices;
+        _settings.ShowErrorsWindow = dlg.ShowErrorsWindow;
         _settings.FixedThingsScale = dlg.FixedThingsScale;
         _settings.AlwaysShowVertices = dlg.AlwaysShowVertices;
         _settings.SelectAdjacentVisualVertexSlopeHandles = dlg.SelectAdjacentVisualVertexSlopeHandles;
@@ -3804,7 +3807,35 @@ public partial class MainWindow : Window
     }
 
     private void OnErrorLog(object? sender, RoutedEventArgs e)
-        => new ErrorLogWindow().Show(this);
+        => ShowErrorLogWindow();
+
+    private void ShowErrorLogWindowIfPreferred()
+    {
+        if (_settings.ShowErrorsWindow) ShowErrorLogWindow();
+    }
+
+    private void ShowErrorLogWindow()
+    {
+        if (_errorLogWindow is { } existing)
+        {
+            existing.Activate();
+            return;
+        }
+
+        var window = new ErrorLogWindow(
+            _settings.ShowErrorsWindow,
+            value =>
+            {
+                _settings.ShowErrorsWindow = value;
+                SaveSettings();
+            });
+        _errorLogWindow = window;
+        window.Closed += (_, _) =>
+        {
+            if (ReferenceEquals(_errorLogWindow, window)) _errorLogWindow = null;
+        };
+        window.Show(this);
+    }
 
     private async void OnGoToCoordinates(object? sender, RoutedEventArgs e)
     {

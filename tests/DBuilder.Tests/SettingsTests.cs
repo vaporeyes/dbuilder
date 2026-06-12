@@ -433,6 +433,7 @@ public class SettingsTests
                 DrawSky = false,
                 ShowEventLines = false,
                 ShowVisualVertices = false,
+                ShowErrorsWindow = false,
                 FixedThingsScale = true,
                 AlwaysShowVertices = false,
                 ToastsEnabled = false,
@@ -621,6 +622,7 @@ public class SettingsTests
             Assert.False(loaded.DrawSky);
             Assert.False(loaded.ShowEventLines);
             Assert.False(loaded.ShowVisualVertices);
+            Assert.False(loaded.ShowErrorsWindow);
             Assert.True(loaded.FixedThingsScale);
             Assert.False(loaded.AlwaysShowVertices);
             Assert.False(loaded.ToastsEnabled);

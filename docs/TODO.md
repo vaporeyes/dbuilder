@@ -58,6 +58,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Write caught editor workflow failures and unhandled exceptions to app-data error logs.
   - [x] Expose recent error log and crash report files from the View menu.
   - [x] Add UDB-style showerrors action alias.
+  - [x] Persist and apply the UDB-style show errors window preference.
 - [x] Port toast, status, and notification behavior.
   - [x] Keep a bounded status history and expose it from the View menu.
   - [x] Add status history clearing from the history window.

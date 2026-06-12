@@ -11,7 +11,7 @@ namespace DBuilder.Editor;
 
 public sealed class ErrorLogWindow : Window
 {
-    public ErrorLogWindow()
+    public ErrorLogWindow(bool showErrorsWindow = true, Action<bool>? setShowErrorsWindow = null)
     {
         Title = "Error Log";
         Width = 780;
@@ -36,11 +36,21 @@ public sealed class ErrorLogWindow : Window
             FontSize = 12,
         };
 
+        var showErrors = new CheckBox
+        {
+            Content = "Show this window when errors occur",
+            IsChecked = showErrorsWindow,
+            Margin = new Avalonia.Thickness(0, 0, 0, 8),
+        };
+        showErrors.IsCheckedChanged += (_, _) => setShowErrorsWindow?.Invoke(showErrors.IsChecked == true);
+
         var close = new Button { Content = "Close", MinWidth = 80, IsDefault = true, IsCancel = true, HorizontalAlignment = HorizontalAlignment.Right };
         close.Click += (_, _) => Close();
 
         var root = new DockPanel { Margin = new Avalonia.Thickness(10) };
+        DockPanel.SetDock(showErrors, Dock.Top);
         DockPanel.SetDock(close, Dock.Bottom);
+        root.Children.Add(showErrors);
         root.Children.Add(close);
         root.Children.Add(new ScrollViewer { Content = box });
         Content = root;

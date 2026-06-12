@@ -14,7 +14,7 @@ public sealed class SettingsWindow : PropertyDialog
 
     private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _testSkill, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _autosaveCount, _autosaveInterval, _defaultSectorFloorHeight, _defaultSectorCeilingHeight, _defaultSectorBrightness, _imageBrightness, _doubleSidedAlpha, _visualFov, _viewDistance, _moveSpeed, _mouseSpeed, _statusHistoryLimit, _toastDuration, _toastDisabledActions, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _mergeGeometryMode, _toastAnchor, _pasteTagMode;
-    private readonly CheckBox _testMonsters, _autosave, _autoClearSidedefTextures, _autoMerge, _splitJoinedSectors, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _qualityDisplay, _classicBilinear, _visualBilinear, _blackBrowsers, _flatShadeVertices, _markExtraFloors, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _fixedThingsScale, _alwaysShowVertices, _selectAdjacentVisualVertexSlopeHandles, _toastsEnabled, _pasteRemoveActions;
+    private readonly CheckBox _testMonsters, _autosave, _autoClearSidedefTextures, _autoMerge, _splitJoinedSectors, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _qualityDisplay, _classicBilinear, _visualBilinear, _blackBrowsers, _flatShadeVertices, _markExtraFloors, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _showErrorsWindow, _fixedThingsScale, _alwaysShowVertices, _selectAdjacentVisualVertexSlopeHandles, _toastsEnabled, _pasteRemoveActions;
     private readonly bool _drawLineShowGuidelines;
     private readonly int _drawRectangleSubdivisions, _drawRectangleBevelWidth;
     private readonly bool _drawRectangleShowGuidelines;
@@ -57,6 +57,7 @@ public sealed class SettingsWindow : PropertyDialog
     public bool DrawSky;
     public bool ShowEventLines;
     public bool ShowVisualVertices;
+    public bool ShowErrorsWindow;
     public bool FixedThingsScale;
     public bool AlwaysShowVertices;
     public bool SelectAdjacentVisualVertexSlopeHandles;
@@ -162,6 +163,7 @@ public sealed class SettingsWindow : PropertyDialog
         _drawSky = AddCheckBox("Draw sky", s.DrawSky);
         _showEventLines = AddCheckBox("Show event lines", s.ShowEventLines);
         _showVisualVertices = AddCheckBox("Show visual vertices", s.ShowVisualVertices);
+        _showErrorsWindow = AddCheckBox("Show errors window", s.ShowErrorsWindow);
         _fixedThingsScale = AddCheckBox("Fixed things scale", s.FixedThingsScale);
         _alwaysShowVertices = AddCheckBox("Always show vertices", s.AlwaysShowVertices);
         _selectAdjacentVisualVertexSlopeHandles = AddCheckBox("Select adjacent visual vertex slope handles", s.SelectAdjacentVisualVertexSlopeHandles);
@@ -217,6 +219,7 @@ public sealed class SettingsWindow : PropertyDialog
         DrawSky = _drawSky.IsChecked == true;
         ShowEventLines = _showEventLines.IsChecked == true;
         ShowVisualVertices = _showVisualVertices.IsChecked == true;
+        ShowErrorsWindow = _showErrorsWindow.IsChecked == true;
         FixedThingsScale = _fixedThingsScale.IsChecked == true;
         AlwaysShowVertices = _alwaysShowVertices.IsChecked == true;
         SelectAdjacentVisualVertexSlopeHandles = _selectAdjacentVisualVertexSlopeHandles.IsChecked == true;

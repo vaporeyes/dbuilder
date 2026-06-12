@@ -99,6 +99,7 @@ public sealed class Settings
     public bool DrawSky { get; set; } = true;
     public bool ShowEventLines { get; set; } = true;
     public bool ShowVisualVertices { get; set; } = true;
+    public bool ShowErrorsWindow { get; set; } = true;
     public bool UseHighlight { get; set; } = true;
     public bool AlphaBasedTextureHighlighting { get; set; } = true;
     public bool SelectAdjacentVisualVertexSlopeHandles { get; set; }
