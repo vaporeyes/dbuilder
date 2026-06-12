@@ -132,6 +132,16 @@ public sealed class UndoManager
         return performed;
     }
 
+    public static string UndoStatusText(string description, int requestedLevels, int performedLevels)
+        => requestedLevels == 1
+            ? description + " undone."
+            : "Undone " + performedLevels + " changes.";
+
+    public static string RedoStatusText(string description, int requestedLevels, int performedLevels)
+        => requestedLevels == 1
+            ? description + " redone."
+            : "Redone " + performedLevels + " changes.";
+
     /// <summary>Restores and removes the latest undo snapshot, then discards the redo it created.</summary>
     public bool WithdrawUndo()
     {

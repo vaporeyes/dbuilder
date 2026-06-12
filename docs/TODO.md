@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 6894 tests.
+- Current verified baseline: `scripts/verify.sh` passes 6895 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 - A Rust port of the codebase is underway in `rust/`; see the Rust Port section below.
 
@@ -1260,6 +1260,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Show the next undo and redo descriptions in Edit menu labels and toolbar tips.
   - [x] Add separate undo and redo history clearing operations.
   - [x] Show the current map label as the Undo/Redo panel begin row.
+  - [x] Add UDB-style undo and redo status text planning for single and multi-level operations.
 - [ ] Port undo snapshot behavior.
   - [x] Match UDB's default undo snapshot level cap.
 - [x] Port grid setup behavior.

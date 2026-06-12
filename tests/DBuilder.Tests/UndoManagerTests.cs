@@ -443,6 +443,15 @@ public class UndoManagerTests
         Assert.Equal(new[] { "move 2", "move 3" }, undo.GetRedoDescriptions());
     }
 
+    [Fact]
+    public void StatusTextMatchesUdbSingleAndMultiLevelUndoRedoLabels()
+    {
+        Assert.Equal("Move vertex undone.", UndoManager.UndoStatusText("Move vertex", requestedLevels: 1, performedLevels: 1));
+        Assert.Equal("Move vertex redone.", UndoManager.RedoStatusText("Move vertex", requestedLevels: 1, performedLevels: 1));
+        Assert.Equal("Undone 2 changes.", UndoManager.UndoStatusText("Move vertex", requestedLevels: 3, performedLevels: 2));
+        Assert.Equal("Redone 2 changes.", UndoManager.RedoStatusText("Move vertex", requestedLevels: 3, performedLevels: 2));
+    }
+
     private sealed class GroupedUndoSource
     {
     }
