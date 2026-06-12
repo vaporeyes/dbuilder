@@ -1160,6 +1160,37 @@ public sealed record StairBuilderFormState(
     StairBuilderTab ActiveTab,
     StairBuilderPrefab CurrentPrefab);
 
+public sealed record StairBuilderHeightPreview(
+    string FloorFirst,
+    string FloorLast,
+    string CeilingFirst,
+    string CeilingLast);
+
+public static class StairBuilderHeightPreviewModel
+{
+    public const string DisabledHeightLabel = "--";
+
+    public static StairBuilderHeightPreview Compute(
+        bool floorEnabled,
+        int floorBase,
+        int floorStep,
+        bool ceilingEnabled,
+        int ceilingBase,
+        int ceilingStep,
+        int numberOfSectors,
+        int stepMultiplier)
+    {
+        int sectors = Math.Max(numberOfSectors, 1);
+        int multiplier = Math.Max(stepMultiplier, 1);
+
+        return new StairBuilderHeightPreview(
+            floorEnabled ? (floorBase + floorStep).ToString(System.Globalization.CultureInfo.InvariantCulture) : DisabledHeightLabel,
+            floorEnabled ? (floorBase + floorStep * sectors * multiplier).ToString(System.Globalization.CultureInfo.InvariantCulture) : DisabledHeightLabel,
+            ceilingEnabled ? (ceilingBase + ceilingStep).ToString(System.Globalization.CultureInfo.InvariantCulture) : DisabledHeightLabel,
+            ceilingEnabled ? (ceilingBase + ceilingStep * sectors * multiplier).ToString(System.Globalization.CultureInfo.InvariantCulture) : DisabledHeightLabel);
+    }
+}
+
 public sealed record StairBuilderPrefabSaveResult(
     StairBuilderPrefabSaveStatus Status,
     IReadOnlyList<StairBuilderPrefab> Prefabs,

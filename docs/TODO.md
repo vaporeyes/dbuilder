@@ -1347,6 +1347,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Port stair builder behavior fully.
   - [x] Add independent ceiling height stepping to the stair builder.
   - [x] Clamp stair prefab planning fields to UDB form minimums.
+  - [x] Add UDB-style first and last stair height preview labels.
 - [ ] Port slope editing behavior fully.
 - [ ] Port sound propagation editing behavior fully.
   - [x] Block sound propagation across closed-height two-sided lines.

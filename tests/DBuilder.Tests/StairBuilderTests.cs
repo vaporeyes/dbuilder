@@ -1054,6 +1054,63 @@ public class StairBuilderTests
     }
 
     [Fact]
+    public void HeightPreviewMatchesUdbFirstAndLastLabels()
+    {
+        StairBuilderHeightPreview preview = StairBuilderHeightPreviewModel.Compute(
+            floorEnabled: true,
+            floorBase: 0,
+            floorStep: 8,
+            ceilingEnabled: true,
+            ceilingBase: 128,
+            ceilingStep: -4,
+            numberOfSectors: 3,
+            stepMultiplier: 1);
+
+        Assert.Equal("8", preview.FloorFirst);
+        Assert.Equal("24", preview.FloorLast);
+        Assert.Equal("124", preview.CeilingFirst);
+        Assert.Equal("116", preview.CeilingLast);
+    }
+
+    [Fact]
+    public void HeightPreviewUsesStepMultiplierForConnectedLineStairs()
+    {
+        StairBuilderHeightPreview preview = StairBuilderHeightPreviewModel.Compute(
+            floorEnabled: true,
+            floorBase: 16,
+            floorStep: 4,
+            ceilingEnabled: true,
+            ceilingBase: 160,
+            ceilingStep: 2,
+            numberOfSectors: 2,
+            stepMultiplier: 3);
+
+        Assert.Equal("20", preview.FloorFirst);
+        Assert.Equal("40", preview.FloorLast);
+        Assert.Equal("162", preview.CeilingFirst);
+        Assert.Equal("172", preview.CeilingLast);
+    }
+
+    [Fact]
+    public void HeightPreviewShowsDisabledLabelsAndClampsCountsLikeUdbForm()
+    {
+        StairBuilderHeightPreview preview = StairBuilderHeightPreviewModel.Compute(
+            floorEnabled: false,
+            floorBase: 64,
+            floorStep: 8,
+            ceilingEnabled: true,
+            ceilingBase: 128,
+            ceilingStep: 16,
+            numberOfSectors: 0,
+            stepMultiplier: 0);
+
+        Assert.Equal("--", preview.FloorFirst);
+        Assert.Equal("--", preview.FloorLast);
+        Assert.Equal("144", preview.CeilingFirst);
+        Assert.Equal("144", preview.CeilingLast);
+    }
+
+    [Fact]
     public void PrefabCreatesStraightOptionsForLoadedFormState()
     {
         var prefab = new StairBuilderPrefab
