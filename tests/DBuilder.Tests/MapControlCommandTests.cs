@@ -121,6 +121,20 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void VisualTargetSelectionClearsExistingSelectionOnlyWhenUdbPreferenceIsEnabled()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int toggleIndex = body.IndexOf("private void ToggleSelection3D()", StringComparison.Ordinal);
+        int statusIndex = body.IndexOf("public static string SurfaceSelection3DStatusText", toggleIndex, StringComparison.Ordinal);
+        string method = body[toggleIndex..statusIndex];
+
+        Assert.Contains("private bool _visualModeClearSelection;", body, StringComparison.Ordinal);
+        Assert.Contains("public bool VisualModeClearSelection", body, StringComparison.Ordinal);
+        Assert.Contains("if (_visualModeClearSelection && _sel3D.Count > 0) _sel3D.Clear();", method, StringComparison.Ordinal);
+        Assert.Contains("_sel3D.Add(h);", method, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void InsertedThingsRequestPropertyEditingWhenUdbPreferenceIsEnabled()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
@@ -194,6 +208,7 @@ public sealed class MapControlCommandTests
         Assert.Contains("public int MouseSpeed", body, StringComparison.Ordinal);
         Assert.Contains("public int MouseSelectionThreshold", body, StringComparison.Ordinal);
         Assert.Contains("public bool AutoClearSelection", body, StringComparison.Ordinal);
+        Assert.Contains("public bool VisualModeClearSelection", body, StringComparison.Ordinal);
         Assert.Contains("public bool EditNewThing", body, StringComparison.Ordinal);
         Assert.Contains("public bool EditNewSector", body, StringComparison.Ordinal);
         Assert.Contains("public int StitchRange", body, StringComparison.Ordinal);

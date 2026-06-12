@@ -148,6 +148,12 @@ public class SettingsTests
     }
 
     [Fact]
+    public void VisualModeClearSelectionDefaultsDisabledLikeUdb()
+    {
+        Assert.False(new Settings().VisualModeClearSelection);
+    }
+
+    [Fact]
     public void EditNewThingDefaultsEnabledLikeUdb()
     {
         Assert.True(new Settings().EditNewThing);
@@ -475,6 +481,7 @@ public class SettingsTests
                 AutoMerge = false,
                 SplitJoinedSectors = true,
                 AutoClearSelection = true,
+                VisualModeClearSelection = true,
                 EditNewThing = false,
                 EditNewSector = true,
                 SwitchViewModes = true,
@@ -669,6 +676,7 @@ public class SettingsTests
             Assert.False(loaded.AutoMerge);
             Assert.True(loaded.SplitJoinedSectors);
             Assert.True(loaded.AutoClearSelection);
+            Assert.True(loaded.VisualModeClearSelection);
             Assert.False(loaded.EditNewThing);
             Assert.True(loaded.EditNewSector);
             Assert.True(loaded.SwitchViewModes);

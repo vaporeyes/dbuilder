@@ -235,6 +235,7 @@ public partial class MainWindow : Window
         MapView.AutomapSettings = _settings.NormalizedAutomapSettings;
         MapView.LinedefColorPresets = _settings.NormalizedLinedefColorPresets;
         MapView.AutoClearSelection = _settings.AutoClearSelection;
+        MapView.VisualModeClearSelection = _settings.VisualModeClearSelection;
         MapView.EditNewThing = _settings.EditNewThing;
         MapView.EditNewSector = _settings.EditNewSector;
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
@@ -1434,6 +1435,7 @@ public partial class MainWindow : Window
         _settings.AutoMerge = dlg.AutoMerge;
         _settings.SplitJoinedSectors = dlg.SplitJoinedSectors;
         _settings.AutoClearSelection = dlg.AutoClearSelection;
+        _settings.VisualModeClearSelection = dlg.VisualModeClearSelection;
         _settings.EditNewThing = dlg.EditNewThing;
         _settings.EditNewSector = dlg.EditNewSector;
         _settings.DynamicGridSize = dlg.DynamicGridSize;
@@ -1494,6 +1496,7 @@ public partial class MainWindow : Window
         MapView.MergeGeometryMode = _settings.NormalizedMergeGeometryMode;
         MapView.DrawGridSettings = _settings.NormalizedDrawGridSettings;
         MapView.AutoClearSelection = _settings.AutoClearSelection;
+        MapView.VisualModeClearSelection = _settings.VisualModeClearSelection;
         MapView.EditNewThing = _settings.EditNewThing;
         MapView.EditNewSector = _settings.EditNewSector;
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;

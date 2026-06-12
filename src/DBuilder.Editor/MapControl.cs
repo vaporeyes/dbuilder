@@ -222,6 +222,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _fullBrightness = true;
     private bool _useHighlight = true;
     private bool _autoClearSelection;
+    private bool _visualModeClearSelection;
     private bool _editNewThing = true;
     private bool _editNewSector;
     private ThingModelRenderMode _modelRenderMode = ThingModelRenderMode.All;
@@ -262,6 +263,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         get => _autoClearSelection;
         set => _autoClearSelection = value;
+    }
+    public bool VisualModeClearSelection
+    {
+        get => _visualModeClearSelection;
+        set => _visualModeClearSelection = value;
     }
     public bool EditNewThing
     {
@@ -4028,7 +4034,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         if (_target3D is not { } h) return;
         int idx = _sel3D.FindIndex(s => SameSurface3D(s, h));
-        if (idx >= 0) _sel3D.RemoveAt(idx); else _sel3D.Add(h);
+        if (idx >= 0)
+        {
+            _sel3D.RemoveAt(idx);
+        }
+        else
+        {
+            if (_visualModeClearSelection && _sel3D.Count > 0) _sel3D.Clear();
+            _sel3D.Add(h);
+        }
         Target3DChanged?.Invoke(SurfaceSelection3DStatusText(_sel3D.Count));
         RequestNextFrameRendering();
     }
