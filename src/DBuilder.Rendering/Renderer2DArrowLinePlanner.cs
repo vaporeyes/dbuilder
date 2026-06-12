@@ -22,6 +22,7 @@ public readonly record struct Renderer2DArrowLineDrawPlan(
     bool ResetWorldTransformation,
     ShaderName Shader,
     bool BindWhiteTexture,
+    bool UseClassicBilinear,
     PrimitiveType PrimitiveType);
 
 public static class Renderer2DArrowLinePlanner
@@ -91,6 +92,7 @@ public static class Renderer2DArrowLinePlanner
             ResetWorldTransformation: true,
             Shader: ShaderName.display2d_normal,
             BindWhiteTexture: true,
+            UseClassicBilinear: true,
             PrimitiveType: PrimitiveType.LineList);
     }
 

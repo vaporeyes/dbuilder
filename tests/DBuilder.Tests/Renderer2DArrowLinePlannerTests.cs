@@ -39,6 +39,7 @@ public sealed class Renderer2DArrowLinePlannerTests
         Assert.True(plan.ResetWorldTransformation);
         Assert.Equal(ShaderName.display2d_normal, plan.Shader);
         Assert.True(plan.BindWhiteTexture);
+        Assert.True(plan.UseClassicBilinear);
         Assert.Equal(PrimitiveType.LineList, plan.PrimitiveType);
         AssertVertex(plan.Vertices[0], 2, 20, 0x123456);
         AssertVertex(plan.Vertices[1], 22, 20, 0x123456);
@@ -134,6 +135,7 @@ public sealed class Renderer2DArrowLinePlannerTests
         Assert.Contains("float scaler = 16f / scale;", source, StringComparison.Ordinal);
         Assert.Contains("Vector2D a1 = new Vector2D(line.End.x - scaler * Math.Sin(angle - 0.46f), line.End.y + scaler * Math.Cos(angle - 0.46f)).GetTransformed(translatex, translatey, scale, -scale);", source, StringComparison.Ordinal);
         Assert.Contains("Vector2D a2 = new Vector2D(line.End.x - scaler * Math.Sin(angle + 0.46f), line.End.y + scaler * Math.Cos(angle + 0.46f)).GetTransformed(translatex, translatey, scale, -scale);", source, StringComparison.Ordinal);
+        Assert.Contains("SetDisplay2DSettings(1f, 1f, 0f, 1f, General.Settings.ClassicBilinear);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.Draw(PrimitiveType.LineList, 0, pointscount / 2);", source, StringComparison.Ordinal);
     }
 
