@@ -1600,6 +1600,32 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void UnknownTextureChecksUseLongTextureIdsLikeUdb()
+    {
+        var map = Square(true);
+        var side = map.Linedefs[0].Front!;
+        side.HighTexture = "KNOWN_LONG";
+        side.MidTexture = "KNOWN_BY_NAME";
+        side.LowTexture = "-";
+        side.LongHighTexture = 101;
+        side.LongMiddleTexture = MapSet.EmptyLongName;
+        side.LongLowTexture = 303;
+        var ctx = new MapCheckContext
+        {
+            TextureExists = name => name == "KNOWN_BY_NAME",
+            LongTextureExists = longName => longName == 101,
+        };
+
+        var issues = MapAnalysis.Check(map, ctx)
+            .Where(i => i.Kind == MapIssueKind.UnknownTexture)
+            .ToArray();
+
+        Assert.DoesNotContain(issues, i => i.Message.Contains("upper texture", StringComparison.Ordinal));
+        Assert.DoesNotContain(issues, i => i.Message.Contains("middle texture", StringComparison.Ordinal));
+        Assert.Contains(issues, i => i.Message.Contains("lower texture", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void UnknownTextureIssueCanRemoveTexture()
     {
         var map = Square(true);

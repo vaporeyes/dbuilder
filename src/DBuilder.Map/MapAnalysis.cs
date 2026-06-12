@@ -192,6 +192,8 @@ public sealed class MapCheckContext
     public bool IsUdmf { get; init; } = true;
     /// <summary>Returns true when a wall-texture name resolves in the loaded resources.</summary>
     public Func<string, bool>? TextureExists { get; init; }
+    /// <summary>Returns true when a UDB long wall-texture id resolves in the loaded resources.</summary>
+    public Func<long, bool>? LongTextureExists { get; init; }
     /// <summary>Returns wall-texture dimensions when an image is available.</summary>
     public Func<string, (int Width, int Height)?>? TextureSize { get; init; }
     /// <summary>Returns true when a flat name resolves in the loaded resources.</summary>
@@ -604,14 +606,16 @@ public static class MapAnalysis
                 }
             }
 
-            if (ctx.TextureExists != null)
-                foreach (var (slot, part, name) in new[]
+            if (ctx.TextureExists != null || ctx.LongTextureExists != null)
+                foreach (var (slot, part, name, longName) in new[]
                 {
-                    ("upper", SidedefPart.Upper, side.HighTexture),
-                    ("middle", SidedefPart.Middle, side.MidTexture),
-                    ("lower", SidedefPart.Lower, side.LowTexture),
+                    ("upper", SidedefPart.Upper, side.HighTexture, side.LongHighTexture),
+                    ("middle", SidedefPart.Middle, side.MidTexture, side.LongMiddleTexture),
+                    ("lower", SidedefPart.Lower, side.LowTexture, side.LongLowTexture),
                 })
-                    if (!IsBlank(name) && !ctx.TextureExists(name) && ctx.IgnoreUnknownTexture?.Invoke(l.Action, part) != true)
+                    if (TextureSlotPresent(name, longName) &&
+                        !TextureExists(ctx, name, longName) &&
+                        ctx.IgnoreUnknownTexture?.Invoke(l.Action, part) != true)
                         issues.Add(UnknownTextureIssue(l, side, part, ctx,
                             $"Linedef {index} has unknown {slot} texture \"{name}\" ({which} side)", mid));
 
@@ -1877,6 +1881,13 @@ public static class MapAnalysis
     private static bool IsBlank(string? tex) => string.IsNullOrEmpty(tex) || tex == "-";
     private static bool TextureSlotEmpty(string? tex, long longName) => IsBlank(tex) && longName == MapSet.EmptyLongName;
     private static bool TextureSlotPresent(string? tex, long longName) => !TextureSlotEmpty(tex, longName);
+
+    private static bool TextureExists(MapCheckContext ctx, string? tex, long longName)
+    {
+        if (longName != MapSet.EmptyLongName && ctx.LongTextureExists != null)
+            return ctx.LongTextureExists(longName);
+        return !IsBlank(tex) && ctx.TextureExists?.Invoke(tex!) == true;
+    }
 
     private static bool IsSkyFlat(MapCheckContext ctx, string? flat)
         => !IsBlank(flat) && ctx.IsSkyFlat?.Invoke(flat!) == true;

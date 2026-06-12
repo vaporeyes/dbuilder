@@ -7182,13 +7182,19 @@ public partial class MainWindow : Window
     private MapCheckContext BuildCheckContext()
     {
         Func<string, bool>? texExists = null, flatExists = null, isSkyFlat = null;
+        Func<long, bool>? longTexExists = null;
         Func<string, (int Width, int Height)?>? textureSize = null;
         if (_resources != null)
         {
             var resources = _resources;
             var texSet = new HashSet<string>(_resources.GetTextureNames(), StringComparer.OrdinalIgnoreCase);
             var flatSet = new HashSet<string>(_resources.GetFlatNames(), StringComparer.OrdinalIgnoreCase);
+            bool useLongTextureNames = _config?.UseLongTextureNames ?? false;
+            var longTexSet = texSet
+                .Select(name => Lump.MakeLongName(name, useLongTextureNames))
+                .ToHashSet();
             texExists = n => texSet.Contains(n);
+            longTexExists = n => longTexSet.Contains(n);
             textureSize = n => resources.GetWallTexture(n) is { } img ? (img.Width, img.Height) : null;
             flatExists = n => flatSet.Contains(n);
         }
@@ -7274,6 +7280,7 @@ public partial class MainWindow : Window
             IsUdmf = _mapFormat == MapFormat.Udmf,
             VertexDecimals = _mapFormat == MapFormat.Udmf ? 3 : 0,
             TextureExists = texExists,
+            LongTextureExists = longTexExists,
             TextureSize = textureSize,
             FlatExists = flatExists,
             IsSkyFlat = isSkyFlat,
