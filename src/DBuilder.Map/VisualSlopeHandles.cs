@@ -250,6 +250,42 @@ public static class VisualSlopeHandles
                     : handle).ToArray());
     }
 
+    public static VisualSlopeTargetStateResult ClearSelectionState(
+        IEnumerable<VisualSlopeHandle> handles,
+        VisualSlopeHandle? pickedHandle = null)
+    {
+        if (handles == null) throw new ArgumentNullException(nameof(handles));
+
+        VisualSlopeHandle[] original = handles.ToArray();
+        VisualSlopeHandle? oldSmartPivot = original.FirstOrDefault(handle => handle.SmartPivot);
+        VisualSlopeHandle[] cleared = original
+            .Select(handle => handle with { Selected = false, Pivot = false, SmartPivot = false })
+            .ToArray();
+        VisualSlopeHandle? picked = FindMappedHandle(original, cleared, pickedHandle);
+        VisualSlopeHandle? smartPivot = FindMappedHandle(original, cleared, oldSmartPivot);
+
+        if (picked != null && smartPivot != null)
+        {
+            int index = Array.IndexOf(cleared, smartPivot);
+            if (index >= 0)
+            {
+                cleared[index] = smartPivot with { SmartPivot = true };
+                smartPivot = cleared[index];
+                if (ReferenceEquals(picked, smartPivot)) picked = smartPivot;
+            }
+        }
+        else
+        {
+            smartPivot = null;
+        }
+
+        var used = new List<VisualSlopeHandle>();
+        if (picked != null) used.Add(picked);
+        if (smartPivot != null && !ReferenceEquals(smartPivot, picked)) used.Add(smartPivot);
+
+        return new VisualSlopeTargetStateResult(cleared, used, picked, smartPivot);
+    }
+
     public static VisualSlopeTargetStateResult UpdateTarget(
         VisualSlopeHandle? oldTarget,
         VisualSlopeHandle? newTarget,

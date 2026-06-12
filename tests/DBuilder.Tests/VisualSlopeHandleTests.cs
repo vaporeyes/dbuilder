@@ -358,6 +358,53 @@ public class VisualSlopeHandleTests
     }
 
     [Fact]
+    public void ClearSelectionStateKeepsPickedHandleAndOldSmartPivotLikeUdb()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        VisualSlopeLevel level = VisualSlopeLevel.Floor(sector);
+        VisualSlopeHandle picked = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[0], level, up: true) with { Selected = true };
+        VisualSlopeHandle oldSmartPivot = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[1], level, up: true) with { SmartPivot = true };
+        VisualSlopeHandle explicitPivot = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[2], level, up: true) with { Pivot = true };
+
+        VisualSlopeTargetStateResult result = VisualSlopeHandles.ClearSelectionState(
+            [picked, oldSmartPivot, explicitPivot],
+            picked);
+
+        Assert.NotNull(result.PickedHandle);
+        Assert.NotNull(result.SmartPivotHandle);
+        Assert.Equal(2, result.UsedHandles.Count);
+        Assert.Same(result.Handles[0], result.PickedHandle);
+        Assert.Same(result.Handles[1], result.SmartPivotHandle);
+        Assert.Contains(result.PickedHandle, result.UsedHandles);
+        Assert.Contains(result.SmartPivotHandle, result.UsedHandles);
+        Assert.All(result.Handles, handle => Assert.False(handle.Selected));
+        Assert.All(result.Handles, handle => Assert.False(handle.Pivot));
+        Assert.False(result.Handles[0].SmartPivot);
+        Assert.True(result.Handles[1].SmartPivot);
+        Assert.False(result.Handles[2].SmartPivot);
+    }
+
+    [Fact]
+    public void ClearSelectionStateClearsAllUsedHandlesWhenNoSlopeHandleIsPickedLikeUdb()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        VisualSlopeLevel level = VisualSlopeLevel.Floor(sector);
+        VisualSlopeHandle selected = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[0], level, up: true) with { Selected = true };
+        VisualSlopeHandle oldSmartPivot = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[1], level, up: true) with { SmartPivot = true };
+
+        VisualSlopeTargetStateResult result = VisualSlopeHandles.ClearSelectionState([selected, oldSmartPivot]);
+
+        Assert.Null(result.PickedHandle);
+        Assert.Null(result.SmartPivotHandle);
+        Assert.Empty(result.UsedHandles);
+        Assert.All(result.Handles, handle => Assert.False(handle.Selected));
+        Assert.All(result.Handles, handle => Assert.False(handle.Pivot));
+        Assert.All(result.Handles, handle => Assert.False(handle.SmartPivot));
+    }
+
+    [Fact]
     public void UpdateTargetReplacesStaleSmartPivotAndKeepsNewTargetLikeUdb()
     {
         var map = new MapSet();
