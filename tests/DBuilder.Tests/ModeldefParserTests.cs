@@ -214,6 +214,48 @@ model Repeated
     }
 
     [Fact]
+    public void SkipsSkinsWithoutMatchingModelsLikeUdb()
+    {
+        const string text = @"
+model BadSkin
+{
+    Model 0 ""bad.md3""
+    Skin 1 ""bad.png""
+}
+model Good
+{
+    Model 0 ""good.md3""
+    Skin 0 ""good.png""
+}";
+
+        var def = Assert.Single(ModeldefParser.Parse(text));
+
+        Assert.Equal("Good", def.ActorName);
+        Assert.Equal(new ModeldefSkin(0, "good.png"), def.Skins.Single());
+    }
+
+    [Fact]
+    public void SkipsSurfaceSkinsWithoutMatchingModelsLikeUdb()
+    {
+        const string text = @"
+model BadSurfaceSkin
+{
+    Model 0 ""bad.md3""
+    SurfaceSkin 1 0 ""bad.png""
+}
+model Good
+{
+    Model 0 ""good.md3""
+    SurfaceSkin 0 1 ""good.png""
+}";
+
+        var def = Assert.Single(ModeldefParser.Parse(text));
+
+        Assert.Equal("Good", def.ActorName);
+        Assert.Equal(new ModeldefSurfaceSkin(0, 1, "good.png"), def.SurfaceSkins.Single());
+    }
+
+    [Fact]
     public void DuplicateFramesAreSkippedLikeUdb()
     {
         const string text = @"

@@ -184,7 +184,30 @@ public static class ModeldefParser
             }
         }
         if (i < t.Count) i++;
+        if (valid && !ModelReferencesAreDefined(def)) valid = false;
         return valid;
+    }
+
+    private static bool ModelReferencesAreDefined(Modeldef def)
+    {
+        foreach (ModeldefSkin skin in def.Skins)
+            if (!HasModelIndex(def, skin.Index))
+                return false;
+
+        foreach (ModeldefSurfaceSkin skin in def.SurfaceSkins)
+            if (!HasModelIndex(def, skin.ModelIndex))
+                return false;
+
+        return true;
+    }
+
+    private static bool HasModelIndex(Modeldef def, int modelIndex)
+    {
+        foreach (ModeldefModel model in def.Models)
+            if (model.Index == modelIndex)
+                return true;
+
+        return false;
     }
 
     private static bool ParseModel(Modeldef def, List<string> t, ref int i)
