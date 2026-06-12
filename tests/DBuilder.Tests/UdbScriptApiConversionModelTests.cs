@@ -3275,6 +3275,59 @@ localsidedeftextureoffsets = true;
         Assert.Contains("ld.selected = true", source, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void CommonUdbScriptJitterVerticesWorkflowUsesMapWrappersTogether()
+    {
+        var selectedMap = new MapSet();
+        Vertex selectedFirst = selectedMap.AddVertex(new Vector2D(0, 0));
+        Vertex selectedSecond = selectedMap.AddVertex(new Vector2D(64, 0));
+        Vertex unselected = selectedMap.AddVertex(new Vector2D(128, 0));
+        selectedFirst.Selected = true;
+        selectedSecond.Selected = true;
+        var selectedWrapper = new UdbScriptMapWrapper(selectedMap);
+        UdbScriptVertexWrapper[] vertices = selectedWrapper.getSelectedVertices();
+
+        if (vertices.Length == 0)
+            vertices = selectedWrapper.getVertices();
+
+        foreach (UdbScriptVertexWrapper vertex in vertices)
+            vertex.position = (UdbScriptVector2DWrapper)vertex.position + new object[] { 4.0, -2.0 };
+
+        Assert.Equal(new Vector2D(4, -2), selectedFirst.Position);
+        Assert.Equal(new Vector2D(68, -2), selectedSecond.Position);
+        Assert.Equal(new Vector2D(128, 0), unselected.Position);
+
+        var fallbackMap = new MapSet();
+        Vertex fallbackFirst = fallbackMap.AddVertex(new Vector2D(8, 8));
+        Vertex fallbackSecond = fallbackMap.AddVertex(new Vector2D(16, 16));
+        var fallbackWrapper = new UdbScriptMapWrapper(fallbackMap);
+        vertices = fallbackWrapper.getSelectedVertices();
+
+        if (vertices.Length == 0)
+            vertices = fallbackWrapper.getVertices();
+
+        foreach (UdbScriptVertexWrapper vertex in vertices)
+            vertex.position = (UdbScriptVector2DWrapper)vertex.position + new object[] { -3.0, 5.0 };
+
+        Assert.Equal(new Vector2D(5, 13), fallbackFirst.Position);
+        Assert.Equal(new Vector2D(13, 21), fallbackSecond.Position);
+    }
+
+    [Fact]
+    public void CommonUdbScriptJitterVerticesExampleUsesCoveredApisWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Assets", "Common", "UDBScript", "Scripts", "Examples", "Geometry", "jittervertices.js"));
+
+        Assert.Contains("UDB.Map.getSelectedVertices()", source, StringComparison.Ordinal);
+        Assert.Contains("vertices = UDB.Map.getVertices()", source, StringComparison.Ordinal);
+        Assert.Contains("v.position += [", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.ScriptOptions.min", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.ScriptOptions.max", source, StringComparison.Ordinal);
+    }
+
     private static Sector CreateSquareSector()
     {
         var sector = new Sector();
