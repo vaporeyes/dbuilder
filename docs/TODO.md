@@ -3069,6 +3069,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add headless editor workflow smoke coverage for open, edit, save, and reopen map paths.
   - [x] Add headless editor workflow smoke coverage for undo, redo, save, and reopen map paths.
   - [x] Add headless editor workflow smoke coverage for UDMF editor metadata persistence.
+  - [x] Add headless editor workflow smoke coverage for save-as map rename and reopen paths.
 - [x] Add rendering smoke tests for 2D and 3D views.
 - [x] Add plugin lifecycle tests.
 - [x] Add source-port launch tests with mocked process execution.

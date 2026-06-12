@@ -53,6 +53,33 @@ public sealed class EditorWorkflowSmokeTests
         Assert.Equal(144, edited.Sectors[0].Brightness);
     }
 
+    [Theory]
+    [InlineData(MapFormat.Doom)]
+    [InlineData(MapFormat.Hexen)]
+    [InlineData(MapFormat.Udmf)]
+    public void SaveAsDifferentMapMarkerReopensRenamedMap(MapFormat format)
+    {
+        byte[] initialBytes = Save(BuildMap(format), "MAP01", format);
+
+        using var source = new WAD(new MemoryStream(initialBytes), openreadonly: true);
+        MapEntry entry = Assert.Single(WadMaps.Find(source));
+        MapSet map = WadMaps.Load(source, entry)!;
+
+        const string renamedMarker = "MAP02";
+        byte[] renamedBytes = Save(map, renamedMarker, format);
+
+        using var reopened = new WAD(new MemoryStream(renamedBytes), openreadonly: true);
+        MapEntry renamedEntry = Assert.Single(WadMaps.Find(reopened));
+        MapSet renamed = WadMaps.Load(reopened, renamedEntry)!;
+
+        Assert.Equal(renamedMarker, renamedEntry.Name);
+        Assert.Equal(format, renamedEntry.Format);
+        Assert.Equal(map.Vertices.Count, renamed.Vertices.Count);
+        Assert.Equal(map.Linedefs.Count, renamed.Linedefs.Count);
+        Assert.Equal(map.Sectors.Count, renamed.Sectors.Count);
+        Assert.Equal(map.Things.Count, renamed.Things.Count);
+    }
+
     [Fact]
     public void UdmfOpenEditUndoRedoSaveAndReopenPreservesEditorMetadata()
     {
