@@ -231,6 +231,24 @@ public sealed class PresentationPlanTests
     }
 
     [Fact]
+    public void PlotterStartPlanSkipsGridRefreshWhenClearIsFalseLikeUdb()
+    {
+        PresentationRenderSessionStartPlan plan = PresentationRenderTargetPlan.BuildRenderSessionStartPlan(
+            PresentationRenderSessionStartKind.Plotter,
+            currentLayer: RenderLayers.None,
+            targetAvailable: true,
+            clear: false);
+
+        Assert.True(plan.CanStart);
+        Assert.Equal(RenderLayers.Plotter, plan.RenderLayerAfter);
+        Assert.Equal(new[]
+        {
+            new PresentationRenderSessionStartStep(PresentationRenderSessionStartStepKind.SetRenderLayer, "Plotter"),
+            new PresentationRenderSessionStartStep(PresentationRenderSessionStartStepKind.UpdateTransformations),
+        }, plan.Steps);
+    }
+
+    [Fact]
     public void ThingsAndOverlayStartPlansBindTextureTargetsLikeUdb()
     {
         PresentationRenderSessionStartPlan things = PresentationRenderTargetPlan.BuildRenderSessionStartPlan(
@@ -295,10 +313,32 @@ public sealed class PresentationPlanTests
     }
 
     [Fact]
+    public void RenderSessionStartRejectsInvalidOverlayLayerInputs()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => PresentationRenderTargetPlan.BuildRenderSessionStartPlan(
+            PresentationRenderSessionStartKind.Overlay,
+            currentLayer: RenderLayers.None,
+            targetAvailable: true,
+            clear: true,
+            overlayLayerNumber: -1,
+            overlayTextureCount: 1));
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => PresentationRenderTargetPlan.BuildRenderSessionStartPlan(
+            PresentationRenderSessionStartKind.Overlay,
+            currentLayer: RenderLayers.None,
+            targetAvailable: true,
+            clear: true,
+            overlayLayerNumber: 0,
+            overlayTextureCount: -1));
+    }
+
+    [Fact]
     public void FinishPlanDrawsPlotterOrStopsTextureRenderingThenClearsLayer()
     {
         PresentationRenderSessionFinishPlan plotter = PresentationRenderTargetPlan.BuildRenderSessionFinishPlan(RenderLayers.Plotter);
         PresentationRenderSessionFinishPlan things = PresentationRenderTargetPlan.BuildRenderSessionFinishPlan(RenderLayers.Things);
+        PresentationRenderSessionFinishPlan overlay = PresentationRenderTargetPlan.BuildRenderSessionFinishPlan(RenderLayers.Overlay);
+        PresentationRenderSessionFinishPlan surface = PresentationRenderTargetPlan.BuildRenderSessionFinishPlan(RenderLayers.Surface);
         PresentationRenderSessionFinishPlan none = PresentationRenderTargetPlan.BuildRenderSessionFinishPlan(RenderLayers.None);
 
         Assert.Equal(RenderLayers.None, plotter.RenderLayerAfter);
@@ -312,6 +352,8 @@ public sealed class PresentationPlanTests
             new PresentationRenderSessionFinishStep(PresentationRenderSessionFinishStepKind.FinishRendering),
             new PresentationRenderSessionFinishStep(PresentationRenderSessionFinishStepKind.SetRenderLayerNone),
         }, things.Steps);
+        Assert.Equal(things.Steps, overlay.Steps);
+        Assert.Equal(things.Steps, surface.Steps);
         Assert.Equal(new[]
         {
             new PresentationRenderSessionFinishStep(PresentationRenderSessionFinishStepKind.SetRenderLayerNone),

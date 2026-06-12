@@ -806,6 +806,7 @@ public sealed record PresentationRenderTargetPlan(
         int overlayLayerNumber = 0,
         int overlayTextureCount = 1)
     {
+        if (overlayLayerNumber < 0) throw new ArgumentOutOfRangeException(nameof(overlayLayerNumber));
         if (overlayTextureCount < 0) throw new ArgumentOutOfRangeException(nameof(overlayTextureCount));
 
         RenderLayers requestedLayer = kind switch
