@@ -222,6 +222,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _fullBrightness = true;
     private bool _useHighlight = true;
     private bool _autoClearSelection;
+    private bool _editNewThing = true;
     private ThingModelRenderMode _modelRenderMode = ThingModelRenderMode.All;
     private ThingLightRenderMode _lightRenderMode = ThingLightRenderMode.All;
     private bool _enhancedRenderingEffects = true;
@@ -260,6 +261,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         get => _autoClearSelection;
         set => _autoClearSelection = value;
+    }
+    public bool EditNewThing
+    {
+        get => _editNewThing;
+        set => _editNewThing = value;
     }
     public ThingModelRenderMode ModelRenderMode => _modelRenderMode;
     public ThingLightRenderMode LightRenderMode => _lightRenderMode;
@@ -8982,6 +8988,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Changed?.Invoke();
         string status = $"inserted thing type {InsertThingType} at ({pos.x:0}, {pos.y:0})";
         Picked?.Invoke(status);
+        if (_editNewThing) EditRequested?.Invoke();
         return status;
     }
 

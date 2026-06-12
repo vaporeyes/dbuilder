@@ -523,16 +523,21 @@ public class SettingsWindowTests
         Assert.NotNull(type.GetField("AutoMerge", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("SplitJoinedSectors", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("AutoClearSelection", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("EditNewThing", BindingFlags.Instance | BindingFlags.Public));
         Assert.Contains("AddCheckBox(\"Snap to geometry\", s.AutoMerge)", body, StringComparison.Ordinal);
         Assert.Contains("AddCheckBox(\"Split joined sectors\", s.SplitJoinedSectors)", body, StringComparison.Ordinal);
         Assert.Contains("AddCheckBox(\"Automatically clear selection in Classic Modes\", s.AutoClearSelection)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Edit thing properties when inserting a new thing\", s.EditNewThing)", body, StringComparison.Ordinal);
         Assert.Contains("AutoMerge = _autoMerge.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("SplitJoinedSectors = _splitJoinedSectors.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("AutoClearSelection = _autoClearSelection.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("EditNewThing = _editNewThing.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("_settings.AutoMerge = dlg.AutoMerge;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.SplitJoinedSectors = dlg.SplitJoinedSectors;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.AutoClearSelection = dlg.AutoClearSelection;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.EditNewThing = dlg.EditNewThing;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.AutoClearSelection = _settings.AutoClearSelection;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.EditNewThing = _settings.EditNewThing;", mainWindow, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -121,6 +121,19 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void InsertedThingsRequestPropertyEditingWhenUdbPreferenceIsEnabled()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int insertIndex = body.IndexOf("private string InsertThingAt(Vec2D world", StringComparison.Ordinal);
+        int visualStartIndex = body.IndexOf("public string PlaceVisualStart()", insertIndex, StringComparison.Ordinal);
+        string method = body[insertIndex..visualStartIndex];
+
+        Assert.Contains("private bool _editNewThing = true;", body, StringComparison.Ordinal);
+        Assert.Contains("public bool EditNewThing", body, StringComparison.Ordinal);
+        Assert.Contains("if (_editNewThing) EditRequested?.Invoke();", method, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ClassicViewModeDefaultsToUdbNormalSetting()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
@@ -164,6 +177,7 @@ public sealed class MapControlCommandTests
         Assert.Contains("public int MouseSpeed", body, StringComparison.Ordinal);
         Assert.Contains("public int MouseSelectionThreshold", body, StringComparison.Ordinal);
         Assert.Contains("public bool AutoClearSelection", body, StringComparison.Ordinal);
+        Assert.Contains("public bool EditNewThing", body, StringComparison.Ordinal);
         Assert.Contains("public int StitchRange", body, StringComparison.Ordinal);
         Assert.Contains("public int HighlightRange", body, StringComparison.Ordinal);
         Assert.Contains("public int ThingHighlightRange", body, StringComparison.Ordinal);

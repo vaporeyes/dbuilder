@@ -14,7 +14,7 @@ public sealed class SettingsWindow : PropertyDialog
 
     private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _testSkill, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _autosaveCount, _autosaveInterval, _defaultSectorFloorHeight, _defaultSectorCeilingHeight, _defaultSectorBrightness, _imageBrightness, _doubleSidedAlpha, _visualFov, _viewDistance, _moveSpeed, _mouseSpeed, _mouseSelectionThreshold, _stitchRange, _highlightRange, _thingHighlightRange, _splitLinedefsRange, _autoScrollSpeed, _statusHistoryLimit, _toastDuration, _toastDisabledActions, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _mergeGeometryMode, _toastAnchor, _pasteTagMode;
-    private readonly CheckBox _testMonsters, _autosave, _autoClearSidedefTextures, _autoMerge, _splitJoinedSectors, _autoClearSelection, _dynamicGridSize, _switchViewModes, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _qualityDisplay, _classicBilinear, _visualBilinear, _blackBrowsers, _flatShadeVertices, _markExtraFloors, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _showErrorsWindow, _fixedThingsScale, _alwaysShowVertices, _selectAdjacentVisualVertexSlopeHandles, _useOppositeSmartPivotHandle, _toastsEnabled, _pasteRemoveActions;
+    private readonly CheckBox _testMonsters, _autosave, _autoClearSidedefTextures, _autoMerge, _splitJoinedSectors, _autoClearSelection, _editNewThing, _dynamicGridSize, _switchViewModes, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _qualityDisplay, _classicBilinear, _visualBilinear, _blackBrowsers, _flatShadeVertices, _markExtraFloors, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _showErrorsWindow, _fixedThingsScale, _alwaysShowVertices, _selectAdjacentVisualVertexSlopeHandles, _useOppositeSmartPivotHandle, _toastsEnabled, _pasteRemoveActions;
     private readonly bool _drawLineShowGuidelines;
     private readonly int _drawRectangleSubdivisions, _drawRectangleBevelWidth;
     private readonly bool _drawRectangleShowGuidelines;
@@ -37,6 +37,7 @@ public sealed class SettingsWindow : PropertyDialog
     public bool AutoMerge;
     public bool SplitJoinedSectors;
     public bool AutoClearSelection;
+    public bool EditNewThing;
     public bool DynamicGridSize;
     public bool SwitchViewModes;
     public bool UseHighlight;
@@ -151,6 +152,7 @@ public sealed class SettingsWindow : PropertyDialog
         _autoMerge = AddCheckBox("Snap to geometry", s.AutoMerge);
         _splitJoinedSectors = AddCheckBox("Split joined sectors", s.SplitJoinedSectors);
         _autoClearSelection = AddCheckBox("Automatically clear selection in Classic Modes", s.AutoClearSelection);
+        _editNewThing = AddCheckBox("Edit thing properties when inserting a new thing", s.EditNewThing);
         _dynamicGridSize = AddCheckBox("Dynamic grid size", s.DynamicGridSize);
         _switchViewModes = AddCheckBox("Switch view modes when reselecting a classic mode", s.SwitchViewModes);
         _drawLineContinuousDrawing = AddCheckBox("Draw lines continuously", s.NormalizedDrawLineSettings.ContinuousDrawing);
@@ -217,6 +219,7 @@ public sealed class SettingsWindow : PropertyDialog
         AutoMerge = _autoMerge.IsChecked == true;
         SplitJoinedSectors = _splitJoinedSectors.IsChecked == true;
         AutoClearSelection = _autoClearSelection.IsChecked == true;
+        EditNewThing = _editNewThing.IsChecked == true;
         DynamicGridSize = _dynamicGridSize.IsChecked == true;
         SwitchViewModes = _switchViewModes.IsChecked == true;
         UseHighlight = _useHighlight.IsChecked == true;
