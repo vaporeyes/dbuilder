@@ -1431,6 +1431,8 @@ public partial class MainWindow : Window
         _settings.QualityDisplay = dlg.QualityDisplay;
         _settings.ClassicBilinear = dlg.ClassicBilinear;
         _settings.VisualBilinear = dlg.VisualBilinear;
+        _settings.BlackBrowsers = dlg.BlackBrowsers;
+        _settings.FlatShadeVertices = dlg.FlatShadeVertices;
         _settings.DrawFog = dlg.DrawFog;
         _settings.DrawSky = dlg.DrawSky;
         _settings.ShowEventLines = dlg.ShowEventLines;

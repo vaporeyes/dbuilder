@@ -173,6 +173,8 @@ public class SettingsTests
         Assert.True(settings.QualityDisplay);
         Assert.False(settings.ClassicBilinear);
         Assert.False(settings.VisualBilinear);
+        Assert.True(settings.BlackBrowsers);
+        Assert.False(settings.FlatShadeVertices);
     }
 
     [Fact]
@@ -387,6 +389,8 @@ public class SettingsTests
                 QualityDisplay = false,
                 ClassicBilinear = true,
                 VisualBilinear = true,
+                BlackBrowsers = false,
+                FlatShadeVertices = true,
                 DrawFog = true,
                 DrawSky = false,
                 ShowEventLines = false,
@@ -562,6 +566,8 @@ public class SettingsTests
             Assert.False(loaded.QualityDisplay);
             Assert.True(loaded.ClassicBilinear);
             Assert.True(loaded.VisualBilinear);
+            Assert.False(loaded.BlackBrowsers);
+            Assert.True(loaded.FlatShadeVertices);
             Assert.True(loaded.DrawFog);
             Assert.False(loaded.DrawSky);
             Assert.False(loaded.ShowEventLines);

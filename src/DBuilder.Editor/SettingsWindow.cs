@@ -14,7 +14,7 @@ public sealed class SettingsWindow : PropertyDialog
 
     private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _testSkill, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _autosaveCount, _autosaveInterval, _defaultSectorFloorHeight, _defaultSectorCeilingHeight, _defaultSectorBrightness, _imageBrightness, _statusHistoryLimit, _toastDuration, _toastDisabledActions, _shortcutOverrides;
     private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _mergeGeometryMode, _toastAnchor, _pasteTagMode;
-    private readonly CheckBox _testMonsters, _autosave, _autoClearSidedefTextures, _autoMerge, _splitJoinedSectors, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _qualityDisplay, _classicBilinear, _visualBilinear, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _fixedThingsScale, _alwaysShowVertices, _selectAdjacentVisualVertexSlopeHandles, _toastsEnabled, _pasteRemoveActions;
+    private readonly CheckBox _testMonsters, _autosave, _autoClearSidedefTextures, _autoMerge, _splitJoinedSectors, _dynamicGridSize, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _qualityDisplay, _classicBilinear, _visualBilinear, _blackBrowsers, _flatShadeVertices, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _fixedThingsScale, _alwaysShowVertices, _selectAdjacentVisualVertexSlopeHandles, _toastsEnabled, _pasteRemoveActions;
     private readonly bool _drawLineShowGuidelines;
     private readonly int _drawRectangleSubdivisions, _drawRectangleBevelWidth;
     private readonly bool _drawRectangleShowGuidelines;
@@ -45,6 +45,8 @@ public sealed class SettingsWindow : PropertyDialog
     public bool QualityDisplay;
     public bool ClassicBilinear;
     public bool VisualBilinear;
+    public bool BlackBrowsers;
+    public bool FlatShadeVertices;
     public bool DrawFog;
     public bool DrawSky;
     public bool ShowEventLines;
@@ -142,6 +144,8 @@ public sealed class SettingsWindow : PropertyDialog
         _qualityDisplay = AddCheckBox("High quality rendering", s.QualityDisplay);
         _classicBilinear = AddCheckBox("Bilinear filtering in classic modes", s.ClassicBilinear);
         _visualBilinear = AddCheckBox("Bilinear filtering in visual modes", s.VisualBilinear);
+        _blackBrowsers = AddCheckBox("Black background in image browser", s.BlackBrowsers);
+        _flatShadeVertices = AddCheckBox("Flat shade vertices", s.FlatShadeVertices);
         _drawFog = AddCheckBox("Draw fog", s.DrawFog);
         _drawSky = AddCheckBox("Draw sky", s.DrawSky);
         _showEventLines = AddCheckBox("Show event lines", s.ShowEventLines);
@@ -189,6 +193,8 @@ public sealed class SettingsWindow : PropertyDialog
         QualityDisplay = _qualityDisplay.IsChecked == true;
         ClassicBilinear = _classicBilinear.IsChecked == true;
         VisualBilinear = _visualBilinear.IsChecked == true;
+        BlackBrowsers = _blackBrowsers.IsChecked == true;
+        FlatShadeVertices = _flatShadeVertices.IsChecked == true;
         DrawFog = _drawFog.IsChecked == true;
         DrawSky = _drawSky.IsChecked == true;
         ShowEventLines = _showEventLines.IsChecked == true;

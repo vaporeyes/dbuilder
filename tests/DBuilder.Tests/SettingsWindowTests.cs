@@ -345,19 +345,27 @@ public class SettingsWindowTests
         Assert.NotNull(type.GetField("QualityDisplay", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("ClassicBilinear", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("VisualBilinear", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("BlackBrowsers", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("FlatShadeVertices", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("ImageBrightness", BindingFlags.Instance | BindingFlags.Public));
         Assert.Contains("AddField(\"Image brightness\", Settings.ImageBrightnessText(s))", body, StringComparison.Ordinal);
         Assert.Contains("AddCheckBox(\"High quality rendering\", s.QualityDisplay)", body, StringComparison.Ordinal);
         Assert.Contains("AddCheckBox(\"Bilinear filtering in classic modes\", s.ClassicBilinear)", body, StringComparison.Ordinal);
         Assert.Contains("AddCheckBox(\"Bilinear filtering in visual modes\", s.VisualBilinear)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Black background in image browser\", s.BlackBrowsers)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Flat shade vertices\", s.FlatShadeVertices)", body, StringComparison.Ordinal);
         Assert.Contains("ImageBrightness = Settings.AcceptImageBrightnessText(_imageBrightness.Text);", body, StringComparison.Ordinal);
         Assert.Contains("QualityDisplay = _qualityDisplay.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("ClassicBilinear = _classicBilinear.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("VisualBilinear = _visualBilinear.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("BlackBrowsers = _blackBrowsers.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("FlatShadeVertices = _flatShadeVertices.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("_settings.ImageBrightness = dlg.ImageBrightness;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.QualityDisplay = dlg.QualityDisplay;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.ClassicBilinear = dlg.ClassicBilinear;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.VisualBilinear = dlg.VisualBilinear;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.BlackBrowsers = dlg.BlackBrowsers;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.FlatShadeVertices = dlg.FlatShadeVertices;", mainWindow, StringComparison.Ordinal);
     }
 
     [Fact]
