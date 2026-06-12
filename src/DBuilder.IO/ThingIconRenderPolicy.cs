@@ -145,6 +145,25 @@ public static class ThingIconRenderPolicy
         => ProjectedThingScreenRadius(mapRadius, viewScale, fixedThingsScale, fixedSize)
             >= MinimumThingScreenRadiusFor(viewScale);
 
+    public static bool IsThingOnScreen(
+        double screenX,
+        double screenY,
+        double screenRadius,
+        double windowWidth,
+        double windowHeight)
+    {
+        if (double.IsNaN(screenX)) throw new ArgumentOutOfRangeException(nameof(screenX));
+        if (double.IsNaN(screenY)) throw new ArgumentOutOfRangeException(nameof(screenY));
+        if (screenRadius < 0 || double.IsNaN(screenRadius)) throw new ArgumentOutOfRangeException(nameof(screenRadius));
+        if (windowWidth < 0 || double.IsNaN(windowWidth)) throw new ArgumentOutOfRangeException(nameof(windowWidth));
+        if (windowHeight < 0 || double.IsNaN(windowHeight)) throw new ArgumentOutOfRangeException(nameof(windowHeight));
+
+        return !(((screenX + screenRadius) <= 0.0)
+            || ((screenX - screenRadius) >= windowWidth)
+            || ((screenY + screenRadius) <= 0.0)
+            || ((screenY - screenRadius) >= windowHeight));
+    }
+
     public static double MinimumThingScreenRadiusFor(double viewScale)
         => UseFarOverviewMarkers(viewScale, thingArrows: false)
             ? MinimumFarOverviewThingScreenRadius

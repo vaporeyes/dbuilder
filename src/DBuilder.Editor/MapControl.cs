@@ -5200,10 +5200,22 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                         _zoom,
                         _fixedThingsScale,
                         candidateFixedSize)) continue;
+                    var candidateScreen = ThingScreenPosition(candidate.Position);
+                    double candidateScreenRadius = ThingIconRenderPolicy.ProjectedThingScreenRadius(
+                        candidateRadius,
+                        _zoom,
+                        _fixedThingsScale,
+                        candidateFixedSize);
+                    if (!ThingIconRenderPolicy.IsThingOnScreen(
+                        candidateScreen.X,
+                        candidateScreen.Y,
+                        candidateScreenRadius,
+                        Bounds.Width,
+                        Bounds.Height)) continue;
 
                     candidates.Add(new ThingOverviewCullCandidate<Thing>(
                         candidate,
-                        ThingOverviewCell(candidate.Position),
+                        ThingOverviewCell(candidateScreen),
                         candidate.Selected,
                         candidateRadius));
                 }
@@ -5222,9 +5234,21 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                     _zoom,
                     _fixedThingsScale,
                     fixedSize)) continue;
+                var screen = ThingScreenPosition(t.Position);
+                double screenRadius = ThingIconRenderPolicy.ProjectedThingScreenRadius(
+                    thingRadius,
+                    _zoom,
+                    _fixedThingsScale,
+                    fixedSize);
+                if (!ThingIconRenderPolicy.IsThingOnScreen(
+                    screen.X,
+                    screen.Y,
+                    screenRadius,
+                    Bounds.Width,
+                    Bounds.Height)) continue;
                 if (overviewRepresentatives != null)
                 {
-                    var cell = ThingOverviewCell(t.Position);
+                    var cell = ThingOverviewCell(screen);
                     if (!overviewRepresentatives.TryGetValue(cell, out Thing? representative)
                         || !ReferenceEquals(t, representative)) continue;
                 }
@@ -5517,14 +5541,19 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private static double ThingVisualRadius(Thing thing, ThingTypeInfo? thingInfo)
         => thing.Size > 0 ? thing.Size : thingInfo?.RenderRadius ?? thingInfo?.Width ?? 10.0;
 
-    private (int X, int Y) ThingOverviewCell(Vec2D position)
+    private (double X, double Y) ThingScreenPosition(Vec2D position)
     {
         double scale = Math.Max(_zoom, 0.001);
         double screenX = (position.x - _camX) / scale + Bounds.Width * 0.5;
         double screenY = Bounds.Height * 0.5 - (position.y - _camY) / scale;
+        return (screenX, screenY);
+    }
+
+    private (int X, int Y) ThingOverviewCell((double X, double Y) screen)
+    {
         return (
-            ThingIconRenderPolicy.OverviewCullCell(screenX, _zoom, _thingArrows),
-            ThingIconRenderPolicy.OverviewCullCell(screenY, _zoom, _thingArrows));
+            ThingIconRenderPolicy.OverviewCullCell(screen.X, _zoom, _thingArrows),
+            ThingIconRenderPolicy.OverviewCullCell(screen.Y, _zoom, _thingArrows));
     }
 
     // Classic 16-colour console palette used by the .cfg thing category "color" index.

@@ -672,6 +672,70 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
+    public void ThingScreenVisibilityMatchesUdbBoundsCheck()
+    {
+        Assert.True(ThingIconRenderPolicy.IsThingOnScreen(
+            screenX: 50,
+            screenY: 50,
+            screenRadius: 10,
+            windowWidth: 100,
+            windowHeight: 100));
+        Assert.False(ThingIconRenderPolicy.IsThingOnScreen(
+            screenX: -10,
+            screenY: 50,
+            screenRadius: 10,
+            windowWidth: 100,
+            windowHeight: 100));
+        Assert.False(ThingIconRenderPolicy.IsThingOnScreen(
+            screenX: 110,
+            screenY: 50,
+            screenRadius: 10,
+            windowWidth: 100,
+            windowHeight: 100));
+        Assert.False(ThingIconRenderPolicy.IsThingOnScreen(
+            screenX: 50,
+            screenY: -10,
+            screenRadius: 10,
+            windowWidth: 100,
+            windowHeight: 100));
+        Assert.False(ThingIconRenderPolicy.IsThingOnScreen(
+            screenX: 50,
+            screenY: 110,
+            screenRadius: 10,
+            windowWidth: 100,
+            windowHeight: 100));
+    }
+
+    [Fact]
+    public void ThingScreenVisibilityRejectsInvalidInputs()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingIconRenderPolicy.IsThingOnScreen(
+            double.NaN,
+            0,
+            1,
+            100,
+            100));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingIconRenderPolicy.IsThingOnScreen(
+            0,
+            double.NaN,
+            1,
+            100,
+            100));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingIconRenderPolicy.IsThingOnScreen(
+            0,
+            0,
+            -1,
+            100,
+            100));
+        Assert.Throws<ArgumentOutOfRangeException>(() => ThingIconRenderPolicy.IsThingOnScreen(
+            0,
+            0,
+            1,
+            -1,
+            100));
+    }
+
+    [Fact]
     public void FarOverviewRequiresReadableThingMarkers()
     {
         Assert.Equal(ThingIconRenderPolicy.MinimumThingScreenRadius, ThingIconRenderPolicy.MinimumThingScreenRadiusFor(
