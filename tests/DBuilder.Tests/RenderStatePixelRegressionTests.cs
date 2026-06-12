@@ -2,6 +2,7 @@
 // ABOUTME: Verifies blend and mask render states produce stable composited pixels.
 
 using DBuilder.IO;
+using DBuilder.Map;
 using DBuilder.Rendering;
 
 namespace DBuilder.Tests;
@@ -120,6 +121,30 @@ public sealed class RenderStatePixelRegressionTests
     }
 
     [Fact]
+    public void AutomapPresentationStackCompositesMaskedLayersBeforeGeometry()
+    {
+        AutomapPresentationDescriptor presentation = AutomapModeModel.Presentation;
+        PixelColor pixel = new(255, 0, 0, 0);
+
+        pixel = CompositeAutomap(presentation.Layers[0], source: new PixelColor(255, 20, 40, 80), pixel);
+        pixel = CompositeAutomap(presentation.Layers[1], source: new PixelColor(0, 200, 0, 0), pixel);
+        pixel = CompositeAutomap(presentation.Layers[2], source: new PixelColor(255, 10, 80, 110), pixel);
+        pixel = CompositeAutomap(presentation.Layers[3], source: new PixelColor(255, 240, 30, 20), pixel);
+
+        Assert.False(presentation.DrawMapCenter);
+        Assert.True(presentation.SkipHiddenSectors);
+        Assert.Equal(
+            [
+                AutomapPresentationLayerKind.Surface,
+                AutomapPresentationLayerKind.Overlay,
+                AutomapPresentationLayerKind.Grid,
+                AutomapPresentationLayerKind.Geometry,
+            ],
+            presentation.Layers.Select(layer => layer.Kind).ToArray());
+        Assert.Equal(new PixelColor(255, 240, 30, 20), pixel);
+    }
+
+    [Fact]
     public void FarOverviewThingMarkersCullOverlappingPixelsToSelectedRepresentative()
     {
         const int width = 64;
@@ -158,6 +183,20 @@ public sealed class RenderStatePixelRegressionTests
             _ => throw new ArgumentOutOfRangeException(nameof(command)),
         };
 
+        return new PixelColor(
+            255,
+            Channel(source.R, sourceFactor, destination.R, destinationFactor),
+            Channel(source.G, sourceFactor, destination.G, destinationFactor),
+            Channel(source.B, sourceFactor, destination.B, destinationFactor));
+    }
+
+    private static PixelColor CompositeAutomap(AutomapPresentationLayer layer, PixelColor source, PixelColor destination)
+    {
+        if (layer.BlendMode == AutomapPresentationBlendMode.Mask)
+            return source.A == 0 ? destination : source;
+
+        float sourceFactor = (float)layer.Alpha;
+        float destinationFactor = 1.0f - sourceFactor;
         return new PixelColor(
             255,
             Channel(source.R, sourceFactor, destination.R, destinationFactor),
