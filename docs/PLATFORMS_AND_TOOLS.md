@@ -62,6 +62,10 @@ The script does not sign, notarize, create installers, delete prior artifacts, o
 
 `bash scripts/package-smoke.sh` checks published runtime directories for the editor launch file, .NET runtime metadata files, app icon, and bundled asset layout. It accepts one or more runtime IDs or discovers all runtime directories under `artifacts/release`.
 
+## macOS App Bundle Script
+
+`bash scripts/package-macos-app.sh osx-arm64` wraps a published macOS runtime directory in `artifacts/package/macos/<rid>/DBuilder.Editor.app`. The bundle is unsigned and not notarized, but it contains the published editor files, `Info.plist`, `PkgInfo`, and resource icon copy needed for app-bundle layout validation.
+
 ## App Metadata And Icon
 
 The editor project defines the app title, product name, package description, Windows DPI manifest, and package icon metadata. The shared icon source is `assets/main.png`, which is linked into publish output as `main.png` and packed as the package icon.

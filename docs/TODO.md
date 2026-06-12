@@ -3078,7 +3078,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 ## Packaging And Distribution
 
 - [x] Define supported operating systems.
-- [ ] Create app packaging for macOS.
+- [x] Create app packaging for macOS.
 - [ ] Create app packaging for Windows.
 - [ ] Create app packaging for Linux.
 - [x] Bundle or locate default configuration assets.
