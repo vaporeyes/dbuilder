@@ -825,6 +825,91 @@ public class SoundPropagationTests
     }
 
     [Fact]
+    public void SoundEnvironmentPanelHighlightCollapsesAndExpandsMatchingEnvironment()
+    {
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        var first = new SoundEnvironmentInfo(
+            new HashSet<Sector>(new[] { sector }, ReferenceEqualityComparer.Instance),
+            Array.Empty<Thing>(),
+            Array.Empty<Linedef>(),
+            0xFF010203u,
+            2,
+            "Second");
+        var second = first with { Id = 1, Name = "First" };
+        var model = new SoundEnvironmentModeModel(
+            new[] { first, second },
+            new HashSet<Sector>(ReferenceEqualityComparer.Instance),
+            new HashSet<Linedef>(ReferenceEqualityComparer.Instance));
+
+        SoundEnvironmentPanelHighlightPlan plan = model.HighlightEnvironment(environmentId: 2, selectedEnvironmentId: null);
+
+        Assert.False(plan.IgnoredBecauseSelected);
+        Assert.True(plan.CollapseAll);
+        Assert.Equal(new[] { 1, 2 }, plan.Environments.Select(environment => environment.EnvironmentId));
+        SoundEnvironmentPanelEnvironmentState highlighted = Assert.Single(plan.Environments, environment => environment.EnvironmentId == 2);
+        Assert.True(highlighted.Highlighted);
+        Assert.True(highlighted.Expanded);
+        Assert.True(highlighted.EnsureVisible);
+        Assert.False(highlighted.Selected);
+        SoundEnvironmentPanelEnvironmentState regular = Assert.Single(plan.Environments, environment => environment.EnvironmentId == 1);
+        Assert.False(regular.Highlighted);
+        Assert.False(regular.Expanded);
+        Assert.False(regular.EnsureVisible);
+    }
+
+    [Fact]
+    public void SoundEnvironmentPanelHighlightDoesNothingWhileNodeSelected()
+    {
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        var first = new SoundEnvironmentInfo(
+            new HashSet<Sector>(new[] { sector }, ReferenceEqualityComparer.Instance),
+            Array.Empty<Thing>(),
+            Array.Empty<Linedef>(),
+            0xFF010203u,
+            1,
+            "First");
+        var second = first with { Id = 2, Name = "Second" };
+        var model = new SoundEnvironmentModeModel(
+            new[] { first, second },
+            new HashSet<Sector>(ReferenceEqualityComparer.Instance),
+            new HashSet<Linedef>(ReferenceEqualityComparer.Instance));
+
+        SoundEnvironmentPanelHighlightPlan plan = model.HighlightEnvironment(environmentId: 2, selectedEnvironmentId: 1);
+
+        Assert.True(plan.IgnoredBecauseSelected);
+        Assert.False(plan.CollapseAll);
+        Assert.DoesNotContain(plan.Environments, environment => environment.Highlighted || environment.Expanded || environment.EnsureVisible);
+        Assert.True(Assert.Single(plan.Environments, environment => environment.EnvironmentId == 1).Selected);
+        Assert.False(Assert.Single(plan.Environments, environment => environment.EnvironmentId == 2).Selected);
+    }
+
+    [Fact]
+    public void SoundEnvironmentPanelSelectionTogglesMatchingEnvironment()
+    {
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        var environment = new SoundEnvironmentInfo(
+            new HashSet<Sector>(new[] { sector }, ReferenceEqualityComparer.Instance),
+            Array.Empty<Thing>(),
+            Array.Empty<Linedef>(),
+            0xFF010203u,
+            2,
+            "Environment");
+        var model = new SoundEnvironmentModeModel(
+            new[] { environment },
+            new HashSet<Sector>(ReferenceEqualityComparer.Instance),
+            new HashSet<Linedef>(ReferenceEqualityComparer.Instance));
+
+        Assert.Equal(2, model.SelectEnvironment(requestedEnvironmentId: 2, selectedEnvironmentId: null));
+        Assert.Null(model.SelectEnvironment(requestedEnvironmentId: 2, selectedEnvironmentId: 2));
+        Assert.Null(model.SelectEnvironment(requestedEnvironmentId: null, selectedEnvironmentId: 2));
+        Assert.Equal(2, model.SelectEnvironment(requestedEnvironmentId: 99, selectedEnvironmentId: 2));
+        Assert.Null(model.SelectEnvironment(requestedEnvironmentId: 99, selectedEnvironmentId: null));
+    }
+
+    [Fact]
     public void SoundEnvironmentHeaderFormatsEmptySingularAndPluralCounts()
     {
         var map = new MapSet();

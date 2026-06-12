@@ -221,6 +221,18 @@ public sealed record SoundEnvironmentWarningsOnlyState(
     string Text,
     bool Enabled);
 
+public sealed record SoundEnvironmentPanelEnvironmentState(
+    int EnvironmentId,
+    bool Highlighted,
+    bool Selected,
+    bool Expanded,
+    bool EnsureVisible);
+
+public sealed record SoundEnvironmentPanelHighlightPlan(
+    bool IgnoredBecauseSelected,
+    bool CollapseAll,
+    IReadOnlyList<SoundEnvironmentPanelEnvironmentState> Environments);
+
 public sealed record SoundEnvironmentModeModel(
     IReadOnlyList<SoundEnvironmentInfo> Environments,
     IReadOnlySet<Sector> UnassignedSectors,
@@ -268,6 +280,38 @@ public sealed record SoundEnvironmentModeModel(
         return new SoundEnvironmentWarningsOnlyState(
             ShowWarningsOnlyText + $" ({warningCount})",
             checkedState || warningCount > 0);
+    }
+
+    public SoundEnvironmentPanelHighlightPlan HighlightEnvironment(int? environmentId, int? selectedEnvironmentId)
+    {
+        bool ignored = selectedEnvironmentId != null;
+        var states = new List<SoundEnvironmentPanelEnvironmentState>();
+        foreach (SoundEnvironmentInfo environment in Environments.OrderBy(e => e.Id))
+        {
+            bool selected = environment.Id == selectedEnvironmentId;
+            bool highlighted = !ignored && environment.Id == environmentId;
+            states.Add(new SoundEnvironmentPanelEnvironmentState(
+                environment.Id,
+                Highlighted: highlighted,
+                Selected: selected,
+                Expanded: highlighted,
+                EnsureVisible: highlighted));
+        }
+
+        return new SoundEnvironmentPanelHighlightPlan(
+            IgnoredBecauseSelected: ignored,
+            CollapseAll: !ignored,
+            Environments: states);
+    }
+
+    public int? SelectEnvironment(int? requestedEnvironmentId, int? selectedEnvironmentId)
+    {
+        if (selectedEnvironmentId != null && (requestedEnvironmentId == null || requestedEnvironmentId == selectedEnvironmentId))
+            return null;
+        if (requestedEnvironmentId == null) return null;
+        return Environments.Any(environment => environment.Id == requestedEnvironmentId)
+            ? requestedEnvironmentId
+            : selectedEnvironmentId;
     }
 
     public IReadOnlyList<SoundEnvironmentRow> Rows(bool udmf = false, bool warningsOnly = false)
