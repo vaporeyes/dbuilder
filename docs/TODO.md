@@ -1805,6 +1805,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add pixel-level regression tests for alpha, additive, and mask presentation states.
   - [x] Add pixel-level regression coverage for far-overview thing marker culling.
   - [x] Add pixel-level regression coverage for standard presentation stack ordering.
+  - [x] Add pixel-level regression coverage for Things mode presentation stack ordering.
 
 ## Visual Modes And 3D Editing
 
