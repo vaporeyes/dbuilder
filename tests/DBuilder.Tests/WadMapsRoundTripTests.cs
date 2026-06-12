@@ -11,6 +11,43 @@ namespace DBuilder.Tests;
 public sealed class WadMapsRoundTripTests
 {
     [Theory]
+    [InlineData("Doom", "Doom_DoomDoom.cfg")]
+    [InlineData("Doom II", "Doom_Doom2Doom.cfg")]
+    [InlineData("Heretic", "Heretic_HereticDoom.cfg")]
+    [InlineData("Hexen", "Hexen_HexenHexen.cfg")]
+    [InlineData("Boom", "Boom_Doom2Doom.cfg")]
+    [InlineData("MBF", "MBF21_Doom2Doom.cfg")]
+    [InlineData("ZDoom", "ZDoom_DoomHexen.cfg")]
+    [InlineData("GZDoom", "GZDoom_DoomUDMF.cfg")]
+    public void SaveMapThenLoadRoundTripsRepresentativeUdbGameConfigurations(string family, string configFile)
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string path = Path.Combine(udbRoot, "Assets", "Common", "Configurations", configFile);
+        Assert.True(File.Exists(path), $"Expected UDB configuration for {family} at {path}.");
+
+        GameConfiguration config = GameConfiguration.FromFile(path);
+        MapSet map = BuildMap(config.MapFormat);
+        byte[] bytes;
+
+        using (var stream = new MemoryStream())
+        using (var wad = new WAD(stream))
+        {
+            WadMaps.SaveMap(wad, "MAP01", map, config.MapFormat);
+            bytes = stream.ToArray();
+        }
+
+        using var reopened = new WAD(new MemoryStream(bytes), openreadonly: true);
+        MapEntry entry = Assert.Single(WadMaps.Find(reopened));
+        Assert.Equal("MAP01", entry.Name);
+        Assert.Equal(config.MapFormat, entry.Format);
+
+        MapSet loaded = WadMaps.Load(reopened, entry)!;
+        AssertMapRoundTrip(map, loaded, config.MapFormat);
+    }
+
+    [Theory]
     [InlineData(MapFormat.Doom)]
     [InlineData(MapFormat.Hexen)]
     [InlineData(MapFormat.Udmf)]
@@ -83,6 +120,17 @@ public sealed class WadMapsRoundTripTests
 
         map.BuildIndexes();
         return map;
+    }
+
+    private static string? FindUdbRoot()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
+        string sibling = Path.GetFullPath(Path.Combine(repositoryRoot, "..", "UltimateDoomBuilder"));
+        if (Directory.Exists(Path.Combine(sibling, "Assets", "Common", "Configurations"))) return sibling;
+
+        string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string root = Path.Combine(home, "dev", "repos", "UltimateDoomBuilder");
+        return Directory.Exists(Path.Combine(root, "Assets", "Common", "Configurations")) ? root : null;
     }
 
     private static void AssertMapRoundTrip(MapSet expected, MapSet actual, MapFormat format)
