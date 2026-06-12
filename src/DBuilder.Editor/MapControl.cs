@@ -215,7 +215,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     // 2D view-layer visibility toggles.
     private bool _showFills = true;
     private bool _showThings = true;
-    private bool _synchronizedThingEditing;
+    private bool _synchronizedThingEditing = true;
     private int _showVisualThings = 2;
     private bool _fixedThingsScale;
     private bool _alwaysShowVertices = true;
@@ -259,7 +259,16 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     public bool ShowSectorFills => _showFills;
     public bool ShowThings => _showThings;
-    public bool SynchronizedThingEditing => _synchronizedThingEditing;
+    public bool SynchronizedThingEditing
+    {
+        get => _synchronizedThingEditing;
+        set
+        {
+            if (_synchronizedThingEditing == value) return;
+            _synchronizedThingEditing = value;
+            ActionStateChanged?.Invoke();
+        }
+    }
     public int ShowVisualThings => _showVisualThings;
     public bool FixedThingsScale => _fixedThingsScale;
     public bool AlwaysShowVertices => _alwaysShowVertices;
@@ -451,8 +460,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     public bool ToggleSynchronizedThingEditing()
     {
-        _synchronizedThingEditing = !_synchronizedThingEditing;
-        ActionStateChanged?.Invoke();
+        SynchronizedThingEditing = !_synchronizedThingEditing;
         return _synchronizedThingEditing;
     }
 

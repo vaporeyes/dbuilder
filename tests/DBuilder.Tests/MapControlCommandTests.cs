@@ -1343,7 +1343,8 @@ public sealed class MapControlCommandTests
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
 
-        Assert.Contains("public bool SynchronizedThingEditing => _synchronizedThingEditing;", body, StringComparison.Ordinal);
+        Assert.Contains("public bool SynchronizedThingEditing", body, StringComparison.Ordinal);
+        Assert.Contains("SynchronizedThingEditing = !_synchronizedThingEditing;", body, StringComparison.Ordinal);
         Assert.Contains("public bool ToggleSynchronizedThingEditing()", body, StringComparison.Ordinal);
         Assert.Contains("Things editing is SYNCHRONIZED", body, StringComparison.Ordinal);
         Assert.Contains("Things editing is not synchronized", body, StringComparison.Ordinal);

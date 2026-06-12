@@ -313,6 +313,7 @@ public class SettingsTests
         Assert.True(settings.DrawSky);
         Assert.True(settings.ShowEventLines);
         Assert.True(settings.ShowVisualVertices);
+        Assert.True(settings.SynchronizedThingEditing);
         Assert.False(settings.FixedThingsScale);
         Assert.True(settings.AlwaysShowVertices);
     }
@@ -558,6 +559,7 @@ public class SettingsTests
                 DrawSky = false,
                 ShowEventLines = false,
                 ShowVisualVertices = false,
+                SynchronizedThingEditing = false,
                 ShowErrorsWindow = false,
                 FixedThingsScale = true,
                 AlwaysShowVertices = false,
@@ -778,6 +780,7 @@ public class SettingsTests
             Assert.False(loaded.DrawSky);
             Assert.False(loaded.ShowEventLines);
             Assert.False(loaded.ShowVisualVertices);
+            Assert.False(loaded.SynchronizedThingEditing);
             Assert.False(loaded.ShowErrorsWindow);
             Assert.True(loaded.FixedThingsScale);
             Assert.False(loaded.AlwaysShowVertices);

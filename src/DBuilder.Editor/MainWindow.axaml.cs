@@ -186,6 +186,11 @@ public partial class MainWindow : Window
                 _settings.ShowVisualVertices = MapView.ShowVisualVertices;
                 SaveSettings();
             }
+            if (_settings.SynchronizedThingEditing != MapView.SynchronizedThingEditing)
+            {
+                _settings.SynchronizedThingEditing = MapView.SynchronizedThingEditing;
+                SaveSettings();
+            }
             if (_settings.FixedThingsScale != MapView.FixedThingsScale)
             {
                 _settings.FixedThingsScale = MapView.FixedThingsScale;
@@ -240,6 +245,7 @@ public partial class MainWindow : Window
         MapView.EditNewSector = _settings.EditNewSector;
         MapView.AdditiveSelect = _settings.AdditiveSelect;
         MapView.AdditivePaintSelect = _settings.NormalizedAdditivePaintSelect;
+        MapView.SynchronizedThingEditing = _settings.SynchronizedThingEditing;
         MapView.ChangeHeightBySidedef = _settings.NormalizedChangeHeightBySidedef;
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
         MapView.RenderGridEnabled = _settings.RenderGrid;
@@ -1446,6 +1452,7 @@ public partial class MainWindow : Window
         _settings.EditNewSector = dlg.EditNewSector;
         _settings.AdditiveSelect = dlg.AdditiveSelect;
         _settings.AdditivePaintSelect = dlg.AdditivePaintSelect;
+        _settings.SynchronizedThingEditing = dlg.SynchronizedThingEditing;
         _settings.ChangeHeightBySidedef = dlg.ChangeHeightBySidedef;
         _settings.DynamicGridSize = dlg.DynamicGridSize;
         _settings.SwitchViewModes = dlg.SwitchViewModes;
@@ -1513,6 +1520,7 @@ public partial class MainWindow : Window
         MapView.EditNewSector = _settings.EditNewSector;
         MapView.AdditiveSelect = _settings.AdditiveSelect;
         MapView.AdditivePaintSelect = _settings.NormalizedAdditivePaintSelect;
+        MapView.SynchronizedThingEditing = _settings.SynchronizedThingEditing;
         MapView.ChangeHeightBySidedef = _settings.NormalizedChangeHeightBySidedef;
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
         MapView.DynamicGridSizeEnabled = _settings.DynamicGridSize;

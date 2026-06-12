@@ -608,13 +608,18 @@ public class SettingsWindowTests
 
         Assert.NotNull(type.GetField("FixedThingsScale", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("AlwaysShowVertices", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("SynchronizedThingEditing", BindingFlags.Instance | BindingFlags.Public));
         Assert.Contains("AddCheckBox(\"Fixed things scale\", s.FixedThingsScale)", body, StringComparison.Ordinal);
         Assert.Contains("AddCheckBox(\"Always show vertices\", s.AlwaysShowVertices)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Synchronized thing editing\", s.SynchronizedThingEditing)", body, StringComparison.Ordinal);
         Assert.Contains("FixedThingsScale = _fixedThingsScale.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("AlwaysShowVertices = _alwaysShowVertices.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("SynchronizedThingEditing = _synchronizedThingEditing.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("_settings.FixedThingsScale = dlg.FixedThingsScale;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.AlwaysShowVertices = dlg.AlwaysShowVertices;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.SynchronizedThingEditing = dlg.SynchronizedThingEditing;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.SetFixedThingsScale(_settings.FixedThingsScale);", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.SetAlwaysShowVertices(_settings.AlwaysShowVertices);", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.SynchronizedThingEditing = _settings.SynchronizedThingEditing;", mainWindow, StringComparison.Ordinal);
     }
 }
