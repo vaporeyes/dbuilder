@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 6893 tests.
+- Current verified baseline: `scripts/verify.sh` passes 6894 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 - A Rust port of the codebase is underway in `rust/`; see the Rust Port section below.
 
@@ -1834,6 +1834,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add pixel-level regression coverage for 3D translucent alpha and additive thing ordering.
   - [x] Add pixel-level regression coverage for 3D model masked and translucent ordering.
   - [x] Add pixel-level regression coverage for neighboring zoomed-out thing marker culling.
+  - [x] Add pixel-level regression coverage for surface desaturation draw-state reset.
 
 ## Visual Modes And 3D Editing
 

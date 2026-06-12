@@ -351,6 +351,43 @@ public sealed class RenderStatePixelRegressionTests
         Assert.Equal(0, pixels[100 + 48 * width]);
     }
 
+    [Fact]
+    public void SurfaceRenderOperationsApplyDesaturationPerDrawAndResetAfterward()
+    {
+        var batch = new SurfaceRenderBatch(11, new[]
+        {
+            new SurfaceEntry(numVertices: 3, bufferIndex: 0, vertexOffset: 0)
+            {
+                Desaturation = 0.0,
+                FloorVertices = new FlatVertex[3],
+                CeilingVertices = new FlatVertex[3],
+            },
+            new SurfaceEntry(numVertices: 3, bufferIndex: 0, vertexOffset: 6)
+            {
+                Desaturation = 1.0,
+                FloorVertices = new FlatVertex[3],
+                CeilingVertices = new FlatVertex[3],
+            },
+        });
+        IReadOnlyList<SurfaceRenderOperation> operations =
+            SurfaceRenderPlan.BuildRenderOperations(new[] { batch }, SurfaceRenderPass.Floor);
+        var sourcePixels = new Dictionary<int, PixelColor>
+        {
+            [0] = new(255, 200, 60, 20),
+            [6] = new(255, 200, 60, 20),
+        };
+
+        IReadOnlyList<PixelColor> pixels = DrawSurfacePixels(operations, sourcePixels, out double desaturationAfterRender);
+
+        Assert.Equal(
+            [
+                new PixelColor(255, 200, 60, 20),
+                new PixelColor(255, 97, 97, 97),
+            ],
+            pixels);
+        Assert.Equal(0.0, desaturationAfterRender);
+    }
+
     private static PixelColor Composite(PresentationDrawCommand command, PixelColor source, PixelColor destination)
     {
         if (command.AlphaTestEnabled && source.A == 0)
@@ -401,6 +438,47 @@ public sealed class RenderStatePixelRegressionTests
 
     private static byte Channel(byte source, float sourceFactor, byte destination, float destinationFactor)
         => (byte)Math.Clamp((int)(source * sourceFactor + destination * destinationFactor), 0, 255);
+
+    private static IReadOnlyList<PixelColor> DrawSurfacePixels(
+        IReadOnlyList<SurfaceRenderOperation> operations,
+        IReadOnlyDictionary<int, PixelColor> sourcePixels,
+        out double desaturationAfterRender)
+    {
+        double desaturation = 0.0;
+        var pixels = new List<PixelColor>();
+        foreach (SurfaceRenderOperation operation in operations)
+        {
+            switch (operation.Kind)
+            {
+                case SurfaceRenderOperationKind.SetDesaturation:
+                    desaturation = operation.Desaturation ?? 0.0;
+                    break;
+                case SurfaceRenderOperationKind.ResetDesaturation:
+                    desaturation = operation.Desaturation ?? 0.0;
+                    break;
+                case SurfaceRenderOperationKind.Draw:
+                    pixels.Add(ApplyDesaturation(sourcePixels[operation.VertexOffset!.Value], desaturation));
+                    break;
+            }
+        }
+
+        desaturationAfterRender = desaturation;
+        return pixels;
+    }
+
+    private static PixelColor ApplyDesaturation(PixelColor source, double desaturation)
+    {
+        double amount = Math.Clamp(desaturation, 0.0, 1.0);
+        byte gray = (byte)Math.Clamp((int)((source.R * 0.299) + (source.G * 0.587) + (source.B * 0.114)), 0, 255);
+        return new PixelColor(
+            source.A,
+            Mix(source.R, gray, amount),
+            Mix(source.G, gray, amount),
+            Mix(source.B, gray, amount));
+    }
+
+    private static byte Mix(byte source, byte target, double amount)
+        => (byte)Math.Clamp((int)(source + (target - source) * amount), 0, 255);
 
     private static int[] DrawOverviewThingMarkers(
         IReadOnlyList<ThingMarkerPixelCandidate> things,
