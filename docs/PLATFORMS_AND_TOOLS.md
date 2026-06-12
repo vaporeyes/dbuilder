@@ -60,6 +60,10 @@ Script compilers use the same UDB-style compiler configuration source as nodebui
 
 The script does not sign, notarize, create installers, delete prior artifacts, or bundle copyrighted assets. Platform packages remain open work.
 
+## App Metadata And Icon
+
+The editor project defines the app title, product name, package description, Windows DPI manifest, and package icon metadata. The shared icon source is `assets/main.png`, which is linked into publish output as `main.png` and packed as the package icon.
+
 ## Release Packaging Implications
 
 Packaged builds must preserve these rules:

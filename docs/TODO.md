@@ -3082,7 +3082,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Create app packaging for Windows.
 - [ ] Create app packaging for Linux.
 - [ ] Bundle or locate default configuration assets.
-- [ ] Bundle icons and app metadata.
+- [x] Bundle icons and app metadata.
 - [x] Define external dependency discovery for source ports, node builders, and compilers.
 - [x] Add release build scripts.
 - [ ] Add smoke tests for packaged builds.

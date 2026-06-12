@@ -7,6 +7,10 @@
     <RollForward>LatestMajor</RollForward>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyTitle>DBuilder Editor</AssemblyTitle>
+    <Product>DBuilder</Product>
+    <Description>Cross-platform Doom map editor ported toward Ultimate Doom Builder parity.</Description>
+    <PackageIcon>main.png</PackageIcon>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
@@ -22,6 +26,10 @@
     <ProjectReference Include="..\DBuilder.Geometry\DBuilder.Geometry.csproj" />
     <ProjectReference Include="..\DBuilder.Map\DBuilder.Map.csproj" />
     <ProjectReference Include="..\DBuilder.IO\DBuilder.IO.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\assets\main.png" Link="main.png" Pack="true" PackagePath="" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
