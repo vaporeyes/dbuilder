@@ -2893,6 +2893,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript compatibility coverage for the bundled Flip Triangular Sectors workflow.
   - [x] Add UDBScript compatibility coverage for the bundled Imps to Arch-Viles workflow.
   - [x] Add UDBScript compatibility coverage for the bundled Randomize Texture Offsets workflow.
+  - [x] Add UDBScript compatibility coverage for the bundled Flank Linedefs workflow.
 
 ## Specialized Plugin Detail
 

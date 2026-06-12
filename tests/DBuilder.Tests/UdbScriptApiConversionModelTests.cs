@@ -3209,6 +3209,87 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void CommonUdbScriptFlankLinedefsWorkflowUsesMapWrappersTogether()
+    {
+        const int width = 16;
+        const string flankTexture = "SUPPORT3";
+        const int flankOffset = 3;
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        Vertex start = map.AddVertex(new Vector2D(0, 0));
+        Vertex end = map.AddVertex(new Vector2D(96, 0));
+        Linedef line = map.AddLinedef(start, end);
+        Sidedef side = map.AddSidedef(line, isFront: true, sector);
+        side.OffsetX = 5;
+        side.SetTextureMid("STARTAN3");
+        line.Selected = true;
+        map.BuildIndexes();
+        var wrapper = new UdbScriptMapWrapper(map);
+        UdbScriptLinedefWrapper[] lines = wrapper.getSelectedOrHighlightedLinedefs();
+
+        foreach (UdbScriptLinedefWrapper selectedLine in lines)
+        {
+            Assert.True(selectedLine.length >= width * 2);
+            double length = 1.0 / selectedLine.length * width;
+            int originalOffset = selectedLine.front!.offsetX;
+            UdbScriptVertexWrapper[] vertices = { selectedLine.start, selectedLine.end };
+            UdbScriptVector2DWrapper v1 = selectedLine.line.getCoordinatesAt(1.0 - length);
+            UdbScriptVector2DWrapper v2 = selectedLine.line.getCoordinatesAt(length);
+
+            selectedLine.marked = true;
+            selectedLine.split(v1);
+            selectedLine.split(v2);
+
+            if (selectedLine.back == null)
+            {
+                foreach (UdbScriptLinedefWrapper markedLine in wrapper.getMarkedLinedefs())
+                {
+                    if (vertices.Contains(markedLine.start) || vertices.Contains(markedLine.end))
+                    {
+                        markedLine.front!.middleTexture = flankTexture;
+                        markedLine.front.offsetX = flankOffset;
+                    }
+                    else
+                    {
+                        markedLine.front!.offsetX = originalOffset + width;
+                    }
+                }
+            }
+
+            wrapper.clearAllMarks();
+        }
+
+        Assert.Equal(3, map.Linedefs.Count);
+        Assert.All(map.Linedefs, linedef => Assert.False(linedef.Marked));
+        Linedef left = Assert.Single(map.Linedefs, linedef => HasEndpoints(linedef, new Vector2D(0, 0), new Vector2D(16, 0)));
+        Linedef middle = Assert.Single(map.Linedefs, linedef => HasEndpoints(linedef, new Vector2D(16, 0), new Vector2D(80, 0)));
+        Linedef right = Assert.Single(map.Linedefs, linedef => HasEndpoints(linedef, new Vector2D(80, 0), new Vector2D(96, 0)));
+        Assert.Equal(flankTexture, left.Front!.MidTexture);
+        Assert.Equal(flankTexture, right.Front!.MidTexture);
+        Assert.Equal(flankOffset, left.Front.OffsetX);
+        Assert.Equal(flankOffset, right.Front.OffsetX);
+        Assert.Equal("STARTAN3", middle.Front!.MidTexture);
+        Assert.Equal(21, middle.Front.OffsetX);
+    }
+
+    [Fact]
+    public void CommonUdbScriptFlankLinedefsExampleUsesCoveredApisWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Assets", "Common", "UDBScript", "Scripts", "Examples", "Geometry", "flank.js"));
+
+        Assert.Contains("UDB.Map.getSelectedOrHighlightedLinedefs()", source, StringComparison.Ordinal);
+        Assert.Contains("ld.length < UDB.ScriptOptions.width * 2", source, StringComparison.Ordinal);
+        Assert.Contains("ld.line.getCoordinatesAt(1.0 - length)", source, StringComparison.Ordinal);
+        Assert.Contains("ld.split(v1)", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.getMarkedLinedefs()", source, StringComparison.Ordinal);
+        Assert.Contains("vertices.includes(ld.start)", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.clearAllMarks()", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void CommonUdbScriptSelectConnectedLinedefsWorkflowUsesMapWrappersTogether()
     {
         var map = new MapSet();

@@ -814,12 +814,8 @@ public class MapSet : IDisposable
         double firstHalfLen = (v.Position - l.Start.Position).GetLength();
         var oldEnd = l.End;
 
-        var newLine = new Linedef(v, oldEnd) { Flags = l.Flags, Action = l.Action, Activate = l.Activate };
-        newLine.Tags.Clear();
-        newLine.Tags.AddRange(l.Tags);
-        for (int i = 0; i < newLine.Args.Length; i++) newLine.Args[i] = l.Args[i];
-        foreach (var f in l.UdmfFlags) newLine.UdmfFlags.Add(f);
-        foreach (var kv in l.Fields) newLine.Fields[kv.Key] = kv.Value;
+        var newLine = new Linedef(v, oldEnd);
+        l.CopyPropertiesTo(newLine);
         Linedefs.Add(newLine);
 
         // Shorten the original to start..v and refresh both angle caches.
