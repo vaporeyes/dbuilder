@@ -36,8 +36,10 @@ public class ThreeDFloorsTests
         Assert.True(floor.UseByDefault);
         Assert.False(floor.SafeStartMode);
         Assert.False(floor.Volatile);
+        Assert.False(floor.Optional);
         Assert.True(floor.AllowCopyPaste);
         Assert.False(floor.Deprecated);
+        Assert.Equal("", floor.DeprecationMessage);
         Assert.Equal(new[] { "HexenMapSetIO", "UniversalMapSetIO" }, floor.SupportedMapFormats);
         Assert.Equal(new[] { "Effect3DFloorSupport" }, floor.RequiredMapFeatures);
 
@@ -45,17 +47,33 @@ public class ThreeDFloorsTests
         Assert.Equal("Slope Mode", slope.DisplayName);
         Assert.Equal("threedslopemode", slope.SwitchAction);
         Assert.Equal("SlopeModeIcon.png", slope.ButtonImage);
+        Assert.Equal(int.MinValue + 501, slope.ButtonOrder);
+        Assert.Equal("000_editing", slope.ButtonGroup);
+        Assert.True(slope.UseByDefault);
+        Assert.False(slope.SafeStartMode);
+        Assert.False(slope.Volatile);
+        Assert.False(slope.Optional);
+        Assert.True(slope.AllowCopyPaste);
         Assert.Equal(new[] { "UniversalMapSetIO" }, slope.SupportedMapFormats);
         Assert.Equal(new[] { "PlaneEquationSupport" }, slope.RequiredMapFeatures);
         Assert.True(slope.Deprecated);
+        Assert.Equal("Please use the visual sloping functionality instead.", slope.DeprecationMessage);
 
         ThreeDFloorModeDescriptor drawSlopes = ThreeDFloors.DrawSlopesModeDescriptor;
         Assert.Equal("Draw Slopes Mode", drawSlopes.DisplayName);
         Assert.Equal("drawslopesmode", drawSlopes.SwitchAction);
         Assert.Equal("DrawSlopeModeIcon.png", drawSlopes.ButtonImage);
+        Assert.Equal(int.MinValue + 501, drawSlopes.ButtonOrder);
+        Assert.Equal("000_editing", drawSlopes.ButtonGroup);
+        Assert.True(drawSlopes.UseByDefault);
+        Assert.False(drawSlopes.SafeStartMode);
         Assert.False(drawSlopes.AllowCopyPaste);
         Assert.True(drawSlopes.Volatile);
+        Assert.False(drawSlopes.Optional);
         Assert.True(drawSlopes.Deprecated);
+        Assert.Equal("Please use the visual sloping functionality instead.", drawSlopes.DeprecationMessage);
+        Assert.Equal(new[] { "UniversalMapSetIO" }, drawSlopes.SupportedMapFormats);
+        Assert.Equal(new[] { "PlaneEquationSupport" }, drawSlopes.RequiredMapFeatures);
     }
 
     [Fact]
