@@ -19,6 +19,7 @@ The authoritative trackers are:
 - [docs/RENDERING.md](docs/RENDERING.md): current renderer and shader compiler replacement baseline.
 - [docs/PLATFORMS_AND_TOOLS.md](docs/PLATFORMS_AND_TOOLS.md): supported OS targets and external tool discovery rules.
 - [docs/MIGRATION.md](docs/MIGRATION.md): current migration guidance for Ultimate Doom Builder users.
+- [docs/PLUGIN_API.md](docs/PLUGIN_API.md): current plugin host API model and limits.
 - [docs/DEVELOPMENT_PROCESS.md](docs/DEVELOPMENT_PROCESS.md): testing, contribution, manual QA, and release process.
 - [docs/UPDATE_POLICY.md](docs/UPDATE_POLICY.md): update behavior for development builds.
 

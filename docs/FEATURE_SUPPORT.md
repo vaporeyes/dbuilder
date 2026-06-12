@@ -34,6 +34,7 @@ This document summarizes what DBuilder can currently do and which Ultimate Doom 
 - Game configuration parsing for many UDB config sections, universal field handlers, action and effect metadata, argument metadata, things filters, and script compiler metadata.
 - DECORATE, ZScript, MAPINFO, ZMAPINFO, MODELDEF, TEXTURES, GLDEFS, SNDINFO, SNDSEQ, TERRAIN, LOCKDEFS, DECALDEF, VOXELDEF, IWADINFO, CVARINFO, REVERBS, and related parser coverage.
 - Script resource identity, script type detection, navigator entries, syntax highlighting metadata, find-usages, compile planning, compiler error parsing, and compiler output routing.
+- Plugin host API planning, lifecycle hook modeling, contribution modeling, settings planning, reflection diagnostics, and callback catalog metadata are documented in `docs/PLUGIN_API.md`.
 - Built-in plugin ports for selected BuilderEffects, 3DFloorMode, AutomapMode, BlockmapExplorer, ColorPicker, CommentsPanel, NodesViewer, RejectExplorer, SoundPropagationMode, StairSectorBuilder, TagExplorer, TagRange, UDBScript, USDF, VisplaneExplorer, WadAuthorMode, and ImageDrawingExample behavior.
 
 ## Known Unsupported Or Incomplete UDB Features
@@ -41,7 +42,7 @@ This document summarizes what DBuilder can currently do and which Ultimate Doom 
 ### Application And Plugin Framework
 
 - Full UDB `General` orchestration and action-manager parity remain incomplete.
-- A real plugin loading architecture, plugin lifecycle hooks, plugin APIs, plugin resource handling, plugin settings persistence, plugin menu and toolbar contribution, and plugin error isolation are not implemented.
+- A real plugin loading architecture, full plugin API execution, full plugin resource handling, full plugin settings persistence, full plugin menu and toolbar contribution, and full plugin error isolation are not implemented.
 - Ported plugin behavior is currently compiled into DBuilder rather than loaded as external UDB-compatible plugins.
 
 ### Full Editing And Visual Parity
