@@ -328,6 +328,29 @@ public sealed class RenderStatePixelRegressionTests
         Assert.Equal(selectedColor, pixels[22 + 22 * width]);
     }
 
+    [Fact]
+    public void FarOverviewThingMarkersCullNeighboringCellsToSelectedRepresentative()
+    {
+        const int width = 700;
+        const int height = 96;
+        const double viewScale = ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold;
+        const int selectedColor = unchecked((int)0xffffee00);
+        const int normalColor = unchecked((int)0xffd0d0d0);
+
+        var things = new[]
+        {
+            new ThingMarkerPixelCandidate(ScreenX: 100, ScreenY: 48, MapRadius: 64, Selected: false),
+            new ThingMarkerPixelCandidate(ScreenX: 650, ScreenY: 48, MapRadius: 8, Selected: true),
+        };
+
+        int[] pixels = DrawOverviewThingMarkers(things, width, height, viewScale, selectedColor, normalColor);
+
+        Assert.Equal(13, pixels.Count(pixel => pixel == selectedColor));
+        Assert.DoesNotContain(normalColor, pixels);
+        Assert.Equal(selectedColor, pixels[650 + 48 * width]);
+        Assert.Equal(0, pixels[100 + 48 * width]);
+    }
+
     private static PixelColor Composite(PresentationDrawCommand command, PixelColor source, PixelColor destination)
     {
         if (command.AlphaTestEnabled && source.A == 0)
@@ -387,25 +410,20 @@ public sealed class RenderStatePixelRegressionTests
         int selectedColor,
         int normalColor)
     {
-        var representatives = new Dictionary<(int X, int Y), ThingMarkerPixelCandidate>();
-        foreach (ThingMarkerPixelCandidate thing in things)
-        {
-            var cell = (
-                ThingIconRenderPolicy.OverviewCullCell(thing.ScreenX, viewScale, thingArrows: false),
-                ThingIconRenderPolicy.OverviewCullCell(thing.ScreenY, viewScale, thingArrows: false));
-            if (!representatives.TryGetValue(cell, out ThingMarkerPixelCandidate existing)
-                || ThingIconRenderPolicy.ShouldReplaceOverviewCellThing(
-                    existing.Selected,
-                    existing.MapRadius,
-                    thing.Selected,
-                    thing.MapRadius))
-            {
-                representatives[cell] = thing;
-            }
-        }
+        ThingOverviewScreenCandidate<ThingMarkerPixelCandidate>[] candidates = things
+            .Select(thing => new ThingOverviewScreenCandidate<ThingMarkerPixelCandidate>(
+                thing,
+                (
+                    ThingIconRenderPolicy.OverviewCullCell(thing.ScreenX, viewScale, thingArrows: false),
+                    ThingIconRenderPolicy.OverviewCullCell(thing.ScreenY, viewScale, thingArrows: false)),
+                thing.Selected,
+                thing.MapRadius,
+                thing.ScreenX,
+                thing.ScreenY))
+            .ToArray();
 
         var pixels = new int[width * height];
-        foreach (ThingMarkerPixelCandidate thing in representatives.Values)
+        foreach (ThingMarkerPixelCandidate thing in ThingIconRenderPolicy.SelectOverviewScreenRepresentatives(candidates, viewScale, thingArrows: false))
         {
             int color = thing.Selected ? selectedColor : normalColor;
             DrawDiamond(pixels, width, height, thing.ScreenX, thing.ScreenY, radius: 2, color);
