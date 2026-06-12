@@ -29,6 +29,16 @@ public sealed class EditorWorkflowSmokeTests
         map.Sectors[0].Brightness = 144;
         map.BuildIndexes();
 
+        Assert.True(undo.Undo());
+        Assert.Equal(new Vector2D(64, 64), map.Things[0].Position);
+        Assert.Equal(0, map.Sectors[0].FloorHeight);
+        Assert.Equal(192, map.Sectors[0].Brightness);
+
+        Assert.True(undo.Redo());
+        Assert.Equal(new Vector2D(96, 80), map.Things[0].Position);
+        Assert.Equal(24, map.Sectors[0].FloorHeight);
+        Assert.Equal(144, map.Sectors[0].Brightness);
+
         byte[] editedBytes = Save(map, entry.Name, format);
 
         using var reopened = new WAD(new MemoryStream(editedBytes), openreadonly: true);
