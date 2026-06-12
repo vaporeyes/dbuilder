@@ -3363,6 +3363,52 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void CommonUdbScriptCreatePolyobjectWorkflowUsesMapWrappersTogether()
+    {
+        var map = new MapSet();
+        Vertex start = map.AddVertex(new Vector2D(0, 0));
+        Vertex end = map.AddVertex(new Vector2D(64, 0));
+        Linedef startLine = map.AddLinedef(start, end);
+        startLine.Selected = true;
+        Thing usedPolyobject = map.AddThing(new Vector2D(128, 0), 9300);
+        usedPolyobject.Angle = 1;
+        map.BuildIndexes();
+        var grid = new GridSetup();
+        grid.SetGridSize(16);
+        var wrapper = new UdbScriptMapWrapper(map, grid, mousePosition: new Vector2D(23, 41));
+
+        ExecuteCreatePolyobjectWorkflow(wrapper);
+
+        Assert.Equal(1, startLine.Action);
+        Assert.Equal(2, startLine.Args[0]);
+        Thing startSpot = Assert.Single(map.Things, thing => thing.Type == 9301);
+        Thing anchor = Assert.Single(map.Things, thing => thing.Type == 9300 && !ReferenceEquals(thing, usedPolyobject));
+        Assert.Equal(new Vector2D(16, 48), startSpot.Position);
+        Assert.Equal(new Vector2D(32, 0), anchor.Position);
+        Assert.Equal(2, startSpot.Angle);
+        Assert.Equal(2, anchor.Angle);
+    }
+
+    [Fact]
+    public void CommonUdbScriptCreatePolyobjectExampleUsesCoveredApisWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Assets", "Common", "UDBScript", "Scripts", "Examples", "Geometry", "createpolyobject.js"));
+
+        Assert.Contains("UDB.Map.mousePosition.isFinite()", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.snappedToGrid(UDB.Map.mousePosition)", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.getSelectedLinedefs()", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.getThings().filter", source, StringComparison.Ordinal);
+        Assert.Contains("usednumbers.includes(i)", source, StringComparison.Ordinal);
+        Assert.Contains("lines[0].args[0] = polyobjectnumber", source, StringComparison.Ordinal);
+        Assert.Contains("lines[0].line.getCoordinatesAt(0.5)", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.createThing(cursorpos, UDB.ScriptOptions.startspottype)", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.createThing(anchorpos, 9300)", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void CommonUdbScriptSelectConnectedLinedefsWorkflowUsesMapWrappersTogether()
     {
         var map = new MapSet();
@@ -4153,6 +4199,45 @@ localsidedeftextureoffsets = true;
                 }
             }
         }
+    }
+
+    private static void ExecuteCreatePolyobjectWorkflow(UdbScriptMapWrapper wrapper)
+    {
+        const int startSpotType = 9301;
+        if (!wrapper.mousePosition.isFinite())
+            throw new InvalidOperationException("Mouse cursor is not at a valid map position");
+
+        UdbScriptVector2DWrapper cursorPosition = wrapper.snappedToGrid(wrapper.mousePosition);
+        int polyobjectNumber = -1;
+        UdbScriptLinedefWrapper[] lines = wrapper.getSelectedLinedefs();
+
+        Assert.Single(lines);
+
+        var usedNumbers = new List<int>();
+        foreach (UdbScriptThingWrapper thing in wrapper.getThings()
+            .Where(thing => thing.type >= 9300 && thing.type <= 9303))
+        {
+            usedNumbers.Add(thing.angle);
+        }
+
+        for (int i = 1; i < 360; i++)
+        {
+            if (!usedNumbers.Contains(i))
+            {
+                polyobjectNumber = i;
+                break;
+            }
+        }
+
+        Assert.NotEqual(-1, polyobjectNumber);
+
+        lines[0].action = 1;
+        lines[0].args[0] = polyobjectNumber;
+        UdbScriptVector2DWrapper anchorPosition = lines[0].line.getCoordinatesAt(0.5);
+        UdbScriptThingWrapper startSpot = wrapper.createThing(cursorPosition, startSpotType);
+        startSpot.angle = polyobjectNumber;
+        UdbScriptThingWrapper anchor = wrapper.createThing(anchorPosition, 9300);
+        anchor.angle = polyobjectNumber;
     }
 
     private static void ExecuteImpsToArchVilesWorkflow(UdbScriptMapWrapper wrapper)
