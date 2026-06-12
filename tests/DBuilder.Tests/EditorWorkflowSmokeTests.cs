@@ -1,6 +1,7 @@
 // ABOUTME: Headless editor workflow smoke tests for open, edit, save, and reopen map paths.
 // ABOUTME: Exercises the same map IO and undo snapshot services that MainWindow uses around user edits.
 
+using System.Collections.Generic;
 using System.IO;
 using DBuilder.Geometry;
 using DBuilder.IO;
@@ -50,6 +51,52 @@ public sealed class EditorWorkflowSmokeTests
         Assert.Equal(new Vector2D(96, 80), edited.Things[0].Position);
         Assert.Equal(24, edited.Sectors[0].FloorHeight);
         Assert.Equal(144, edited.Sectors[0].Brightness);
+    }
+
+    [Fact]
+    public void UdmfOpenEditUndoRedoSaveAndReopenPreservesEditorMetadata()
+    {
+        byte[] initialBytes = Save(BuildMap(MapFormat.Udmf), "MAP01", MapFormat.Udmf);
+
+        using var source = new WAD(new MemoryStream(initialBytes), openreadonly: true);
+        MapEntry entry = Assert.Single(WadMaps.Find(source));
+        MapSet map = WadMaps.Load(source, entry)!;
+        var undo = new UndoManager(map);
+
+        undo.CreateUndo("Edit UDMF metadata");
+        map.Fields["author"] = "tester";
+        map.Sectors[0].Fields["comment"] = "edited sector";
+        map.Things[0].Fields["arg0str"] = "OpenDoor";
+        map.UnknownUdmfData.Add(new UnknownUdmfEntry("editorstate", new List<UnknownUdmfEntry>
+        {
+            new("zoom", 2.0),
+        }));
+
+        Assert.True(undo.Undo());
+        Assert.False(map.Fields.ContainsKey("author"));
+        Assert.False(map.Sectors[0].Fields.ContainsKey("comment"));
+        Assert.False(map.Things[0].Fields.ContainsKey("arg0str"));
+        Assert.Empty(map.UnknownUdmfData);
+
+        Assert.True(undo.Redo());
+        Assert.Equal("tester", map.Fields["author"]);
+        Assert.Equal("edited sector", map.Sectors[0].Fields["comment"]);
+        Assert.Equal("OpenDoor", map.Things[0].Fields["arg0str"]);
+        UnknownUdmfEntry editorState = Assert.Single(map.UnknownUdmfData);
+        Assert.Equal("editorstate", editorState.Key);
+
+        byte[] editedBytes = Save(map, entry.Name, MapFormat.Udmf);
+
+        using var reopened = new WAD(new MemoryStream(editedBytes), openreadonly: true);
+        MapEntry editedEntry = Assert.Single(WadMaps.Find(reopened));
+        MapSet edited = WadMaps.Load(reopened, editedEntry)!;
+
+        Assert.Equal(MapFormat.Udmf, editedEntry.Format);
+        Assert.Equal("tester", edited.Fields["author"]);
+        Assert.Equal("edited sector", edited.Sectors[0].Fields["comment"]);
+        Assert.Equal("OpenDoor", edited.Things[0].Fields["arg0str"]);
+        UnknownUdmfEntry reloadedEditorState = Assert.Single(edited.UnknownUdmfData);
+        Assert.Equal("editorstate", reloadedEditorState.Key);
     }
 
     private static byte[] Save(MapSet map, string marker, MapFormat format)
