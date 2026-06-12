@@ -23,7 +23,8 @@ public sealed record TabbedDockerDescriptor(
 
 public sealed record TabbedDockerGroup(
     TabbedDockerArea Area,
-    IReadOnlyList<TabbedDockerDescriptor> Tabs);
+    IReadOnlyList<TabbedDockerDescriptor> Tabs,
+    string? ActiveTabKey = null);
 
 public static class TabbedDockerLayoutModel
 {
@@ -41,6 +42,11 @@ public static class TabbedDockerLayoutModel
     };
 
     public static IReadOnlyList<TabbedDockerGroup> BuildGroups(IEnumerable<string> activeCommandIds)
+        => BuildGroups(activeCommandIds, activeTabKeysByArea: null);
+
+    public static IReadOnlyList<TabbedDockerGroup> BuildGroups(
+        IEnumerable<string> activeCommandIds,
+        IReadOnlyDictionary<TabbedDockerArea, string>? activeTabKeysByArea)
     {
         var active = activeCommandIds
             .Select(FindByCommandId)
@@ -53,7 +59,11 @@ public static class TabbedDockerLayoutModel
             .OrderBy(descriptor => descriptor.Area)
             .ThenBy(descriptor => descriptor.Order)
             .GroupBy(descriptor => descriptor.Area)
-            .Select(group => new TabbedDockerGroup(group.Key, group.ToArray()))
+            .Select(group =>
+            {
+                TabbedDockerDescriptor[] tabs = group.ToArray();
+                return new TabbedDockerGroup(group.Key, tabs, ActiveTabKey(group.Key, tabs, activeTabKeysByArea));
+            })
             .ToArray();
     }
 
@@ -61,6 +71,22 @@ public static class TabbedDockerLayoutModel
         => All.FirstOrDefault(descriptor =>
             descriptor.CommandId == commandId
             || descriptor.Aliases.Contains(commandId, StringComparer.Ordinal));
+
+    private static string? ActiveTabKey(
+        TabbedDockerArea area,
+        IReadOnlyList<TabbedDockerDescriptor> tabs,
+        IReadOnlyDictionary<TabbedDockerArea, string>? activeTabKeysByArea)
+    {
+        if (tabs.Count == 0) return null;
+        if (activeTabKeysByArea is not null
+            && activeTabKeysByArea.TryGetValue(area, out string? key)
+            && tabs.Any(tab => tab.Key == key))
+        {
+            return key;
+        }
+
+        return tabs[0].Key;
+    }
 
     private static TabbedDockerDescriptor Descriptor(
         string key,

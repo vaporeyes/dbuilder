@@ -60,6 +60,48 @@ public sealed class TabbedDockerLayoutModelTests
         Assert.Equal(new[] { TabbedDockerArea.Right, TabbedDockerArea.Bottom }, groups.Select(group => group.Area).ToArray());
         Assert.Equal(new[] { "tag-explorer", "comments" }, groups[0].Tabs.Select(tab => tab.Key).ToArray());
         Assert.Equal(new[] { "reject-explorer", "error-log" }, groups[1].Tabs.Select(tab => tab.Key).ToArray());
+        Assert.Equal("tag-explorer", groups[0].ActiveTabKey);
+        Assert.Equal("reject-explorer", groups[1].ActiveTabKey);
+    }
+
+    [Fact]
+    public void BuildGroupsRestoresActiveTabsWhenTheyAreVisible()
+    {
+        IReadOnlyList<TabbedDockerGroup> groups = TabbedDockerLayoutModel.BuildGroups(
+            new[]
+            {
+                "window.tag-explorer",
+                "window.comments-panel",
+                "window.reject-explorer",
+                "window.show-errors",
+            },
+            new Dictionary<TabbedDockerArea, string>
+            {
+                [TabbedDockerArea.Right] = "comments",
+                [TabbedDockerArea.Bottom] = "error-log",
+            });
+
+        Assert.Equal("comments", groups[0].ActiveTabKey);
+        Assert.Equal("error-log", groups[1].ActiveTabKey);
+    }
+
+    [Fact]
+    public void BuildGroupsFallsBackWhenPersistedActiveTabsAreHidden()
+    {
+        IReadOnlyList<TabbedDockerGroup> groups = TabbedDockerLayoutModel.BuildGroups(
+            new[]
+            {
+                "window.tag-explorer",
+                "window.reject-explorer",
+            },
+            new Dictionary<TabbedDockerArea, string>
+            {
+                [TabbedDockerArea.Right] = "comments",
+                [TabbedDockerArea.Bottom] = "error-log",
+            });
+
+        Assert.Equal("tag-explorer", groups[0].ActiveTabKey);
+        Assert.Equal("reject-explorer", groups[1].ActiveTabKey);
     }
 
     [Fact]
