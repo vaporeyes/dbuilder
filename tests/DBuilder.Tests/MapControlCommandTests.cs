@@ -87,6 +87,9 @@ public sealed class MapControlCommandTests
         Assert.Contains("public int ViewDistance", body, StringComparison.Ordinal);
         Assert.Contains("public int MoveSpeed", body, StringComparison.Ordinal);
         Assert.Contains("public int MouseSpeed", body, StringComparison.Ordinal);
+        Assert.Contains("public bool MarkExtraFloors => _markExtraFloors;", body, StringComparison.Ordinal);
+        Assert.Contains("public bool SetMarkExtraFloors(bool enabled)", body, StringComparison.Ordinal);
+        Assert.Contains("if (_markExtraFloors && l.ExtraFloorFlag) return ThreeDFloorLineColor;", body, StringComparison.Ordinal);
         Assert.Contains("LinedefColorPresetModel.TryGetColor(l, _linedefColorPresets, _mapFormat == MapFormat.Udmf, out int presetColor)", body, StringComparison.Ordinal);
         Assert.Contains("LinedefColorPresetModel.WithAlpha(presetColor, _doubleSidedAlphaByte)", body, StringComparison.Ordinal);
         Assert.Contains("Matrix4x4.CreatePerspectiveFieldOfView((float)(_visualFovDegrees * Math.PI / 180.0), aspect, 1f, _viewDistance)", body, StringComparison.Ordinal);

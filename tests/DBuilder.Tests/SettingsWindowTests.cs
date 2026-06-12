@@ -347,6 +347,7 @@ public class SettingsWindowTests
         Assert.NotNull(type.GetField("VisualBilinear", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("BlackBrowsers", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("FlatShadeVertices", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("MarkExtraFloors", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("ImageBrightness", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("DoubleSidedAlpha", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("VisualFov", BindingFlags.Instance | BindingFlags.Public));
@@ -364,6 +365,7 @@ public class SettingsWindowTests
         Assert.Contains("AddCheckBox(\"Bilinear filtering in visual modes\", s.VisualBilinear)", body, StringComparison.Ordinal);
         Assert.Contains("AddCheckBox(\"Black background in image browser\", s.BlackBrowsers)", body, StringComparison.Ordinal);
         Assert.Contains("AddCheckBox(\"Flat shade vertices\", s.FlatShadeVertices)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Mark 3D floors in classic modes\", s.MarkExtraFloors)", body, StringComparison.Ordinal);
         Assert.Contains("ImageBrightness = Settings.AcceptImageBrightnessText(_imageBrightness.Text);", body, StringComparison.Ordinal);
         Assert.Contains("DoubleSidedAlpha = Settings.AcceptDoubleSidedAlphaText(_doubleSidedAlpha.Text);", body, StringComparison.Ordinal);
         Assert.Contains("VisualFov = Settings.AcceptVisualFovText(_visualFov.Text);", body, StringComparison.Ordinal);
@@ -375,6 +377,7 @@ public class SettingsWindowTests
         Assert.Contains("VisualBilinear = _visualBilinear.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("BlackBrowsers = _blackBrowsers.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("FlatShadeVertices = _flatShadeVertices.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("MarkExtraFloors = _markExtraFloors.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("_settings.ImageBrightness = dlg.ImageBrightness;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.DoubleSidedAlpha = dlg.DoubleSidedAlpha;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.VisualFov = dlg.VisualFov;", mainWindow, StringComparison.Ordinal);
@@ -386,6 +389,7 @@ public class SettingsWindowTests
         Assert.Contains("_settings.VisualBilinear = dlg.VisualBilinear;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.BlackBrowsers = dlg.BlackBrowsers;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.FlatShadeVertices = dlg.FlatShadeVertices;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.MarkExtraFloors = dlg.MarkExtraFloors;", mainWindow, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -206,6 +206,7 @@ public class SettingsTests
         Assert.False(settings.VisualBilinear);
         Assert.True(settings.BlackBrowsers);
         Assert.False(settings.FlatShadeVertices);
+        Assert.True(settings.MarkExtraFloors);
     }
 
     [Fact]
@@ -427,6 +428,7 @@ public class SettingsTests
                 VisualBilinear = true,
                 BlackBrowsers = false,
                 FlatShadeVertices = true,
+                MarkExtraFloors = false,
                 DrawFog = true,
                 DrawSky = false,
                 ShowEventLines = false,
@@ -614,6 +616,7 @@ public class SettingsTests
             Assert.True(loaded.VisualBilinear);
             Assert.False(loaded.BlackBrowsers);
             Assert.True(loaded.FlatShadeVertices);
+            Assert.False(loaded.MarkExtraFloors);
             Assert.True(loaded.DrawFog);
             Assert.False(loaded.DrawSky);
             Assert.False(loaded.ShowEventLines);

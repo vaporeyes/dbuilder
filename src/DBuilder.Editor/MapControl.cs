@@ -33,6 +33,8 @@ namespace DBuilder.Editor;
 
 public class MapControl : OpenGlControlBase, ICustomHitTest
 {
+    private static readonly int ThreeDFloorLineColor = new ColorCollection().ThreeDFloor.ToArgb();
+
     public enum ClassicViewMode
     {
         Wireframe = 0,
@@ -229,6 +231,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private int _mouseSpeed = Settings.DefaultMouseSpeed;
     private bool _alphaBasedTextureHighlighting = true;
     private bool _selectAdjacentVisualVertexSlopeHandles;
+    private bool _markExtraFloors = true;
     private VisualSlopePickingMode _visualSlopePickingMode;
     private ClassicViewMode _classicViewMode = ClassicViewMode.Wireframe;
 
@@ -293,6 +296,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     }
     public bool AlphaBasedTextureHighlighting => _alphaBasedTextureHighlighting;
     public bool SelectAdjacentVisualVertexSlopeHandles => _selectAdjacentVisualVertexSlopeHandles;
+    public bool MarkExtraFloors => _markExtraFloors;
     public VisualSlopePickingMode CurrentVisualSlopePickingMode => _visualSlopePickingMode;
     public ClassicViewMode ViewMode2D => _classicViewMode;
     public bool ImageExampleMode { get; private set; }
@@ -609,6 +613,16 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         ActionStateChanged?.Invoke();
         RequestNextFrameRendering();
         return _selectAdjacentVisualVertexSlopeHandles;
+    }
+
+    public bool SetMarkExtraFloors(bool enabled)
+    {
+        if (_markExtraFloors == enabled) return _markExtraFloors;
+        _markExtraFloors = enabled;
+        _geometryDirty = true;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _markExtraFloors;
     }
 
     public bool ToggleVisualVertexSlopeAdjacentSelection()
@@ -5555,6 +5569,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if ((l.Front?.Sector?.Selected ?? false) || (l.Back?.Sector?.Selected ?? false))
             return unchecked((int)0xff00ccff);                                   // cyan
         bool twoSided = l.Front != null && l.Back != null;
+        if (_markExtraFloors && l.ExtraFloorFlag) return ThreeDFloorLineColor;
         if (LinedefColorPresetModel.TryGetColor(l, _linedefColorPresets, _mapFormat == MapFormat.Udmf, out int presetColor))
             return twoSided ? LinedefColorPresetModel.WithAlpha(presetColor, _doubleSidedAlphaByte) : presetColor;
         return twoSided ? unchecked((int)0xff8090a0) : unchecked((int)0xffe0e0e0);

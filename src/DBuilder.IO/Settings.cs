@@ -94,6 +94,7 @@ public sealed class Settings
     public bool VisualBilinear { get; set; }
     public bool BlackBrowsers { get; set; } = true;
     public bool FlatShadeVertices { get; set; }
+    public bool MarkExtraFloors { get; set; } = true;
     public bool DrawFog { get; set; }
     public bool DrawSky { get; set; } = true;
     public bool ShowEventLines { get; set; } = true;

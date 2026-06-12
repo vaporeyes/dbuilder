@@ -251,6 +251,7 @@ public partial class MainWindow : Window
         MapView.ViewDistance = _settings.NormalizedViewDistance;
         MapView.MoveSpeed = _settings.NormalizedMoveSpeed;
         MapView.MouseSpeed = _settings.NormalizedMouseSpeed;
+        MapView.SetMarkExtraFloors(_settings.MarkExtraFloors);
         MapView.SetFixedThingsScale(_settings.FixedThingsScale);
         MapView.SetAlwaysShowVertices(_settings.AlwaysShowVertices);
         MapView.SetSelectAdjacentVisualVertexSlopeHandles(_settings.SelectAdjacentVisualVertexSlopeHandles);
@@ -1443,6 +1444,7 @@ public partial class MainWindow : Window
         _settings.VisualBilinear = dlg.VisualBilinear;
         _settings.BlackBrowsers = dlg.BlackBrowsers;
         _settings.FlatShadeVertices = dlg.FlatShadeVertices;
+        _settings.MarkExtraFloors = dlg.MarkExtraFloors;
         _settings.DrawFog = dlg.DrawFog;
         _settings.DrawSky = dlg.DrawSky;
         _settings.ShowEventLines = dlg.ShowEventLines;
@@ -1491,6 +1493,7 @@ public partial class MainWindow : Window
         MapView.ViewDistance = _settings.NormalizedViewDistance;
         MapView.MoveSpeed = _settings.NormalizedMoveSpeed;
         MapView.MouseSpeed = _settings.NormalizedMouseSpeed;
+        MapView.SetMarkExtraFloors(_settings.MarkExtraFloors);
         MapView.SetFixedThingsScale(_settings.FixedThingsScale);
         MapView.SetAlwaysShowVertices(_settings.AlwaysShowVertices);
         MapView.SetSelectAdjacentVisualVertexSlopeHandles(_settings.SelectAdjacentVisualVertexSlopeHandles);

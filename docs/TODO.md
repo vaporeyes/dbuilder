@@ -146,6 +146,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Persist and apply UDB-style view distance preference.
   - [x] Persist and apply UDB-style 3D move speed preference.
   - [x] Persist and apply UDB-style 3D mouse speed preference.
+  - [x] Persist and apply UDB-style 3D-floor classic line marking preference.
 - [x] Port pre-command and post-command support.
   - [x] Execute configured before/after Test Map commands.
   - [x] Pass the temporary Test Map WAD path to before/after Test Map commands.
