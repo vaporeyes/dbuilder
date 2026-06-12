@@ -656,17 +656,23 @@ public class SoundPropagationTests
 
         Assert.Equal(2, model.WarningCount());
         IReadOnlyList<SoundEnvironmentRow> rows = model.Rows();
-        Assert.Equal(3, rows.Count);
+        Assert.Equal(5, rows.Count);
         Assert.True(rows[0].Warning);
         Assert.True(rows[1].Warning);
         Assert.True(rows[2].Warning);
-        Assert.Equal($"Thing {first.Index}", rows[1].Text);
-        Assert.Equal($"Thing {second.Index}", rows[2].Text);
-        Assert.Equal(SoundEnvironmentModeModel.MultipleActiveThingsWarning, rows[1].WarningMessage);
+        Assert.True(rows[3].Warning);
+        Assert.False(rows[4].Warning);
+        Assert.Equal("Things (2)", rows[1].Text);
+        Assert.Equal($"Thing {first.Index}", rows[2].Text);
+        Assert.Equal($"Thing {second.Index}", rows[3].Text);
+        Assert.Equal("Linedefs (0)", rows[4].Text);
+        Assert.Equal(2, rows[2].Depth);
         Assert.Equal(SoundEnvironmentModeModel.MultipleActiveThingsWarning, rows[2].WarningMessage);
+        Assert.Equal(SoundEnvironmentModeModel.MultipleActiveThingsWarning, rows[3].WarningMessage);
 
         IReadOnlyList<SoundEnvironmentRow> warnings = model.Rows(warningsOnly: true);
-        Assert.Equal(rows, warnings);
+        Assert.Equal(4, warnings.Count);
+        Assert.DoesNotContain(warnings, row => row.Text == "Linedefs (0)");
     }
 
     [Fact]
@@ -692,13 +698,16 @@ public class SoundPropagationTests
         Assert.Equal(1, model.WarningCount());
         IReadOnlyList<SoundEnvironmentRow> rows = model.Rows(warningsOnly: true);
 
-        Assert.Equal(2, rows.Count);
+        Assert.Equal(3, rows.Count);
         Assert.True(rows[0].Warning);
         Assert.Equal(environment, rows[0].Environment);
         Assert.True(rows[1].Warning);
-        Assert.Equal(line, rows[1].Linedef);
-        Assert.Equal($"Linedef {line.Index}", rows[1].Text);
-        Assert.Equal(SoundEnvironmentModeModel.SingleSidedBoundaryWarning, rows[1].WarningMessage);
+        Assert.Equal("Linedefs (1)", rows[1].Text);
+        Assert.True(rows[2].Warning);
+        Assert.Equal(line, rows[2].Linedef);
+        Assert.Equal($"Linedef {line.Index}", rows[2].Text);
+        Assert.Equal(2, rows[2].Depth);
+        Assert.Equal(SoundEnvironmentModeModel.SingleSidedBoundaryWarning, rows[2].WarningMessage);
     }
 
     [Fact]
@@ -714,6 +723,7 @@ public class SoundPropagationTests
 
         SoundEnvironmentRow row = Assert.Single(model.Rows(), row => row.Thing == thing);
         Assert.Equal($"Thing {thing.Index} (dormant)", row.Text);
+        Assert.Equal(2, row.Depth);
         Assert.Null(row.WarningMessage);
     }
 
@@ -741,6 +751,28 @@ public class SoundPropagationTests
 
         SoundEnvironmentRow row = Assert.Single(model.Rows(warningsOnly: true), row => row.Linedef == line);
         Assert.Equal(SoundEnvironmentModeModel.SameEnvironmentBoundaryWarning, row.WarningMessage);
+    }
+
+    [Fact]
+    public void SoundEnvironmentRowsUseUdbTreeGrouping()
+    {
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        Thing thing = map.AddThing(new Vector2D(0, 0), SoundPropagation.SoundEnvironmentThingType);
+        thing.Sector = sector;
+
+        SoundEnvironmentModeModel model = SoundPropagation.BuildSoundEnvironmentModel(map);
+
+        IReadOnlyList<SoundEnvironmentRow> rows = model.Rows();
+        Assert.Equal(4, rows.Count);
+        Assert.Equal(model.Environments[0].Name, rows[0].Text);
+        Assert.Equal(0, rows[0].Depth);
+        Assert.Equal("Things (1)", rows[1].Text);
+        Assert.Equal(1, rows[1].Depth);
+        Assert.Equal($"Thing {thing.Index}", rows[2].Text);
+        Assert.Equal(2, rows[2].Depth);
+        Assert.Equal("Linedefs (0)", rows[3].Text);
+        Assert.Equal(1, rows[3].Depth);
     }
 
     [Fact]

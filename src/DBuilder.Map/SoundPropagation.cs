@@ -270,7 +270,7 @@ public sealed record SoundEnvironmentModeModel(
             if (warningsOnly && rowWarnings == 0) continue;
 
             rows.Add(new SoundEnvironmentRow(
-                Text: $"{environment.Name}  Sectors: {environment.Sectors.Count}, things: {environment.Things.Count}, boundary lines: {environment.BoundaryLinedefs.Count}",
+                Text: environment.Name,
                 Depth: 0,
                 Warning: rowWarnings > 0,
                 WarningMessage: null,
@@ -279,6 +279,19 @@ public sealed record SoundEnvironmentModeModel(
                 Thing: null,
                 Linedef: null));
 
+            if (!warningsOnly || activeThingWarning)
+            {
+                rows.Add(new SoundEnvironmentRow(
+                    Text: $"Things ({environment.Things.Count})",
+                    Depth: 1,
+                    Warning: activeThingWarning,
+                    WarningMessage: null,
+                    Color: environment.Color,
+                    Environment: null,
+                    Thing: null,
+                    Linedef: null));
+            }
+
             foreach (Thing thing in environment.Things)
             {
                 bool warning = activeThingWarning && !SoundPropagation.ThingDormant(thing, udmf);
@@ -286,12 +299,25 @@ public sealed record SoundEnvironmentModeModel(
                 string dormant = SoundPropagation.ThingDormant(thing, udmf) ? " (dormant)" : "";
                 rows.Add(new SoundEnvironmentRow(
                     Text: $"Thing {thing.Index}{dormant}",
-                    Depth: 1,
+                    Depth: 2,
                     Warning: warning,
                     WarningMessage: warning ? MultipleActiveThingsWarning : null,
                     Color: environment.Color,
                     Environment: environment,
                     Thing: thing,
+                    Linedef: null));
+            }
+
+            if (!warningsOnly || warningLines.Count > 0)
+            {
+                rows.Add(new SoundEnvironmentRow(
+                    Text: $"Linedefs ({environment.BoundaryLinedefs.Count})",
+                    Depth: 1,
+                    Warning: warningLines.Count > 0,
+                    WarningMessage: null,
+                    Color: environment.Color,
+                    Environment: null,
+                    Thing: null,
                     Linedef: null));
             }
 
@@ -302,7 +328,7 @@ public sealed record SoundEnvironmentModeModel(
                 if (warningsOnly && !warning) continue;
                 rows.Add(new SoundEnvironmentRow(
                     Text: $"Linedef {line.Index}",
-                    Depth: 1,
+                    Depth: 2,
                     Warning: warning,
                     WarningMessage: warningMessage,
                     Color: environment.Color,
