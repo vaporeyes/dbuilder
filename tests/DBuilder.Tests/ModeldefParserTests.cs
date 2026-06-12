@@ -168,6 +168,21 @@ model Good
     }
 
     [Fact]
+    public void QuotedPathBackslashesNormalizeLikeUdb()
+    {
+        const string text = @"
+model Slashed
+{
+    Path ""models\monsters""
+    Model 0 ""thing.md3""
+}";
+
+        var def = Assert.Single(ModeldefParser.Parse(text));
+
+        Assert.Equal("models/monsters", def.Path);
+    }
+
+    [Fact]
     public void ParsesMultipleModelsAndSkipsUnknownDirectives()
     {
         const string text = @"
@@ -407,6 +422,7 @@ model Local { Model 0 ""local.md3"" }";
     [InlineData("../models/defs.txt")]
     [InlineData("./models/defs.txt")]
     [InlineData("models\\defs.txt")]
+    [InlineData("\"models\\defs.txt\"")]
     [InlineData("/models/defs.txt")]
     public void InvalidIncludesStopParsingLikeUdb(string includePath)
     {

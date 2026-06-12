@@ -416,7 +416,7 @@ public static class ModeldefParser
                 p++;
                 while (p < n && s[p] != '"')
                 {
-                    if (s[p] == '\\' && p + 1 < n) { sb.Append(s[p + 1]); p += 2; }
+                    if (s[p] == '\\' && p + 1 < n && s[p + 1] == '"') { sb.Append(s[p + 1]); p += 2; }
                     else sb.Append(s[p++]);
                 }
                 if (p < n) p++;
