@@ -4306,7 +4306,7 @@ public static class UdbScriptApiConversionModel
             UniversalType.AngleDegrees or UniversalType.AngleByte or UniversalType.Color or UniversalType.EnumBits
                 or UniversalType.EnumOption or UniversalType.Integer or UniversalType.LinedefTag
                 or UniversalType.LinedefType or UniversalType.SectorEffect or UniversalType.SectorTag
-                or UniversalType.ThingTag or UniversalType.ThingType => Convert.ToInt32(value.Value),
+                or UniversalType.ThingTag or UniversalType.ThingType or UniversalType.PolyobjectNumber => Convert.ToInt32(value.Value),
             UniversalType.Boolean => Convert.ToBoolean(value.Value),
             UniversalType.Flat or UniversalType.String or UniversalType.Texture or UniversalType.EnumStrings
                 or UniversalType.ThingClass => Convert.ToString(value.Value),
@@ -4322,7 +4322,7 @@ public static class UdbScriptApiConversionModel
             UniversalType.AngleDegrees or UniversalType.AngleByte or UniversalType.Color or UniversalType.EnumBits
                 or UniversalType.EnumOption or UniversalType.Integer or UniversalType.LinedefTag
                 or UniversalType.LinedefType or UniversalType.SectorEffect or UniversalType.SectorTag
-                or UniversalType.ThingTag or UniversalType.ThingType => typeof(int),
+                or UniversalType.ThingTag or UniversalType.ThingType or UniversalType.PolyobjectNumber => typeof(int),
             UniversalType.Boolean => typeof(bool),
             UniversalType.Flat or UniversalType.String or UniversalType.Texture or UniversalType.EnumStrings
                 or UniversalType.ThingClass => typeof(string),

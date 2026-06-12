@@ -3070,6 +3070,7 @@ localsidedeftextureoffsets = true;
     [InlineData(UniversalType.AngleRadians, "2.5", 2.5)]
     [InlineData(UniversalType.Integer, "7", 7)]
     [InlineData(UniversalType.Color, "255", 255)]
+    [InlineData(UniversalType.PolyobjectNumber, "22", 22)]
     [InlineData(UniversalType.Boolean, "true", true)]
     [InlineData(UniversalType.String, 123, "123")]
     [InlineData(UniversalType.Texture, 456, "456")]
@@ -3087,10 +3088,10 @@ localsidedeftextureoffsets = true;
         Assert.Equal(typeof(double), UdbScriptApiConversionModel.GetTypeFromUniversalType((int)UniversalType.AngleDegreesFloat));
         Assert.Equal(typeof(int), UdbScriptApiConversionModel.GetTypeFromUniversalType((int)UniversalType.LinedefTag));
         Assert.Equal(typeof(int), UdbScriptApiConversionModel.GetTypeFromUniversalType((int)UniversalType.ThingType));
+        Assert.Equal(typeof(int), UdbScriptApiConversionModel.GetTypeFromUniversalType((int)UniversalType.PolyobjectNumber));
         Assert.Equal(typeof(bool), UdbScriptApiConversionModel.GetTypeFromUniversalType((int)UniversalType.Boolean));
         Assert.Equal(typeof(string), UdbScriptApiConversionModel.GetTypeFromUniversalType((int)UniversalType.Flat));
         Assert.Equal(typeof(string), UdbScriptApiConversionModel.GetTypeFromUniversalType((int)UniversalType.ThingClass));
-        Assert.Null(UdbScriptApiConversionModel.GetTypeFromUniversalType((int)UniversalType.PolyobjectNumber));
     }
 
     private static Sector CreateSquareSector()
