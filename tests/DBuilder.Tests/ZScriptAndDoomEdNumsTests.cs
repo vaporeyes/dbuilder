@@ -2174,6 +2174,113 @@ class IncludedBase : Actor
     }
 
     [Fact]
+    public void MergesModStyleZScriptFixtureWithMapInfoNumbers()
+    {
+        const string root = @"
+version ""4.10""
+#include ""actors/shared.zs""
+#region Monsters/Bosses
+// $Color 13
+class FixtureReplacement : DoomImp replaces DoomImp
+{
+    //$Title ""Fixture Baron""
+    Default
+    {
+        Radius 28;
+        Height 64;
+        SpawnID 240;
+        +SOLID;
+        RenderStyle Translucent;
+        Alpha 0.75;
+    }
+    States { Spawn: FBAR A -1 Bright; stop; }
+}
+#endregion
+class FixtureChild : FixtureBase
+{
+    mixin FixtureEditorDefaults;
+    //$Title ""Fixture Child""
+    //$Category ""Fixtures/Utility""
+    //$UserDefaultValue 3
+    int user_rank;
+    Default { Radius 20; }
+}";
+        const string included = @"
+mixin class FixtureEditorDefaults
+{
+    Default { Height 48; +SHOOTABLE; }
+    States { Spawn: FMIX A -1; stop; }
+}
+class FixtureBase : Actor
+{
+    Default { Radius 16; Height 32; }
+}";
+        const string cfg = @"
+enums
+{
+    spawnthing
+    {
+        1 = ""Configured Spawn"";
+    }
+}
+thingtypes
+{
+    monsters
+    {
+        3001
+        {
+            title = ""Imp"";
+            sprite = ""TROOA1"";
+            class = ""DoomImp"";
+        }
+    }
+}";
+        var mapInfo = MapInfo.Parse("""
+DoomEdNums
+{
+    31050 = FixtureChild
+    3001 = FixtureReplacement
+}
+SpawnNums
+{
+    240 = FixtureReplacement
+    241 = FixtureChild
+}
+""");
+
+        var actors = ZScriptParser.Parse(root, path => path == "actors/shared.zs" ? included : null);
+        var gc = GameConfiguration.FromText(cfg);
+
+        gc.MergeActors(actors, mapInfo.DoomEdNums, mapInfo.SpawnNums);
+
+        var replacement = gc.GetThing(3001);
+        Assert.NotNull(replacement);
+        Assert.Equal("Fixture Baron", replacement!.Title);
+        Assert.Equal("FixtureReplacement", replacement.ClassName);
+        Assert.Equal("FBARA0", replacement.Sprite);
+        Assert.Equal(28, replacement.Width);
+        Assert.Equal(64, replacement.Height);
+        Assert.True(replacement.Bright);
+        Assert.Equal(0.75, replacement.Alpha);
+
+        var child = gc.GetThing(31050);
+        Assert.NotNull(child);
+        Assert.Equal("Fixture Child", child!.Title);
+        Assert.Equal("Fixtures/Utility", child.Category);
+        Assert.Equal("FMIXA0", child.Sprite);
+        Assert.Equal(20, child.Width);
+        Assert.Equal(48, child.Height);
+        Assert.True(child.HasAdditionalUniversalField("user_rank"));
+        Assert.Equal(3, gc.UniversalFields["thing"]["user_rank"].DefaultValue);
+
+        var spawnThing = gc.GetEnum("spawnthing");
+        Assert.NotNull(spawnThing);
+        Assert.Equal("Configured Spawn", spawnThing![1]);
+        Assert.Equal("Fixture Baron", spawnThing[240]);
+        Assert.Equal("Fixture Child", spawnThing[241]);
+    }
+
+    [Fact]
     public void HashlessZScriptIncludeRejectsContainingFileLikeUdb()
     {
         const string root = @"

@@ -1098,6 +1098,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Clamp tiny thing category radii like UDB.
   - [x] Apply MAPINFO `SpawnNums` overrides to the `spawnthing` enum.
 - [ ] Add parser fixtures from real-world mod patterns.
+  - [x] Add a ZScript and MAPINFO fixture for include, replacement, user field, DoomEdNum, and SpawnNum mod patterns.
 
 ## Dehacked
 
