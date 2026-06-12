@@ -3053,6 +3053,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 ## Validation And Test Strategy
 
 - [ ] Add unit tests for every parser and serializer.
+  - [x] Add explicit coverage inventory for current parser, reader, writer, and serializer test ownership.
 - [x] Add round-trip tests for every supported map format.
 - [x] Add golden-file tests for WAD output where deterministic output is expected.
   - [x] Add a full PWAD byte-layout golden test for Doom-format map output.
