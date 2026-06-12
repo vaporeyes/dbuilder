@@ -13,6 +13,12 @@ public readonly record struct ThingIconScreenSizePlan(
     public bool HasBoundingBox => BoundingBoxSize > 0;
 }
 
+public readonly record struct ThingOverviewCullCandidate<TThing>(
+    TThing Thing,
+    (int X, int Y) Cell,
+    bool Selected,
+    double MapRadius);
+
 public static class ThingIconRenderPolicy
 {
     public const double MinimumInteractiveViewScale = 0.02;
@@ -83,6 +89,50 @@ public static class ThingIconRenderPolicy
     {
         if (candidateSelected != existingSelected) return candidateSelected;
         return candidateMapRadius > existingMapRadius;
+    }
+
+    public static Dictionary<(int X, int Y), TThing> SelectOverviewCellRepresentatives<TThing>(
+        IEnumerable<ThingOverviewCullCandidate<TThing>> candidates)
+    {
+        var representatives = new Dictionary<(int X, int Y), ThingOverviewCullCandidate<TThing>>();
+        foreach (var candidate in candidates)
+        {
+            ThingOverviewCullCandidate<TThing>? strongestOverlap = null;
+            foreach (var pair in representatives)
+            {
+                if (!OverviewCullCellsOverlap(candidate.Cell, pair.Key)) continue;
+                if (strongestOverlap == null
+                    || ShouldReplaceOverviewCellThing(
+                        strongestOverlap.Value.Selected,
+                        strongestOverlap.Value.MapRadius,
+                        pair.Value.Selected,
+                        pair.Value.MapRadius))
+                {
+                    strongestOverlap = pair.Value;
+                }
+            }
+
+            if (strongestOverlap == null
+                || ShouldReplaceOverviewCellThing(
+                    strongestOverlap.Value.Selected,
+                    strongestOverlap.Value.MapRadius,
+                    candidate.Selected,
+                    candidate.MapRadius))
+            {
+                foreach (var occupiedCell in representatives.Keys.ToArray())
+                {
+                    if (OverviewCullCellsOverlap(candidate.Cell, occupiedCell))
+                        representatives.Remove(occupiedCell);
+                }
+
+                representatives[candidate.Cell] = candidate;
+            }
+        }
+
+        var result = new Dictionary<(int X, int Y), TThing>();
+        foreach (var pair in representatives)
+            result[pair.Key] = pair.Value.Thing;
+        return result;
     }
 
     public static bool ShouldRenderThing(double mapRadius, double viewScale, bool fixedThingsScale, bool fixedSize = false)

@@ -590,6 +590,38 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
+    public void OverviewCellRepresentativeSelectionPrefersSelectedThingsAcrossOverlap()
+    {
+        var representatives = ThingIconRenderPolicy.SelectOverviewCellRepresentatives(new[]
+        {
+            new ThingOverviewCullCandidate<string>("small", (4, 4), Selected: false, MapRadius: 64),
+            new ThingOverviewCullCandidate<string>("selected", (5, 4), Selected: true, MapRadius: 8),
+            new ThingOverviewCullCandidate<string>("far", (7, 4), Selected: false, MapRadius: 16),
+        });
+
+        Assert.Equal(2, representatives.Count);
+        Assert.Equal("selected", representatives[(5, 4)]);
+        Assert.Equal("far", representatives[(7, 4)]);
+        Assert.DoesNotContain((4, 4), representatives.Keys);
+    }
+
+    [Fact]
+    public void OverviewCellRepresentativeSelectionKeepsLargestThingWhenSelectionMatches()
+    {
+        var representatives = ThingIconRenderPolicy.SelectOverviewCellRepresentatives(new[]
+        {
+            new ThingOverviewCullCandidate<string>("small", (4, 4), Selected: false, MapRadius: 16),
+            new ThingOverviewCullCandidate<string>("large", (5, 5), Selected: false, MapRadius: 64),
+            new ThingOverviewCullCandidate<string>("far", (7, 7), Selected: false, MapRadius: 16),
+        });
+
+        Assert.Equal(2, representatives.Count);
+        Assert.Equal("large", representatives[(5, 5)]);
+        Assert.Equal("far", representatives[(7, 7)]);
+        Assert.DoesNotContain((4, 4), representatives.Keys);
+    }
+
+    [Fact]
     public void SkipsThingsWhoseProjectedRadiusIsTooSmall()
     {
         Assert.False(ThingIconRenderPolicy.ShouldRenderThing(

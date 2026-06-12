@@ -1907,6 +1907,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Share MODELDEF, VOXELDEF, sprite, and marker display-source planning for 2D and 3D billboard fallback rendering.
   - [x] Collapse zoomed-out 2D thing sprites to overview markers and cull overlapping marker cells.
   - [x] Prefer selected and larger 2D thing markers when overview culling dense cells.
+  - [x] Extract testable 2D overview thing marker representative selection.
   - [x] Keep close-zoom 2D thing sprites reachable before overview marker culling.
   - [x] Force 2D thing sprite rendering when fixed-size scaling clamps the thing footprint.
   - [x] Use fixed-size thing display footprint for 2D thing picking.

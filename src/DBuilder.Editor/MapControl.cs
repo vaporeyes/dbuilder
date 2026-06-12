@@ -5188,7 +5188,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             System.Collections.Generic.Dictionary<(int X, int Y), Thing>? overviewRepresentatives = null;
             if (ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(_zoom, _thingArrows))
             {
-                overviewRepresentatives = new System.Collections.Generic.Dictionary<(int X, int Y), Thing>();
+                var candidates = new System.Collections.Generic.List<ThingOverviewCullCandidate<Thing>>();
                 foreach (var candidate in _map.Things)
                 {
                     if (ThingHidden2D(candidate)) continue;
@@ -5201,37 +5201,14 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                         _fixedThingsScale,
                         candidateFixedSize)) continue;
 
-                    var cell = ThingOverviewCell(candidate.Position);
-                    Thing? strongestOverlap = null;
-                    foreach (var pair in overviewRepresentatives)
-                    {
-                        if (!ThingIconRenderPolicy.OverviewCullCellsOverlap(cell, pair.Key)) continue;
-                        if (strongestOverlap == null
-                            || ThingIconRenderPolicy.ShouldReplaceOverviewCellThing(
-                                strongestOverlap.Selected,
-                                ThingVisualRadius(strongestOverlap, _gameConfig?.GetThing(strongestOverlap.Type)),
-                                pair.Value.Selected,
-                                ThingVisualRadius(pair.Value, _gameConfig?.GetThing(pair.Value.Type))))
-                        {
-                            strongestOverlap = pair.Value;
-                        }
-                    }
-
-                    if (strongestOverlap == null
-                        || ThingIconRenderPolicy.ShouldReplaceOverviewCellThing(
-                            strongestOverlap.Selected,
-                            ThingVisualRadius(strongestOverlap, _gameConfig?.GetThing(strongestOverlap.Type)),
-                            candidate.Selected,
-                            candidateRadius))
-                    {
-                        foreach (var occupiedCell in overviewRepresentatives.Keys.ToArray())
-                        {
-                            if (ThingIconRenderPolicy.OverviewCullCellsOverlap(cell, occupiedCell))
-                                overviewRepresentatives.Remove(occupiedCell);
-                        }
-                        overviewRepresentatives[cell] = candidate;
-                    }
+                    candidates.Add(new ThingOverviewCullCandidate<Thing>(
+                        candidate,
+                        ThingOverviewCell(candidate.Position),
+                        candidate.Selected,
+                        candidateRadius));
                 }
+
+                overviewRepresentatives = ThingIconRenderPolicy.SelectOverviewCellRepresentatives(candidates);
             }
 
             foreach (var t in _map.Things)
