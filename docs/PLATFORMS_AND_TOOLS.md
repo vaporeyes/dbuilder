@@ -54,6 +54,12 @@ Script compilers use the same UDB-style compiler configuration source as nodebui
 - Compiler paths and include files are resolved from the compiler configuration directory.
 - Compiler initialization, process start, file operation, missing output, and diagnostic parsing errors are reported as script compiler errors.
 
+## Release Build Script
+
+`bash scripts/release-build.sh` publishes unsigned editor outputs for `osx-arm64`, `osx-x64`, `win-x64`, and `linux-x64` into `artifacts/release/<rid>`. Passing one or more runtime IDs limits the build to that target set.
+
+The script does not sign, notarize, create installers, delete prior artifacts, or bundle copyrighted assets. Platform packages remain open work.
+
 ## Release Packaging Implications
 
 Packaged builds must preserve these rules:

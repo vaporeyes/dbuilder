@@ -3084,7 +3084,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Bundle or locate default configuration assets.
 - [ ] Bundle icons and app metadata.
 - [x] Define external dependency discovery for source ports, node builders, and compilers.
-- [ ] Add release build scripts.
+- [x] Add release build scripts.
 - [ ] Add smoke tests for packaged builds.
 - [x] Add migration documentation for UDB users.
 
