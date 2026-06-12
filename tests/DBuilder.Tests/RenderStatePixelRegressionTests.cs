@@ -176,6 +176,81 @@ public sealed class RenderStatePixelRegressionTests
     }
 
     [Fact]
+    public void Model3DRenderingCompositesMaskedThenTranslucentPassesLikeUdb()
+    {
+        Renderer3DModelRenderPlan maskedPlan = Renderer3DGeometryLifecyclePlan.BuildModelRenderPlan(
+            translucent: false,
+            maskedModelThingGroups:
+            [
+                new Renderer3DModelThingGroup(
+                    [
+                        new Renderer3DModelThingCandidate(1, new Vector3D(8, 0, 0), RenderPass.Alpha),
+                        new Renderer3DModelThingCandidate(2, new Vector3D(2, 0, 0), RenderPass.Additive),
+                    ]),
+            ],
+            translucentModelThings:
+            [
+                new Renderer3DModelThingCandidate(99, new Vector3D(4, 0, 0), RenderPass.Alpha),
+            ],
+            new Vector3D(),
+            fullBrightness: true,
+            lightCount: 0,
+            inverseSquareLightAttenuation: false);
+        Renderer3DModelRenderPlan translucentPlan = Renderer3DGeometryLifecyclePlan.BuildModelRenderPlan(
+            translucent: true,
+            maskedModelThingGroups:
+            [
+                new Renderer3DModelThingGroup(
+                    [
+                        new Renderer3DModelThingCandidate(98, new Vector3D(8, 0, 0), RenderPass.Alpha),
+                    ]),
+            ],
+            translucentModelThings:
+            [
+                new Renderer3DModelThingCandidate(3, new Vector3D(4, 0, 0), RenderPass.Alpha),
+                new Renderer3DModelThingCandidate(4, new Vector3D(3, 0, 0), RenderPass.Additive),
+                new Renderer3DModelThingCandidate(5, new Vector3D(2, 0, 0), RenderPass.Alpha),
+            ],
+            new Vector3D(),
+            fullBrightness: false,
+            lightCount: 2,
+            inverseSquareLightAttenuation: true);
+        var sourceColors = new Dictionary<int, PixelColor>
+        {
+            [1] = new(255, 180, 30, 20),
+            [2] = new(255, 40, 90, 150),
+            [3] = new(128, 120, 20, 60),
+            [4] = new(128, 70, 100, 50),
+            [5] = new(128, 200, 40, 30),
+        };
+        PixelColor pixel = new(255, 10, 20, 30);
+
+        foreach (Renderer3DModelThingDrawPlan draw in maskedPlan.Draws)
+            pixel = sourceColors[draw.ThingId];
+
+        foreach (Renderer3DModelThingDrawPlan draw in translucentPlan.Draws)
+            pixel = Composite3D(draw.RenderPass, sourceColors[draw.ThingId], pixel);
+
+        Assert.Equal(ShaderName.world3d_fullbright, maskedPlan.InitialShader);
+        Assert.Equal(
+            [
+                new Renderer3DModelThingDrawPlan(1, RenderPass.Alpha, DestinationBlendChange: null),
+                new Renderer3DModelThingDrawPlan(2, RenderPass.Additive, DestinationBlendChange: null),
+            ],
+            maskedPlan.Draws);
+        Assert.True(translucentPlan.LightsEnabled);
+        Assert.True(translucentPlan.UseLightStrength);
+        Assert.Equal(
+            [
+                new Renderer3DModelThingDrawPlan(3, RenderPass.Alpha, Blend.InverseSourceAlpha),
+                new Renderer3DModelThingDrawPlan(4, RenderPass.Additive, Blend.One),
+                new Renderer3DModelThingDrawPlan(5, RenderPass.Alpha, Blend.InverseSourceAlpha),
+            ],
+            translucentPlan.Draws);
+        Assert.Equal(new PixelColor(255, 157, 71, 79), pixel);
+    }
+
+    [Fact]
     public void ThingsPresentationStackReappliesThingsAfterGeometryLikeUdb()
     {
         IReadOnlyList<PresentationDrawCommand> commands = PresentationPlan
