@@ -84,9 +84,11 @@ public sealed class MapControlCommandTests
         Assert.Contains("public IReadOnlyList<LinedefColorPreset> LinedefColorPresets", body, StringComparison.Ordinal);
         Assert.Contains("public byte DoubleSidedAlphaByte", body, StringComparison.Ordinal);
         Assert.Contains("public int VisualFovDegrees", body, StringComparison.Ordinal);
+        Assert.Contains("public int ViewDistance", body, StringComparison.Ordinal);
         Assert.Contains("LinedefColorPresetModel.TryGetColor(l, _linedefColorPresets, _mapFormat == MapFormat.Udmf, out int presetColor)", body, StringComparison.Ordinal);
         Assert.Contains("LinedefColorPresetModel.WithAlpha(presetColor, _doubleSidedAlphaByte)", body, StringComparison.Ordinal);
-        Assert.Contains("Matrix4x4.CreatePerspectiveFieldOfView((float)(_visualFovDegrees * Math.PI / 180.0), aspect, 1f, 20000f)", body, StringComparison.Ordinal);
+        Assert.Contains("Matrix4x4.CreatePerspectiveFieldOfView((float)(_visualFovDegrees * Math.PI / 180.0), aspect, 1f, _viewDistance)", body, StringComparison.Ordinal);
+        Assert.Contains("far: _viewDistance", body, StringComparison.Ordinal);
         Assert.Contains("fovDegrees: _visualFovDegrees", body, StringComparison.Ordinal);
     }
 

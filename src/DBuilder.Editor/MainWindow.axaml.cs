@@ -248,6 +248,7 @@ public partial class MainWindow : Window
         MapView.SetShowVisualVertices(_settings.ShowVisualVertices);
         MapView.DoubleSidedAlphaByte = _settings.NormalizedDoubleSidedAlphaByte;
         MapView.VisualFovDegrees = _settings.NormalizedVisualFov;
+        MapView.ViewDistance = _settings.NormalizedViewDistance;
         MapView.SetFixedThingsScale(_settings.FixedThingsScale);
         MapView.SetAlwaysShowVertices(_settings.AlwaysShowVertices);
         MapView.SetSelectAdjacentVisualVertexSlopeHandles(_settings.SelectAdjacentVisualVertexSlopeHandles);
@@ -1432,6 +1433,7 @@ public partial class MainWindow : Window
         _settings.ImageBrightness = dlg.ImageBrightness;
         _settings.DoubleSidedAlpha = dlg.DoubleSidedAlpha;
         _settings.VisualFov = dlg.VisualFov;
+        _settings.ViewDistance = dlg.ViewDistance;
         _settings.QualityDisplay = dlg.QualityDisplay;
         _settings.ClassicBilinear = dlg.ClassicBilinear;
         _settings.VisualBilinear = dlg.VisualBilinear;
@@ -1482,6 +1484,7 @@ public partial class MainWindow : Window
         MapView.SetShowVisualVertices(_settings.ShowVisualVertices);
         MapView.DoubleSidedAlphaByte = _settings.NormalizedDoubleSidedAlphaByte;
         MapView.VisualFovDegrees = _settings.NormalizedVisualFov;
+        MapView.ViewDistance = _settings.NormalizedViewDistance;
         MapView.SetFixedThingsScale(_settings.FixedThingsScale);
         MapView.SetAlwaysShowVertices(_settings.AlwaysShowVertices);
         MapView.SetSelectAdjacentVisualVertexSlopeHandles(_settings.SelectAdjacentVisualVertexSlopeHandles);

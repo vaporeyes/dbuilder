@@ -183,6 +183,12 @@ public class SettingsTests
         Assert.Equal(50, Settings.AcceptVisualFovText("20"));
         Assert.Equal(170, Settings.AcceptVisualFovText("200"));
         Assert.Null(Settings.AcceptVisualFovText("bad"));
+        Assert.Equal(3000, settings.NormalizedViewDistance);
+        Assert.Equal(500, new Settings { ViewDistance = 20 }.NormalizedViewDistance);
+        Assert.Equal(64000, new Settings { ViewDistance = 90000 }.NormalizedViewDistance);
+        Assert.Equal(500, Settings.AcceptViewDistanceText("20"));
+        Assert.Equal(64000, Settings.AcceptViewDistanceText("90000"));
+        Assert.Null(Settings.AcceptViewDistanceText("bad"));
         Assert.True(settings.QualityDisplay);
         Assert.False(settings.ClassicBilinear);
         Assert.False(settings.VisualBilinear);
@@ -401,6 +407,7 @@ public class SettingsTests
                 ImageBrightness = 7,
                 DoubleSidedAlpha = 0.25,
                 VisualFov = 100,
+                ViewDistance = 12000,
                 QualityDisplay = false,
                 ClassicBilinear = true,
                 VisualBilinear = true,
@@ -582,6 +589,8 @@ public class SettingsTests
             Assert.Equal(63, loaded.NormalizedDoubleSidedAlphaByte);
             Assert.Equal(100, loaded.VisualFov);
             Assert.Equal(100, loaded.NormalizedVisualFov);
+            Assert.Equal(12000, loaded.ViewDistance);
+            Assert.Equal(12000, loaded.NormalizedViewDistance);
             Assert.False(loaded.QualityDisplay);
             Assert.True(loaded.ClassicBilinear);
             Assert.True(loaded.VisualBilinear);

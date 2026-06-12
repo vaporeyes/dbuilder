@@ -39,6 +39,9 @@ public sealed class Settings
     public const int DefaultVisualFov = 80;
     public const int MinVisualFov = 50;
     public const int MaxVisualFov = 170;
+    public const int DefaultViewDistance = 3000;
+    public const int MinViewDistance = 500;
+    public const int MaxViewDistance = 64000;
 
     public string? ConfigDir { get; set; }
     public string? LastUsedConfigName { get; set; }
@@ -77,6 +80,7 @@ public sealed class Settings
     public int? ImageBrightness { get; set; }
     public double? DoubleSidedAlpha { get; set; }
     public int? VisualFov { get; set; }
+    public int? ViewDistance { get; set; }
     public bool QualityDisplay { get; set; } = true;
     public bool ClassicBilinear { get; set; }
     public bool VisualBilinear { get; set; }
@@ -165,6 +169,9 @@ public sealed class Settings
     public int NormalizedVisualFov =>
         Math.Clamp(VisualFov ?? DefaultVisualFov, MinVisualFov, MaxVisualFov);
 
+    public int NormalizedViewDistance =>
+        Math.Clamp(ViewDistance ?? DefaultViewDistance, MinViewDistance, MaxViewDistance);
+
     public ToastAnchor NormalizedToastAnchor =>
         ToastPreferences.NormalizeAnchor(ToastAnchor);
 
@@ -220,6 +227,9 @@ public sealed class Settings
     public static int? AcceptVisualFovText(string? text)
         => int.TryParse(text, out int value) ? Math.Clamp(value, MinVisualFov, MaxVisualFov) : null;
 
+    public static int? AcceptViewDistanceText(string? text)
+        => int.TryParse(text, out int value) ? Math.Clamp(value, MinViewDistance, MaxViewDistance) : null;
+
     public static byte AlphaToByte(double alpha)
         => (byte)(Math.Clamp(alpha, 0.0, 1.0) * 255.0);
 
@@ -255,6 +265,9 @@ public sealed class Settings
 
     public static string VisualFovText(Settings settings)
         => settings.NormalizedVisualFov.ToString(CultureInfo.InvariantCulture);
+
+    public static string ViewDistanceText(Settings settings)
+        => settings.NormalizedViewDistance.ToString(CultureInfo.InvariantCulture);
 
     public int NormalizedDefaultViewMode =>
         Math.Clamp(DefaultViewMode ?? 0, 0, 3);

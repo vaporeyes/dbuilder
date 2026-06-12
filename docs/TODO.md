@@ -143,6 +143,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Persist UDB-style image-browser background and flat vertex shade preferences.
   - [x] Persist and apply UDB-style double-sided linedef alpha preference.
   - [x] Persist and apply UDB-style visual field-of-view preference.
+  - [x] Persist and apply UDB-style view distance preference.
 - [x] Port pre-command and post-command support.
   - [x] Execute configured before/after Test Map commands.
   - [x] Pass the temporary Test Map WAD path to before/after Test Map commands.
