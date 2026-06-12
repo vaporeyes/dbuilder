@@ -3144,6 +3144,69 @@ localsidedeftextureoffsets = true;
         Assert.Contains("UDB.Map.drawLines([...t, t[0]])", source, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void CommonUdbScriptBevelLinedefsWorkflowUsesMapWrappersTogether()
+    {
+        var map = new MapSet();
+        Vertex first = map.AddVertex(new Vector2D(0, 0));
+        Vertex shared = map.AddVertex(new Vector2D(64, 0));
+        Vertex last = map.AddVertex(new Vector2D(128, 0));
+        Linedef left = map.AddLinedef(first, shared);
+        Linedef right = map.AddLinedef(shared, last);
+        left.Selected = true;
+        right.Selected = true;
+        map.BuildIndexes();
+        var wrapper = new UdbScriptMapWrapper(map);
+        UdbScriptLinedefWrapper[] lines = wrapper.getSelectedLinedefs();
+        var vertices = new HashSet<UdbScriptVertexWrapper>();
+
+        foreach (UdbScriptLinedefWrapper selectedLine in lines)
+        {
+            foreach (UdbScriptVertexWrapper vertex in new[] { selectedLine.start, selectedLine.end })
+            {
+                UdbScriptLinedefWrapper[] vertexLines = vertex.getLinedefs();
+                if (vertexLines.Length == 2 && vertexLines.All(candidate => candidate.selected))
+                    vertices.Add(vertex);
+            }
+        }
+
+        foreach (UdbScriptVertexWrapper vertex in vertices)
+        {
+            foreach (UdbScriptLinedefWrapper connectedLine in vertex.getLinedefs())
+            {
+                if (connectedLine.start == vertex)
+                    connectedLine.split(connectedLine.line.getCoordinatesAt(1.0 / connectedLine.length * 16.0));
+                else
+                    connectedLine.split(connectedLine.line.getCoordinatesAt(1.0 - 1.0 / connectedLine.length * 16.0));
+            }
+
+            UdbScriptLinedefWrapper remainingLine = vertex.getLinedefs()[0];
+            if (remainingLine.start == vertex)
+                vertex.join(remainingLine.end);
+            else
+                vertex.join(remainingLine.start);
+        }
+
+        Assert.Single(vertices);
+        Assert.DoesNotContain(shared, map.Vertices);
+        Assert.Equal(3, map.Linedefs.Count);
+        Assert.Contains(map.Linedefs, line => line.Start.Position == new Vector2D(48, 0) && line.End.Position == new Vector2D(80, 0));
+    }
+
+    [Fact]
+    public void CommonUdbScriptBevelLinedefsExampleUsesCoveredApisWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Assets", "Common", "UDBScript", "Scripts", "Examples", "Geometry", "bevel.js"));
+
+        Assert.Contains("UDB.Map.getSelectedLinedefs()", source, StringComparison.Ordinal);
+        Assert.Contains("v.getLinedefs()", source, StringComparison.Ordinal);
+        Assert.Contains("ld.split(ld.line.getCoordinatesAt", source, StringComparison.Ordinal);
+        Assert.Contains("v.join(ld.", source, StringComparison.Ordinal);
+    }
+
     private static Sector CreateSquareSector()
     {
         var sector = new Sector();

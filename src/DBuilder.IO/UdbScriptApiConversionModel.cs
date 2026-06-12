@@ -1542,6 +1542,12 @@ public sealed class UdbScriptVertexWrapper : IEquatable<UdbScriptVertexWrapper>
     public override int GetHashCode()
         => vertex.GetHashCode();
 
+    public static bool operator ==(UdbScriptVertexWrapper? a, UdbScriptVertexWrapper? b)
+        => ReferenceEquals(a, b) || (a is not null && b is not null && ReferenceEquals(a.vertex, b.vertex));
+
+    public static bool operator !=(UdbScriptVertexWrapper? a, UdbScriptVertexWrapper? b)
+        => !(a == b);
+
     public override string ToString()
         => vertex.ToString() ?? string.Empty;
 
