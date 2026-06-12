@@ -79,6 +79,9 @@ public class HexenMapWriterTests
         return bytes;
     }
 
+    private static string CompactHex(string text)
+        => new(text.Where(c => !char.IsWhiteSpace(c)).ToArray());
+
     private static MapSet LoadSynthetic()
     {
         var (things, linedefs, sidedefs, vertexes, sectors) = BuildSyntheticLumps();
@@ -237,6 +240,39 @@ public class HexenMapWriterTests
         Assert.Equal(0, wad.Lumps[7].Length);
         Assert.Equal(new byte[] { 0x41, 0x43, 0x53, 0x00 }, wad.Lumps[8].Stream.ReadAllBytes());
         Assert.True(HexenMapLoader.IsHexenFormat(wad, "MAP01"));
+    }
+
+    [Fact]
+    public void WriteMapProducesDeterministicPwadGoldenBytes()
+    {
+        var map = LoadSynthetic();
+        var ms = new MemoryStream();
+
+        using (var wad = new WAD(ms))
+        {
+            HexenMapWriter.WriteMap(map, wad, "MAP01", 0, behaviorBytes: new byte[] { 0x41, 0x43, 0x53, 0x00 });
+        }
+
+        string expected = CompactHex("""
+            505741440900000074000000
+            2A003200190010005A0029232B0750050A000000
+            0000010001065001020300000000FFFF
+            000000002D000000000000002D0000000000000057414C4C000000000000
+            0000000064000000
+            00008000464C4F4F520000004345494C00000000C80000000000
+            41435300
+            0C000000000000004D41503031000000
+            0C000000140000005448494E47530000
+            20000000100000004C494E4544454653
+            300000001E0000005349444544454653
+            4E000000080000005645525445584553
+            560000001A000000534543544F525300
+            700000000000000052454A4543540000
+            7000000000000000424C4F434B4D4150
+            70000000040000004245484156494F52
+            """);
+
+        Assert.Equal(expected, System.Convert.ToHexString(ms.ToArray()));
     }
 
     [Fact]
