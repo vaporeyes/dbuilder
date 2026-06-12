@@ -128,6 +128,7 @@ public sealed class Settings
     public bool DrawFog { get; set; }
     public bool DrawSky { get; set; } = true;
     public bool ShowEventLines { get; set; } = true;
+    public bool ShowLightRadii { get; set; } = true;
     public bool ShowVisualVertices { get; set; } = true;
     public bool SynchronizedThingEditing { get; set; } = true;
     public bool ShowErrorsWindow { get; set; } = true;

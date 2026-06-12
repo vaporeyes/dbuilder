@@ -207,6 +207,12 @@ public class SettingsTests
     }
 
     [Fact]
+    public void ShowLightRadiiDefaultsEnabledLikeUdb()
+    {
+        Assert.True(new Settings().ShowLightRadii);
+    }
+
+    [Fact]
     public void ModelRenderModeDefaultsToAllLikeUdb()
     {
         Assert.Equal(ThingModelRenderMode.All, new Settings().NormalizedModelRenderMode);

@@ -181,6 +181,11 @@ public partial class MainWindow : Window
                 _settings.ShowEventLines = MapView.ShowEventLines;
                 SaveSettings();
             }
+            if (_settings.ShowLightRadii != MapView.ShowLightRadii)
+            {
+                _settings.ShowLightRadii = MapView.ShowLightRadii;
+                SaveSettings();
+            }
             if (_settings.ShowVisualVertices != MapView.ShowVisualVertices)
             {
                 _settings.ShowVisualVertices = MapView.ShowVisualVertices;
@@ -260,6 +265,7 @@ public partial class MainWindow : Window
         MapView.SetDrawFog(_settings.DrawFog);
         MapView.SetDrawSky(_settings.DrawSky);
         MapView.SetShowEventLines(_settings.ShowEventLines);
+        MapView.SetShowLightRadii(_settings.ShowLightRadii);
         MapView.EventLineLabelVisibility = _settings.NormalizedEventLineLabelVisibility;
         MapView.EventLineLabelStyle = _settings.NormalizedEventLineLabelStyle;
         MapView.EventLineDistinctColors = _settings.EventLineDistinctColors;
@@ -1483,6 +1489,7 @@ public partial class MainWindow : Window
         _settings.DrawFog = dlg.DrawFog;
         _settings.DrawSky = dlg.DrawSky;
         _settings.ShowEventLines = dlg.ShowEventLines;
+        _settings.ShowLightRadii = dlg.ShowLightRadii;
         _settings.EventLineLabelVisibility = dlg.EventLineLabelVisibility;
         _settings.EventLineLabelStyle = dlg.EventLineLabelStyle;
         _settings.EventLineDistinctColors = dlg.EventLineDistinctColors;
@@ -1536,6 +1543,7 @@ public partial class MainWindow : Window
         MapView.SetDrawFog(_settings.DrawFog);
         MapView.SetDrawSky(_settings.DrawSky);
         MapView.SetShowEventLines(_settings.ShowEventLines);
+        MapView.SetShowLightRadii(_settings.ShowLightRadii);
         MapView.EventLineLabelVisibility = _settings.NormalizedEventLineLabelVisibility;
         MapView.EventLineLabelStyle = _settings.NormalizedEventLineLabelStyle;
         MapView.EventLineDistinctColors = _settings.EventLineDistinctColors;

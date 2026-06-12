@@ -235,6 +235,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _drawFog;
     private bool _drawSky = true;
     private bool _showEventLines = true;
+    private bool _showLightRadii = true;
     private int _eventLineLabelVisibility = Settings.DefaultEventLineLabelVisibility;
     private int _eventLineLabelStyle = Settings.DefaultEventLineLabelStyle;
     private bool _eventLineDistinctColors = true;
@@ -317,6 +318,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool DrawFog => _drawFog;
     public bool DrawSky => _drawSky;
     public bool ShowEventLines => _showEventLines;
+    public bool ShowLightRadii => _showLightRadii;
     public int EventLineLabelVisibility
     {
         get => _eventLineLabelVisibility;
@@ -653,6 +655,16 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     public bool ToggleEventLines()
         => SetShowEventLines(!_showEventLines);
+
+    public bool SetShowLightRadii(bool enabled)
+    {
+        if (_showLightRadii == enabled) return _showLightRadii;
+        _showLightRadii = enabled;
+        _geometryDirty = true;
+        ActionStateChanged?.Invoke();
+        RequestNextFrameRendering();
+        return _showLightRadii;
+    }
 
     public bool ToggleComments()
     {
@@ -5323,6 +5335,15 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_thingDirVb != null)
         {
             var dv = new System.Collections.Generic.List<FlatVertex>();
+            Gldefs? gldefs = _resources?.GetGldefs();
+            if (_showLightRadii && _editMode == EditMode.Things)
+            {
+                foreach (var t in _map.Things)
+                {
+                    if (ThingHidden2D(t)) continue;
+                    AddThingLightRadiusLines(dv, t, gldefs);
+                }
+            }
             if (ThingIconRenderPolicy.ShouldDrawDirectionTicks(_zoom, _thingArrows))
             {
                 bool compactThingMarkers = ThingIconRenderPolicy.UseCompactMarkers(_zoom, _fixedThingsScale, _thingArrows);
@@ -5717,6 +5738,40 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private static double ThingVisualRadius(Thing thing, ThingTypeInfo? thingInfo)
         => thing.Size > 0 ? thing.Size : thingInfo?.RenderRadius ?? thingInfo?.Width ?? 10.0;
+
+    private void AddThingLightRadiusLines(System.Collections.Generic.List<FlatVertex> list, Thing thing, Gldefs? gldefs)
+    {
+        double? radius = DynamicLightDisplay.ThingRadius(thing, _gameConfig, gldefs);
+        if (radius is not > 0) return;
+
+        var screen = ThingScreenPosition(thing.Position);
+        double screenRadius = radius.Value / Math.Max(_zoom, 0.001);
+        if (!ThingIconRenderPolicy.IsThingOnScreen(
+            screen.X,
+            screen.Y,
+            screenRadius,
+            Bounds.Width,
+            Bounds.Height)) return;
+
+        int color = DynamicLightDisplay.ThingColor(thing, _gameConfig, gldefs) ?? unchecked((int)0xffd0d8e0);
+        AddCircleLines(list, thing.Position, radius.Value, color, segments: 48);
+    }
+
+    private static void AddCircleLines(
+        System.Collections.Generic.List<FlatVertex> list,
+        Vec2D center,
+        double radius,
+        int color,
+        int segments)
+    {
+        for (int i = 0; i < segments; i++)
+        {
+            double a0 = i * 2 * Math.PI / segments;
+            double a1 = (i + 1) * 2 * Math.PI / segments;
+            list.Add(FV(new Vec2D(center.x + Math.Cos(a0) * radius, center.y + Math.Sin(a0) * radius), color));
+            list.Add(FV(new Vec2D(center.x + Math.Cos(a1) * radius, center.y + Math.Sin(a1) * radius), color));
+        }
+    }
 
     private (double X, double Y) ThingScreenPosition(Vec2D position)
     {

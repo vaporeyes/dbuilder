@@ -1358,6 +1358,19 @@ public sealed class MapControlCommandTests
         Assert.Contains("Things editing is not synchronized", body, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void LightRadiiSettingDrawsDynamicLightRadiusLinesInThingsMode()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("public bool ShowLightRadii => _showLightRadii;", body, StringComparison.Ordinal);
+        Assert.Contains("public bool SetShowLightRadii(bool enabled)", body, StringComparison.Ordinal);
+        Assert.Contains("if (_showLightRadii && _editMode == EditMode.Things)", body, StringComparison.Ordinal);
+        Assert.Contains("AddThingLightRadiusLines(dv, t, gldefs);", body, StringComparison.Ordinal);
+        Assert.Contains("DynamicLightDisplay.ThingRadius(thing, _gameConfig, gldefs)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCircleLines(list, thing.Position, radius.Value, color, segments: 48);", body, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("map3d.resettexture", "ResetVisualTexture3D(local: false)")]
     [InlineData("map3d.resettextureudmf", "ResetVisualTexture3D(local: true)")]

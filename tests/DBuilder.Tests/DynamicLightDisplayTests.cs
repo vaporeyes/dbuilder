@@ -68,11 +68,56 @@ public sealed class DynamicLightDisplayTests
     }
 
     [Fact]
+    public void InternalPointLightRadiusUsesPrimaryRadiusArgument()
+    {
+        var thing = new Thing(new Vector2D(0, 0), 9800);
+        thing.Args[3] = 96;
+
+        Assert.Equal(96.0, DynamicLightDisplay.ThingRadius(thing, null, null));
+    }
+
+    [Fact]
+    public void VavoomLightRadiusUsesFirstArgument()
+    {
+        var thing = new Thing(new Vector2D(0, 0), 1502);
+        thing.Args[0] = 128;
+
+        Assert.Equal(128.0, DynamicLightDisplay.ThingRadius(thing, null, null));
+    }
+
+    [Fact]
+    public void GldefsActorLightRadiusUsesConfiguredLightSize()
+    {
+        GameConfiguration config = GameConfiguration.FromText("""
+            thingtypes
+            {
+                decorations
+                {
+                    color = 7;
+                    31000
+                    {
+                        title = "Lamp";
+                        class = "LampActor";
+                    }
+                }
+            }
+            """);
+        Gldefs gldefs = GldefsParser.Parse("""
+            pointlight LAMP { color 1.0 0.5 0.25 size 64 }
+            object LampActor { frame LAMP { light LAMP } }
+            """);
+        var thing = new Thing(new Vector2D(0, 0), 31000);
+
+        Assert.Equal(128.0, DynamicLightDisplay.ThingRadius(thing, config, gldefs));
+    }
+
+    [Fact]
     public void NonLightThingReturnsNull()
     {
         var thing = new Thing(new Vector2D(0, 0), 3001);
 
         Assert.Null(DynamicLightDisplay.ThingColor(thing, null, null));
+        Assert.Null(DynamicLightDisplay.ThingRadius(thing, null, null));
     }
 
     [Fact]

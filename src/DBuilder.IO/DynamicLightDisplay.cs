@@ -30,6 +30,24 @@ public static class DynamicLightDisplay
         return ToArgb(light.R, light.G, light.B);
     }
 
+    public static double? ThingRadius(Thing thing, GameConfiguration? config, Gldefs? gldefs)
+    {
+        DynamicLightDefinition? definition = ColorPickerModel.InternalDynamicLightDefinitionForThingType(thing.Type);
+        if (definition != null)
+        {
+            int argIndex = ColorPickerModel.FirstDynamicLightRadiusArgument(definition.LightVavoom);
+            if (argIndex >= thing.Args.Length) return null;
+            return thing.Args[argIndex] > 0 ? thing.Args[argIndex] : null;
+        }
+
+        ThingTypeInfo? info = config?.GetThing(thing.Type);
+        if (info == null || gldefs == null) return null;
+
+        GldefsLight? light = LightForThing(info, gldefs);
+        if (light == null) return null;
+        return light.Size > 0 ? light.Size : null;
+    }
+
     private static GldefsLight? LightForThing(ThingTypeInfo info, Gldefs gldefs)
     {
         if (!string.IsNullOrWhiteSpace(info.LightName) && gldefs.Lights.TryGetValue(info.LightName, out GldefsLight? direct))
