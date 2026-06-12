@@ -236,6 +236,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private int _mouseSpeed = Settings.DefaultMouseSpeed;
     private int _highlightRange = Settings.DefaultHighlightRange;
     private int _thingHighlightRange = Settings.DefaultThingHighlightRange;
+    private int _splitLinedefsRange = Settings.DefaultSplitLinedefsRange;
     private int _autoScrollSpeed;
     private bool _alphaBasedTextureHighlighting = true;
     private bool _selectAdjacentVisualVertexSlopeHandles;
@@ -312,6 +313,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         get => _thingHighlightRange;
         set => _thingHighlightRange = Math.Max(0, value);
+    }
+    public int SplitLinedefsRange
+    {
+        get => _splitLinedefsRange;
+        set => _splitLinedefsRange = Math.Max(0, value);
     }
     public bool AlphaBasedTextureHighlighting => _alphaBasedTextureHighlighting;
     public bool SelectAdjacentVisualVertexSlopeHandles => _selectAdjacentVisualVertexSlopeHandles;
@@ -8917,7 +8923,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_editMode == EditMode.Things)
             return InsertThingAt(pos, snap: false);
 
-        var line = _map.NearestLinedef(_cursorWorld, HighlightRangeWorld());
+        var line = _map.NearestLinedef(_cursorWorld, SplitLinedefsRangeWorld());
         if (line != null)
         {
             EditBegun?.Invoke("Insert vertex (split)");
@@ -9000,7 +9006,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return status;
         }
 
-        Linedef? line = _map.NearestLinedef(cursorWorld, HighlightRangeWorld());
+        Linedef? line = _map.NearestLinedef(cursorWorld, SplitLinedefsRangeWorld());
         if (line == null)
         {
             return "";
@@ -9941,6 +9947,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private double ThingHighlightRangeWorld()
         => _thingHighlightRange * _zoom;
+
+    private double SplitLinedefsRangeWorld()
+        => _splitLinedefsRange * _zoom;
 
     private void Pick(Vec2D world, bool additive)
     {

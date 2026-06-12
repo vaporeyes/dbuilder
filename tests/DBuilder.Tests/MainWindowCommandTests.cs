@@ -1220,6 +1220,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("MapView.MouseSpeed = _settings.NormalizedMouseSpeed;", code, StringComparison.Ordinal);
         Assert.Contains("MapView.HighlightRange = _settings.NormalizedHighlightRange;", code, StringComparison.Ordinal);
         Assert.Contains("MapView.ThingHighlightRange = _settings.NormalizedThingHighlightRange;", code, StringComparison.Ordinal);
+        Assert.Contains("MapView.SplitLinedefsRange = _settings.NormalizedSplitLinedefsRange;", code, StringComparison.Ordinal);
         Assert.Contains("MapView.SetMarkExtraFloors(_settings.MarkExtraFloors);", code, StringComparison.Ordinal);
         Assert.Contains("_settings.FixedThingsScale = MapView.FixedThingsScale;", code, StringComparison.Ordinal);
         Assert.Contains("_settings.AlwaysShowVertices = MapView.AlwaysShowVertices;", code, StringComparison.Ordinal);

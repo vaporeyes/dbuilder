@@ -60,6 +60,23 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void SplitLinedefsUsesConfiguredUdbSplitRange()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int insertIndex = body.IndexOf("public string InsertAtCursor()", StringComparison.Ordinal);
+        int splitIndex = body.IndexOf("private string SplitLinedefs(Vec2D cursorWorld)", StringComparison.Ordinal);
+        int placeThingsIndex = body.IndexOf("public string PlaceThingsFromSelection()", StringComparison.Ordinal);
+
+        Assert.True(insertIndex >= 0);
+        Assert.True(splitIndex > insertIndex);
+        Assert.True(placeThingsIndex > splitIndex);
+        Assert.Contains("_map.NearestLinedef(_cursorWorld, SplitLinedefsRangeWorld())", body[insertIndex..splitIndex], StringComparison.Ordinal);
+        Assert.Contains("_map.NearestLinedef(cursorWorld, SplitLinedefsRangeWorld())", body[splitIndex..placeThingsIndex], StringComparison.Ordinal);
+        Assert.DoesNotContain("_map.NearestLinedef(_cursorWorld, HighlightRangeWorld())", body[insertIndex..splitIndex], StringComparison.Ordinal);
+        Assert.DoesNotContain("_map.NearestLinedef(cursorWorld, HighlightRangeWorld())", body[splitIndex..placeThingsIndex], StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ClassicViewModeDefaultsToUdbNormalSetting()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
@@ -103,8 +120,10 @@ public sealed class MapControlCommandTests
         Assert.Contains("public int MouseSpeed", body, StringComparison.Ordinal);
         Assert.Contains("public int HighlightRange", body, StringComparison.Ordinal);
         Assert.Contains("public int ThingHighlightRange", body, StringComparison.Ordinal);
+        Assert.Contains("public int SplitLinedefsRange", body, StringComparison.Ordinal);
         Assert.Contains("=> _highlightRange * _zoom;", body, StringComparison.Ordinal);
         Assert.Contains("=> _thingHighlightRange * _zoom;", body, StringComparison.Ordinal);
+        Assert.Contains("=> _splitLinedefsRange * _zoom;", body, StringComparison.Ordinal);
         Assert.Contains("public bool MarkExtraFloors => _markExtraFloors;", body, StringComparison.Ordinal);
         Assert.Contains("public bool SetMarkExtraFloors(bool enabled)", body, StringComparison.Ordinal);
         Assert.Contains("if (_markExtraFloors && l.ExtraFloorFlag) return ThreeDFloorLineColor;", body, StringComparison.Ordinal);

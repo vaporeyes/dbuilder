@@ -50,6 +50,7 @@ public sealed class Settings
     public const int MaxMouseSpeed = 2000;
     public const int DefaultHighlightRange = 20;
     public const int DefaultThingHighlightRange = 10;
+    public const int DefaultSplitLinedefsRange = 10;
     public const int DefaultAutoScrollSpeed = 0;
     public const int MinAutoScrollSpeed = 0;
     public const int MaxAutoScrollSpeed = 5;
@@ -98,6 +99,7 @@ public sealed class Settings
     public int? MouseSpeed { get; set; }
     public int? HighlightRange { get; set; }
     public int? ThingHighlightRange { get; set; }
+    public int? SplitLinedefsRange { get; set; }
     public int? AutoScrollSpeed { get; set; }
     public bool QualityDisplay { get; set; } = true;
     public bool ClassicBilinear { get; set; }
@@ -205,6 +207,9 @@ public sealed class Settings
     public int NormalizedThingHighlightRange =>
         Math.Max(0, ThingHighlightRange ?? DefaultThingHighlightRange);
 
+    public int NormalizedSplitLinedefsRange =>
+        Math.Max(0, SplitLinedefsRange ?? DefaultSplitLinedefsRange);
+
     public int NormalizedAutoScrollSpeed =>
         Math.Clamp(AutoScrollSpeed ?? DefaultAutoScrollSpeed, MinAutoScrollSpeed, MaxAutoScrollSpeed);
 
@@ -278,6 +283,9 @@ public sealed class Settings
     public static int? AcceptThingHighlightRangeText(string? text)
         => int.TryParse(text, out int value) ? Math.Max(0, value) : null;
 
+    public static int? AcceptSplitLinedefsRangeText(string? text)
+        => int.TryParse(text, out int value) ? Math.Max(0, value) : null;
+
     public static int? AcceptAutoScrollSpeedText(string? text)
         => int.TryParse(text, out int value) ? Math.Clamp(value, MinAutoScrollSpeed, MaxAutoScrollSpeed) : null;
 
@@ -331,6 +339,9 @@ public sealed class Settings
 
     public static string ThingHighlightRangeText(Settings settings)
         => settings.NormalizedThingHighlightRange.ToString(CultureInfo.InvariantCulture);
+
+    public static string SplitLinedefsRangeText(Settings settings)
+        => settings.NormalizedSplitLinedefsRange.ToString(CultureInfo.InvariantCulture);
 
     public static string AutoScrollSpeedText(Settings settings)
         => settings.NormalizedAutoScrollSpeed == 0

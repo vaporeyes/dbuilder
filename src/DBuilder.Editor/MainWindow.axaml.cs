@@ -254,6 +254,7 @@ public partial class MainWindow : Window
         MapView.MouseSpeed = _settings.NormalizedMouseSpeed;
         MapView.HighlightRange = _settings.NormalizedHighlightRange;
         MapView.ThingHighlightRange = _settings.NormalizedThingHighlightRange;
+        MapView.SplitLinedefsRange = _settings.NormalizedSplitLinedefsRange;
         MapView.AutoScrollSpeed = _settings.NormalizedAutoScrollSpeed;
         MapView.SetMarkExtraFloors(_settings.MarkExtraFloors);
         MapView.SetFixedThingsScale(_settings.FixedThingsScale);
@@ -1441,6 +1442,7 @@ public partial class MainWindow : Window
         _settings.MouseSpeed = dlg.MouseSpeed;
         _settings.HighlightRange = dlg.HighlightRange;
         _settings.ThingHighlightRange = dlg.ThingHighlightRange;
+        _settings.SplitLinedefsRange = dlg.SplitLinedefsRange;
         _settings.AutoScrollSpeed = dlg.AutoScrollSpeed;
         _settings.QualityDisplay = dlg.QualityDisplay;
         _settings.ClassicBilinear = dlg.ClassicBilinear;
@@ -1500,6 +1502,7 @@ public partial class MainWindow : Window
         MapView.MouseSpeed = _settings.NormalizedMouseSpeed;
         MapView.HighlightRange = _settings.NormalizedHighlightRange;
         MapView.ThingHighlightRange = _settings.NormalizedThingHighlightRange;
+        MapView.SplitLinedefsRange = _settings.NormalizedSplitLinedefsRange;
         MapView.AutoScrollSpeed = _settings.NormalizedAutoScrollSpeed;
         MapView.SetMarkExtraFloors(_settings.MarkExtraFloors);
         MapView.SetFixedThingsScale(_settings.FixedThingsScale);

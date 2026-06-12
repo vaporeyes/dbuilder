@@ -213,6 +213,12 @@ public class SettingsTests
         Assert.Equal(0, Settings.AcceptThingHighlightRangeText("-5"));
         Assert.Equal(25, Settings.AcceptThingHighlightRangeText("25"));
         Assert.Null(Settings.AcceptThingHighlightRangeText("bad"));
+        Assert.Equal(10, settings.NormalizedSplitLinedefsRange);
+        Assert.Equal(0, new Settings { SplitLinedefsRange = -5 }.NormalizedSplitLinedefsRange);
+        Assert.Equal(25, new Settings { SplitLinedefsRange = 25 }.NormalizedSplitLinedefsRange);
+        Assert.Equal(0, Settings.AcceptSplitLinedefsRangeText("-5"));
+        Assert.Equal(25, Settings.AcceptSplitLinedefsRangeText("25"));
+        Assert.Null(Settings.AcceptSplitLinedefsRangeText("bad"));
         Assert.Equal(0, settings.NormalizedAutoScrollSpeed);
         Assert.Equal(0, new Settings { AutoScrollSpeed = -5 }.NormalizedAutoScrollSpeed);
         Assert.Equal(5, new Settings { AutoScrollSpeed = 30 }.NormalizedAutoScrollSpeed);
@@ -457,6 +463,7 @@ public class SettingsTests
                 MouseSpeed = 300,
                 HighlightRange = 35,
                 ThingHighlightRange = 22,
+                SplitLinedefsRange = 12,
                 AutoScrollSpeed = 4,
                 QualityDisplay = false,
                 ClassicBilinear = true,
@@ -656,6 +663,8 @@ public class SettingsTests
             Assert.Equal(35, loaded.NormalizedHighlightRange);
             Assert.Equal(22, loaded.ThingHighlightRange);
             Assert.Equal(22, loaded.NormalizedThingHighlightRange);
+            Assert.Equal(12, loaded.SplitLinedefsRange);
+            Assert.Equal(12, loaded.NormalizedSplitLinedefsRange);
             Assert.Equal(4, loaded.AutoScrollSpeed);
             Assert.Equal(4, loaded.NormalizedAutoScrollSpeed);
             Assert.False(loaded.QualityDisplay);

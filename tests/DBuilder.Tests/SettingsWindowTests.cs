@@ -390,6 +390,7 @@ public class SettingsWindowTests
         Assert.NotNull(type.GetField("MouseSpeed", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("HighlightRange", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("ThingHighlightRange", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("SplitLinedefsRange", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("AutoScrollSpeed", BindingFlags.Instance | BindingFlags.Public));
         Assert.Contains("AddField(\"Image brightness\", Settings.ImageBrightnessText(s))", body, StringComparison.Ordinal);
         Assert.Contains("AddField(\"Double-sided alpha\", Settings.DoubleSidedAlphaText(s))", body, StringComparison.Ordinal);
@@ -399,6 +400,7 @@ public class SettingsWindowTests
         Assert.Contains("AddField(\"Mouse speed\", Settings.MouseSpeedText(s))", body, StringComparison.Ordinal);
         Assert.Contains("AddField(\"Highlight within\", Settings.HighlightRangeText(s))", body, StringComparison.Ordinal);
         Assert.Contains("AddField(\"Highlight things within\", Settings.ThingHighlightRangeText(s))", body, StringComparison.Ordinal);
+        Assert.Contains("AddField(\"Split linedefs within\", Settings.SplitLinedefsRangeText(s))", body, StringComparison.Ordinal);
         Assert.Contains("AddField(\"Auto-scroll speed\", Settings.AutoScrollSpeedText(s))", body, StringComparison.Ordinal);
         Assert.Contains("AddCheckBox(\"High quality rendering\", s.QualityDisplay)", body, StringComparison.Ordinal);
         Assert.Contains("AddCheckBox(\"Bilinear filtering in classic modes\", s.ClassicBilinear)", body, StringComparison.Ordinal);
@@ -414,6 +416,7 @@ public class SettingsWindowTests
         Assert.Contains("MouseSpeed = Settings.AcceptMouseSpeedText(_mouseSpeed.Text);", body, StringComparison.Ordinal);
         Assert.Contains("HighlightRange = Settings.AcceptHighlightRangeText(_highlightRange.Text);", body, StringComparison.Ordinal);
         Assert.Contains("ThingHighlightRange = Settings.AcceptThingHighlightRangeText(_thingHighlightRange.Text);", body, StringComparison.Ordinal);
+        Assert.Contains("SplitLinedefsRange = Settings.AcceptSplitLinedefsRangeText(_splitLinedefsRange.Text);", body, StringComparison.Ordinal);
         Assert.Contains("AutoScrollSpeed = Settings.AcceptAutoScrollSpeedText(_autoScrollSpeed.Text);", body, StringComparison.Ordinal);
         Assert.Contains("QualityDisplay = _qualityDisplay.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("ClassicBilinear = _classicBilinear.IsChecked == true;", body, StringComparison.Ordinal);
@@ -429,9 +432,11 @@ public class SettingsWindowTests
         Assert.Contains("_settings.MouseSpeed = dlg.MouseSpeed;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.HighlightRange = dlg.HighlightRange;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.ThingHighlightRange = dlg.ThingHighlightRange;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.SplitLinedefsRange = dlg.SplitLinedefsRange;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.AutoScrollSpeed = dlg.AutoScrollSpeed;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.HighlightRange = _settings.NormalizedHighlightRange;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.ThingHighlightRange = _settings.NormalizedThingHighlightRange;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.SplitLinedefsRange = _settings.NormalizedSplitLinedefsRange;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.AutoScrollSpeed = _settings.NormalizedAutoScrollSpeed;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.QualityDisplay = dlg.QualityDisplay;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.ClassicBilinear = dlg.ClassicBilinear;", mainWindow, StringComparison.Ordinal);
