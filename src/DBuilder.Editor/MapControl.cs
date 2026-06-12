@@ -234,6 +234,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private int _viewDistance = Settings.DefaultViewDistance;
     private int _moveSpeed = Settings.DefaultMoveSpeed;
     private int _mouseSpeed = Settings.DefaultMouseSpeed;
+    private int _highlightRange = Settings.DefaultHighlightRange;
     private int _thingHighlightRange = Settings.DefaultThingHighlightRange;
     private int _autoScrollSpeed;
     private bool _alphaBasedTextureHighlighting = true;
@@ -301,6 +302,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         get => _mouseSpeed;
         set => _mouseSpeed = Math.Clamp(value, Settings.MinMouseSpeed, Settings.MaxMouseSpeed);
+    }
+    public int HighlightRange
+    {
+        get => _highlightRange;
+        set => _highlightRange = Math.Max(0, value);
     }
     public int ThingHighlightRange
     {
@@ -1193,8 +1199,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         return _editMode switch
         {
-            EditMode.Vertices => _map.NearestVertex(_cursorWorld, 10 * _zoom),
-            EditMode.Linedefs => _map.NearestLinedef(_cursorWorld, 8 * _zoom),
+            EditMode.Vertices => _map.NearestVertex(_cursorWorld, HighlightRangeWorld()),
+            EditMode.Linedefs => _map.NearestLinedef(_cursorWorld, HighlightRangeWorld()),
             EditMode.Sectors => _map.GetSectorAt(_cursorWorld),
             EditMode.Things => NearestVisibleThing(_cursorWorld, ThingHighlightRangeWorld()),
             _ => null,
@@ -5837,11 +5843,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             EditMode.Vertices => DBuilder.IO.SmartGridTransform.SmartFromVertices(
                 _grid,
                 _map.GetSelectedVertices(),
-                _map.NearestVertex(_cursorWorld, 10 * _zoom)),
+                _map.NearestVertex(_cursorWorld, HighlightRangeWorld())),
             EditMode.Linedefs => DBuilder.IO.SmartGridTransform.SmartFromLinedefs(
                 _grid,
                 _map.GetSelectedLinedefs(),
-                _map.NearestLinedef(_cursorWorld, 8 * _zoom),
+                _map.NearestLinedef(_cursorWorld, HighlightRangeWorld()),
                 _cursorWorld),
             EditMode.Things => DBuilder.IO.SmartGridTransform.SmartFromThings(
                 _grid,
@@ -8526,7 +8532,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         bool deselect = false;
         List<Linedef> selected = _map.GetSelectedLinedefs();
         int selectedCount = selected.Count;
-        if (selected.Count == 0 && _editMode == EditMode.Linedefs && _map.NearestLinedef(_cursorWorld, 8 * _zoom) is { } highlighted)
+        if (selected.Count == 0 && _editMode == EditMode.Linedefs && _map.NearestLinedef(_cursorWorld, HighlightRangeWorld()) is { } highlighted)
         {
             highlighted.Selected = true;
             selected.Add(highlighted);
@@ -8593,7 +8599,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         bool deselect = false;
         List<Linedef> selected = _map.GetSelectedLinedefs();
-        if (selected.Count == 0 && _editMode == EditMode.Linedefs && _map.NearestLinedef(_cursorWorld, 8 * _zoom) is { } highlighted)
+        if (selected.Count == 0 && _editMode == EditMode.Linedefs && _map.NearestLinedef(_cursorWorld, HighlightRangeWorld()) is { } highlighted)
         {
             highlighted.Selected = true;
             selected.Add(highlighted);
@@ -8664,7 +8670,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         bool deselect = false;
         List<Linedef> selected = _map.GetSelectedLinedefs();
-        if (selected.Count == 0 && _editMode == EditMode.Linedefs && _map.NearestLinedef(_cursorWorld, 8 * _zoom) is { } highlighted)
+        if (selected.Count == 0 && _editMode == EditMode.Linedefs && _map.NearestLinedef(_cursorWorld, HighlightRangeWorld()) is { } highlighted)
         {
             highlighted.Selected = true;
             selected.Add(highlighted);
@@ -8787,7 +8793,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return AlignSectorLinedefs();
 
         List<Linedef> selected = _map.GetSelectedLinedefs();
-        if (selected.Count == 0 && _editMode == EditMode.Linedefs && _map.NearestLinedef(_cursorWorld, 8 * _zoom) is { } highlighted)
+        if (selected.Count == 0 && _editMode == EditMode.Linedefs && _map.NearestLinedef(_cursorWorld, HighlightRangeWorld()) is { } highlighted)
         {
             highlighted.Selected = true;
             selected.Add(highlighted);
@@ -8911,7 +8917,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_editMode == EditMode.Things)
             return InsertThingAt(pos, snap: false);
 
-        var line = _map.NearestLinedef(_cursorWorld, 8 * _zoom);
+        var line = _map.NearestLinedef(_cursorWorld, HighlightRangeWorld());
         if (line != null)
         {
             EditBegun?.Invoke("Insert vertex (split)");
@@ -8994,7 +9000,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             return status;
         }
 
-        Linedef? line = _map.NearestLinedef(cursorWorld, 8 * _zoom);
+        Linedef? line = _map.NearestLinedef(cursorWorld, HighlightRangeWorld());
         if (line == null)
         {
             return "";
@@ -9174,7 +9180,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         if (_map == null) return [];
         List<Vertex> vertices = _map.GetSelectedVertices();
-        if (vertices.Count == 0 && _editMode == EditMode.Vertices && _map.NearestVertex(_cursorWorld, 10 * _zoom) is { } highlighted)
+        if (vertices.Count == 0 && _editMode == EditMode.Vertices && _map.NearestVertex(_cursorWorld, HighlightRangeWorld()) is { } highlighted)
             vertices.Add(highlighted);
         return vertices;
     }
@@ -9183,7 +9189,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         if (_map == null) return [];
         List<Linedef> linedefs = _map.GetSelectedLinedefs();
-        if (linedefs.Count == 0 && _editMode == EditMode.Linedefs && _map.NearestLinedef(_cursorWorld, 8 * _zoom) is { } highlighted)
+        if (linedefs.Count == 0 && _editMode == EditMode.Linedefs && _map.NearestLinedef(_cursorWorld, HighlightRangeWorld()) is { } highlighted)
             linedefs.Add(highlighted);
         return linedefs;
     }
@@ -9371,7 +9377,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
         if (_map != null)
         {
-            var v = _map.NearestVertex(world, 10 * _zoom);
+            var v = _map.NearestVertex(world, HighlightRangeWorld());
             if (v != null) return v.Position;
         }
         return SnapToGrid(world);
@@ -9540,7 +9546,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         if (_editMode == EditMode.Vertices)
         {
-            var v = _map.NearestVertex(world, 10 * _zoom);
+            var v = _map.NearestVertex(world, HighlightRangeWorld());
             if (v != null)
             {
                 if (additive) v.Selected = !v.Selected;
@@ -9615,8 +9621,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private ISelectable? ClassicPaintSelectionTarget(Vec2D world)
         => _map == null ? null : _editMode switch
         {
-            EditMode.Vertices => _map.NearestVertex(world, 10 * _zoom),
-            EditMode.Linedefs => _map.NearestLinedef(world, 8 * _zoom),
+            EditMode.Vertices => _map.NearestVertex(world, HighlightRangeWorld()),
+            EditMode.Linedefs => _map.NearestLinedef(world, HighlightRangeWorld()),
             EditMode.Sectors => _map.GetSectorAt(world),
             EditMode.Things => NearestVisibleThing(world, ThingHighlightRangeWorld()),
             _ => null,
@@ -9900,7 +9906,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         switch (_editMode)
         {
             case EditMode.Vertices:
-                if (_map.NearestVertex(world, 10 * _zoom) is { } v) v.Selected = true;
+                if (_map.NearestVertex(world, HighlightRangeWorld()) is { } v) v.Selected = true;
                 break;
             case EditMode.Things:
                 if (NearestVisibleThing(world, ThingHighlightRangeWorld()) is { } t) t.Selected = true;
@@ -9909,7 +9915,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 if (_map.GetSectorAt(world) is { } s) s.Selected = true;
                 break;
             default:
-                if (_map.NearestLinedef(world, 8 * _zoom) is { } l) l.Selected = true;
+                if (_map.NearestLinedef(world, HighlightRangeWorld()) is { } l) l.Selected = true;
                 break;
         }
         MarkGeometryDirty();
@@ -9930,6 +9936,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         return _map.NearestThingSquareRange(pos, maxRange, _zoom, _fixedThingsScale, t => !ThingHidden2D(t));
     }
 
+    private double HighlightRangeWorld()
+        => _highlightRange * _zoom;
+
     private double ThingHighlightRangeWorld()
         => _thingHighlightRange * _zoom;
 
@@ -9942,7 +9951,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         string desc = "nothing";
         if (_editMode == EditMode.Linedefs)
         {
-            var l = _map.NearestLinedef(world, 8 * _zoom);
+            var l = _map.NearestLinedef(world, HighlightRangeWorld());
             if (l != null) { l.Selected = !l.Selected; desc = $"linedef {_map.Linedefs.IndexOf(l)}"; }
         }
         else if (_editMode == EditMode.Sectors)

@@ -201,6 +201,12 @@ public class SettingsTests
         Assert.Equal(100, Settings.AcceptMouseSpeedText("20"));
         Assert.Equal(2000, Settings.AcceptMouseSpeedText("90000"));
         Assert.Null(Settings.AcceptMouseSpeedText("bad"));
+        Assert.Equal(20, settings.NormalizedHighlightRange);
+        Assert.Equal(0, new Settings { HighlightRange = -5 }.NormalizedHighlightRange);
+        Assert.Equal(25, new Settings { HighlightRange = 25 }.NormalizedHighlightRange);
+        Assert.Equal(0, Settings.AcceptHighlightRangeText("-5"));
+        Assert.Equal(25, Settings.AcceptHighlightRangeText("25"));
+        Assert.Null(Settings.AcceptHighlightRangeText("bad"));
         Assert.Equal(10, settings.NormalizedThingHighlightRange);
         Assert.Equal(0, new Settings { ThingHighlightRange = -5 }.NormalizedThingHighlightRange);
         Assert.Equal(25, new Settings { ThingHighlightRange = 25 }.NormalizedThingHighlightRange);
@@ -449,6 +455,7 @@ public class SettingsTests
                 ViewDistance = 12000,
                 MoveSpeed = 500,
                 MouseSpeed = 300,
+                HighlightRange = 35,
                 ThingHighlightRange = 22,
                 AutoScrollSpeed = 4,
                 QualityDisplay = false,
@@ -645,6 +652,8 @@ public class SettingsTests
             Assert.Equal(500, loaded.NormalizedMoveSpeed);
             Assert.Equal(300, loaded.MouseSpeed);
             Assert.Equal(300, loaded.NormalizedMouseSpeed);
+            Assert.Equal(35, loaded.HighlightRange);
+            Assert.Equal(35, loaded.NormalizedHighlightRange);
             Assert.Equal(22, loaded.ThingHighlightRange);
             Assert.Equal(22, loaded.NormalizedThingHighlightRange);
             Assert.Equal(4, loaded.AutoScrollSpeed);

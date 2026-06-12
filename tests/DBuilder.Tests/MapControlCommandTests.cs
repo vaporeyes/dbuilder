@@ -46,6 +46,20 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void ClassicGeometryHighlightUsesConfiguredUdbRange()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("private int _highlightRange = Settings.DefaultHighlightRange;", body, StringComparison.Ordinal);
+        Assert.Contains("EditMode.Vertices => _map.NearestVertex(_cursorWorld, HighlightRangeWorld()),", body, StringComparison.Ordinal);
+        Assert.Contains("EditMode.Linedefs => _map.NearestLinedef(_cursorWorld, HighlightRangeWorld()),", body, StringComparison.Ordinal);
+        Assert.Contains("_map.NearestVertex(world, HighlightRangeWorld())", body, StringComparison.Ordinal);
+        Assert.Contains("_map.NearestLinedef(world, HighlightRangeWorld())", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("NearestVertex(_cursorWorld, 10 * _zoom)", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("NearestLinedef(_cursorWorld, 8 * _zoom)", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ClassicViewModeDefaultsToUdbNormalSetting()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
@@ -87,7 +101,9 @@ public sealed class MapControlCommandTests
         Assert.Contains("public int ViewDistance", body, StringComparison.Ordinal);
         Assert.Contains("public int MoveSpeed", body, StringComparison.Ordinal);
         Assert.Contains("public int MouseSpeed", body, StringComparison.Ordinal);
+        Assert.Contains("public int HighlightRange", body, StringComparison.Ordinal);
         Assert.Contains("public int ThingHighlightRange", body, StringComparison.Ordinal);
+        Assert.Contains("=> _highlightRange * _zoom;", body, StringComparison.Ordinal);
         Assert.Contains("=> _thingHighlightRange * _zoom;", body, StringComparison.Ordinal);
         Assert.Contains("public bool MarkExtraFloors => _markExtraFloors;", body, StringComparison.Ordinal);
         Assert.Contains("public bool SetMarkExtraFloors(bool enabled)", body, StringComparison.Ordinal);
