@@ -55,6 +55,9 @@ public static class ThingIconRenderPolicy
     public static bool ShouldDrawDirectionTicks(double viewScale, bool thingArrows)
         => !thingArrows && viewScale < CompactMarkerScaleThreshold;
 
+    public static bool ShouldDrawDiscArrow(double viewScale, bool thingArrows)
+        => thingArrows && !UseOverviewMarkers(viewScale, thingArrows);
+
     public static bool ShouldCullOverlappingOverviewThings(double viewScale, bool thingArrows)
         => viewScale >= OverlapCullScaleThreshold;
 

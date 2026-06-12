@@ -276,6 +276,28 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
+    public void OverviewMarkersSuppressArrowModeDiscArrows()
+    {
+        Assert.True(ThingIconRenderPolicy.ShouldDrawDiscArrow(
+            ThingIconRenderPolicy.OverviewMarkerScaleThreshold - 0.01,
+            thingArrows: true));
+        Assert.False(ThingIconRenderPolicy.ShouldDrawDiscArrow(
+            ThingIconRenderPolicy.OverviewMarkerScaleThreshold,
+            thingArrows: true));
+        Assert.False(ThingIconRenderPolicy.ShouldDrawDiscArrow(
+            ThingIconRenderPolicy.OverviewMarkerScaleThreshold - 0.01,
+            thingArrows: false));
+    }
+
+    [Fact]
+    public void MapControlUsesOverviewDiscArrowPolicy()
+    {
+        string source = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("BuildThingDisc(tv, t, gldefs, s, ThingIconRenderPolicy.ShouldDrawDiscArrow(_zoom, _thingArrows))", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SpriteIconsCollapseBeforeTheyBecomeUnreadable()
     {
         Assert.False(ThingIconRenderPolicy.ShouldRenderSpriteIcon(

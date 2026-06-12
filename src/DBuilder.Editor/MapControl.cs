@@ -5231,7 +5231,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 // Arrow mode: Doom-Builder-style colored disc + direction arrow (no sprites).
                 if (_thingArrows)
                 {
-                    BuildThingDisc(tv, t, gldefs, s);
+                    BuildThingDisc(tv, t, gldefs, s, ThingIconRenderPolicy.ShouldDrawDiscArrow(_zoom, _thingArrows));
                     continue;
                 }
 
@@ -5541,7 +5541,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     }
 
     // Appends a Doom-Builder-style colored disc + direction arrow for a thing into the (untextured) list.
-    private void BuildThingDisc(System.Collections.Generic.List<FlatVertex> list, Thing t, Gldefs? gldefs, double radius)
+    private void BuildThingDisc(System.Collections.Generic.List<FlatVertex> list, Thing t, Gldefs? gldefs, double radius, bool drawArrow)
     {
         const int segments = 14;
         var p = t.Position;
@@ -5558,6 +5558,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             var v1 = new Vec2D(p.x + Math.Cos(a1) * radius, p.y + Math.Sin(a1) * radius);
             list.Add(FV(p, disc)); list.Add(FV(v0, disc)); list.Add(FV(v1, disc));
         }
+
+        if (!drawArrow) return;
 
         // Direction arrow (a dark wedge from center toward the thing's angle).
         double rad = t.Angle * Math.PI / 180.0;
