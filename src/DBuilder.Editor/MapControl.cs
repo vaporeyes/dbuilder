@@ -234,6 +234,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private int _viewDistance = Settings.DefaultViewDistance;
     private int _moveSpeed = Settings.DefaultMoveSpeed;
     private int _mouseSpeed = Settings.DefaultMouseSpeed;
+    private int _stitchRange = Settings.DefaultStitchRange;
     private int _highlightRange = Settings.DefaultHighlightRange;
     private int _thingHighlightRange = Settings.DefaultThingHighlightRange;
     private int _splitLinedefsRange = Settings.DefaultSplitLinedefsRange;
@@ -303,6 +304,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         get => _mouseSpeed;
         set => _mouseSpeed = Math.Clamp(value, Settings.MinMouseSpeed, Settings.MaxMouseSpeed);
+    }
+    public int StitchRange
+    {
+        get => _stitchRange;
+        set => _stitchRange = Math.Max(0, value);
     }
     public int HighlightRange
     {
@@ -8117,7 +8123,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private void MergeDraggedVertices()
     {
         if (_map == null) return;
-        double r2 = (8 * _zoom) * (8 * _zoom);
+        double stitchRange = StitchRangeWorld();
+        double r2 = stitchRange * stitchRange;
         bool merged = false;
         foreach (var v in _map.GetSelectedVertices())
         {
@@ -9950,6 +9957,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private double SplitLinedefsRangeWorld()
         => _splitLinedefsRange * _zoom;
+
+    private double StitchRangeWorld()
+        => _stitchRange * _zoom;
 
     private void Pick(Vec2D world, bool additive)
     {

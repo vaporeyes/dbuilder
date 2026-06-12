@@ -77,6 +77,21 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void DraggedVertexMergeUsesConfiguredUdbStitchRange()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int mergeIndex = body.IndexOf("private void MergeDraggedVertices()", StringComparison.Ordinal);
+        int nextMethodIndex = body.IndexOf("// Process-wide clipboard buffer for copy/paste of a selection.", mergeIndex, StringComparison.Ordinal);
+        string method = body[mergeIndex..nextMethodIndex];
+
+        Assert.True(mergeIndex >= 0);
+        Assert.True(nextMethodIndex > mergeIndex);
+        Assert.Contains("double stitchRange = StitchRangeWorld();", method, StringComparison.Ordinal);
+        Assert.Contains("double r2 = stitchRange * stitchRange;", method, StringComparison.Ordinal);
+        Assert.DoesNotContain("8 * _zoom", method, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ClassicViewModeDefaultsToUdbNormalSetting()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
@@ -118,9 +133,11 @@ public sealed class MapControlCommandTests
         Assert.Contains("public int ViewDistance", body, StringComparison.Ordinal);
         Assert.Contains("public int MoveSpeed", body, StringComparison.Ordinal);
         Assert.Contains("public int MouseSpeed", body, StringComparison.Ordinal);
+        Assert.Contains("public int StitchRange", body, StringComparison.Ordinal);
         Assert.Contains("public int HighlightRange", body, StringComparison.Ordinal);
         Assert.Contains("public int ThingHighlightRange", body, StringComparison.Ordinal);
         Assert.Contains("public int SplitLinedefsRange", body, StringComparison.Ordinal);
+        Assert.Contains("=> _stitchRange * _zoom;", body, StringComparison.Ordinal);
         Assert.Contains("=> _highlightRange * _zoom;", body, StringComparison.Ordinal);
         Assert.Contains("=> _thingHighlightRange * _zoom;", body, StringComparison.Ordinal);
         Assert.Contains("=> _splitLinedefsRange * _zoom;", body, StringComparison.Ordinal);

@@ -388,6 +388,7 @@ public class SettingsWindowTests
         Assert.NotNull(type.GetField("ViewDistance", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("MoveSpeed", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("MouseSpeed", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("StitchRange", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("HighlightRange", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("ThingHighlightRange", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("SplitLinedefsRange", BindingFlags.Instance | BindingFlags.Public));
@@ -398,6 +399,7 @@ public class SettingsWindowTests
         Assert.Contains("AddField(\"View distance\", Settings.ViewDistanceText(s))", body, StringComparison.Ordinal);
         Assert.Contains("AddField(\"Move speed\", Settings.MoveSpeedText(s))", body, StringComparison.Ordinal);
         Assert.Contains("AddField(\"Mouse speed\", Settings.MouseSpeedText(s))", body, StringComparison.Ordinal);
+        Assert.Contains("AddField(\"Stitch within\", Settings.StitchRangeText(s))", body, StringComparison.Ordinal);
         Assert.Contains("AddField(\"Highlight within\", Settings.HighlightRangeText(s))", body, StringComparison.Ordinal);
         Assert.Contains("AddField(\"Highlight things within\", Settings.ThingHighlightRangeText(s))", body, StringComparison.Ordinal);
         Assert.Contains("AddField(\"Split linedefs within\", Settings.SplitLinedefsRangeText(s))", body, StringComparison.Ordinal);
@@ -414,6 +416,7 @@ public class SettingsWindowTests
         Assert.Contains("ViewDistance = Settings.AcceptViewDistanceText(_viewDistance.Text);", body, StringComparison.Ordinal);
         Assert.Contains("MoveSpeed = Settings.AcceptMoveSpeedText(_moveSpeed.Text);", body, StringComparison.Ordinal);
         Assert.Contains("MouseSpeed = Settings.AcceptMouseSpeedText(_mouseSpeed.Text);", body, StringComparison.Ordinal);
+        Assert.Contains("StitchRange = Settings.AcceptStitchRangeText(_stitchRange.Text);", body, StringComparison.Ordinal);
         Assert.Contains("HighlightRange = Settings.AcceptHighlightRangeText(_highlightRange.Text);", body, StringComparison.Ordinal);
         Assert.Contains("ThingHighlightRange = Settings.AcceptThingHighlightRangeText(_thingHighlightRange.Text);", body, StringComparison.Ordinal);
         Assert.Contains("SplitLinedefsRange = Settings.AcceptSplitLinedefsRangeText(_splitLinedefsRange.Text);", body, StringComparison.Ordinal);
@@ -430,10 +433,12 @@ public class SettingsWindowTests
         Assert.Contains("_settings.ViewDistance = dlg.ViewDistance;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.MoveSpeed = dlg.MoveSpeed;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.MouseSpeed = dlg.MouseSpeed;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.StitchRange = dlg.StitchRange;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.HighlightRange = dlg.HighlightRange;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.ThingHighlightRange = dlg.ThingHighlightRange;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.SplitLinedefsRange = dlg.SplitLinedefsRange;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.AutoScrollSpeed = dlg.AutoScrollSpeed;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.StitchRange = _settings.NormalizedStitchRange;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.HighlightRange = _settings.NormalizedHighlightRange;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.ThingHighlightRange = _settings.NormalizedThingHighlightRange;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.SplitLinedefsRange = _settings.NormalizedSplitLinedefsRange;", mainWindow, StringComparison.Ordinal);
