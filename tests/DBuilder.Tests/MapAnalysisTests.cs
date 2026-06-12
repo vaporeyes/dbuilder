@@ -2429,6 +2429,36 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void EmptyNamedAcsScriptFieldsUseNameChecksLikeUdb()
+    {
+        var map = Square(true);
+        var line = map.Linedefs[0];
+        line.Action = 80;
+        line.Args[0] = 12;
+        line.Fields["arg0str"] = "";
+        var thing = map.AddThing(new Vector2D(64, 64), 3004);
+        thing.Action = 80;
+        thing.Args[0] = 12;
+        thing.Fields["arg0str"] = "";
+        var ctx = new MapCheckContext
+        {
+            CheckScripts = true,
+            CheckNamedScripts = true,
+            ScriptNumberExists = number => number == 12,
+            ScriptNameExists = _ => false,
+        };
+
+        IReadOnlyList<MapIssue> issues = MapAnalysis.Check(map, ctx);
+        var lineIssue = Assert.Single(issues, i => i.Kind == MapIssueKind.UnknownLinedefScript);
+        var thingIssue = Assert.Single(issues, i => i.Kind == MapIssueKind.UnknownThingScript);
+
+        Assert.Equal("Linedef references unknown ACS script name \"\".", lineIssue.Message);
+        Assert.Equal("Thing references unknown ACS script name \"\".", thingIssue.Message);
+        Assert.Equal("This linedef references unknown ACS script name.", lineIssue.Description);
+        Assert.Equal("This thing references unknown ACS script name.", thingIssue.Description);
+    }
+
+    [Fact]
     public void UnknownThingScriptIssueCanEditThing()
     {
         var map = Square(true);
