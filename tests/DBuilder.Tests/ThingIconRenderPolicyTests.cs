@@ -628,6 +628,22 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
+    public void OverviewCellRepresentativeSelectionKeepsAllSelectedThings()
+    {
+        var representatives = ThingIconRenderPolicy.SelectOverviewCellRepresentatives(new[]
+        {
+            new ThingOverviewCullCandidate<string>("selected-a", (4, 4), Selected: true, MapRadius: 16),
+            new ThingOverviewCullCandidate<string>("selected-b", (5, 4), Selected: true, MapRadius: 64),
+            new ThingOverviewCullCandidate<string>("small", (5, 5), Selected: false, MapRadius: 128),
+        });
+
+        Assert.Equal(2, representatives.Count);
+        Assert.Equal("selected-a", representatives[(4, 4)]);
+        Assert.Equal("selected-b", representatives[(5, 4)]);
+        Assert.DoesNotContain((5, 5), representatives.Keys);
+    }
+
+    [Fact]
     public void OverviewCellRepresentativeSelectionKeepsLargestThingWhenSelectionMatches()
     {
         var representatives = ThingIconRenderPolicy.SelectOverviewCellRepresentatives(new[]

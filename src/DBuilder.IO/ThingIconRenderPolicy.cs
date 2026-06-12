@@ -103,6 +103,18 @@ public static class ThingIconRenderPolicy
             if (candidate.MapRadius < 0 || double.IsNaN(candidate.MapRadius) || double.IsInfinity(candidate.MapRadius))
                 throw new ArgumentOutOfRangeException(nameof(candidates));
 
+            if (candidate.Selected)
+            {
+                foreach (var occupiedCell in representatives.Keys.ToArray())
+                {
+                    if (!representatives[occupiedCell].Selected && OverviewCullCellsOverlap(candidate.Cell, occupiedCell))
+                        representatives.Remove(occupiedCell);
+                }
+
+                representatives[candidate.Cell] = candidate;
+                continue;
+            }
+
             ThingOverviewCullCandidate<TThing>? strongestOverlap = null;
             foreach (var pair in representatives)
             {
