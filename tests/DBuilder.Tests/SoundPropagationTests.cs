@@ -662,6 +662,8 @@ public class SoundPropagationTests
         Assert.True(rows[2].Warning);
         Assert.Equal($"Thing {first.Index}", rows[1].Text);
         Assert.Equal($"Thing {second.Index}", rows[2].Text);
+        Assert.Equal(SoundEnvironmentModeModel.MultipleActiveThingsWarning, rows[1].WarningMessage);
+        Assert.Equal(SoundEnvironmentModeModel.MultipleActiveThingsWarning, rows[2].WarningMessage);
 
         IReadOnlyList<SoundEnvironmentRow> warnings = model.Rows(warningsOnly: true);
         Assert.Equal(rows, warnings);
@@ -696,6 +698,7 @@ public class SoundPropagationTests
         Assert.True(rows[1].Warning);
         Assert.Equal(line, rows[1].Linedef);
         Assert.Equal($"Linedef {line.Index}", rows[1].Text);
+        Assert.Equal(SoundEnvironmentModeModel.SingleSidedBoundaryWarning, rows[1].WarningMessage);
     }
 
     [Fact]
@@ -711,6 +714,33 @@ public class SoundPropagationTests
 
         SoundEnvironmentRow row = Assert.Single(model.Rows(), row => row.Thing == thing);
         Assert.Equal($"Thing {thing.Index} (dormant)", row.Text);
+        Assert.Null(row.WarningMessage);
+    }
+
+    [Fact]
+    public void SoundEnvironmentRowsExplainSameEnvironmentBoundaryWarning()
+    {
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        Linedef line = map.AddLinedef(
+            map.AddVertex(new Vector2D(0, 0)),
+            map.AddVertex(new Vector2D(64, 0)));
+        map.AddSidedef(line, true, sector);
+        map.AddSidedef(line, false, sector);
+        var environment = new SoundEnvironmentInfo(
+            new HashSet<Sector>(new[] { sector }, ReferenceEqualityComparer.Instance),
+            Array.Empty<Thing>(),
+            new[] { line },
+            0xFF010203u,
+            1,
+            "Test Environment");
+        var model = new SoundEnvironmentModeModel(
+            new[] { environment },
+            new HashSet<Sector>(ReferenceEqualityComparer.Instance),
+            new HashSet<Linedef>(new[] { line }, ReferenceEqualityComparer.Instance));
+
+        SoundEnvironmentRow row = Assert.Single(model.Rows(warningsOnly: true), row => row.Linedef == line);
+        Assert.Equal(SoundEnvironmentModeModel.SameEnvironmentBoundaryWarning, row.WarningMessage);
     }
 
     [Fact]

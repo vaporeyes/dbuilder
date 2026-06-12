@@ -1355,6 +1355,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Block sound propagation across closed-height two-sided lines.
   - [x] Honor UDMF `blocksound` flags in editor sound reachability tracing.
   - [x] Match UDB sound environment tree labels for things and boundary linedefs.
+  - [x] Expose UDB sound environment tree warning tooltip text in row models.
 - [ ] Port 3D floor editing behavior fully.
   - [x] Add UDB action descriptions to friendly 3D floor and slope mode command ids.
 - [x] Port geometry cleanup tools.

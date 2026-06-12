@@ -211,6 +211,7 @@ public sealed record SoundEnvironmentRow(
     string Text,
     int Depth,
     bool Warning,
+    string? WarningMessage,
     uint Color,
     SoundEnvironmentInfo? Environment,
     Thing? Thing,
@@ -245,6 +246,9 @@ public sealed record SoundEnvironmentModeModel(
     public const string DockerId = "soundenvironments";
     public const string DockerTitle = "Sound Environments";
     public const string ShowWarningsOnlyText = "Show nodes with warnings only";
+    public const string MultipleActiveThingsWarning = "More than one thing in this\nsound environment is set to be\nactive. Set all but one thing\nto dormant.";
+    public const string SingleSidedBoundaryWarning = "This line is single-sided, but has\nthe sound boundary flag set.";
+    public const string SameEnvironmentBoundaryWarning = "More than one thing in this\nThe sectors on both sides of\nthe line belong to the same\nsound environment.";
 
     public string HeaderText(int visibleRowCount)
         => visibleRowCount == 0
@@ -269,6 +273,7 @@ public sealed record SoundEnvironmentModeModel(
                 Text: $"{environment.Name}  Sectors: {environment.Sectors.Count}, things: {environment.Things.Count}, boundary lines: {environment.BoundaryLinedefs.Count}",
                 Depth: 0,
                 Warning: rowWarnings > 0,
+                WarningMessage: null,
                 Color: environment.Color,
                 Environment: environment,
                 Thing: null,
@@ -283,6 +288,7 @@ public sealed record SoundEnvironmentModeModel(
                     Text: $"Thing {thing.Index}{dormant}",
                     Depth: 1,
                     Warning: warning,
+                    WarningMessage: warning ? MultipleActiveThingsWarning : null,
                     Color: environment.Color,
                     Environment: environment,
                     Thing: thing,
@@ -291,12 +297,14 @@ public sealed record SoundEnvironmentModeModel(
 
             foreach (Linedef line in environment.BoundaryLinedefs)
             {
-                bool warning = LineHasWarning(environment, line);
+                string? warningMessage = LineWarningMessage(environment, line);
+                bool warning = warningMessage != null;
                 if (warningsOnly && !warning) continue;
                 rows.Add(new SoundEnvironmentRow(
                     Text: $"Linedef {line.Index}",
                     Depth: 1,
                     Warning: warning,
+                    WarningMessage: warningMessage,
                     Color: environment.Color,
                     Environment: environment,
                     Thing: null,
@@ -354,9 +362,14 @@ public sealed record SoundEnvironmentModeModel(
         => environment.Things.Count(thing => !SoundPropagation.ThingDormant(thing, udmf));
 
     private static bool LineHasWarning(SoundEnvironmentInfo environment, Linedef line)
+        => LineWarningMessage(environment, line) != null;
+
+    private static string? LineWarningMessage(SoundEnvironmentInfo environment, Linedef line)
     {
-        if (line.Front?.Sector == null || line.Back?.Sector == null) return true;
-        return environment.Sectors.Contains(line.Front.Sector) && environment.Sectors.Contains(line.Back.Sector);
+        if (line.Front?.Sector == null || line.Back?.Sector == null) return SingleSidedBoundaryWarning;
+        if (environment.Sectors.Contains(line.Front.Sector) && environment.Sectors.Contains(line.Back.Sector))
+            return SameEnvironmentBoundaryWarning;
+        return null;
     }
 
     private static string Label(int count, string singular)
