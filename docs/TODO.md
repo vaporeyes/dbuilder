@@ -1424,6 +1424,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add tested docker hide-state planning for command aliases and active tab fallback.
   - [x] Add tested docker toggle-state planning for command aliases and stale state cleanup.
   - [x] Add tested persisted tabbed docker layout state read/write helpers.
+  - [x] Persist tabbed docker layout state through editor settings.
 - [x] Port info panels for vertices, linedefs, sidedefs, sectors, and things.
   - [x] Add structured single-vertex info panel details.
   - [x] Add tested single-vertex info panel model.

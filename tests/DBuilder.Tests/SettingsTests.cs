@@ -399,6 +399,12 @@ public class SettingsTests
                     [UsdfDialogEditorModel.SizeHeightKey] = 555,
                     [UsdfDialogEditorModel.WindowStateKey] = UsdfDialogEditorModel.NormalWindowState,
                 },
+                TabbedDockerLayoutSettings = new Dictionary<string, object?>
+                {
+                    ["activedockers"] = new[] { "window.comments-panel", "window.show-errors" },
+                    ["activerighttab"] = "comments",
+                    ["activebottomtab"] = "error-log",
+                },
                 MapErrorCheckSettings = new Dictionary<string, bool>(StringComparer.Ordinal)
                 {
                     ["errorchecks.checktexturealignment"] = true,
@@ -578,6 +584,9 @@ public class SettingsTests
             Assert.Equal(
                 UsdfDialogEditorModel.NormalWindowState.ToString(),
                 loaded.UsdfDialogEditorSettings[UsdfDialogEditorModel.WindowStateKey]?.ToString());
+            Assert.True(loaded.TabbedDockerLayoutSettings.ContainsKey("activedockers"));
+            Assert.Equal("comments", loaded.TabbedDockerLayoutSettings["activerighttab"]?.ToString());
+            Assert.Equal("error-log", loaded.TabbedDockerLayoutSettings["activebottomtab"]?.ToString());
             Assert.True(loaded.MapErrorCheckSettings["errorchecks.checktexturealignment"]);
             Assert.False(loaded.MapErrorCheckSettings["errorchecks.checkstuckthings"]);
             Assert.Equal(12, loaded.MaxRecentFiles);
@@ -925,6 +934,7 @@ public class SettingsTests
         Assert.NotNull(s);
         Assert.Empty(s.RecentFiles);
         Assert.Empty(s.ShortcutOverrides);
+        Assert.Empty(s.TabbedDockerLayoutSettings);
         Assert.Null(s.ConfigDir);
         Assert.Equal(MergeGeometryMode.Replace, s.NormalizedMergeGeometryMode);
         Assert.Equal(PasteTagMode.Keep, s.NormalizedPasteOptions.ChangeTags);
