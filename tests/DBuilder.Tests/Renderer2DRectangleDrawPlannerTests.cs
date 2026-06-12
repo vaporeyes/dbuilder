@@ -42,6 +42,7 @@ public sealed class Renderer2DRectangleDrawPlannerTests
         Assert.Equal(ShaderName.display2d_normal, plan.Shader);
         Assert.True(plan.BindWhiteTexture);
         Assert.False(plan.BindProvidedTexture);
+        Assert.True(plan.UseClassicBilinear);
         Assert.Equal(PrimitiveType.TriangleStrip, plan.PrimitiveType);
         AssertQuad(quad, 2, 20, 22, 40, 0x123456);
     }
@@ -87,6 +88,7 @@ public sealed class Renderer2DRectangleDrawPlannerTests
         Assert.Equal(ShaderName.display2d_normal, plan.Shader);
         Assert.False(plan.BindWhiteTexture);
         Assert.True(plan.BindProvidedTexture);
+        Assert.True(plan.UseClassicBilinear);
         Assert.Equal(PrimitiveType.TriangleStrip, plan.PrimitiveType);
         AssertQuad(quad, 2, 20, 22, 40, 0x123456);
     }
@@ -116,6 +118,7 @@ public sealed class Renderer2DRectangleDrawPlannerTests
         Assert.Equal(ShaderName.display2d_normal, plan.Shader);
         Assert.True(plan.BindWhiteTexture);
         Assert.False(plan.BindProvidedTexture);
+        Assert.True(plan.UseClassicBilinear);
         Assert.Equal(PrimitiveType.TriangleStrip, plan.PrimitiveType);
         AssertQuad(plan.Quads[0], 2, 20, 22, 18, 0x123456);
         AssertQuad(plan.Quads[1], 2, 42, 22, 40, 0x123456);
@@ -223,6 +226,7 @@ public sealed class Renderer2DRectangleDrawPlannerTests
         Assert.Contains("graphics.SetShader(ShaderName.display2d_normal);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(General.Map.Data.WhiteTexture.Texture);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(texture.Texture);", source, StringComparison.Ordinal);
+        Assert.Contains("SetDisplay2DSettings(1f, 1f, 0f, 1f, General.Settings.ClassicBilinear);", source, StringComparison.Ordinal);
         Assert.Contains("quads[3].Render(graphics);", source, StringComparison.Ordinal);
     }
 

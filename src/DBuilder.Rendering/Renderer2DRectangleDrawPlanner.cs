@@ -14,6 +14,7 @@ public readonly record struct Renderer2DRectangleDrawPlan(
     ShaderName Shader,
     bool BindWhiteTexture,
     bool BindProvidedTexture,
+    bool UseClassicBilinear,
     PrimitiveType PrimitiveType);
 
 public static class Renderer2DRectangleDrawPlanner
@@ -118,6 +119,7 @@ public static class Renderer2DRectangleDrawPlanner
             Shader: ShaderName.display2d_normal,
             BindWhiteTexture: bindWhiteTexture,
             BindProvidedTexture: bindProvidedTexture,
+            UseClassicBilinear: true,
             PrimitiveType: PrimitiveType.TriangleStrip);
     }
 
