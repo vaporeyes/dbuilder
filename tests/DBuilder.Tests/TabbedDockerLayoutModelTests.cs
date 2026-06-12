@@ -1,6 +1,7 @@
 // ABOUTME: Verifies the shared tabbed docker layout metadata for existing editor panels.
 // ABOUTME: Keeps UDB-style docker grouping stable while the Avalonia shell grows around it.
 
+using System.Text.Json;
 using DBuilder.Editor;
 using DBuilder.IO;
 
@@ -263,6 +264,62 @@ public sealed class TabbedDockerLayoutModelTests
             "also-missing");
 
         Assert.Equal(new[] { "window.show-errors" }, state.ActiveCommandIds);
+        Assert.Equal("error-log", state.ActiveTabKeysByArea[TabbedDockerArea.Bottom]);
+    }
+
+    [Fact]
+    public void SettingsRoundTripPreservesActiveDockersAndTabs()
+    {
+        var state = new TabbedDockerLayoutState(
+            ["window.tag-explorer", "window.comments-panel", "window.show-errors"],
+            new Dictionary<TabbedDockerArea, string>
+            {
+                [TabbedDockerArea.Right] = "comments",
+                [TabbedDockerArea.Bottom] = "error-log",
+            });
+
+        IReadOnlyDictionary<string, object> written = TabbedDockerLayoutModel.WriteSettings(state);
+        TabbedDockerLayoutState restored = TabbedDockerLayoutModel.ReadSettings(
+            written.ToDictionary(pair => pair.Key, pair => (object?)pair.Value, StringComparer.Ordinal));
+
+        Assert.Equal(state.ActiveCommandIds, restored.ActiveCommandIds);
+        Assert.Equal(state.ActiveTabKeysByArea, restored.ActiveTabKeysByArea);
+    }
+
+    [Fact]
+    public void ReadSettingsCanonicalizesAliasesAndDropsStaleActiveTabs()
+    {
+        TabbedDockerLayoutState state = TabbedDockerLayoutModel.ReadSettings(new Dictionary<string, object?>
+        {
+            [TabbedDockerLayoutModel.ActiveDockersSettingKey] = new[] { "window.showerrors", "missing", "window.openscripteditor" },
+            [TabbedDockerLayoutModel.ActiveRightTabSettingKey] = "comments",
+            [TabbedDockerLayoutModel.ActiveBottomTabSettingKey] = "missing",
+        });
+
+        Assert.Equal(new[] { "window.udbscripts", "window.show-errors" }, state.ActiveCommandIds);
+        Assert.Equal("scripts", state.ActiveTabKeysByArea[TabbedDockerArea.Right]);
+        Assert.Equal("error-log", state.ActiveTabKeysByArea[TabbedDockerArea.Bottom]);
+    }
+
+    [Fact]
+    public void ReadSettingsAcceptsJsonElementValues()
+    {
+        using JsonDocument document = JsonDocument.Parse(
+            """
+            {
+              "activedockers": [ "window.comments-panel", "window.showerrors" ],
+              "activerighttab": "comments",
+              "activebottomtab": "error-log"
+            }
+            """);
+        Dictionary<string, object?> settings = document.RootElement
+            .EnumerateObject()
+            .ToDictionary(property => property.Name, property => (object?)property.Value, StringComparer.Ordinal);
+
+        TabbedDockerLayoutState state = TabbedDockerLayoutModel.ReadSettings(settings);
+
+        Assert.Equal(new[] { "window.comments-panel", "window.show-errors" }, state.ActiveCommandIds);
+        Assert.Equal("comments", state.ActiveTabKeysByArea[TabbedDockerArea.Right]);
         Assert.Equal("error-log", state.ActiveTabKeysByArea[TabbedDockerArea.Bottom]);
     }
 

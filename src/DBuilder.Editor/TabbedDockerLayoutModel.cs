@@ -1,6 +1,7 @@
 // ABOUTME: Models the editor's tabbed docker layout without depending on Avalonia controls.
 // ABOUTME: Provides stable docker descriptors for the existing UDB-style panel commands.
 
+using System.Text.Json;
 using DBuilder.IO;
 using DBuilder.Map;
 
@@ -32,6 +33,11 @@ public sealed record TabbedDockerLayoutState(
 
 public static class TabbedDockerLayoutModel
 {
+    public const string ActiveDockersSettingKey = "activedockers";
+    public const string ActiveLeftTabSettingKey = "activelefttab";
+    public const string ActiveRightTabSettingKey = "activerighttab";
+    public const string ActiveBottomTabSettingKey = "activebottomtab";
+
     public static IReadOnlyList<TabbedDockerDescriptor> All { get; } = new[]
     {
         Descriptor("tag-explorer", TagExplorerModel.DockerTitle, "window.tag-explorer", TabbedDockerArea.Right, 10),
@@ -150,6 +156,35 @@ public static class TabbedDockerLayoutModel
             : ShowDocker(activeCommandIds, activeTabKeysByArea, commandId);
     }
 
+    public static TabbedDockerLayoutState ReadSettings(IReadOnlyDictionary<string, object?> settings)
+    {
+        string[] activeCommandIds = ReadStringList(settings.TryGetValue(ActiveDockersSettingKey, out object? active)
+            ? active
+            : null);
+        var activeTabs = new Dictionary<TabbedDockerArea, string>();
+        AddActiveTab(settings, activeTabs, TabbedDockerArea.Left, ActiveLeftTabSettingKey);
+        AddActiveTab(settings, activeTabs, TabbedDockerArea.Right, ActiveRightTabSettingKey);
+        AddActiveTab(settings, activeTabs, TabbedDockerArea.Bottom, ActiveBottomTabSettingKey);
+
+        IReadOnlyList<TabbedDockerGroup> groups = BuildGroups(activeCommandIds, activeTabs);
+        return new TabbedDockerLayoutState(
+            groups.SelectMany(group => group.Tabs).Select(tab => tab.CommandId).ToArray(),
+            groups.ToDictionary(group => group.Area, group => group.ActiveTabKey ?? group.Tabs[0].Key));
+    }
+
+    public static IReadOnlyDictionary<string, object> WriteSettings(TabbedDockerLayoutState state)
+    {
+        var settings = new Dictionary<string, object>(StringComparer.Ordinal)
+        {
+            [ActiveDockersSettingKey] = state.ActiveCommandIds.ToArray(),
+        };
+
+        foreach (var pair in state.ActiveTabKeysByArea)
+            settings[ActiveTabSettingKey(pair.Key)] = pair.Value;
+
+        return settings;
+    }
+
     private static string? ActiveTabKey(
         TabbedDockerArea area,
         IReadOnlyList<TabbedDockerDescriptor> tabs,
@@ -165,6 +200,57 @@ public static class TabbedDockerLayoutModel
 
         return tabs[0].Key;
     }
+
+    private static void AddActiveTab(
+        IReadOnlyDictionary<string, object?> settings,
+        Dictionary<TabbedDockerArea, string> activeTabs,
+        TabbedDockerArea area,
+        string key)
+    {
+        if (!settings.TryGetValue(key, out object? value)) return;
+        string? text = ReadString(value);
+        if (!string.IsNullOrWhiteSpace(text))
+            activeTabs[area] = text;
+    }
+
+    private static string ActiveTabSettingKey(TabbedDockerArea area)
+        => area switch
+        {
+            TabbedDockerArea.Left => ActiveLeftTabSettingKey,
+            TabbedDockerArea.Right => ActiveRightTabSettingKey,
+            TabbedDockerArea.Bottom => ActiveBottomTabSettingKey,
+            _ => throw new ArgumentOutOfRangeException(nameof(area)),
+        };
+
+    private static string[] ReadStringList(object? value)
+    {
+        if (value is null) return [];
+        if (value is string text)
+            return text.Split([',', ';', '|'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (value is IEnumerable<string> strings)
+            return strings.Where(item => !string.IsNullOrWhiteSpace(item)).ToArray();
+        if (value is JsonElement element)
+        {
+            if (element.ValueKind == JsonValueKind.String)
+                return ReadStringList(element.GetString());
+            if (element.ValueKind == JsonValueKind.Array)
+                return element.EnumerateArray()
+                    .Select(item => ReadString(item))
+                    .Where(item => !string.IsNullOrWhiteSpace(item))
+                    .Select(item => item!)
+                    .ToArray();
+        }
+
+        return [];
+    }
+
+    private static string? ReadString(object? value)
+        => value switch
+        {
+            string text => text,
+            JsonElement { ValueKind: JsonValueKind.String } element => element.GetString(),
+            _ => null,
+        };
 
     private static TabbedDockerDescriptor Descriptor(
         string key,
