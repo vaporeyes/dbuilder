@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using DBuilder.Geometry;
+using DBuilder.IO;
 using DBuilder.Map;
 
 namespace DBuilder.Tests;
@@ -2011,6 +2012,55 @@ public class MapAnalysisTests
         Assert.Equal("Remove Action", fix.Label);
         Assert.True(fix.Apply(map));
         Assert.Equal(0, map.Linedefs[0].Action);
+    }
+
+    [Fact]
+    public void UnknownActionChecksTreatGeneralizedTypesAsKnownLikeUdb()
+    {
+        var config = GameConfiguration.FromText("""
+            gen_linedeftypes
+            {
+                floors
+                {
+                    title = "Floor";
+                    offset = 24576;
+                    length = 8192;
+                    trigger
+                    {
+                        0 = "Walk Over Once";
+                    }
+                }
+            }
+            generalizedsectors = true;
+            gen_sectortypes
+            {
+                damage
+                {
+                    0 = "None";
+                    32 = "5 per second";
+                }
+            }
+            """);
+        var map = Square(true);
+        map.Linedefs[0].Action = 24576;
+        map.Sectors[0].Special = 32;
+        var thing = map.AddThing(new Vector2D(50, 50), 1);
+        thing.Action = 24576;
+        var ctx = new MapCheckContext
+        {
+            ActionKnown = action => config.GetLinedefAction(action) != null
+                || config.DescribeGeneralizedLinedef(action) != null
+                || BoomGeneralized.IsGeneralized(action),
+            SectorEffectKnown = effect => config.GetSectorEffect(effect) != null
+                || config.IsGeneralizedSectorEffect(effect),
+            CheckThingActions = true,
+        };
+
+        var issues = MapAnalysis.Check(map, ctx);
+
+        Assert.DoesNotContain(issues, issue => issue.Kind == MapIssueKind.UnknownAction);
+        Assert.DoesNotContain(issues, issue => issue.Kind == MapIssueKind.UnknownThingAction);
+        Assert.DoesNotContain(issues, issue => issue.Kind == MapIssueKind.UnknownSectorEffect);
     }
 
     [Fact]

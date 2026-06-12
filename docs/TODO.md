@@ -2512,6 +2512,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add compatibility coverage for UDB error-checker descriptor attributes.
   - [x] Suppress empty-sector results through the UDB invalid-sector result family.
   - [x] Skip obsolete thing checks when the game configuration lacks DECORATE support.
+  - [x] Add compatibility coverage for UDB generalized action and sector effect exclusions.
   - [x] Add compatibility coverage for UDB ACS script action specials.
   - [x] Add compatibility coverage for UDB named ACS script field detection.
   - [x] Match UDB empty named ACS script field error checks.
