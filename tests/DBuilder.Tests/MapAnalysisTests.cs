@@ -143,6 +143,24 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void UnknownScriptChecksMatchUdbNamedArgumentFieldDetectionWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string path = Path.Combine(udbRoot, "Source", "Plugins", "BuilderModes", "ErrorChecks", "CheckUnknownScripts.cs");
+        Assert.True(File.Exists(path), $"Expected UDB CheckUnknownScripts.cs at {path}.");
+
+        string source = File.ReadAllText(path);
+
+        Assert.Contains("l.Fields.ContainsKey(\"arg0str\")", source, StringComparison.Ordinal);
+        Assert.Contains("t.Fields.ContainsKey(\"arg0str\")", source, StringComparison.Ordinal);
+        Assert.Contains("General.Map.ScriptNameExists(scriptname)", source, StringComparison.Ordinal);
+        Assert.Contains("General.Map.ScriptNumberExists(l.Args[0])", source, StringComparison.Ordinal);
+        Assert.Contains("General.Map.ScriptNumberExists(t.Args[0])", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ModeRedrawPlanMatchesUdbLayerSequence()
     {
         MapAnalysisModeRedrawPlan plan = MapAnalysis.RedrawPlan;
