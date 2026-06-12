@@ -419,6 +419,14 @@ public sealed class ThingRadiusTypeHandler : IntegerTypeHandler
     }
 }
 
+public sealed class ThingHeightTypeHandler : IntegerTypeHandler
+{
+    public ThingHeightTypeHandler(UniversalTypeInfo typeInfo, object? defaultValue = null, bool isForArgument = false)
+        : base(typeInfo, defaultValue, isForArgument)
+    {
+    }
+}
+
 public class TagTypeHandler : UniversalTypeHandler
 {
     private EnumListInfo values = new("");
@@ -678,7 +686,7 @@ public sealed class EnumOptionTypeHandler : UniversalTypeHandler
         => value?.ToString() ?? "0";
 }
 
-public sealed class EnumBitsTypeHandler : UniversalTypeHandler
+public class EnumBitsTypeHandler : UniversalTypeHandler
 {
     private readonly EnumListInfo values;
     private int value;
@@ -713,6 +721,24 @@ public sealed class EnumBitsTypeHandler : UniversalTypeHandler
         if (value is int or float or double or bool) return Convert.ToInt32(value, CultureInfo.CurrentCulture);
         return int.TryParse(value.ToString(), NumberStyles.Integer, CultureInfo.CurrentCulture, out int parsed) ? parsed : 0;
     }
+}
+
+public sealed class EnumOptionAndBitsTypeHandler : EnumBitsTypeHandler
+{
+    private readonly EnumListInfo flags;
+
+    public EnumOptionAndBitsTypeHandler(
+        UniversalTypeInfo typeInfo,
+        object? defaultValue = null,
+        bool isForArgument = false,
+        EnumListInfo? values = null,
+        EnumListInfo? flags = null)
+        : base(typeInfo, defaultValue, isForArgument, values)
+    {
+        this.flags = flags ?? new EnumListInfo("");
+    }
+
+    public EnumListInfo Flags => flags;
 }
 
 public sealed class EnumStringsTypeHandler : UniversalTypeHandler

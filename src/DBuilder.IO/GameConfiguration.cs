@@ -2053,7 +2053,7 @@ public sealed class GameConfiguration
     }
 
     public UniversalTypeHandler CreateArgumentHandler(ArgInfo arg)
-        => Types.CreateHandler(arg.Type, arg.DefaultValue, isForArgument: true, GetArgEnumList(arg));
+        => Types.CreateHandler(arg.Type, arg.DefaultValue, isForArgument: true, GetArgEnumList(arg), GetArgFlagsList(arg));
 
     public UniversalTypeHandler CreateFieldHandler(UniversalFieldInfo field)
         => Types.CreateHandler(field.Type, field.DefaultValue, isForArgument: false, GetFieldEnumList(field));

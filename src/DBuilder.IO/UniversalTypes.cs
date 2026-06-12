@@ -94,7 +94,8 @@ public sealed class UniversalTypeRegistry
         int index,
         object? defaultValue = null,
         bool isForArgument = false,
-        EnumListInfo? enumList = null)
+        EnumListInfo? enumList = null,
+        EnumListInfo? flagsList = null)
     {
         var info = Get(index);
         return info.Type switch
@@ -123,7 +124,9 @@ public sealed class UniversalTypeRegistry
             UniversalType.RandomFloat when info.Index >= 0 => new RandomFloatTypeHandler(info, defaultValue, isForArgument),
             UniversalType.AngleByte when info.Index >= 0 => new AngleByteTypeHandler(info, defaultValue, isForArgument),
             UniversalType.ThingRadius when info.Index >= 0 => new ThingRadiusTypeHandler(info, defaultValue, isForArgument),
+            UniversalType.ThingHeight when info.Index >= 0 => new ThingHeightTypeHandler(info, defaultValue, isForArgument),
             UniversalType.PolyobjectNumber when info.Index >= 0 => new PolyobjectNumberTypeHandler(info, defaultValue, isForArgument, enumList),
+            UniversalType.EnumOptionAndBits when info.Index >= 0 => new EnumOptionAndBitsTypeHandler(info, defaultValue, isForArgument, enumList, flagsList),
             _ => new NullTypeHandler(info, defaultValue, isForArgument),
         };
     }
@@ -132,8 +135,9 @@ public sealed class UniversalTypeRegistry
         UniversalType type,
         object? defaultValue = null,
         bool isForArgument = false,
-        EnumListInfo? enumList = null)
-        => CreateHandler((int)type, defaultValue, isForArgument, enumList);
+        EnumListInfo? enumList = null,
+        EnumListInfo? flagsList = null)
+        => CreateHandler((int)type, defaultValue, isForArgument, enumList, flagsList);
 
     public UniversalTypeHandler CreateArgumentHandler(ArgInfo arg)
         => CreateHandler(arg.Type, arg.DefaultValue, isForArgument: true);

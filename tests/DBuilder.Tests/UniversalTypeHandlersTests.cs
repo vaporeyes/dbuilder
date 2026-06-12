@@ -300,6 +300,27 @@ public class UniversalTypeHandlersTests
     }
 
     [Fact]
+    public void ThingHeightHandlerCoercesIntegerValuesLikeUdb()
+    {
+        var handler = (ThingHeightTypeHandler)new UniversalTypeRegistry()
+            .CreateHandler(UniversalType.ThingHeight, defaultValue: 56);
+
+        Assert.Equal((int)UniversalType.ThingHeight, handler.Index);
+        Assert.Equal(56, handler.DefaultValue);
+        Assert.Equal(56, handler.GetValue());
+        Assert.Equal("56", handler.GetStringValue());
+
+        handler.SetValue("72");
+        Assert.Equal(72, handler.GetIntValue());
+
+        handler.SetValue(false);
+        Assert.Equal(0, handler.GetValue());
+
+        handler.SetValue("not a height");
+        Assert.Equal(0, handler.GetValue());
+    }
+
+    [Fact]
     public void ThingTagHandlerMatchesEnumValuesAndTitlesLikeUdb()
     {
         var values = GameConfiguration.FromText("""
@@ -591,6 +612,43 @@ public class UniversalTypeHandlersTests
     }
 
     [Fact]
+    public void EnumOptionAndBitsHandlerKeepsOptionAndFlagListsLikeUdb()
+    {
+        var config = GameConfiguration.FromText("""
+            enums
+            {
+                options
+                {
+                    0 = "None";
+                    16 = "Normal";
+                }
+                flags
+                {
+                    1 = "Silent";
+                    2 = "Repeatable";
+                }
+            }
+            """);
+        EnumListInfo options = config.GetEnumList("options")!;
+        EnumListInfo flags = config.GetEnumList("flags")!;
+        var handler = (EnumOptionAndBitsTypeHandler)new UniversalTypeRegistry()
+            .CreateHandler(UniversalType.EnumOptionAndBits, defaultValue: 17, enumList: options, flagsList: flags);
+
+        Assert.True(handler.IsBrowseable);
+        Assert.Equal((int)UniversalType.EnumOptionAndBits, handler.Index);
+        Assert.Equal(17, handler.DefaultValue);
+        Assert.Equal(17, handler.GetValue());
+        Assert.Same(options, handler.Values);
+        Assert.Same(flags, handler.Flags);
+        Assert.Equal("Normal", handler.Values.GetByEnumIndex("16")!.Title);
+        Assert.Equal("Silent", handler.Flags.GetByEnumIndex("1")!.Title);
+
+        handler.SetValue("18");
+        Assert.Equal(18, handler.GetIntValue());
+        Assert.Equal("18", handler.GetStringValue());
+    }
+
+    [Fact]
     public void EnumStringsHandlerMatchesStringValuesAndTitlesLikeUdb()
     {
         var values = GameConfiguration.FromText("""
@@ -713,6 +771,14 @@ public class UniversalTypeHandlersTests
                             enum = "renderstyles";
                             default = "Add";
                         }
+                        arg3
+                        {
+                            title = "Options and flags";
+                            type = 26;
+                            enum = "speeds";
+                            flags = "flags";
+                            default = 17;
+                        }
                     }
                 }
             }
@@ -746,6 +812,11 @@ public class UniversalTypeHandlersTests
         var stringsHandler = (EnumStringsTypeHandler)config.CreateArgumentHandler(config.GetLinedefAction(1)!.Args[2]);
         Assert.Equal("Add", stringsHandler.GetValue());
         Assert.Equal("Additive", stringsHandler.GetStringValue());
+
+        var optionBitsHandler = (EnumOptionAndBitsTypeHandler)config.CreateArgumentHandler(config.GetLinedefAction(1)!.Args[3]);
+        Assert.Equal(17, optionBitsHandler.GetValue());
+        Assert.Equal("Normal", optionBitsHandler.Values.GetByEnumIndex("16")!.Title);
+        Assert.Equal("Silent", optionBitsHandler.Flags.GetByEnumIndex("1")!.Title);
 
         var field = config.UniversalFields["thing"]["attitude"];
         var fieldHandler = (EnumOptionTypeHandler)config.CreateFieldHandler(field);
