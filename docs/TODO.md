@@ -2897,6 +2897,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript compatibility coverage for the bundled Make Door workflow.
   - [x] Add UDBScript compatibility coverage for the bundled Create PolyObject workflow.
   - [x] Add UDBScript compatibility coverage for the bundled Create Line Portal workflow.
+  - [x] Add UDBScript compatibility coverage for the bundled Voodoo Doll Closet workflow.
 
 ## Specialized Plugin Detail
 

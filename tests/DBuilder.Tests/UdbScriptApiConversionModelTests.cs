@@ -3473,6 +3473,66 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void CommonUdbScriptVoodooDollClosetWorkflowUsesMapAndThingWrappersTogether()
+    {
+        var map = new MapSet();
+        Sector frontSector = map.AddSector();
+        Sector backSector = map.AddSector();
+        Linedef trigger = map.AddLinedef(map.AddVertex(new Vector2D(-64, 0)), map.AddVertex(new Vector2D(0, 0)));
+        Sidedef triggerFront = map.AddSidedef(trigger, isFront: true, frontSector);
+        map.AddSidedef(trigger, isFront: false, backSector);
+        triggerFront.SetTextureMid("STONE");
+        trigger.Selected = true;
+        Thing firstStart = map.AddThing(new Vector2D(256, 256), 1);
+        firstStart.Angle = 90;
+        Thing lastStart = map.AddThing(new Vector2D(128, 128), 1);
+        lastStart.Angle = 180;
+        map.BuildIndexes();
+        var grid = new GridSetup();
+        grid.SetGridSize(16);
+        var wrapper = new UdbScriptMapWrapper(map, grid, mousePosition: new Vector2D(23, 41));
+
+        ExecuteVoodooDollClosetWorkflow(wrapper, length: 128, inactive: true, looping: true);
+
+        Assert.Equal(40, trigger.Action);
+        Assert.Equal(2, trigger.Tag);
+        Sector closet = Assert.Single(map.Sectors, sector => sector.Tag == 1);
+        Sector blocker = Assert.Single(map.Sectors, sector => sector.Tag == 2);
+        Assert.Equal(0, closet.FloorHeight);
+        Assert.Equal(56, closet.CeilHeight);
+        Assert.Equal(0, blocker.FloorHeight);
+        Assert.Equal(55, blocker.CeilHeight);
+        Assert.Contains(map.Linedefs, line => line.Action == 252 && line.Tag == 1);
+        Assert.Contains(map.Linedefs, line => line.Action == 263 && line.Tag == 3);
+        Assert.Equal(new Vector2D(16, 80), lastStart.Position);
+        Assert.Equal(180, lastStart.Angle);
+        Thing replacement = Assert.Single(map.Things, thing => thing.Type == 1 && !ReferenceEquals(thing, firstStart) && !ReferenceEquals(thing, lastStart));
+        Assert.Equal(new Vector2D(128, 128), replacement.Position);
+        Assert.Equal(180, replacement.Angle);
+        Assert.Equal(new Vector2D(256, 256), firstStart.Position);
+    }
+
+    [Fact]
+    public void CommonUdbScriptVoodooDollClosetExampleUsesCoveredApisWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Assets", "Common", "UDBScript", "Scripts", "Examples", "Geometry", "voodoodollcloset.js"));
+
+        Assert.Contains("UDB.Map.snappedToGrid(UDB.Map.mousePosition)", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.getSelectedLinedefs()", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.getMultipleNewTags(numnewtags)", source, StringComparison.Ordinal);
+        Assert.Contains("var p = new Pen()", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.getMarkedSectors()[0]", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.getMarkedLinedefs()[0]", source, StringComparison.Ordinal);
+        Assert.Contains("tl.front.upperTexture.startsWith('SW1')", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.getThings().filter(o => o.type == 1)", source, StringComparison.Ordinal);
+        Assert.Contains("pt.position = newpos", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.createThing(oldpos, 1)", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void CommonUdbScriptSelectConnectedLinedefsWorkflowUsesMapWrappersTogether()
     {
         var map = new MapSet();
@@ -4328,6 +4388,125 @@ localsidedeftextureoffsets = true;
 
         foreach (UdbScriptLinedefWrapper markedLine in wrapper.getMarkedLinedefs().Where(candidate => candidate.back == null))
             markedLine.front!.middleTexture = texture;
+    }
+
+    private static void ExecuteVoodooDollClosetWorkflow(UdbScriptMapWrapper wrapper, int length, bool inactive, bool looping)
+    {
+        UdbScriptVector2DWrapper basePosition = wrapper.snappedToGrid(wrapper.mousePosition);
+        UdbScriptLinedefWrapper[] triggerLines = wrapper.getSelectedLinedefs();
+        int numNewTags = 1;
+        if (inactive)
+            numNewTags++;
+
+        if (looping)
+            numNewTags++;
+
+        int[] tags = wrapper.getMultipleNewTags(numNewTags);
+        int newTagIndex = 0;
+        Assert.True(wrapper.drawLines(new object[]
+        {
+            basePosition,
+            new UdbScriptVector2DWrapper(basePosition.x, basePosition.y + length),
+            new UdbScriptVector2DWrapper(basePosition.x + 64, basePosition.y + length),
+            new UdbScriptVector2DWrapper(basePosition.x + 64, basePosition.y),
+            basePosition,
+        }));
+
+        UdbScriptSectorWrapper sector = wrapper.getMarkedSectors()[0];
+        sector.tag = tags[newTagIndex];
+        sector.floorHeight = 0;
+        sector.ceilingHeight = 56;
+
+        Assert.True(wrapper.drawLines(new object[]
+        {
+            basePosition,
+            new UdbScriptVector2DWrapper(basePosition.x, basePosition.y + 32),
+        }));
+
+        UdbScriptLinedefWrapper carryLine = wrapper.getMarkedLinedefs()[0];
+        carryLine.action = 252;
+        carryLine.tag = tags[newTagIndex];
+        newTagIndex++;
+
+        if (inactive)
+        {
+            Assert.True(wrapper.drawLines(new object[]
+            {
+                new UdbScriptVector2DWrapper(basePosition.x + 16, basePosition.y + 64),
+                new UdbScriptVector2DWrapper(basePosition.x + 8, basePosition.y + 64),
+                new UdbScriptVector2DWrapper(basePosition.x + 8, basePosition.y + 32),
+                new UdbScriptVector2DWrapper(basePosition.x + 16, basePosition.y + 64),
+            }));
+
+            sector = wrapper.getMarkedSectors()[0];
+            sector.tag = tags[newTagIndex];
+            sector.floorHeight = 0;
+            sector.ceilingHeight = 55;
+
+            foreach (UdbScriptLinedefWrapper triggerLine in triggerLines)
+            {
+                if (triggerLine.front != null &&
+                    (triggerLine.front.upperTexture.StartsWith("SW1", StringComparison.Ordinal) ||
+                     triggerLine.front.upperTexture.StartsWith("SW2", StringComparison.Ordinal) ||
+                     triggerLine.front.middleTexture.StartsWith("SW1", StringComparison.Ordinal) ||
+                     triggerLine.front.middleTexture.StartsWith("SW2", StringComparison.Ordinal) ||
+                     triggerLine.front.lowerTexture.StartsWith("SW1", StringComparison.Ordinal) ||
+                     triggerLine.front.lowerTexture.StartsWith("SW2", StringComparison.Ordinal)))
+                {
+                    triggerLine.action = 166;
+                    triggerLine.tag = tags[newTagIndex];
+                }
+                else if (triggerLine.back != null)
+                {
+                    triggerLine.action = 40;
+                    triggerLine.tag = tags[newTagIndex];
+                }
+            }
+
+            newTagIndex++;
+        }
+
+        if (looping)
+        {
+            Assert.True(wrapper.drawLines(new object[]
+            {
+                new UdbScriptVector2DWrapper(basePosition.x + 8, basePosition.y + 32),
+                new UdbScriptVector2DWrapper(basePosition.x + 56, basePosition.y + 32),
+            }));
+            UdbScriptLinedefWrapper line = wrapper.getMarkedLinedefs()[0];
+            line.tag = tags[newTagIndex];
+
+            Assert.True(wrapper.drawLines(new object[]
+            {
+                new UdbScriptVector2DWrapper(basePosition.x + 8, basePosition.y + length - 32),
+                new UdbScriptVector2DWrapper(basePosition.x + 56, basePosition.y + length - 32),
+            }));
+            line = wrapper.getMarkedLinedefs()[0];
+            line.action = 263;
+            line.tag = tags[newTagIndex];
+        }
+
+        var newPosition = new UdbScriptVector2DWrapper(basePosition.x, basePosition.y + 32);
+        UdbScriptThingWrapper[] playerThings = wrapper.getThings()
+            .Where(thing => thing.type == 1)
+            .OrderByDescending(thing => thing.index)
+            .ToArray();
+
+        if (playerThings.Length > 0)
+        {
+            UdbScriptThingWrapper playerThing = playerThings[0];
+            object oldPosition = playerThing.position;
+            int oldAngle = playerThing.angle;
+            playerThing.position = newPosition;
+            playerThing.snapToAccuracy();
+            UdbScriptThingWrapper thing = wrapper.createThing(oldPosition, 1);
+            thing.angle = oldAngle;
+        }
+        else
+        {
+            UdbScriptThingWrapper thing = wrapper.createThing(newPosition, 1);
+            thing.snapToAccuracy();
+        }
     }
 
     private static void ExecuteImpsToArchVilesWorkflow(UdbScriptMapWrapper wrapper)
