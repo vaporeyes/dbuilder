@@ -671,12 +671,11 @@ public class SoundPropagationTests
         Assert.Equal(SoundEnvironmentModeModel.MultipleActiveThingsWarning, rows[3].WarningMessage);
 
         IReadOnlyList<SoundEnvironmentRow> warnings = model.Rows(warningsOnly: true);
-        Assert.Equal(4, warnings.Count);
-        Assert.DoesNotContain(warnings, row => row.Text == "Linedefs (0)");
+        Assert.Equal(rows, warnings);
     }
 
     [Fact]
-    public void SoundEnvironmentRowsFilterBoundaryWarnings()
+    public void SoundEnvironmentRowsWarningsOnlyKeepsAllRowsForWarningEnvironment()
     {
         var map = new MapSet();
         Sector sector = map.AddSector();
@@ -698,16 +697,18 @@ public class SoundPropagationTests
         Assert.Equal(1, model.WarningCount());
         IReadOnlyList<SoundEnvironmentRow> rows = model.Rows(warningsOnly: true);
 
-        Assert.Equal(3, rows.Count);
+        Assert.Equal(4, rows.Count);
         Assert.True(rows[0].Warning);
         Assert.Equal(environment, rows[0].Environment);
-        Assert.True(rows[1].Warning);
-        Assert.Equal("Linedefs (1)", rows[1].Text);
+        Assert.Equal("Things (0)", rows[1].Text);
+        Assert.False(rows[1].Warning);
         Assert.True(rows[2].Warning);
-        Assert.Equal(line, rows[2].Linedef);
-        Assert.Equal($"Linedef {line.Index}", rows[2].Text);
-        Assert.Equal(2, rows[2].Depth);
-        Assert.Equal(SoundEnvironmentModeModel.SingleSidedBoundaryWarning, rows[2].WarningMessage);
+        Assert.Equal("Linedefs (1)", rows[2].Text);
+        Assert.True(rows[3].Warning);
+        Assert.Equal(line, rows[3].Linedef);
+        Assert.Equal($"Linedef {line.Index}", rows[3].Text);
+        Assert.Equal(2, rows[3].Depth);
+        Assert.Equal(SoundEnvironmentModeModel.SingleSidedBoundaryWarning, rows[3].WarningMessage);
     }
 
     [Fact]
@@ -773,6 +774,19 @@ public class SoundPropagationTests
         Assert.Equal(2, rows[2].Depth);
         Assert.Equal("Linedefs (0)", rows[3].Text);
         Assert.Equal(1, rows[3].Depth);
+    }
+
+    [Fact]
+    public void SoundEnvironmentRowsWarningsOnlyHidesEnvironmentWithoutWarnings()
+    {
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        Thing thing = map.AddThing(new Vector2D(0, 0), SoundPropagation.SoundEnvironmentThingType);
+        thing.Sector = sector;
+
+        SoundEnvironmentModeModel model = SoundPropagation.BuildSoundEnvironmentModel(map);
+
+        Assert.Empty(model.Rows(warningsOnly: true));
     }
 
     [Fact]
