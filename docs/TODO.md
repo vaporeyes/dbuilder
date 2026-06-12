@@ -3211,6 +3211,7 @@ section of `docs/PARITY_MATRIX.md`.
 - [ ] Every bundled UDB plugin is marked `ported`, intentionally omitted, or replaced with equivalent behavior.
   - [x] Add clone-backed coverage that every bundled UDB plugin has a parity-matrix entry.
 - [ ] Editor app builds from the main solution.
+  - [x] Add solution membership coverage that every source project is built by `DBuilder.slnx`.
 - [ ] All automated tests pass on supported platforms.
 - [ ] Representative maps from Doom, Doom II, Heretic, Hexen, Boom, MBF, ZDoom, and GZDoom load, edit, save, and reload correctly.
 - [ ] Representative resource stacks using IWAD, PWAD, PK3, and directory resources render correctly.
