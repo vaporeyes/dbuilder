@@ -1111,6 +1111,52 @@ public class StairBuilderTests
     }
 
     [Fact]
+    public void HeightControlStateDisablesBaseTextForStraightDistinctBases()
+    {
+        StairBuilderHeightControlState state = StairBuilderHeightPreviewModel.ControlState(
+            StairBuilderTab.Straight,
+            distinctBaseHeights: true,
+            floorHeightModification: true,
+            ceilingHeightModification: true);
+
+        Assert.True(state.FloorStepEnabled);
+        Assert.False(state.FloorBaseEnabled);
+        Assert.True(state.CeilingStepEnabled);
+        Assert.False(state.CeilingBaseEnabled);
+    }
+
+    [Theory]
+    [InlineData(StairBuilderTab.Straight, false)]
+    [InlineData(StairBuilderTab.Curved, true)]
+    [InlineData(StairBuilderTab.Spline, true)]
+    public void HeightControlStateKeepsBaseTextWhenUdbFormAllowsGlobalBase(StairBuilderTab tab, bool distinctBaseHeights)
+    {
+        StairBuilderHeightControlState state = StairBuilderHeightPreviewModel.ControlState(
+            tab,
+            distinctBaseHeights,
+            floorHeightModification: true,
+            ceilingHeightModification: true);
+
+        Assert.True(state.FloorBaseEnabled);
+        Assert.True(state.CeilingBaseEnabled);
+    }
+
+    [Fact]
+    public void HeightControlStateDisablesStepAndBaseTextWhenHeightModificationIsOff()
+    {
+        StairBuilderHeightControlState state = StairBuilderHeightPreviewModel.ControlState(
+            StairBuilderTab.Curved,
+            distinctBaseHeights: false,
+            floorHeightModification: false,
+            ceilingHeightModification: false);
+
+        Assert.False(state.FloorStepEnabled);
+        Assert.False(state.FloorBaseEnabled);
+        Assert.False(state.CeilingStepEnabled);
+        Assert.False(state.CeilingBaseEnabled);
+    }
+
+    [Fact]
     public void PrefabCreatesStraightOptionsForLoadedFormState()
     {
         var prefab = new StairBuilderPrefab

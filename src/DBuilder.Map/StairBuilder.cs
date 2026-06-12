@@ -1166,6 +1166,12 @@ public sealed record StairBuilderHeightPreview(
     string CeilingFirst,
     string CeilingLast);
 
+public sealed record StairBuilderHeightControlState(
+    bool FloorStepEnabled,
+    bool FloorBaseEnabled,
+    bool CeilingStepEnabled,
+    bool CeilingBaseEnabled);
+
 public static class StairBuilderHeightPreviewModel
 {
     public const string DisabledHeightLabel = "--";
@@ -1188,6 +1194,20 @@ public static class StairBuilderHeightPreviewModel
             floorEnabled ? (floorBase + floorStep * sectors * multiplier).ToString(System.Globalization.CultureInfo.InvariantCulture) : DisabledHeightLabel,
             ceilingEnabled ? (ceilingBase + ceilingStep).ToString(System.Globalization.CultureInfo.InvariantCulture) : DisabledHeightLabel,
             ceilingEnabled ? (ceilingBase + ceilingStep * sectors * multiplier).ToString(System.Globalization.CultureInfo.InvariantCulture) : DisabledHeightLabel);
+    }
+
+    public static StairBuilderHeightControlState ControlState(
+        StairBuilderTab stairType,
+        bool distinctBaseHeights,
+        bool floorHeightModification,
+        bool ceilingHeightModification)
+    {
+        bool allowBaseText = stairType != StairBuilderTab.Straight || !distinctBaseHeights;
+        return new StairBuilderHeightControlState(
+            FloorStepEnabled: floorHeightModification,
+            FloorBaseEnabled: floorHeightModification && allowBaseText,
+            CeilingStepEnabled: ceilingHeightModification,
+            CeilingBaseEnabled: ceilingHeightModification && allowBaseText);
     }
 }
 
