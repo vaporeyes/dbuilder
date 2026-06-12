@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 6028 tests.
+- Current verified baseline: `scripts/verify.sh` passes 6864 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 - A Rust port of the codebase is underway in `rust/`; see the Rust Port section below.
 
@@ -3215,6 +3215,7 @@ section of `docs/PARITY_MATRIX.md`.
   - [x] Add solution membership coverage that every source project is built by `DBuilder.slnx`.
 - [ ] All automated tests pass on supported platforms.
   - [x] Add verification-script coverage for the main restore, build, and test loop.
+  - [x] Add CI workflow coverage for Linux, macOS, and Windows verification.
 - [ ] Representative maps from Doom, Doom II, Heretic, Hexen, Boom, MBF, ZDoom, and GZDoom load, edit, save, and reload correctly.
 - [ ] Representative resource stacks using IWAD, PWAD, PK3, and directory resources render correctly.
 - [ ] 2D editing workflows are usable without falling back to UDB.
