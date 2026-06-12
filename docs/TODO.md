@@ -2887,6 +2887,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript compatibility coverage for the bundled Sector Area workflow.
   - [x] Add UDBScript compatibility coverage for the bundled Map Squareness workflow.
   - [x] Add UDBScript compatibility coverage for the bundled Randomize Selection Order workflow.
+  - [x] Add UDBScript compatibility coverage for the bundled Delete Sector Tag workflow.
 
 ## Specialized Plugin Detail
 

@@ -3471,6 +3471,60 @@ localsidedeftextureoffsets = true;
         Assert.Contains("elements[index].selected = true", source, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void CommonUdbScriptDeleteSectorTagWorkflowUsesMapWrappersTogether()
+    {
+        var selectedMap = new MapSet();
+        Sector selected = selectedMap.AddSector();
+        Sector untouched = selectedMap.AddSector();
+        selected.Tag = 7;
+        untouched.Tag = 7;
+        selected.Selected = true;
+        var selectedWrapper = new UdbScriptMapWrapper(selectedMap);
+        UdbScriptSectorWrapper[] sectors = selectedWrapper.getSelectedSectors();
+
+        if (sectors.Length == 0)
+            sectors = selectedWrapper.getSectors();
+
+        foreach (UdbScriptSectorWrapper sector in sectors)
+            sector.removeTag(7);
+
+        Assert.Equal(0, selected.Tag);
+        Assert.Equal(7, untouched.Tag);
+
+        var fallbackMap = new MapSet();
+        Sector fallbackFirst = fallbackMap.AddSector();
+        Sector fallbackSecond = fallbackMap.AddSector();
+        fallbackFirst.Tag = 11;
+        fallbackSecond.Tag = 11;
+        var fallbackWrapper = new UdbScriptMapWrapper(fallbackMap);
+        sectors = fallbackWrapper.getSelectedSectors();
+
+        if (sectors.Length == 0)
+            sectors = fallbackWrapper.getSectors();
+
+        foreach (UdbScriptSectorWrapper sector in sectors)
+            sector.removeTag(11);
+
+        Assert.Equal(0, fallbackFirst.Tag);
+        Assert.Equal(0, fallbackSecond.Tag);
+    }
+
+    [Fact]
+    public void CommonUdbScriptDeleteSectorTagExampleUsesCoveredApisWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Assets", "Common", "UDBScript", "Scripts", "Examples", "deletesectortag.js"));
+
+        Assert.Contains("UDB.Map.getSelectedSectors()", source, StringComparison.Ordinal);
+        Assert.Contains("sectors = UDB.Map.getSectors()", source, StringComparison.Ordinal);
+        Assert.Contains("new UDB.QueryOptions()", source, StringComparison.Ordinal);
+        Assert.Contains("qo.addOption('tag'", source, StringComparison.Ordinal);
+        Assert.Contains("s.removeTag(qo.options.tag)", source, StringComparison.Ordinal);
+    }
+
     private static Sector CreateSquareSector()
     {
         var sector = new Sector();
