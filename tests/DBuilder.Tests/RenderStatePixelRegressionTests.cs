@@ -90,6 +90,25 @@ public sealed class RenderStatePixelRegressionTests
     }
 
     [Fact]
+    public void QualityDisplayUsesFsaaCommandsWithoutChangingStandardPixelComposite()
+    {
+        IReadOnlyList<PresentationDrawCommand> commands = PresentationPlan
+            .Standard(backgroundAlpha: 1.0f, inactiveThingsAlpha: 0.25f)
+            .BuildDrawCommands(qualityDisplay: true);
+        PixelColor pixel = new(255, 0, 0, 0);
+
+        pixel = Composite(commands[0], source: new PixelColor(255, 20, 40, 80), pixel);
+        pixel = Composite(commands[1], source: new PixelColor(0, 200, 0, 0), pixel);
+        pixel = Composite(commands[2], source: new PixelColor(255, 220, 20, 20), pixel);
+        pixel = Composite(commands[3], source: new PixelColor(0, 255, 255, 255), pixel);
+        pixel = Composite(commands[4], source: new PixelColor(255, 40, 180, 60), pixel);
+
+        Assert.Equal(PresentationPlan.Display2DFsaaShaderName, commands[4].ShaderName);
+        Assert.Equal(PresentationPlan.Display2DFsaaShaderName, commands[5].ShaderName);
+        Assert.Equal(new PixelColor(255, 40, 180, 60), pixel);
+    }
+
+    [Fact]
     public void ThingsPresentationStackReappliesThingsAfterGeometryLikeUdb()
     {
         IReadOnlyList<PresentationDrawCommand> commands = PresentationPlan
