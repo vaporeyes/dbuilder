@@ -553,6 +553,7 @@ public class SettingsTests
                 AutoDrawOnEdit = false,
                 AutoAlignTextureOffsetsOnCreate = true,
                 DontMoveGeometryOutsideMapBoundary = true,
+                SelectChangedAfterUndoRedo = true,
                 AdditiveSelect = true,
                 AdditivePaintSelect = false,
                 ChangeHeightBySidedef = 3,
@@ -758,6 +759,7 @@ public class SettingsTests
             Assert.False(loaded.AutoDrawOnEdit);
             Assert.True(loaded.AutoAlignTextureOffsetsOnCreate);
             Assert.True(loaded.DontMoveGeometryOutsideMapBoundary);
+            Assert.True(loaded.SelectChangedAfterUndoRedo);
             Assert.True(loaded.AdditiveSelect);
             Assert.False(loaded.AdditivePaintSelect);
             Assert.False(loaded.NormalizedAdditivePaintSelect);

@@ -192,14 +192,19 @@ public class SettingsWindowTests
 
         Assert.NotNull(type.GetField("AutoAlignTextureOffsetsOnCreate", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("DontMoveGeometryOutsideMapBoundary", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("SelectChangedAfterUndoRedo", BindingFlags.Instance | BindingFlags.Public));
         Assert.Contains("AddCheckBox(\"Auto-align texture offsets on create\", s.AutoAlignTextureOffsetsOnCreate)", body, StringComparison.Ordinal);
         Assert.Contains("AddCheckBox(\"Don't move selection if any part of it is outside of map boundary\", s.DontMoveGeometryOutsideMapBoundary)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Select changed elements after undo/redo\", s.SelectChangedAfterUndoRedo)", body, StringComparison.Ordinal);
         Assert.Contains("AutoAlignTextureOffsetsOnCreate = _autoAlignTextureOffsetsOnCreate.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("DontMoveGeometryOutsideMapBoundary = _dontMoveGeometryOutsideMapBoundary.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("SelectChangedAfterUndoRedo = _selectChangedAfterUndoRedo.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("_settings.AutoAlignTextureOffsetsOnCreate = dlg.AutoAlignTextureOffsetsOnCreate;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.DontMoveGeometryOutsideMapBoundary = dlg.DontMoveGeometryOutsideMapBoundary;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.SelectChangedAfterUndoRedo = dlg.SelectChangedAfterUndoRedo;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.AutoAlignTextureOffsetsOnCreate = _settings.AutoAlignTextureOffsetsOnCreate;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.DontMoveGeometryOutsideMapBoundary = _settings.DontMoveGeometryOutsideMapBoundary;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_undo.SelectChangedAfterUndoRedo = _settings.SelectChangedAfterUndoRedo;", mainWindow, StringComparison.Ordinal);
     }
 
     [Fact]

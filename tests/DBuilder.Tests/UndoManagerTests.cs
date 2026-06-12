@@ -203,6 +203,50 @@ public class UndoManagerTests
     }
 
     [Fact]
+    public void UndoSelectsChangedElementsWhenPreferenceEnabled()
+    {
+        var map = BuildMap();
+        var undo = new UndoManager(map) { SelectChangedAfterUndoRedo = true };
+
+        undo.CreateUndo("edit mixed geometry");
+        map.Vertices[0].Position = new Vector2D(32, 16);
+        map.Linedefs[0].Action = 80;
+        map.Sidedefs[0].MidTexture = "STARTAN2";
+        map.Sectors[0].Brightness = 128;
+        map.Things[0].Type = 1;
+
+        Assert.True(undo.Undo());
+
+        Assert.True(map.Vertices[0].Selected);
+        Assert.True(map.Linedefs[0].Selected);
+        Assert.True(map.Sidedefs[0].Selected);
+        Assert.True(map.Sectors[0].Selected);
+        Assert.True(map.Things[0].Selected);
+        Assert.Equal(new Vector2D(0, 0), map.Vertices[0].Position);
+        Assert.Equal(0, map.Linedefs[0].Action);
+        Assert.Equal("-", map.Sidedefs[0].MidTexture);
+        Assert.Equal(192, map.Sectors[0].Brightness);
+        Assert.Equal(3001, map.Things[0].Type);
+    }
+
+    [Fact]
+    public void RedoSelectsChangedElementsWhenPreferenceEnabled()
+    {
+        var map = BuildMap();
+        var undo = new UndoManager(map) { SelectChangedAfterUndoRedo = true };
+
+        undo.CreateUndo("move vertex");
+        map.Vertices[0].Position = new Vector2D(64, 16);
+        undo.Undo();
+        map.ClearAllSelected();
+
+        Assert.True(undo.Redo());
+
+        Assert.True(map.Vertices[0].Selected);
+        Assert.Equal(new Vector2D(64, 16), map.Vertices[0].Position);
+    }
+
+    [Fact]
     public void NewEditClearsRedoStack()
     {
         var map = BuildMap();

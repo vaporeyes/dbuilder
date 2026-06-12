@@ -876,13 +876,16 @@ public partial class MainWindow : Window
         _mapSettings = new Configuration(sorted: true);
         _mapFormat = _config?.MapFormat ?? MapFormat.Doom;
         MapView.MapFormat = _mapFormat;
-        _undo = new UndoManager(map);
+        _undo = CreateUndoManager(map);
         MapView.Map = map;
         MapView.Focus();
         MarkMapDirty();
         UpdateInfo();
         SetStatus($"New empty {_mapFormat} map for {CurrentConfigLabel()}. " + CommandHints("map2d.draw-sector", "map2d.draw-lines", "map2d.insert") + ".");
     }
+
+    private UndoManager CreateUndoManager(MapSet map)
+        => new UndoManager(map) { SelectChangedAfterUndoRedo = _settings.SelectChangedAfterUndoRedo };
 
     private async void OnOpen(object? sender, RoutedEventArgs e)
     {
@@ -1468,6 +1471,7 @@ public partial class MainWindow : Window
         _settings.AutoDrawOnEdit = dlg.AutoDrawOnEdit;
         _settings.AutoAlignTextureOffsetsOnCreate = dlg.AutoAlignTextureOffsetsOnCreate;
         _settings.DontMoveGeometryOutsideMapBoundary = dlg.DontMoveGeometryOutsideMapBoundary;
+        _settings.SelectChangedAfterUndoRedo = dlg.SelectChangedAfterUndoRedo;
         _settings.AdditiveSelect = dlg.AdditiveSelect;
         _settings.AdditivePaintSelect = dlg.AdditivePaintSelect;
         _settings.SynchronizedThingEditing = dlg.SynchronizedThingEditing;
@@ -1541,6 +1545,7 @@ public partial class MainWindow : Window
         MapView.AutoDrawOnEdit = _settings.AutoDrawOnEdit;
         MapView.AutoAlignTextureOffsetsOnCreate = _settings.AutoAlignTextureOffsetsOnCreate;
         MapView.DontMoveGeometryOutsideMapBoundary = _settings.DontMoveGeometryOutsideMapBoundary;
+        if (_undo != null) _undo.SelectChangedAfterUndoRedo = _settings.SelectChangedAfterUndoRedo;
         MapView.AdditiveSelect = _settings.AdditiveSelect;
         MapView.AdditivePaintSelect = _settings.NormalizedAdditivePaintSelect;
         MapView.SynchronizedThingEditing = _settings.SynchronizedThingEditing;
@@ -4821,7 +4826,7 @@ public partial class MainWindow : Window
             _activeAutosaveKey = autosave.Key;
             _mapFormat = entry.Format;
             MapView.MapFormat = _mapFormat;
-            _undo = new UndoManager(map);
+            _undo = CreateUndoManager(map);
 
             MapView.MapResources = null;
             MapView.Map = map;
@@ -4953,7 +4958,7 @@ public partial class MainWindow : Window
             _activeAutosaveKey = null;
             _mapFormat = entry.Format;
             MapView.MapFormat = _mapFormat;
-            _undo = new UndoManager(map);
+            _undo = CreateUndoManager(map);
 
             MapView.Map = map;
             ApplyMapGridSetup(_mapOptions);
@@ -5038,7 +5043,7 @@ public partial class MainWindow : Window
             _mapFormat = entry.Map.Format;
             MapView.MapFormat = _mapFormat;
             _pk3MapArchivePath = entry.ArchivePath;
-            _undo = new UndoManager(map);
+            _undo = CreateUndoManager(map);
 
             MapView.Map = map;
             MapView.Focus();

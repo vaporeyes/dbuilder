@@ -16,6 +16,7 @@
  */
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using DBuilder.Map;
@@ -45,6 +46,7 @@ public sealed class UndoManager
     public bool CanRedo => redos.Count > 0;
     public int UndoCount => undos.Count;
     public int RedoCount => redos.Count;
+    public bool SelectChangedAfterUndoRedo { get; set; }
 
     /// <summary>Description of the edit that the next Undo would reverse, or null when nothing to undo.</summary>
     public string? NextUndoDescription => undos.First?.Value.Description;
@@ -95,10 +97,12 @@ public sealed class UndoManager
         if (undos.Count == 0) return false;
         var snap = undos.First!.Value;
         undos.RemoveFirst();
+        MapChangeSnapshot? beforeRestore = SelectChangedAfterUndoRedo ? MapChangeSnapshot.Capture(map) : null;
         // Push the current (post-edit) state onto the redo stack so Redo can return to it.
         redos.AddFirst(Capture(snap.Description));
         Restore(snap);
         map.ClearAllSelected();
+        beforeRestore?.SelectChangedIn(map);
         ClearGrouping();
         return true;
     }
@@ -117,9 +121,11 @@ public sealed class UndoManager
         if (redos.Count == 0) return false;
         var snap = redos.First!.Value;
         redos.RemoveFirst();
+        MapChangeSnapshot? beforeRestore = SelectChangedAfterUndoRedo ? MapChangeSnapshot.Capture(map) : null;
         undos.AddFirst(Capture(snap.Description));
         Restore(snap);
         map.ClearAllSelected();
+        beforeRestore?.SelectChangedIn(map);
         ClearGrouping();
         return true;
     }
@@ -231,4 +237,147 @@ public sealed class UndoManager
             Data = data;
         }
     }
+
+    private sealed record MapChangeSnapshot(
+        VertexState[] Vertices,
+        LinedefState[] Linedefs,
+        SidedefState[] Sidedefs,
+        SectorState[] Sectors,
+        ThingState[] Things)
+    {
+        public static MapChangeSnapshot Capture(MapSet map)
+            => new(
+                map.Vertices.Select(VertexState.From).ToArray(),
+                map.Linedefs.Select(LinedefState.From).ToArray(),
+                map.Sidedefs.Select(SidedefState.From).ToArray(),
+                map.Sectors.Select(SectorState.From).ToArray(),
+                map.Things.Select(ThingState.From).ToArray());
+
+        public void SelectChangedIn(MapSet map)
+        {
+            for (int i = 0; i < map.Vertices.Count; i++)
+                if (i >= Vertices.Length || VertexState.From(map.Vertices[i]) != Vertices[i])
+                    map.Vertices[i].Selected = true;
+
+            for (int i = 0; i < map.Linedefs.Count; i++)
+                if (i >= Linedefs.Length || LinedefState.From(map.Linedefs[i]) != Linedefs[i])
+                    map.Linedefs[i].Selected = true;
+
+            for (int i = 0; i < map.Sidedefs.Count; i++)
+                if (i >= Sidedefs.Length || SidedefState.From(map.Sidedefs[i]) != Sidedefs[i])
+                    map.Sidedefs[i].Selected = true;
+
+            for (int i = 0; i < map.Sectors.Count; i++)
+                if (i >= Sectors.Length || SectorState.From(map.Sectors[i]) != Sectors[i])
+                    map.Sectors[i].Selected = true;
+
+            for (int i = 0; i < map.Things.Count; i++)
+                if (i >= Things.Length || ThingState.From(map.Things[i]) != Things[i])
+                    map.Things[i].Selected = true;
+        }
+    }
+
+    private sealed record VertexState(double X, double Y, double ZCeiling, double ZFloor, string Fields, string IgnoredChecks)
+    {
+        public static VertexState From(Vertex vertex)
+            => new(vertex.Position.x, vertex.Position.y, vertex.ZCeiling, vertex.ZFloor, FieldKey(vertex.Fields), IssueKey(vertex.IgnoredErrorChecks));
+    }
+
+    private sealed record LinedefState(int Start, int End, int Flags, int Action, int Activate, string Tags, string Args, string UdmfFlags, string Fields, string IgnoredChecks)
+    {
+        public static LinedefState From(Linedef linedef)
+            => new(
+                linedef.Start.Index,
+                linedef.End.Index,
+                linedef.Flags,
+                linedef.Action,
+                linedef.Activate,
+                IntListKey(linedef.Tags),
+                IntListKey(linedef.Args),
+                FlagKey(linedef.UdmfFlags),
+                FieldKey(linedef.Fields),
+                IssueKey(linedef.IgnoredErrorChecks));
+    }
+
+    private sealed record SidedefState(int Line, int Sector, bool IsFront, int OffsetX, int OffsetY, string HighTexture, string MidTexture, string LowTexture, long LongHighTexture, long LongMiddleTexture, long LongLowTexture, string UdmfFlags, string Fields, string IgnoredChecks)
+    {
+        public static SidedefState From(Sidedef sidedef)
+            => new(
+                sidedef.Line.Index,
+                sidedef.Sector?.Index ?? -1,
+                sidedef.IsFront,
+                sidedef.OffsetX,
+                sidedef.OffsetY,
+                sidedef.HighTexture,
+                sidedef.MidTexture,
+                sidedef.LowTexture,
+                sidedef.LongHighTexture,
+                sidedef.LongMiddleTexture,
+                sidedef.LongLowTexture,
+                FlagKey(sidedef.UdmfFlags),
+                FieldKey(sidedef.Fields),
+                IssueKey(sidedef.IgnoredErrorChecks));
+    }
+
+    private sealed record SectorState(int FloorHeight, int CeilHeight, string FloorTexture, string CeilTexture, long LongFloorTexture, long LongCeilTexture, int Brightness, int Special, string Tags, double FloorSlopeX, double FloorSlopeY, double FloorSlopeZ, double FloorSlopeOffset, double CeilSlopeX, double CeilSlopeY, double CeilSlopeZ, double CeilSlopeOffset, string UdmfFlags, string Fields, string IgnoredChecks)
+    {
+        public static SectorState From(Sector sector)
+            => new(
+                sector.FloorHeight,
+                sector.CeilHeight,
+                sector.FloorTexture,
+                sector.CeilTexture,
+                sector.LongFloorTexture,
+                sector.LongCeilTexture,
+                sector.Brightness,
+                sector.Special,
+                IntListKey(sector.Tags),
+                sector.FloorSlope.x,
+                sector.FloorSlope.y,
+                sector.FloorSlope.z,
+                sector.FloorSlopeOffset,
+                sector.CeilSlope.x,
+                sector.CeilSlope.y,
+                sector.CeilSlope.z,
+                sector.CeilSlopeOffset,
+                FlagKey(sector.UdmfFlags),
+                FieldKey(sector.Fields),
+                IssueKey(sector.IgnoredErrorChecks));
+    }
+
+    private sealed record ThingState(double X, double Y, double Height, int Type, int Angle, int Pitch, int Roll, double ScaleX, double ScaleY, int Flags, int Tag, int Action, string Args, string UdmfFlags, string Fields, string IgnoredChecks)
+    {
+        public static ThingState From(Thing thing)
+            => new(
+                thing.Position.x,
+                thing.Position.y,
+                thing.Height,
+                thing.Type,
+                thing.Angle,
+                thing.Pitch,
+                thing.Roll,
+                thing.ScaleX,
+                thing.ScaleY,
+                thing.Flags,
+                thing.Tag,
+                thing.Action,
+                IntListKey(thing.Args),
+                FlagKey(thing.UdmfFlags),
+                FieldKey(thing.Fields),
+                IssueKey(thing.IgnoredErrorChecks));
+    }
+
+    private static string IntListKey(IEnumerable<int> values)
+        => string.Join(",", values);
+
+    private static string FlagKey(IEnumerable<string> values)
+        => string.Join("\n", values.OrderBy(value => value, StringComparer.OrdinalIgnoreCase));
+
+    private static string IssueKey(IEnumerable<MapIssueKind> values)
+        => string.Join(",", values.OrderBy(value => value));
+
+    private static string FieldKey(Dictionary<string, object> fields)
+        => string.Join("\n", fields
+            .OrderBy(field => field.Key, StringComparer.Ordinal)
+            .Select(field => field.Key + "=" + Convert.ToString(field.Value, CultureInfo.InvariantCulture)));
 }
