@@ -1431,6 +1431,7 @@ public partial class MainWindow : Window
         _settings.AutoMerge = dlg.AutoMerge;
         _settings.SplitJoinedSectors = dlg.SplitJoinedSectors;
         _settings.DynamicGridSize = dlg.DynamicGridSize;
+        _settings.SwitchViewModes = dlg.SwitchViewModes;
         _settings.UseHighlight = dlg.UseHighlight;
         _settings.AlphaBasedTextureHighlighting = dlg.AlphaBasedTextureHighlighting;
         _settings.EnhancedRenderingEffects = dlg.EnhancedRenderingEffects;
@@ -2717,10 +2718,34 @@ public partial class MainWindow : Window
 
     private void SetEditMode(MapControl.EditMode mode)
     {
+        if (SwitchViewModeForRepeatedClassicMode(mode))
+        {
+            UpdateStatusDetails();
+            MapView.Focus();
+            return;
+        }
+
         MapView.SetCurrentEditMode(mode);
         SetStatus(ModeStatus(mode));
         UpdateStatusDetails();
         MapView.Focus();
+    }
+
+    private bool SwitchViewModeForRepeatedClassicMode(MapControl.EditMode mode)
+    {
+        if (!_settings.SwitchViewModes
+            || MapView.CurrentEditMode != mode
+            || MapView.In3DMode
+            || MapView.AutomapMode
+            || MapView.WadAuthorMode
+            || MapView.ImageExampleMode)
+            return false;
+
+        MapControl.ClassicViewMode viewMode = MapView.ViewMode2D == MapControl.ClassicViewMode.FloorTextures
+            ? MapControl.ClassicViewMode.CeilingTextures
+            : MapControl.ClassicViewMode.FloorTextures;
+        SetClassicViewMode(viewMode);
+        return true;
     }
 
     private string ModeStatus(MapControl.EditMode mode)

@@ -152,6 +152,23 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesSwitchViewModesPreference()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("SwitchViewModes", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCheckBox(\"Switch view modes when reselecting a classic mode\", s.SwitchViewModes)", body, StringComparison.Ordinal);
+        Assert.Contains("SwitchViewModes = _switchViewModes.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.SwitchViewModes = dlg.SwitchViewModes;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("if (!_settings.SwitchViewModes", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.CurrentEditMode != mode", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.ViewMode2D == MapControl.ClassicViewMode.FloorTextures", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("SetClassicViewMode(viewMode);", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesDrawLineModePreferences()
     {
         Type type = typeof(SettingsWindow);

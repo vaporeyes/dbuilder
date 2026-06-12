@@ -76,6 +76,7 @@ public sealed class Settings
     public bool SplitJoinedSectors { get; set; } = true;
     public bool RenderGrid { get; set; } = true;
     public bool DynamicGridSize { get; set; } = true;
+    public bool SwitchViewModes { get; set; }
     public bool FixedThingsScale { get; set; }
     public bool AlwaysShowVertices { get; set; } = true;
     public int? DefaultViewMode { get; set; }

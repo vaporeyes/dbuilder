@@ -201,6 +201,23 @@ public sealed class MainWindowCommandTests
     }
 
     [Fact]
+    public void RepeatedClassicModeSelectionCanSwitchFloorAndCeilingViewModes()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.Contains("private bool SwitchViewModeForRepeatedClassicMode(MapControl.EditMode mode)", body, StringComparison.Ordinal);
+        Assert.Contains("if (SwitchViewModeForRepeatedClassicMode(mode))", body, StringComparison.Ordinal);
+        Assert.Contains("MapView.CurrentEditMode != mode", body, StringComparison.Ordinal);
+        Assert.Contains("MapView.In3DMode", body, StringComparison.Ordinal);
+        Assert.Contains("MapView.AutomapMode", body, StringComparison.Ordinal);
+        Assert.Contains("MapView.WadAuthorMode", body, StringComparison.Ordinal);
+        Assert.Contains("MapView.ImageExampleMode", body, StringComparison.Ordinal);
+        Assert.Contains("? MapControl.ClassicViewMode.CeilingTextures", body, StringComparison.Ordinal);
+        Assert.Contains(": MapControl.ClassicViewMode.FloorTextures", body, StringComparison.Ordinal);
+        Assert.Contains("SetClassicViewMode(viewMode);", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ScreenshotCommandsWriteTimestampedPngFiles()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));

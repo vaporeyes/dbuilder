@@ -408,6 +408,7 @@ public class SettingsTests
                 AutoClearSidedefTextures = false,
                 AutoMerge = false,
                 SplitJoinedSectors = true,
+                SwitchViewModes = true,
                 AlphaBasedTextureHighlighting = false,
                 SelectAdjacentVisualVertexSlopeHandles = true,
                 RenderGrid = false,
@@ -588,6 +589,7 @@ public class SettingsTests
             Assert.False(loaded.AutoClearSidedefTextures);
             Assert.False(loaded.AutoMerge);
             Assert.True(loaded.SplitJoinedSectors);
+            Assert.True(loaded.SwitchViewModes);
             Assert.False(loaded.AlphaBasedTextureHighlighting);
             Assert.True(loaded.SelectAdjacentVisualVertexSlopeHandles);
             Assert.False(loaded.RenderGrid);
@@ -790,6 +792,10 @@ public class SettingsTests
 
         Assert.Equal(expected, settings.NormalizedDefaultViewMode);
     }
+
+    [Fact]
+    public void SwitchViewModesDefaultsToUdbOff()
+        => Assert.False(new Settings().SwitchViewModes);
 
     [Theory]
     [InlineData(null, ThingModelRenderMode.All)]
