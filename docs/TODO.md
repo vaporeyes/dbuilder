@@ -3206,6 +3206,7 @@ section of `docs/PARITY_MATRIX.md`.
 ## Release Criteria For Full Port
 
 - [ ] Every UDB core source folder is marked `ported` or has an explicitly documented replacement.
+  - [x] Add clone-backed coverage that every UDB `Source/Core` folder has a parity-matrix entry.
 - [ ] Every bundled UDB plugin is marked `ported`, intentionally omitted, or replaced with equivalent behavior.
 - [ ] Editor app builds from the main solution.
 - [ ] All automated tests pass on supported platforms.
