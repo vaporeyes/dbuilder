@@ -403,6 +403,58 @@ glow
     }
 
     [Fact]
+    public void ParsesModStyleGldefsFixtureWithIncludesLightsGlowsAndSkyboxes()
+    {
+        const string root = @"
+#include ""lights/common.gldefs""
+object FixtureLamp
+{
+    frame LAMPA { light FIXTURE_PULSE }
+}
+skybox ""FIXTURESKY"" fliptop { SKYRT SKYLF SKYUP SKYDN SKYFT SKYBK }";
+        const string included = @"
+pulselight FIXTURE_PULSE
+{
+    color 0.25 0.5 1.0
+    size 64
+    secondarysize 24
+    interval 0.5
+    attenuate 1
+    dontlightself 1
+}
+glow
+{
+    flats { LAVA1 }
+    texture ""FIXTUREGLOW"", ""#2040ff"", 32, fullbright
+}";
+
+        var g = GldefsParser.Parse(root, path => path == "lights/common.gldefs" ? included : null);
+
+        Assert.True(g.Lights.ContainsKey("FIXTURE_PULSE"));
+        var light = g.Lights["FIXTURE_PULSE"];
+        Assert.Equal("pulselight", light.Type);
+        Assert.Equal(0.25f, light.R, 4);
+        Assert.Equal(128f, light.Size, 4);
+        Assert.Equal(48f, light.SecondarySize, 4);
+        Assert.Equal(17f, light.Interval, 4);
+        Assert.Equal(GldefsLightRenderStyle.Attenuated, light.RenderStyle);
+        Assert.True(light.DontLightSelf);
+
+        Assert.Single(g.Objects);
+        Assert.Equal("FixtureLamp", g.Objects[0].ClassName);
+        Assert.Equal("FIXTURE_PULSE", g.Objects[0].Lights.Single());
+        Assert.Equal(0.25f, g.ActorLightColor("FixtureLamp")!.Value.R, 4);
+
+        Assert.Contains("LAVA1", g.GlowFlats);
+        Assert.Equal(64, g.Glows["FIXTUREGLOW"].Height);
+        Assert.True(g.Glows["FIXTUREGLOW"].Fullbright);
+        Assert.Equal(0x20 / 255.0f, g.Glows["FIXTUREGLOW"].R, 4);
+
+        Assert.True(g.Skyboxes["FIXTURESKY"].FlipTop);
+        Assert.Equal(new[] { "SKYRT", "SKYLF", "SKYUP", "SKYDN", "SKYFT", "SKYBK" }, g.Skyboxes["FIXTURESKY"].Textures);
+    }
+
+    [Fact]
     public void DuplicateIncludesStopParsingLikeUdb()
     {
         const string root = @"
