@@ -631,6 +631,40 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
+    public void OverviewScreenRepresentativesCollapseZoomedOutUnselectedThingPileups()
+    {
+        IReadOnlyList<string> representatives = ThingIconRenderPolicy.SelectOverviewScreenRepresentatives(
+            new[]
+            {
+                new ThingOverviewScreenCandidate<string>("small", (0, 0), Selected: false, MapRadius: 16, ScreenX: 100, ScreenY: 100),
+                new ThingOverviewScreenCandidate<string>("large", (1, 0), Selected: false, MapRadius: 64, ScreenX: 124, ScreenY: 104),
+                new ThingOverviewScreenCandidate<string>("near", (2, 0), Selected: false, MapRadius: 32, ScreenX: 148, ScreenY: 108),
+                new ThingOverviewScreenCandidate<string>("far", (4, 0), Selected: false, MapRadius: 16, ScreenX: 760, ScreenY: 100),
+            },
+            viewScale: ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
+            thingArrows: false);
+
+        Assert.Equal(new[] { "large", "far" }, representatives);
+    }
+
+    [Fact]
+    public void OverviewScreenRepresentativesKeepSelectedThingMarkersVisible()
+    {
+        IReadOnlyList<string> representatives = ThingIconRenderPolicy.SelectOverviewScreenRepresentatives(
+            new[]
+            {
+                new ThingOverviewScreenCandidate<string>("large", (0, 0), Selected: false, MapRadius: 64, ScreenX: 100, ScreenY: 100),
+                new ThingOverviewScreenCandidate<string>("selected-a", (1, 0), Selected: true, MapRadius: 8, ScreenX: 124, ScreenY: 104),
+                new ThingOverviewScreenCandidate<string>("selected-b", (2, 1), Selected: true, MapRadius: 16, ScreenX: 132, ScreenY: 116),
+                new ThingOverviewScreenCandidate<string>("far", (4, 0), Selected: false, MapRadius: 16, ScreenX: 760, ScreenY: 100),
+            },
+            viewScale: ThingIconRenderPolicy.FarOverviewMarkerScaleThreshold,
+            thingArrows: false);
+
+        Assert.Equal(new[] { "selected-a", "selected-b", "far" }, representatives);
+    }
+
+    [Fact]
     public void DeepOverviewScreenSpacingSuppressesWideThingIconPileups()
     {
         Assert.False(ThingIconRenderPolicy.ShouldRenderOverviewScreenThing(

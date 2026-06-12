@@ -1555,6 +1555,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style 2D thing model transform planning.
   - [x] Add UDB-style 2D thing bounding-box line pass planning.
   - [x] Keep selected 2D thing markers visible during overview pileup culling.
+  - [x] Extract complete zoomed-out 2D thing overview representative selection.
   - [x] Add UDB-style 2D overlay geometry draw planning.
   - [x] Add UDB-style 2D highlight draw planning.
   - [x] Add UDB-style 2D text render sequence planning.

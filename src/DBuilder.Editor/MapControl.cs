@@ -5185,11 +5185,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                     farOverviewThingMarkers),
                 compactThingMarkers);
             Gldefs? gldefs = _resources?.GetGldefs();
-            System.Collections.Generic.Dictionary<(int X, int Y), Thing>? overviewRepresentatives = null;
-            var renderedOverviewThingScreens = new System.Collections.Generic.List<(double X, double Y)>();
+            System.Collections.Generic.HashSet<Thing>? overviewRepresentatives = null;
             if (ThingIconRenderPolicy.ShouldCullOverlappingOverviewThings(_zoom, _thingArrows))
             {
-                var candidates = new System.Collections.Generic.List<ThingOverviewCullCandidate<Thing>>();
+                var candidates = new System.Collections.Generic.List<ThingOverviewScreenCandidate<Thing>>();
                 foreach (var candidate in _map.Things)
                 {
                     if (ThingHidden2D(candidate)) continue;
@@ -5214,14 +5213,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                         Bounds.Width,
                         Bounds.Height)) continue;
 
-                    candidates.Add(new ThingOverviewCullCandidate<Thing>(
+                    candidates.Add(new ThingOverviewScreenCandidate<Thing>(
                         candidate,
                         ThingOverviewCell(candidateScreen),
                         candidate.Selected,
-                        candidateRadius));
+                        candidateRadius,
+                        candidateScreen.X,
+                        candidateScreen.Y));
                 }
 
-                overviewRepresentatives = ThingIconRenderPolicy.SelectOverviewCellRepresentatives(candidates);
+                overviewRepresentatives = new System.Collections.Generic.HashSet<Thing>(
+                    ThingIconRenderPolicy.SelectOverviewScreenRepresentatives(candidates, _zoom, _thingArrows));
             }
 
             foreach (var t in _map.Things)
@@ -5249,17 +5251,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                     Bounds.Height)) continue;
                 if (overviewRepresentatives != null)
                 {
-                    var cell = ThingOverviewCell(screen);
-                    if (!overviewRepresentatives.TryGetValue(cell, out Thing? representative)
-                        || !ReferenceEquals(t, representative)) continue;
-                    if (!ThingIconRenderPolicy.ShouldRenderOverviewScreenThing(
-                        screen.X,
-                        screen.Y,
-                        renderedOverviewThingScreens,
-                        _zoom,
-                        _thingArrows,
-                        t.Selected)) continue;
-                    renderedOverviewThingScreens.Add(screen);
+                    if (!overviewRepresentatives.Contains(t)) continue;
                 }
                 // Arrow mode: Doom-Builder-style colored disc + direction arrow (no sprites).
                 if (_thingArrows)

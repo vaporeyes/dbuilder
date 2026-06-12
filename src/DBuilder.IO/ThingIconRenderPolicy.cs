@@ -19,6 +19,14 @@ public readonly record struct ThingOverviewCullCandidate<TThing>(
     bool Selected,
     double MapRadius);
 
+public readonly record struct ThingOverviewScreenCandidate<TThing>(
+    TThing Thing,
+    (int X, int Y) Cell,
+    bool Selected,
+    double MapRadius,
+    double ScreenX,
+    double ScreenY);
+
 public static class ThingIconRenderPolicy
 {
     public const double MinimumInteractiveViewScale = 0.02;
@@ -176,6 +184,43 @@ public static class ThingIconRenderPolicy
         var result = new Dictionary<(int X, int Y), TThing>();
         foreach (var pair in representatives)
             result[pair.Key] = pair.Value.Thing;
+        return result;
+    }
+
+    public static IReadOnlyList<TThing> SelectOverviewScreenRepresentatives<TThing>(
+        IReadOnlyList<ThingOverviewScreenCandidate<TThing>> candidates,
+        double viewScale,
+        bool thingArrows)
+    {
+        if (!ShouldCullOverlappingOverviewThings(viewScale, thingArrows))
+            return candidates.Select(candidate => candidate.Thing).ToArray();
+
+        Dictionary<(int X, int Y), TThing> cellRepresentatives = SelectOverviewCellRepresentatives(
+            candidates.Select(candidate => new ThingOverviewCullCandidate<TThing>(
+                candidate.Thing,
+                candidate.Cell,
+                candidate.Selected,
+                candidate.MapRadius)));
+
+        var result = new List<TThing>();
+        var renderedScreens = new List<(double X, double Y)>();
+        foreach (ThingOverviewScreenCandidate<TThing> candidate in candidates)
+        {
+            if (!cellRepresentatives.TryGetValue(candidate.Cell, out TThing? representative)
+                || !EqualityComparer<TThing>.Default.Equals(candidate.Thing, representative)) continue;
+
+            if (!ShouldRenderOverviewScreenThing(
+                candidate.ScreenX,
+                candidate.ScreenY,
+                renderedScreens,
+                viewScale,
+                thingArrows,
+                candidate.Selected)) continue;
+
+            result.Add(candidate.Thing);
+            renderedScreens.Add((candidate.ScreenX, candidate.ScreenY));
+        }
+
         return result;
     }
 
