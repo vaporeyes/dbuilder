@@ -12,6 +12,17 @@ namespace DBuilder.Tests;
 
 public class UdbScriptApiConversionModelTests
 {
+    private static string? FindUdbRoot()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "."));
+        string sibling = Path.GetFullPath(Path.Combine(repositoryRoot, "..", "UltimateDoomBuilder"));
+        if (File.Exists(Path.Combine(sibling, "Assets", "Common", "UDBScript", "Scripts", "Examples", "Geometry", "triangulatesectors.js"))) return sibling;
+
+        string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string root = Path.Combine(home, "dev", "repos", "UltimateDoomBuilder");
+        return File.Exists(Path.Combine(root, "Assets", "Common", "UDBScript", "Scripts", "Examples", "Geometry", "triangulatesectors.js")) ? root : null;
+    }
+
     [Fact]
     public void ConvertsVectorInstancesAndWrappersToVector3D()
     {
@@ -3092,6 +3103,45 @@ localsidedeftextureoffsets = true;
         Assert.Equal(typeof(bool), UdbScriptApiConversionModel.GetTypeFromUniversalType((int)UniversalType.Boolean));
         Assert.Equal(typeof(string), UdbScriptApiConversionModel.GetTypeFromUniversalType((int)UniversalType.Flat));
         Assert.Equal(typeof(string), UdbScriptApiConversionModel.GetTypeFromUniversalType((int)UniversalType.ThingClass));
+    }
+
+    [Fact]
+    public void CommonUdbScriptTriangulateSectorsWorkflowUsesMapWrappersTogether()
+    {
+        var map = new MapSet();
+        var wrapper = new UdbScriptMapWrapper(map);
+        Assert.True(wrapper.drawLines(new object[]
+        {
+            new object[] { 0.0, 0.0 },
+            new object[] { 64.0, 0.0 },
+            new object[] { 64.0, 64.0 },
+            new object[] { 0.0, 64.0 },
+            new object[] { 0.0, 0.0 },
+        }));
+        Sector source = Assert.Single(map.Sectors);
+        source.Selected = true;
+
+        UdbScriptSectorWrapper[] sectors = wrapper.getSelectedOrHighlightedSectors();
+        foreach (UdbScriptSectorWrapper sector in sectors)
+            foreach (UdbScriptVector2DWrapper[] triangle in sector.getTriangles())
+                Assert.True(wrapper.drawLines(triangle.Concat(new[] { triangle[0] }).ToArray()));
+
+        Assert.Single(sectors);
+        Assert.True(map.Sectors.Count > 1);
+        Assert.All(map.Sectors.Skip(1), sector => Assert.Equal(3, sector.Sidedefs.Count));
+    }
+
+    [Fact]
+    public void CommonUdbScriptTriangulateSectorsExampleUsesCoveredApisWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Assets", "Common", "UDBScript", "Scripts", "Examples", "Geometry", "triangulatesectors.js"));
+
+        Assert.Contains("UDB.Map.getSelectedOrHighlightedSectors()", source, StringComparison.Ordinal);
+        Assert.Contains("s.getTriangles()", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.drawLines([...t, t[0]])", source, StringComparison.Ordinal);
     }
 
     private static Sector CreateSquareSector()
