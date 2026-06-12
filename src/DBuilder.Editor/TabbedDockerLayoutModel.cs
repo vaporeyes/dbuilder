@@ -26,6 +26,10 @@ public sealed record TabbedDockerGroup(
     IReadOnlyList<TabbedDockerDescriptor> Tabs,
     string? ActiveTabKey = null);
 
+public sealed record TabbedDockerLayoutState(
+    IReadOnlyList<string> ActiveCommandIds,
+    IReadOnlyDictionary<TabbedDockerArea, string> ActiveTabKeysByArea);
+
 public static class TabbedDockerLayoutModel
 {
     public static IReadOnlyList<TabbedDockerDescriptor> All { get; } = new[]
@@ -71,6 +75,37 @@ public static class TabbedDockerLayoutModel
         => All.FirstOrDefault(descriptor =>
             descriptor.CommandId == commandId
             || descriptor.Aliases.Contains(commandId, StringComparer.Ordinal));
+
+    public static TabbedDockerLayoutState ShowDocker(
+        IEnumerable<string> activeCommandIds,
+        IReadOnlyDictionary<TabbedDockerArea, string>? activeTabKeysByArea,
+        string commandId)
+    {
+        TabbedDockerDescriptor? target = FindByCommandId(commandId);
+        var activeKeys = activeCommandIds
+            .Select(FindByCommandId)
+            .Where(descriptor => descriptor is not null)
+            .Select(descriptor => descriptor!.Key)
+            .ToHashSet(StringComparer.Ordinal);
+
+        if (target is not null)
+            activeKeys.Add(target.Key);
+
+        var activeTabs = activeTabKeysByArea is null
+            ? new Dictionary<TabbedDockerArea, string>()
+            : new Dictionary<TabbedDockerArea, string>(activeTabKeysByArea);
+        if (target is not null)
+            activeTabs[target.Area] = target.Key;
+
+        string[] activeCanonicalCommands = All
+            .Where(descriptor => activeKeys.Contains(descriptor.Key))
+            .Select(descriptor => descriptor.CommandId)
+            .ToArray();
+        IReadOnlyList<TabbedDockerGroup> groups = BuildGroups(activeCanonicalCommands, activeTabs);
+        return new TabbedDockerLayoutState(
+            activeCanonicalCommands,
+            groups.ToDictionary(group => group.Area, group => group.ActiveTabKey ?? group.Tabs[0].Key));
+    }
 
     private static string? ActiveTabKey(
         TabbedDockerArea area,
