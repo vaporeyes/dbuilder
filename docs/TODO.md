@@ -3058,7 +3058,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add a full PWAD byte-layout golden test for Doom-format map output.
   - [x] Add a full PWAD byte-layout golden test for Hexen-format map output.
   - [x] Add a full PWAD byte-layout golden test for UDMF-format map output.
-- [ ] Add parser regression tests from representative real-world mods.
+- [x] Add parser regression tests from representative real-world mods.
 - [x] Add property tests for geometry operations.
 - [x] Add editor-model tests for undo and redo.
 - [ ] Add UI smoke tests for opening, editing, saving, and reopening maps.
