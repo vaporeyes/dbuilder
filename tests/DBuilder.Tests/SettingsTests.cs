@@ -166,6 +166,16 @@ public class SettingsTests
     }
 
     [Fact]
+    public void ChangeHeightBySidedefDefaultsToDoNothingLikeUdb()
+    {
+        var settings = new Settings();
+
+        Assert.Equal(0, settings.NormalizedChangeHeightBySidedef);
+        Assert.Equal(0, new Settings { ChangeHeightBySidedef = -1 }.NormalizedChangeHeightBySidedef);
+        Assert.Equal(3, new Settings { ChangeHeightBySidedef = 9 }.NormalizedChangeHeightBySidedef);
+    }
+
+    [Fact]
     public void ModelRenderModeDefaultsToAllLikeUdb()
     {
         Assert.Equal(ThingModelRenderMode.All, new Settings().NormalizedModelRenderMode);
@@ -484,6 +494,7 @@ public class SettingsTests
                 VisualModeClearSelection = true,
                 EditNewThing = false,
                 EditNewSector = true,
+                ChangeHeightBySidedef = 3,
                 SwitchViewModes = true,
                 AlphaBasedTextureHighlighting = false,
                 SelectAdjacentVisualVertexSlopeHandles = true,
@@ -679,6 +690,8 @@ public class SettingsTests
             Assert.True(loaded.VisualModeClearSelection);
             Assert.False(loaded.EditNewThing);
             Assert.True(loaded.EditNewSector);
+            Assert.Equal(3, loaded.ChangeHeightBySidedef);
+            Assert.Equal(3, loaded.NormalizedChangeHeightBySidedef);
             Assert.True(loaded.SwitchViewModes);
             Assert.False(loaded.AlphaBasedTextureHighlighting);
             Assert.True(loaded.SelectAdjacentVisualVertexSlopeHandles);

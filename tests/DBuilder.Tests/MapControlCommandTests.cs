@@ -2059,6 +2059,30 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void ChangeHeightBySidedefMatchesUdbWallHeightModes()
+    {
+        Assert.Null(MapControl.VisualHeightBySidedefEditName(0));
+        Assert.Equal("Change ceiling height", MapControl.VisualHeightBySidedefEditName(1));
+        Assert.Equal("Change floor height", MapControl.VisualHeightBySidedefEditName(2));
+        Assert.Equal("Change floor and ceiling height", MapControl.VisualHeightBySidedefEditName(3));
+
+        var ceilingSector = new Sector { FloorHeight = 0, CeilHeight = 64 };
+        MapControl.ApplySidedefHeightDelta(ceilingSector, 8, 1);
+        Assert.Equal(0, ceilingSector.FloorHeight);
+        Assert.Equal(72, ceilingSector.CeilHeight);
+
+        var floorSector = new Sector { FloorHeight = 0, CeilHeight = 64 };
+        MapControl.ApplySidedefHeightDelta(floorSector, 8, 2);
+        Assert.Equal(8, floorSector.FloorHeight);
+        Assert.Equal(64, floorSector.CeilHeight);
+
+        var bothSector = new Sector { FloorHeight = 0, CeilHeight = 64 };
+        MapControl.ApplySidedefHeightDelta(bothSector, 8, 3);
+        Assert.Equal(8, bothSector.FloorHeight);
+        Assert.Equal(72, bothSector.CeilHeight);
+    }
+
+    [Fact]
     public void VisualAutoAlign3DTriesUdmfFlatTargets()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));

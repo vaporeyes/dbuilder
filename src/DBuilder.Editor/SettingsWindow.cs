@@ -13,7 +13,7 @@ public sealed class SettingsWindow : PropertyDialog
     private const string ShortcutOverrideWatermark = "command.id=Shortcut; use None or Unassigned to clear; separate entries with semicolons, commas, or new lines";
 
     private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _testSkill, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _autosaveCount, _autosaveInterval, _defaultSectorFloorHeight, _defaultSectorCeilingHeight, _defaultSectorBrightness, _imageBrightness, _doubleSidedAlpha, _visualFov, _viewDistance, _moveSpeed, _mouseSpeed, _mouseSelectionThreshold, _stitchRange, _highlightRange, _thingHighlightRange, _splitLinedefsRange, _autoScrollSpeed, _statusHistoryLimit, _toastDuration, _toastDisabledActions, _shortcutOverrides;
-    private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _mergeGeometryMode, _toastAnchor, _pasteTagMode;
+    private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _changeHeightBySidedef, _mergeGeometryMode, _toastAnchor, _pasteTagMode;
     private readonly CheckBox _testMonsters, _autosave, _autoClearSidedefTextures, _autoMerge, _splitJoinedSectors, _autoClearSelection, _visualModeClearSelection, _editNewThing, _editNewSector, _dynamicGridSize, _switchViewModes, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _qualityDisplay, _classicBilinear, _visualBilinear, _blackBrowsers, _flatShadeVertices, _markExtraFloors, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _showErrorsWindow, _fixedThingsScale, _alwaysShowVertices, _selectAdjacentVisualVertexSlopeHandles, _useOppositeSmartPivotHandle, _toastsEnabled, _pasteRemoveActions;
     private readonly bool _drawLineShowGuidelines;
     private readonly int _drawRectangleSubdivisions, _drawRectangleBevelWidth;
@@ -40,6 +40,7 @@ public sealed class SettingsWindow : PropertyDialog
     public bool VisualModeClearSelection;
     public bool EditNewThing;
     public bool EditNewSector;
+    public int ChangeHeightBySidedef;
     public bool DynamicGridSize;
     public bool SwitchViewModes;
     public bool UseHighlight;
@@ -157,6 +158,7 @@ public sealed class SettingsWindow : PropertyDialog
         _visualModeClearSelection = AddCheckBox("Automatically clear selection in Visual Mode", s.VisualModeClearSelection);
         _editNewThing = AddCheckBox("Edit thing properties when inserting a new thing", s.EditNewThing);
         _editNewSector = AddCheckBox("Edit sector properties after drawing a new sector", s.EditNewSector);
+        _changeHeightBySidedef = AddCombo("When changing height on a wall in Visual Mode", ChangeHeightBySidedefItems(), s.NormalizedChangeHeightBySidedef);
         _dynamicGridSize = AddCheckBox("Dynamic grid size", s.DynamicGridSize);
         _switchViewModes = AddCheckBox("Switch view modes when reselecting a classic mode", s.SwitchViewModes);
         _drawLineContinuousDrawing = AddCheckBox("Draw lines continuously", s.NormalizedDrawLineSettings.ContinuousDrawing);
@@ -226,6 +228,7 @@ public sealed class SettingsWindow : PropertyDialog
         VisualModeClearSelection = _visualModeClearSelection.IsChecked == true;
         EditNewThing = _editNewThing.IsChecked == true;
         EditNewSector = _editNewSector.IsChecked == true;
+        ChangeHeightBySidedef = ComboNumber(_changeHeightBySidedef, Settings.DefaultChangeHeightBySidedef);
         DynamicGridSize = _dynamicGridSize.IsChecked == true;
         SwitchViewModes = _switchViewModes.IsChecked == true;
         UseHighlight = _useHighlight.IsChecked == true;
@@ -347,6 +350,14 @@ public sealed class SettingsWindow : PropertyDialog
         yield return new CatalogItem((int)ThingLightRenderMode.None, "None");
         yield return new CatalogItem((int)ThingLightRenderMode.All, "All");
         yield return new CatalogItem((int)ThingLightRenderMode.Animated, "Animated");
+    }
+
+    private static IEnumerable<CatalogItem> ChangeHeightBySidedefItems()
+    {
+        yield return new CatalogItem(0, "Do nothing");
+        yield return new CatalogItem(1, "Change the ceiling height");
+        yield return new CatalogItem(2, "Change the floor height");
+        yield return new CatalogItem(3, "Change both floor and ceiling height");
     }
 
     private static IEnumerable<CatalogItem> MergeGeometryModeItems()

@@ -238,6 +238,7 @@ public partial class MainWindow : Window
         MapView.VisualModeClearSelection = _settings.VisualModeClearSelection;
         MapView.EditNewThing = _settings.EditNewThing;
         MapView.EditNewSector = _settings.EditNewSector;
+        MapView.ChangeHeightBySidedef = _settings.NormalizedChangeHeightBySidedef;
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
         MapView.RenderGridEnabled = _settings.RenderGrid;
         MapView.DynamicGridSizeEnabled = _settings.DynamicGridSize;
@@ -1438,6 +1439,7 @@ public partial class MainWindow : Window
         _settings.VisualModeClearSelection = dlg.VisualModeClearSelection;
         _settings.EditNewThing = dlg.EditNewThing;
         _settings.EditNewSector = dlg.EditNewSector;
+        _settings.ChangeHeightBySidedef = dlg.ChangeHeightBySidedef;
         _settings.DynamicGridSize = dlg.DynamicGridSize;
         _settings.SwitchViewModes = dlg.SwitchViewModes;
         _settings.UseHighlight = dlg.UseHighlight;
@@ -1499,6 +1501,7 @@ public partial class MainWindow : Window
         MapView.VisualModeClearSelection = _settings.VisualModeClearSelection;
         MapView.EditNewThing = _settings.EditNewThing;
         MapView.EditNewSector = _settings.EditNewSector;
+        MapView.ChangeHeightBySidedef = _settings.NormalizedChangeHeightBySidedef;
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
         MapView.DynamicGridSizeEnabled = _settings.DynamicGridSize;
         MapView.SetUseHighlight(_settings.UseHighlight);

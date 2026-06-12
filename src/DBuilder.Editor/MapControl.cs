@@ -239,6 +239,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private int _moveSpeed = Settings.DefaultMoveSpeed;
     private int _mouseSpeed = Settings.DefaultMouseSpeed;
     private int _mouseSelectionThreshold = Settings.DefaultMouseSelectionThreshold;
+    private int _changeHeightBySidedef = Settings.DefaultChangeHeightBySidedef;
     private int _stitchRange = Settings.DefaultStitchRange;
     private int _highlightRange = Settings.DefaultHighlightRange;
     private int _thingHighlightRange = Settings.DefaultThingHighlightRange;
@@ -334,6 +335,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         get => _mouseSelectionThreshold;
         set => _mouseSelectionThreshold = Math.Max(0, value);
+    }
+    public int ChangeHeightBySidedef
+    {
+        get => _changeHeightBySidedef;
+        set => _changeHeightBySidedef = Math.Clamp(value, 0, 3);
     }
     public int StitchRange
     {
@@ -4194,7 +4200,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         string heightStatus = string.Empty;
         foreach (var h in EditTargets3D())
         {
-            string? editLabel = VisualHeight3DEditName(h.Kind);
+            string? editLabel = HeightEditLabel(h);
             if (editLabel == null) continue;
             if (!any) { EditBegun?.Invoke(editLabel); any = true; }
             ApplyHeightDelta(h, step);
@@ -4237,7 +4243,16 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         Target3DChanged?.Invoke(result.Message);
     }
 
-    private static string? HeightEditLabel(VisualHit h) => VisualHeight3DEditName(h.Kind);
+    private string? HeightEditLabel(VisualHit h)
+        => h.Kind == VisualHitKind.Wall ? VisualHeightBySidedefEditName(_changeHeightBySidedef) : VisualHeight3DEditName(h.Kind);
+
+    public static string? VisualHeightBySidedefEditName(int changeHeightBySidedef) => changeHeightBySidedef switch
+    {
+        1 => "Change ceiling height",
+        2 => "Change floor height",
+        3 => "Change floor and ceiling height",
+        _ => null,
+    };
 
     public static string? VisualHeight3DEditName(VisualHitKind kind) => kind switch
     {
@@ -4247,13 +4262,32 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _ => null,
     };
 
-    private static void ApplyHeightDelta(VisualHit h, int delta)
+    private void ApplyHeightDelta(VisualHit h, int delta)
     {
         switch (h.Kind)
         {
             case VisualHitKind.Floor: if (h.Sector is { } fs) fs.FloorHeight += delta; break;
             case VisualHitKind.Ceiling: if (h.Sector is { } cs) cs.CeilHeight += delta; break;
             case VisualHitKind.Thing: if (h.Thing is { } t) t.Height += delta; break;
+            case VisualHitKind.Wall: ApplySidedefHeightDelta(h.Sector, delta, _changeHeightBySidedef); break;
+        }
+    }
+
+    public static void ApplySidedefHeightDelta(Sector? sector, int delta, int changeHeightBySidedef)
+    {
+        if (sector == null) return;
+        switch (Math.Clamp(changeHeightBySidedef, 0, 3))
+        {
+            case 1:
+                sector.CeilHeight += delta;
+                break;
+            case 2:
+                sector.FloorHeight += delta;
+                break;
+            case 3:
+                sector.FloorHeight += delta;
+                sector.CeilHeight += delta;
+                break;
         }
     }
 

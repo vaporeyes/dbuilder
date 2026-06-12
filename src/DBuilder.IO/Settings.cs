@@ -49,6 +49,7 @@ public sealed class Settings
     public const int MinMouseSpeed = 100;
     public const int MaxMouseSpeed = 2000;
     public const int DefaultMouseSelectionThreshold = 2;
+    public const int DefaultChangeHeightBySidedef = 0;
     public const int DefaultStitchRange = 20;
     public const int DefaultHighlightRange = 20;
     public const int DefaultThingHighlightRange = 10;
@@ -87,6 +88,7 @@ public sealed class Settings
     public bool VisualModeClearSelection { get; set; }
     public bool EditNewThing { get; set; } = true;
     public bool EditNewSector { get; set; }
+    public int? ChangeHeightBySidedef { get; set; }
     public bool RenderGrid { get; set; } = true;
     public bool DynamicGridSize { get; set; } = true;
     public bool SwitchViewModes { get; set; }
@@ -211,6 +213,9 @@ public sealed class Settings
 
     public int NormalizedMouseSelectionThreshold =>
         Math.Max(0, MouseSelectionThreshold ?? DefaultMouseSelectionThreshold);
+
+    public int NormalizedChangeHeightBySidedef =>
+        Math.Clamp(ChangeHeightBySidedef ?? DefaultChangeHeightBySidedef, 0, 3);
 
     public int NormalizedStitchRange =>
         Math.Max(0, StitchRange ?? DefaultStitchRange);
