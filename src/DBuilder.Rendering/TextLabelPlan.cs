@@ -118,6 +118,8 @@ public sealed record TextLabelRenderStatePlan(
     float Brightness,
     float TextureOffset,
     float TextureScale,
+    float FsaaFactor,
+    bool UseBilinear,
     bool TextureTransformEnabled);
 
 public readonly record struct TextLabelInvalidation(bool LayoutUpdateNeeded, bool TextureUpdateNeeded)
@@ -570,6 +572,8 @@ public static class TextLabelPlan
             Brightness: 1.0f,
             TextureOffset: 0.0f,
             TextureScale: 1.0f,
+            FsaaFactor: 0.0f,
+            UseBilinear: false,
             TextureTransformEnabled: false);
     }
 

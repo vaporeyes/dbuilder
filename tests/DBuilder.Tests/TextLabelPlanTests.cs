@@ -596,6 +596,7 @@ public sealed class TextLabelPlanTests
         Assert.Contains("if(labels.Count == skipped) return;", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetAlphaBlendEnable(true);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetTexture(label.Texture);", source, StringComparison.Ordinal);
+        Assert.Contains("SetDisplay2DSettings(1f, 1f, 0f, 1f, false);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.SetVertexBuffer(label.VertexBuffer);", source, StringComparison.Ordinal);
         Assert.Contains("graphics.Draw(PrimitiveType.TriangleStrip, 0, 2);", source, StringComparison.Ordinal);
     }
@@ -624,6 +625,8 @@ public sealed class TextLabelPlanTests
         Assert.Equal(1.0f, state.Brightness);
         Assert.Equal(0.0f, state.TextureOffset);
         Assert.Equal(1.0f, state.TextureScale);
+        Assert.Equal(0.0f, state.FsaaFactor);
+        Assert.False(state.UseBilinear);
         Assert.False(state.TextureTransformEnabled);
     }
 
@@ -643,6 +646,8 @@ public sealed class TextLabelPlanTests
 
         Assert.False(renderPlan.ShouldRender);
         Assert.False(state.AlphaBlendEnabled);
+        Assert.Equal(0.0f, state.FsaaFactor);
+        Assert.False(state.UseBilinear);
     }
 
     [Fact]
