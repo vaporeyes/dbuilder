@@ -52,7 +52,8 @@ This document summarizes what DBuilder can currently do and which Ultimate Doom 
 
 ### Data Coverage And Compatibility
 
-- Full UDB DataManager behavior, lazy and threaded resource loading, complete parser fixtures from real-world mods, full parser and serializer coverage, full map-format round-trips, deterministic WAD golden-file tests, large-map performance tests, and selected UDB compatibility tests remain open.
+- Full UDB DataManager behavior, lazy and threaded resource loading, complete parser fixtures from real-world mods, and full parser and serializer coverage remain open.
+- Map-format round-trips, deterministic WAD golden-file tests, large-map performance tests, and selected UDB compatibility tests have focused validation coverage.
 - Representative copyrighted IWAD and PWAD assets are not committed. Tests use synthetic fixtures and repo-owned data.
 
 ### Packaging And Release

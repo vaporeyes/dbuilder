@@ -242,6 +242,23 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
+    public void FarOverviewMarkersStaySubPixelAtDeepZoom()
+    {
+        const double viewScale = 8.0;
+
+        double worldSize = ThingIconRenderPolicy.MarkerWorldSize(
+            ThingIconRenderPolicy.MarkerBaseSize(
+                compactMarkers: true,
+                overviewMarkers: true,
+                farOverviewMarkers: true),
+            viewScale,
+            fixedThingsScale: false,
+            compactMarkers: true);
+
+        Assert.Equal(ThingIconRenderPolicy.FarOverviewMarkerBaseSize, worldSize / viewScale);
+    }
+
+    [Fact]
     public void OverviewMarkersSuppressDirectionTicks()
     {
         Assert.False(ThingIconRenderPolicy.ShouldDrawDirectionTicks(
