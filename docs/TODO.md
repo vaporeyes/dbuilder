@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 6864 tests.
+- Current verified baseline: `scripts/verify.sh` passes 6868 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 - A Rust port of the codebase is underway in `rust/`; see the Rust Port section below.
 
@@ -1417,6 +1417,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add tested cursor coordinate status formatting.
   - [x] Add a tested selected-element count to the status bar.
 - [ ] Port dockers and tabbed dock panels.
+  - [x] Add shared tabbed docker layout metadata for existing editor panel commands.
 - [x] Port info panels for vertices, linedefs, sidedefs, sectors, and things.
   - [x] Add structured single-vertex info panel details.
   - [x] Add tested single-vertex info panel model.
