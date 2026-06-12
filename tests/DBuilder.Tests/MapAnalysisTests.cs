@@ -230,6 +230,26 @@ public class MapAnalysisTests
     }
 
     [Fact]
+    public void CheckerDescriptorsCoverEveryUdbErrorCheckerClassWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string checksPath = Path.Combine(udbRoot, "Source", "Plugins", "BuilderModes", "ErrorChecks");
+        var expected = Directory.EnumerateFiles(checksPath, "Check*.cs")
+            .Select(path => Path.GetFileNameWithoutExtension(path))
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        var actual = MapAnalysis.CheckerDescriptors
+            .Select(descriptor => descriptor.ClassName)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
     public void CheckerSelectionModelAppliesDefaultsAndSavedSettings()
     {
         var savedChecks = new Dictionary<string, bool>(StringComparer.Ordinal)

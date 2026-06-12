@@ -2511,6 +2511,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Match UDB map-size selected-result description text.
   - [x] Add UDB-style selected-result description and dissolve fix for empty sectors.
   - [x] Add compatibility coverage for UDB error-checker descriptor attributes.
+  - [x] Add clone-backed coverage that every UDB error checker class has a DBuilder descriptor.
   - [x] Suppress empty-sector results through the UDB invalid-sector result family.
   - [x] Skip obsolete thing checks when the game configuration lacks DECORATE support.
   - [x] Add compatibility coverage for UDB generalized action and sector effect exclusions.
