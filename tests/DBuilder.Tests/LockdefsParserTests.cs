@@ -114,4 +114,20 @@ lock 3 { $title ""After"" }";
         Assert.Equal("1", lockDef.Id);
         Assert.Equal("Before", lockDef.Title);
     }
+
+    [Fact]
+    public void LocksWithoutTitleUseUdbDefaultTitle()
+    {
+        const string text = @"
+lock 7
+{
+    message ""Needs key.""
+}";
+
+        var lockDef = Assert.Single(LockdefsParser.Parse(text).Locks);
+
+        Assert.Equal("7", lockDef.Id);
+        Assert.Equal("Lock 7", lockDef.Title);
+        Assert.Equal("Needs key.", lockDef.Message);
+    }
 }

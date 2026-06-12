@@ -74,6 +74,7 @@ public static class LockdefsParser
             }
             if (i < t.Count) i++;
         }
+        lockDef.Title ??= "Lock " + lockDef.Id;
         if (lockDef.Id.Length > 0) defs.Locks.Add(lockDef);
         return true;
     }
