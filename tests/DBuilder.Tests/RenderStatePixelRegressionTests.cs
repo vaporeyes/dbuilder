@@ -2,6 +2,7 @@
 // ABOUTME: Verifies blend and mask render states produce stable composited pixels.
 
 using DBuilder.IO;
+using DBuilder.Geometry;
 using DBuilder.Map;
 using DBuilder.Rendering;
 
@@ -106,6 +107,37 @@ public sealed class RenderStatePixelRegressionTests
         Assert.Equal(PresentationPlan.Display2DFsaaShaderName, commands[4].ShaderName);
         Assert.Equal(PresentationPlan.Display2DFsaaShaderName, commands[5].ShaderName);
         Assert.Equal(new PixelColor(255, 40, 180, 60), pixel);
+    }
+
+    [Fact]
+    public void Translucent3DGeometryCompositesAlphaAndAdditivePassesBackToFront()
+    {
+        Renderer3DTranslucentGeometryOrderPlan plan = Renderer3DGeometryLifecyclePlan.BuildTranslucentGeometryOrderPlan(
+            [
+                new Renderer3DTranslucentGeometryCandidate(1, Renderer3DVisualGeometryType.WallMiddle, new Vector3D(4, 0, 0), RenderPass.Alpha),
+                new Renderer3DTranslucentGeometryCandidate(2, Renderer3DVisualGeometryType.WallMiddle, new Vector3D(3, 0, 0), RenderPass.Additive),
+                new Renderer3DTranslucentGeometryCandidate(3, Renderer3DVisualGeometryType.WallMiddle, new Vector3D(2, 0, 0), RenderPass.Alpha),
+            ],
+            new Vector3D());
+        var sourceColors = new Dictionary<int, PixelColor>
+        {
+            [1] = new(128, 100, 60, 20),
+            [2] = new(128, 80, 100, 120),
+            [3] = new(128, 200, 40, 10),
+        };
+        PixelColor pixel = new(255, 10, 20, 30);
+
+        foreach (Renderer3DTranslucentGeometryDrawPlan draw in plan.Draws)
+            pixel = Composite3D(draw.RenderPass, sourceColors[draw.GeometryId], pixel);
+
+        Assert.Equal(
+            [
+                new Renderer3DTranslucentGeometryDrawPlan(1, RenderPass.Alpha, Blend.InverseSourceAlpha),
+                new Renderer3DTranslucentGeometryDrawPlan(2, RenderPass.Additive, Blend.One),
+                new Renderer3DTranslucentGeometryDrawPlan(3, RenderPass.Alpha, Blend.InverseSourceAlpha),
+            ],
+            plan.Draws);
+        Assert.Equal(new PixelColor(255, 147, 64, 46), pixel);
     }
 
     [Fact]
@@ -216,6 +248,17 @@ public sealed class RenderStatePixelRegressionTests
 
         float sourceFactor = (float)layer.Alpha;
         float destinationFactor = 1.0f - sourceFactor;
+        return new PixelColor(
+            255,
+            Channel(source.R, sourceFactor, destination.R, destinationFactor),
+            Channel(source.G, sourceFactor, destination.G, destinationFactor),
+            Channel(source.B, sourceFactor, destination.B, destinationFactor));
+    }
+
+    private static PixelColor Composite3D(RenderPass renderPass, PixelColor source, PixelColor destination)
+    {
+        float sourceFactor = source.A / 255.0f;
+        float destinationFactor = renderPass == RenderPass.Additive ? 1.0f : 1.0f - sourceFactor;
         return new PixelColor(
             255,
             Channel(source.R, sourceFactor, destination.R, destinationFactor),
