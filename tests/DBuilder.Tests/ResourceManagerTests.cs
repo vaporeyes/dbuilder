@@ -339,6 +339,29 @@ public class ResourceManagerTests
     }
 
     [Fact]
+    public void ResolvesAmbientSndInfoFromWadLumps()
+    {
+        using var wad = BuildWad(
+            ("SNDINFO", Encoding.ASCII.GetBytes("""
+world/old DSOLD
+$ambient 3 world/old continuous 1
+""")),
+            ("SNDINFO", Encoding.ASCII.GetBytes("""
+world/new DSNEW
+$rolloff world/new 64 512
+$ambient 3 world/new continuous 1
+""")));
+        using var rm = new ResourceManager();
+
+        rm.AddResource(wad);
+
+        AmbientSoundInfo ambient = rm.GetSndInfo().AmbientSounds[3];
+        Assert.Equal("world/new", ambient.SoundName);
+        Assert.Equal(64.0, ambient.MinimumRadius);
+        Assert.Equal(512.0, ambient.MaximumRadius);
+    }
+
+    [Fact]
     public void FolderResourcesResolveRootSndInfoTitleFilesThenNestedWadsLikeUdb()
     {
         string nestedWad = TestArtifacts.BuildPwadFile(("SNDINFO", SndInfoBytes("world/door", "DSNEST")));

@@ -1151,6 +1151,7 @@ public sealed class ResourceManager : IDisposable
                 foreach (var sound in info.Sounds) result.Sounds[sound.Key] = sound.Value;
                 foreach (var alias in info.Aliases) result.Aliases[alias.Key] = alias.Value;
                 foreach (var group in info.RandomGroups) result.RandomGroups[group.Key] = group.Value;
+                foreach (var ambient in info.AmbientSounds) result.AmbientSounds[ambient.Key] = ambient.Value;
             }
         }
         return result;

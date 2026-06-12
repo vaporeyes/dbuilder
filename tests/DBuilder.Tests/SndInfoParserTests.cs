@@ -137,4 +137,109 @@ $endif";
         Assert.Equal("HEXSECRET", hexen.Sounds["world/secret"]);
         Assert.Equal("HEXSECRET", all.Sounds["world/secret"]);
     }
+
+    [Fact]
+    public void ParsesAmbientSoundsWithDefaultEditorRadii()
+    {
+        const string text = """
+world/wind DSWIND
+$ambient 4 world/wind point 0.5 continuous 0.75
+""";
+
+        var info = SndInfoParser.Parse(text);
+        AmbientSoundInfo ambient = info.AmbientSounds[4];
+
+        Assert.Equal("world/wind", ambient.SoundName);
+        Assert.Equal(AmbientSoundType.Point, ambient.Type);
+        Assert.Equal(AmbientSoundMode.Continuous, ambient.Mode);
+        Assert.Equal(0.75, ambient.Volume);
+        Assert.Equal(0.5, ambient.Attenuation);
+        Assert.Equal(200.0, ambient.MinimumRadius);
+        Assert.Equal(1200.0, ambient.MaximumRadius);
+    }
+
+    [Fact]
+    public void AmbientSoundRadiiUseAttenuationAndLinearRolloff()
+    {
+        const string text = """
+world/drip DSDRIP
+$attenuation world/drip 2
+$rolloff world/drip linear 100 500
+$ambient 9 world/drip random 1 3 0.25
+""";
+
+        var info = SndInfoParser.Parse(text);
+        AmbientSoundInfo ambient = info.AmbientSounds[9];
+
+        Assert.Equal(AmbientSoundMode.Random, ambient.Mode);
+        Assert.Equal(1.0, ambient.SecondsMin);
+        Assert.Equal(3.0, ambient.SecondsMax);
+        Assert.Equal(50.0, ambient.MinimumRadius);
+        Assert.Equal(250.0, ambient.MaximumRadius);
+    }
+
+    [Fact]
+    public void AmbientSoundRadiiUseLogRolloffFactor()
+    {
+        const string text = """
+world/hum DSHUM
+$rolloff world/hum log 80 3
+$ambient 12 world/hum periodic 7 1
+""";
+
+        var info = SndInfoParser.Parse(text);
+        AmbientSoundInfo ambient = info.AmbientSounds[12];
+
+        Assert.Equal(AmbientSoundMode.Periodic, ambient.Mode);
+        Assert.Equal(7.0, ambient.Seconds);
+        Assert.Equal(80.0, ambient.MinimumRadius);
+        Assert.Equal(320.0, ambient.MaximumRadius);
+    }
+
+    [Fact]
+    public void AmbientSoundRadiiResolveAliasesAndRandomGroups()
+    {
+        const string text = """
+world/source DSSRC
+$rolloff world/source 64 256
+$alias world/alias world/source
+$random world/random { world/alias world/other }
+$ambient 14 world/random surround continuous 1
+""";
+
+        var info = SndInfoParser.Parse(text);
+        AmbientSoundInfo ambient = info.AmbientSounds[14];
+
+        Assert.Equal(AmbientSoundType.Surround, ambient.Type);
+        Assert.Equal(64.0, ambient.MinimumRadius);
+        Assert.Equal(256.0, ambient.MaximumRadius);
+    }
+
+    [Fact]
+    public void AmbientSoundsHonorBaseGameIndexLimits()
+    {
+        const string text = """
+world/wind DSWIND
+$ambient 65 world/wind continuous 1
+""";
+
+        var doom = SndInfoParser.Parse(text, TerrainBaseGame.Doom);
+        var hexen = SndInfoParser.Parse(text, TerrainBaseGame.Hexen);
+
+        Assert.False(doom.AmbientSounds.ContainsKey(65));
+        Assert.True(hexen.AmbientSounds.ContainsKey(65));
+    }
+
+    [Fact]
+    public void AmbientSoundsSkipUndefinedSounds()
+    {
+        const string text = """
+$rolloff world/missing 64 256
+$ambient 7 world/missing continuous 1
+""";
+
+        var info = SndInfoParser.Parse(text);
+
+        Assert.False(info.AmbientSounds.ContainsKey(7));
+    }
 }
