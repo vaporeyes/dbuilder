@@ -132,6 +132,24 @@ public static class TabbedDockerLayoutModel
             groups.ToDictionary(group => group.Area, group => group.ActiveTabKey ?? group.Tabs[0].Key));
     }
 
+    public static TabbedDockerLayoutState ToggleDocker(
+        IEnumerable<string> activeCommandIds,
+        IReadOnlyDictionary<TabbedDockerArea, string>? activeTabKeysByArea,
+        string commandId)
+    {
+        TabbedDockerDescriptor? target = FindByCommandId(commandId);
+        if (target is null)
+            return HideDocker(activeCommandIds, activeTabKeysByArea, commandId);
+
+        bool active = activeCommandIds
+            .Select(FindByCommandId)
+            .Any(descriptor => descriptor?.Key == target.Key);
+
+        return active
+            ? HideDocker(activeCommandIds, activeTabKeysByArea, commandId)
+            : ShowDocker(activeCommandIds, activeTabKeysByArea, commandId);
+    }
+
     private static string? ActiveTabKey(
         TabbedDockerArea area,
         IReadOnlyList<TabbedDockerDescriptor> tabs,

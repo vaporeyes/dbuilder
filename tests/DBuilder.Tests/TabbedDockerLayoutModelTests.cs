@@ -220,6 +220,53 @@ public sealed class TabbedDockerLayoutModelTests
     }
 
     [Fact]
+    public void ToggleDockerShowsHiddenDockerAndActivatesItsTab()
+    {
+        TabbedDockerLayoutState state = TabbedDockerLayoutModel.ToggleDocker(
+            new[] { "window.tag-explorer" },
+            new Dictionary<TabbedDockerArea, string>
+            {
+                [TabbedDockerArea.Right] = "tag-explorer",
+            },
+            "window.comments-panel");
+
+        Assert.Equal(new[] { "window.tag-explorer", "window.comments-panel" }, state.ActiveCommandIds);
+        Assert.Equal("comments", state.ActiveTabKeysByArea[TabbedDockerArea.Right]);
+    }
+
+    [Fact]
+    public void ToggleDockerHidesVisibleDockerResolvedThroughAlias()
+    {
+        TabbedDockerLayoutState state = TabbedDockerLayoutModel.ToggleDocker(
+            new[] { "window.udbscripts", "window.show-errors" },
+            new Dictionary<TabbedDockerArea, string>
+            {
+                [TabbedDockerArea.Right] = "scripts",
+                [TabbedDockerArea.Bottom] = "error-log",
+            },
+            "window.openscripteditor");
+
+        Assert.Equal(new[] { "window.show-errors" }, state.ActiveCommandIds);
+        Assert.False(state.ActiveTabKeysByArea.ContainsKey(TabbedDockerArea.Right));
+        Assert.Equal("error-log", state.ActiveTabKeysByArea[TabbedDockerArea.Bottom]);
+    }
+
+    [Fact]
+    public void ToggleDockerIgnoresUnknownTargetWhileCleaningState()
+    {
+        TabbedDockerLayoutState state = TabbedDockerLayoutModel.ToggleDocker(
+            new[] { "missing", "window.showerrors" },
+            new Dictionary<TabbedDockerArea, string>
+            {
+                [TabbedDockerArea.Bottom] = "missing",
+            },
+            "also-missing");
+
+        Assert.Equal(new[] { "window.show-errors" }, state.ActiveCommandIds);
+        Assert.Equal("error-log", state.ActiveTabKeysByArea[TabbedDockerArea.Bottom]);
+    }
+
+    [Fact]
     public void FindByCommandIdReturnsDescriptor()
     {
         TabbedDockerDescriptor? descriptor = TabbedDockerLayoutModel.FindByCommandId("window.openscripteditor");
