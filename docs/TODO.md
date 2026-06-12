@@ -3105,7 +3105,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add parser regression tests from representative real-world mods.
 - [x] Add property tests for geometry operations.
 - [x] Add editor-model tests for undo and redo.
-- [ ] Add UI smoke tests for opening, editing, saving, and reopening maps.
+- [x] Add UI smoke tests for opening, editing, saving, and reopening maps.
   - [x] Add headless editor workflow smoke coverage for open, edit, save, and reopen map paths.
   - [x] Add headless editor workflow smoke coverage for undo, redo, save, and reopen map paths.
   - [x] Add headless editor workflow smoke coverage for UDMF editor metadata persistence.
