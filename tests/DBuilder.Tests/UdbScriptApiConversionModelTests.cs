@@ -3525,6 +3525,67 @@ localsidedeftextureoffsets = true;
         Assert.Contains("s.removeTag(qo.options.tag)", source, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void CommonUdbScriptReorderThingsIndicesWorkflowUsesMapWrappersTogether()
+    {
+        var map = new MapSet();
+        Thing first = map.AddThing(new Vector2D(0, 0), 1001);
+        Thing second = map.AddThing(new Vector2D(64, 0), 1002);
+        Thing third = map.AddThing(new Vector2D(128, 0), 1003);
+        first.Selected = true;
+        second.Selected = true;
+        third.Selected = true;
+        var wrapper = new UdbScriptMapWrapper(map);
+        UdbScriptThingWrapper[] things =
+        {
+            new(third, map),
+            new(first, map),
+            new(second, map),
+        };
+        UdbScriptThingWrapper[] sorted = things
+            .OrderBy(thing => thing.index)
+            .ToArray();
+        UdbScriptThingWrapper[] copies = things
+            .Select(thing =>
+            {
+                UdbScriptThingWrapper copy = wrapper.createThing(new object[] { 0.0, 0.0 });
+                thing.copyPropertiesTo(copy);
+                return copy;
+            })
+            .ToArray();
+
+        for (int i = 0; i < sorted.Length; i++)
+            copies[i].copyPropertiesTo(sorted[i]);
+
+        foreach (UdbScriptThingWrapper copy in Enumerable.Reverse(copies))
+            copy.delete();
+
+        Assert.Equal(1003, first.Type);
+        Assert.Equal(new Vector2D(128, 0), first.Position);
+        Assert.Equal(1001, second.Type);
+        Assert.Equal(new Vector2D(0, 0), second.Position);
+        Assert.Equal(1002, third.Type);
+        Assert.Equal(new Vector2D(64, 0), third.Position);
+        Assert.Equal(3, map.Things.Count);
+        Assert.DoesNotContain(map.Things, thing => thing.IsDisposed);
+    }
+
+    [Fact]
+    public void CommonUdbScriptReorderThingsIndicesExampleUsesCoveredApisWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Assets", "Common", "UDBScript", "Scripts", "Examples", "reorderthingsindices.js"));
+
+        Assert.Contains("UDB.Map.getSelectedThings()", source, StringComparison.Ordinal);
+        Assert.Contains("a.index - b.index", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.createThing([ 0, 0 ])", source, StringComparison.Ordinal);
+        Assert.Contains("t.copyPropertiesTo(nt)", source, StringComparison.Ordinal);
+        Assert.Contains("copies[i].copyPropertiesTo(sorted[i])", source, StringComparison.Ordinal);
+        Assert.Contains("copies.reverse().forEach(t => t.delete())", source, StringComparison.Ordinal);
+    }
+
     private static Sector CreateSquareSector()
     {
         var sector = new Sector();
