@@ -15,7 +15,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - Core geometry, map model, map IO, resource loading, parser coverage, rendering scaffolding, and an Avalonia editor shell exist.
 - `DBuilder.Editor` is included in `DBuilder.slnx` and is built by the standard verification script.
 - `scripts/verify.sh` is the current baseline gate. It restores, builds the solution, and runs the test suite.
-- Current verified baseline: `scripts/verify.sh` passes 6902 tests.
+- Current verified baseline: `scripts/verify.sh` passes 6904 tests.
 - UDB core remains much larger than the current port, and UDB plugins are still mostly unported.
 - A Rust port of the codebase is underway in `rust/`; see the Rust Port section below.
 
@@ -1937,6 +1937,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDB-style selected-plus-highlighted visual slope handle pairing in 3D slope actions.
   - [x] Match selected and highlighted visual slope handles by sidedef anchor instead of wrapper identity.
   - [x] Build same-sector candidate handles for highlighted-only visual slope actions.
+  - [x] Clear transient smart-pivot slope handles when slope-handle picking turns off.
 - [x] Port model and voxel display.
   - [x] Add UDB-style thing display-source resolution for MODELDEF models, VOXELDEF voxels, sprites, and marker fallbacks.
   - [x] Match MODELDEF model display to actor sprite frames and disabled frame indexes.

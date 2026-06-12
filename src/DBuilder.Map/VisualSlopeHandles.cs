@@ -239,6 +239,17 @@ public static class VisualSlopeHandles
         return handles.Where(handle => handle.Selected || handle.Pivot || handle.SmartPivot).ToArray();
     }
 
+    public static VisualSlopeHandleStateResult ClearTransientSmartPivots(IEnumerable<VisualSlopeHandle> handles)
+    {
+        if (handles == null) throw new ArgumentNullException(nameof(handles));
+
+        return new VisualSlopeHandleStateResult(
+            handles.Select(handle =>
+                handle.SmartPivot && !(handle.Selected || handle.Pivot)
+                    ? handle with { SmartPivot = false }
+                    : handle).ToArray());
+    }
+
     public static VisualSlopeTargetStateResult UpdateTarget(
         VisualSlopeHandle? oldTarget,
         VisualSlopeHandle? newTarget,

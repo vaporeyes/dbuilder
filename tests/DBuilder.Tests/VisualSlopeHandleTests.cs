@@ -319,6 +319,45 @@ public class VisualSlopeHandleTests
     }
 
     [Fact]
+    public void ClearTransientSmartPivotsRemovesOnlyUnusedSmartPivotsLikeUdb()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        VisualSlopeLevel level = VisualSlopeLevel.Floor(sector);
+        VisualSlopeHandle transient = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[0], level, up: true) with { SmartPivot = true };
+        VisualSlopeHandle selected = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[1], level, up: true) with { Selected = true, SmartPivot = true };
+        VisualSlopeHandle pivot = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[2], level, up: true) with { Pivot = true, SmartPivot = true };
+
+        VisualSlopeHandleStateResult result = VisualSlopeHandles.ClearTransientSmartPivots([transient, selected, pivot]);
+
+        Assert.Null(result.WarningMessage);
+        Assert.False(result.Handles[0].SmartPivot);
+        Assert.True(result.Handles[1].Selected);
+        Assert.True(result.Handles[1].SmartPivot);
+        Assert.True(result.Handles[2].Pivot);
+        Assert.True(result.Handles[2].SmartPivot);
+    }
+
+    [Fact]
+    public void ClearTransientSmartPivotsUpdatesUsedHandlesLikeUdbPickingToggleOff()
+    {
+        var map = new MapSet();
+        Sector sector = AddSquareSector(map, 0, 64);
+        VisualSlopeLevel level = VisualSlopeLevel.Floor(sector);
+        VisualSlopeHandle transient = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[0], level, up: true) with { SmartPivot = true };
+        VisualSlopeHandle selected = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[1], level, up: true) with { Selected = true };
+        VisualSlopeHandle pivot = VisualSlopeHandles.CreateSidedef(sector.Sidedefs[2], level, up: true) with { Pivot = true };
+
+        VisualSlopeHandleStateResult result = VisualSlopeHandles.ClearTransientSmartPivots([transient, selected, pivot]);
+        IReadOnlyList<VisualSlopeHandle> used = VisualSlopeHandles.GetUsedHandles(result.Handles);
+
+        Assert.Equal(2, used.Count);
+        Assert.DoesNotContain(used, handle => ReferenceEquals(handle.Sidedef, transient.Sidedef));
+        Assert.Contains(used, handle => ReferenceEquals(handle.Sidedef, selected.Sidedef));
+        Assert.Contains(used, handle => ReferenceEquals(handle.Sidedef, pivot.Sidedef));
+    }
+
+    [Fact]
     public void UpdateTargetReplacesStaleSmartPivotAndKeepsNewTargetLikeUdb()
     {
         var map = new MapSet();
