@@ -58,6 +58,9 @@ public static class ThingIconRenderPolicy
     public static int OverviewCullCell(double screenCoordinate, double viewScale, bool thingArrows)
         => (int)Math.Floor(screenCoordinate / OverviewCullCellPixelsFor(viewScale, thingArrows));
 
+    public static bool OverviewCullCellsOverlap((int X, int Y) first, (int X, int Y) second)
+        => Math.Abs(first.X - second.X) <= 1 && Math.Abs(first.Y - second.Y) <= 1;
+
     public static double OverviewCullCellPixelsFor(double viewScale, bool thingArrows)
     {
         if (!UseOverviewMarkers(viewScale, thingArrows)) return OverviewCullCellPixels;

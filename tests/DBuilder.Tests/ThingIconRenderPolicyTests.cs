@@ -524,6 +524,16 @@ public sealed class ThingIconRenderPolicyTests
     }
 
     [Fact]
+    public void OverviewCullTreatsAdjacentCellsAsOverlapping()
+    {
+        Assert.True(ThingIconRenderPolicy.OverviewCullCellsOverlap((4, 4), (4, 4)));
+        Assert.True(ThingIconRenderPolicy.OverviewCullCellsOverlap((4, 4), (5, 4)));
+        Assert.True(ThingIconRenderPolicy.OverviewCullCellsOverlap((4, 4), (3, 5)));
+        Assert.False(ThingIconRenderPolicy.OverviewCullCellsOverlap((4, 4), (6, 4)));
+        Assert.False(ThingIconRenderPolicy.OverviewCullCellsOverlap((4, 4), (4, 6)));
+    }
+
+    [Fact]
     public void OverviewCellsRenderOneThingAndPreferSelectedThings()
     {
         Assert.False(ThingIconRenderPolicy.ShouldRenderOverviewCellThing(

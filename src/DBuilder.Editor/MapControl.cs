@@ -5202,13 +5202,33 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                         candidateFixedSize)) continue;
 
                     var cell = ThingOverviewCell(candidate.Position);
-                    if (!overviewRepresentatives.TryGetValue(cell, out Thing? existing)
+                    Thing? strongestOverlap = null;
+                    foreach (var pair in overviewRepresentatives)
+                    {
+                        if (!ThingIconRenderPolicy.OverviewCullCellsOverlap(cell, pair.Key)) continue;
+                        if (strongestOverlap == null
+                            || ThingIconRenderPolicy.ShouldReplaceOverviewCellThing(
+                                strongestOverlap.Selected,
+                                ThingVisualRadius(strongestOverlap, _gameConfig?.GetThing(strongestOverlap.Type)),
+                                pair.Value.Selected,
+                                ThingVisualRadius(pair.Value, _gameConfig?.GetThing(pair.Value.Type))))
+                        {
+                            strongestOverlap = pair.Value;
+                        }
+                    }
+
+                    if (strongestOverlap == null
                         || ThingIconRenderPolicy.ShouldReplaceOverviewCellThing(
-                            existing.Selected,
-                            ThingVisualRadius(existing, _gameConfig?.GetThing(existing.Type)),
+                            strongestOverlap.Selected,
+                            ThingVisualRadius(strongestOverlap, _gameConfig?.GetThing(strongestOverlap.Type)),
                             candidate.Selected,
                             candidateRadius))
                     {
+                        foreach (var occupiedCell in overviewRepresentatives.Keys.ToArray())
+                        {
+                            if (ThingIconRenderPolicy.OverviewCullCellsOverlap(cell, occupiedCell))
+                                overviewRepresentatives.Remove(occupiedCell);
+                        }
                         overviewRepresentatives[cell] = candidate;
                     }
                 }
