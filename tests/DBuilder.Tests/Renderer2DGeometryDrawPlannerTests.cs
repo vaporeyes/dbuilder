@@ -49,6 +49,7 @@ public sealed class Renderer2DGeometryDrawPlannerTests
         Assert.False(plan.BindWhiteTexture);
         Assert.True(plan.BindProvidedTexture);
         Assert.Equal(PrimitiveType.TriangleList, plan.PrimitiveType);
+        Assert.True(plan.UseClassicBilinear);
     }
 
     [Fact]
@@ -64,6 +65,7 @@ public sealed class Renderer2DGeometryDrawPlannerTests
         Assert.False(plan.UseWorldTransformation);
         Assert.True(plan.BindWhiteTexture);
         Assert.False(plan.BindProvidedTexture);
+        Assert.True(plan.UseClassicBilinear);
     }
 
     [Fact]

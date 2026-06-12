@@ -16,7 +16,8 @@ public readonly record struct Renderer2DGeometryDrawPlan(
     ShaderName Shader,
     bool BindWhiteTexture,
     bool BindProvidedTexture,
-    PrimitiveType PrimitiveType);
+    PrimitiveType PrimitiveType,
+    bool UseClassicBilinear);
 
 public static class Renderer2DGeometryDrawPlanner
 {
@@ -41,6 +42,7 @@ public static class Renderer2DGeometryDrawPlanner
             Shader: ShaderName.display2d_normal,
             BindWhiteTexture: !hasTexture,
             BindProvidedTexture: hasTexture,
-            PrimitiveType: PrimitiveType.TriangleList);
+            PrimitiveType: PrimitiveType.TriangleList,
+            UseClassicBilinear: true);
     }
 }
