@@ -3732,6 +3732,82 @@ localsidedeftextureoffsets = true;
         Assert.Contains("UDB.Map.drawLines(Array.from(vertices, v => v.position))", source, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void CommonUdbScriptImpsToArchVilesUdmfWorkflowUsesMapWrappersTogether()
+    {
+        var map = new MapSet();
+        Thing singleSkillImp = map.AddThing(new Vector2D(16, 32), 3001);
+        singleSkillImp.SetFlag("skill5", true);
+        Thing multiSkillImp = map.AddThing(new Vector2D(64, 96), 3001);
+        multiSkillImp.SetFlag("skill1", true);
+        multiSkillImp.SetFlag("skill5", true);
+        Thing shotgunGuy = map.AddThing(new Vector2D(128, 160), 9);
+        shotgunGuy.SetFlag("skill5", true);
+        map.BuildIndexes();
+        var wrapper = new UdbScriptMapWrapper(map, mapFormat: MapFormat.Udmf);
+
+        ExecuteImpsToArchVilesWorkflow(wrapper);
+
+        Assert.Equal(64, singleSkillImp.Type);
+        Assert.Equal(3001, multiSkillImp.Type);
+        Assert.False(multiSkillImp.IsFlagSet("skill5"));
+        Assert.Equal(9, shotgunGuy.Type);
+        Assert.Equal(6, map.Things.Count);
+        Assert.Equal(2, map.Things.Count(thing => thing.Type == 2014 && thing.IsFlagSet("skill5")));
+        Thing addedArchVile = Assert.Single(map.Things, thing => !ReferenceEquals(thing, singleSkillImp) &&
+            !ReferenceEquals(thing, multiSkillImp) &&
+            thing.Type == 64 &&
+            thing.Position == multiSkillImp.Position);
+        Assert.False(addedArchVile.IsFlagSet("skill1"));
+        Assert.True(addedArchVile.IsFlagSet("skill5"));
+    }
+
+    [Fact]
+    public void CommonUdbScriptImpsToArchVilesClassicWorkflowUsesNumericFlagsTogether()
+    {
+        var map = new MapSet();
+        Thing singleSkillImp = map.AddThing(new Vector2D(16, 32), 3001);
+        singleSkillImp.Flags = 4;
+        Thing multiSkillImp = map.AddThing(new Vector2D(64, 96), 3001);
+        multiSkillImp.Flags = 5;
+        Thing shotgunGuy = map.AddThing(new Vector2D(128, 160), 9);
+        shotgunGuy.Flags = 4;
+        map.BuildIndexes();
+        var wrapper = new UdbScriptMapWrapper(map, mapFormat: MapFormat.Doom);
+
+        ExecuteImpsToArchVilesWorkflow(wrapper);
+
+        Assert.Equal(64, singleSkillImp.Type);
+        Assert.Equal(3001, multiSkillImp.Type);
+        Assert.Equal(1, multiSkillImp.Flags);
+        Assert.Equal(9, shotgunGuy.Type);
+        Assert.Equal(6, map.Things.Count);
+        Assert.Equal(2, map.Things.Count(thing => thing.Type == 2014 && thing.Flags == 4));
+        Thing addedArchVile = Assert.Single(map.Things, thing => !ReferenceEquals(thing, singleSkillImp) &&
+            !ReferenceEquals(thing, multiSkillImp) &&
+            thing.Type == 64 &&
+            thing.Position == multiSkillImp.Position);
+        Assert.Equal(4, addedArchVile.Flags);
+    }
+
+    [Fact]
+    public void CommonUdbScriptImpsToArchVilesExampleUsesCoveredApisWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Assets", "Common", "UDBScript", "Scripts", "Examples", "imps2archviles.js"));
+
+        Assert.Contains("UDB.Map.getThings()", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.isUDMF", source, StringComparison.Ordinal);
+        Assert.Contains("t.flags.skill5", source, StringComparison.Ordinal);
+        Assert.Contains("t.flags['4']", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.createThing(t.position, 2014)", source, StringComparison.Ordinal);
+        Assert.Contains("t.copyPropertiesTo(av)", source, StringComparison.Ordinal);
+        Assert.Contains("av.type = 64", source, StringComparison.Ordinal);
+        Assert.Contains("t.type = 64", source, StringComparison.Ordinal);
+    }
+
     private static Sector CreateSquareSector()
     {
         var sector = new Sector();
@@ -3760,6 +3836,76 @@ localsidedeftextureoffsets = true;
     {
         return (line.Start.Position == first && line.End.Position == second) ||
             (line.Start.Position == second && line.End.Position == first);
+    }
+
+    private static void ExecuteImpsToArchVilesWorkflow(UdbScriptMapWrapper wrapper)
+    {
+        foreach (UdbScriptThingWrapper thing in wrapper.getThings()
+            .Where(thing => thing.type == 3001 &&
+                ((wrapper.isUDMF && thing.flags["skill5"]) || (!wrapper.isUDMF && thing.flags["4"]))))
+        {
+            bool addArchVile = false;
+            int skillCount = 0;
+
+            if (wrapper.isUDMF)
+            {
+                for (int i = 1; i <= 5; i++)
+                {
+                    if (thing.flags["skill" + i.ToString(CultureInfo.InvariantCulture)])
+                        skillCount++;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    if (thing.flags[(1 << i).ToString(CultureInfo.InvariantCulture)])
+                        skillCount++;
+                }
+            }
+
+            if (skillCount != 1)
+                addArchVile = true;
+
+            UdbScriptThingWrapper healthPotion = wrapper.createThing(thing.position, 2014);
+
+            if (wrapper.isUDMF)
+            {
+                healthPotion.flags["skill5"] = true;
+                for (int i = 1; i <= 4; i++)
+                    healthPotion.flags["skill" + i.ToString(CultureInfo.InvariantCulture)] = false;
+            }
+            else
+            {
+                healthPotion.flags["4"] = true;
+                healthPotion.flags["1"] = false;
+                healthPotion.flags["2"] = false;
+            }
+
+            if (addArchVile)
+            {
+                UdbScriptThingWrapper archVile = wrapper.createThing(thing.position);
+                thing.copyPropertiesTo(archVile);
+                archVile.type = 64;
+
+                if (wrapper.isUDMF)
+                {
+                    thing.flags["skill5"] = false;
+                    for (int i = 1; i <= 4; i++)
+                        archVile.flags["skill" + i.ToString(CultureInfo.InvariantCulture)] = false;
+                }
+                else
+                {
+                    thing.flags["4"] = false;
+                    archVile.flags["1"] = false;
+                    archVile.flags["2"] = false;
+                }
+            }
+            else
+            {
+                thing.type = 64;
+            }
+        }
     }
 
     private static (MapSet Map, Sector First, Sector Second, Linedef Shared) CreateTwoSharedSectors()
