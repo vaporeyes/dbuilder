@@ -35,6 +35,15 @@ public class EditorCommandCatalogTests
         return result;
     }
 
+    private static IReadOnlyList<string> ReadUdbCoreActionIds(string source)
+    {
+        return Regex.Matches(source, @"(?m)^(?<id>[A-Za-z0-9_]+)\s*\r?\n\s*\{")
+            .Select(match => match.Groups["id"].Value)
+            .Where(id => id is not "categories" and not "testaction")
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+    }
+
     private static string ReadActionValue(string body, string key)
     {
         Match match = Regex.Match(body, @"(?m)^\s*" + Regex.Escape(key) + @"\s*=\s*""(?<value>[^""]*)""\s*;");
@@ -66,6 +75,22 @@ public class EditorCommandCatalogTests
         Assert.Contains("map2d.mode-image-example", ids);
         Assert.Contains("map2d.toggle-3d", ids);
         Assert.Contains("map3d.toggle-2d", ids);
+    }
+
+    [Fact]
+    public void CoreUdbActionsHaveScopedCommandAliasesWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Source", "Core", "Resources", "Actions.cfg"));
+        string[] expected = ReadUdbCoreActionIds(source).ToArray();
+        var commandAliases = EditorCommandCatalog.All
+            .Select(command => command.Id[(command.Id.IndexOf('.') + 1)..])
+            .ToHashSet(StringComparer.Ordinal);
+
+        Assert.NotEmpty(expected);
+        Assert.All(expected, actionId => Assert.Contains(actionId, commandAliases));
     }
 
     [Fact]

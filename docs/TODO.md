@@ -196,6 +196,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Resolve 2D map keyboard shortcuts through stable command ids.
   - [x] Resolve discrete 3D map keyboard shortcuts through stable command ids.
   - [x] Resolve the explicit Properties command through a stable command id.
+  - [x] Add clone-backed coverage that every UDB core raw action id has a DBuilder command alias.
 - [x] Port configurable key bindings.
   - [x] Persist shortcut overrides and merge them with default command bindings.
   - [x] Parse line and comma separated shortcut overrides while preserving comma shortcut keys.
