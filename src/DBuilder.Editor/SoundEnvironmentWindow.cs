@@ -80,10 +80,10 @@ public sealed class SoundEnvironmentWindow : Window
 
     private void RefreshRows()
     {
-        int warningCount = _model.WarningCount(_udmf);
         IReadOnlyList<SoundEnvironmentRow> rows = _model.Rows(_udmf, _warningsOnly.IsChecked == true);
-        _warningsOnly.Content = $"{SoundEnvironmentModeModel.ShowWarningsOnlyText} ({warningCount})";
-        _warningsOnly.IsEnabled = warningCount > 0 || _warningsOnly.IsChecked == true;
+        SoundEnvironmentWarningsOnlyState warningsOnly = _model.WarningsOnlyState(_warningsOnly.IsChecked == true, _udmf);
+        _warningsOnly.Content = warningsOnly.Text;
+        _warningsOnly.IsEnabled = warningsOnly.Enabled;
         _header.Text = _model.HeaderText(rows.Count);
 
         var items = new List<ListBoxItem>();

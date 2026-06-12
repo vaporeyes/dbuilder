@@ -217,6 +217,10 @@ public sealed record SoundEnvironmentRow(
     Thing? Thing,
     Linedef? Linedef);
 
+public sealed record SoundEnvironmentWarningsOnlyState(
+    string Text,
+    bool Enabled);
+
 public sealed record SoundEnvironmentModeModel(
     IReadOnlyList<SoundEnvironmentInfo> Environments,
     IReadOnlySet<Sector> UnassignedSectors,
@@ -257,6 +261,14 @@ public sealed record SoundEnvironmentModeModel(
 
     public string SummaryText()
         => $"{Environments.Count} {Label(Environments.Count, "sound environment")}, {UnassignedSectors.Count} {Label(UnassignedSectors.Count, "unassigned sector")}, {BoundaryLinedefs.Count} {Label(BoundaryLinedefs.Count, "boundary linedef")}.";
+
+    public SoundEnvironmentWarningsOnlyState WarningsOnlyState(bool checkedState, bool udmf = false)
+    {
+        int warningCount = WarningCount(udmf);
+        return new SoundEnvironmentWarningsOnlyState(
+            ShowWarningsOnlyText + $" ({warningCount})",
+            checkedState || warningCount > 0);
+    }
 
     public IReadOnlyList<SoundEnvironmentRow> Rows(bool udmf = false, bool warningsOnly = false)
     {

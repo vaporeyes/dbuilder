@@ -790,6 +790,41 @@ public class SoundPropagationTests
     }
 
     [Fact]
+    public void SoundEnvironmentWarningsOnlyStateMatchesUdbCheckboxTextAndEnablement()
+    {
+        var empty = new SoundEnvironmentModeModel(
+            Array.Empty<SoundEnvironmentInfo>(),
+            new HashSet<Sector>(ReferenceEqualityComparer.Instance),
+            new HashSet<Linedef>(ReferenceEqualityComparer.Instance));
+        var map = new MapSet();
+        Sector sector = map.AddSector();
+        Linedef warningLine = map.AddLinedef(
+            map.AddVertex(new Vector2D(0, 0)),
+            map.AddVertex(new Vector2D(64, 0)));
+        var warningEnvironment = new SoundEnvironmentInfo(
+            new HashSet<Sector>(new[] { sector }, ReferenceEqualityComparer.Instance),
+            Array.Empty<Thing>(),
+            new[] { warningLine },
+            0xFF010203u,
+            1,
+            "Warning Environment");
+        var warnings = new SoundEnvironmentModeModel(
+            new[] { warningEnvironment },
+            new HashSet<Sector>(ReferenceEqualityComparer.Instance),
+            new HashSet<Linedef>(new[] { warningLine }, ReferenceEqualityComparer.Instance));
+
+        Assert.Equal(
+            new SoundEnvironmentWarningsOnlyState("Show nodes with warnings only (0)", Enabled: false),
+            empty.WarningsOnlyState(checkedState: false));
+        Assert.Equal(
+            new SoundEnvironmentWarningsOnlyState("Show nodes with warnings only (0)", Enabled: true),
+            empty.WarningsOnlyState(checkedState: true));
+        Assert.Equal(
+            new SoundEnvironmentWarningsOnlyState("Show nodes with warnings only (1)", Enabled: true),
+            warnings.WarningsOnlyState(checkedState: false));
+    }
+
+    [Fact]
     public void SoundEnvironmentHeaderFormatsEmptySingularAndPluralCounts()
     {
         var map = new MapSet();
