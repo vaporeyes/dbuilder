@@ -676,6 +676,9 @@ public static class TextLabelPlan
             && location.Y > viewport.Y + viewport.Height + height;
     }
 
+    public static bool IsInViewport(TextLabelPoint location, TextLabelSize textureSize, Renderer2DViewport viewport)
+        => IsInViewport(location, textureSize, new TextLabelRectangle(viewport.X, viewport.Y, viewport.Width, viewport.Height));
+
     public static int NextPowerOfTwo(int value)
     {
         if (value <= 1) return 1;

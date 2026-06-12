@@ -1063,6 +1063,24 @@ public sealed class TextLabelPlanTests
     }
 
     [Fact]
+    public void IsInViewportAcceptsRenderer2DViewportLikeUdb()
+    {
+        Renderer2DTransformPlan transform = Renderer2DLineMetricPlanner.BuildTransformPlan(
+            windowWidth: 800,
+            windowHeight: 600,
+            offsetX: 100,
+            offsetY: -50,
+            scale: 2,
+            vertexScale2D: 1);
+        var textureSize = new TextLabelSize(16, 8);
+
+        Assert.True(TextLabelPlan.IsInViewport(new TextLabelPoint(-116, 92), textureSize, transform.Viewport));
+        Assert.True(TextLabelPlan.IsInViewport(new TextLabelPoint(315, -191.9), textureSize, transform.Viewport));
+        Assert.False(TextLabelPlan.IsInViewport(new TextLabelPoint(-116.1, 92), textureSize, transform.Viewport));
+        Assert.False(TextLabelPlan.IsInViewport(new TextLabelPoint(316, -191.9), textureSize, transform.Viewport));
+    }
+
+    [Fact]
     public void IsInViewportUsesZeroPaddingForEmptyTextureSize()
     {
         var viewport = new TextLabelRectangle(100, 100, 80, -60);
