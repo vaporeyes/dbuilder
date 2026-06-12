@@ -234,6 +234,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private int _viewDistance = Settings.DefaultViewDistance;
     private int _moveSpeed = Settings.DefaultMoveSpeed;
     private int _mouseSpeed = Settings.DefaultMouseSpeed;
+    private int _thingHighlightRange = Settings.DefaultThingHighlightRange;
     private int _autoScrollSpeed;
     private bool _alphaBasedTextureHighlighting = true;
     private bool _selectAdjacentVisualVertexSlopeHandles;
@@ -300,6 +301,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         get => _mouseSpeed;
         set => _mouseSpeed = Math.Clamp(value, Settings.MinMouseSpeed, Settings.MaxMouseSpeed);
+    }
+    public int ThingHighlightRange
+    {
+        get => _thingHighlightRange;
+        set => _thingHighlightRange = Math.Max(0, value);
     }
     public bool AlphaBasedTextureHighlighting => _alphaBasedTextureHighlighting;
     public bool SelectAdjacentVisualVertexSlopeHandles => _selectAdjacentVisualVertexSlopeHandles;
@@ -1190,7 +1196,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             EditMode.Vertices => _map.NearestVertex(_cursorWorld, 10 * _zoom),
             EditMode.Linedefs => _map.NearestLinedef(_cursorWorld, 8 * _zoom),
             EditMode.Sectors => _map.GetSectorAt(_cursorWorld),
-            EditMode.Things => NearestVisibleThing(_cursorWorld, 12 * _zoom),
+            EditMode.Things => NearestVisibleThing(_cursorWorld, ThingHighlightRangeWorld()),
             _ => null,
         };
     }
@@ -5840,7 +5846,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             EditMode.Things => DBuilder.IO.SmartGridTransform.SmartFromThings(
                 _grid,
                 _map.GetSelectedThings(),
-                NearestVisibleThing(_cursorWorld, 12 * _zoom)),
+                NearestVisibleThing(_cursorWorld, ThingHighlightRangeWorld())),
             EditMode.Sectors => DBuilder.IO.SmartGridTransform.SmartFromSectors(_grid),
             _ => DBuilder.IO.SmartGridTransform.Reset(_grid),
         };
@@ -8386,7 +8392,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_map == null) return "No map loaded.";
         if (_gameConfig == null) return "No game configuration loaded.";
         IReadOnlyList<Thing> things = _map.GetSelectedThings();
-        if (things.Count == 0 && _editMode == EditMode.Things && NearestVisibleThing(_cursorWorld, 12 * _zoom) is { } highlighted)
+        if (things.Count == 0 && _editMode == EditMode.Things && NearestVisibleThing(_cursorWorld, ThingHighlightRangeWorld()) is { } highlighted)
             things = new[] { highlighted };
 
         if (things.Count == 0)
@@ -8486,7 +8492,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
 
         IReadOnlyList<Thing> things = _map.GetSelectedThings();
-        if (things.Count == 0 && _editMode == EditMode.Things && NearestVisibleThing(_cursorWorld, 12 * _zoom) is { } highlighted)
+        if (things.Count == 0 && _editMode == EditMode.Things && NearestVisibleThing(_cursorWorld, ThingHighlightRangeWorld()) is { } highlighted)
             things = new[] { highlighted };
 
         if (things.Count == 0)
@@ -9546,7 +9552,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
         else if (_editMode == EditMode.Things)
         {
-            var t = _map.NearestThingSquareRange(world, 12 * _zoom, _zoom, _fixedThingsScale);
+            var t = _map.NearestThingSquareRange(world, ThingHighlightRangeWorld(), _zoom, _fixedThingsScale);
             if (t != null)
             {
                 if (additive) t.Selected = !t.Selected;
@@ -9612,7 +9618,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             EditMode.Vertices => _map.NearestVertex(world, 10 * _zoom),
             EditMode.Linedefs => _map.NearestLinedef(world, 8 * _zoom),
             EditMode.Sectors => _map.GetSectorAt(world),
-            EditMode.Things => NearestVisibleThing(world, 12 * _zoom),
+            EditMode.Things => NearestVisibleThing(world, ThingHighlightRangeWorld()),
             _ => null,
         };
 
@@ -9897,7 +9903,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
                 if (_map.NearestVertex(world, 10 * _zoom) is { } v) v.Selected = true;
                 break;
             case EditMode.Things:
-                if (NearestVisibleThing(world, 12 * _zoom) is { } t) t.Selected = true;
+                if (NearestVisibleThing(world, ThingHighlightRangeWorld()) is { } t) t.Selected = true;
                 break;
             case EditMode.Sectors:
                 if (_map.GetSectorAt(world) is { } s) s.Selected = true;
@@ -9923,6 +9929,9 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         return _map.NearestThingSquareRange(pos, maxRange, _zoom, _fixedThingsScale, t => !ThingHidden2D(t));
     }
+
+    private double ThingHighlightRangeWorld()
+        => _thingHighlightRange * _zoom;
 
     private void Pick(Vec2D world, bool additive)
     {

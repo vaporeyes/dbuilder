@@ -87,6 +87,8 @@ public sealed class MapControlCommandTests
         Assert.Contains("public int ViewDistance", body, StringComparison.Ordinal);
         Assert.Contains("public int MoveSpeed", body, StringComparison.Ordinal);
         Assert.Contains("public int MouseSpeed", body, StringComparison.Ordinal);
+        Assert.Contains("public int ThingHighlightRange", body, StringComparison.Ordinal);
+        Assert.Contains("=> _thingHighlightRange * _zoom;", body, StringComparison.Ordinal);
         Assert.Contains("public bool MarkExtraFloors => _markExtraFloors;", body, StringComparison.Ordinal);
         Assert.Contains("public bool SetMarkExtraFloors(bool enabled)", body, StringComparison.Ordinal);
         Assert.Contains("if (_markExtraFloors && l.ExtraFloorFlag) return ThreeDFloorLineColor;", body, StringComparison.Ordinal);
@@ -1058,7 +1060,7 @@ public sealed class MapControlCommandTests
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
         int methodIndex = body.IndexOf("public string AlignSelectedThingsToWall()", StringComparison.Ordinal);
         int selectedIndex = body.IndexOf("IReadOnlyList<Thing> things = _map.GetSelectedThings();", methodIndex, StringComparison.Ordinal);
-        int highlightedIndex = body.IndexOf("things.Count == 0 && _editMode == EditMode.Things && NearestVisibleThing(_cursorWorld, 12 * _zoom)", methodIndex, StringComparison.Ordinal);
+        int highlightedIndex = body.IndexOf("things.Count == 0 && _editMode == EditMode.Things && NearestVisibleThing(_cursorWorld, ThingHighlightRangeWorld())", methodIndex, StringComparison.Ordinal);
         int eligibleIndex = body.IndexOf("bool hasEligible = things.Any(thing =>", methodIndex, StringComparison.Ordinal);
         int alignIndex = body.IndexOf("ThingWallAlignment.AlignThingsToNearestWalls(_map, _gameConfig, things)", methodIndex, StringComparison.Ordinal);
 

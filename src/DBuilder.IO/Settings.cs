@@ -48,6 +48,7 @@ public sealed class Settings
     public const int DefaultMouseSpeed = 100;
     public const int MinMouseSpeed = 100;
     public const int MaxMouseSpeed = 2000;
+    public const int DefaultThingHighlightRange = 10;
     public const int DefaultAutoScrollSpeed = 0;
     public const int MinAutoScrollSpeed = 0;
     public const int MaxAutoScrollSpeed = 5;
@@ -94,6 +95,7 @@ public sealed class Settings
     public int? ViewDistance { get; set; }
     public int? MoveSpeed { get; set; }
     public int? MouseSpeed { get; set; }
+    public int? ThingHighlightRange { get; set; }
     public int? AutoScrollSpeed { get; set; }
     public bool QualityDisplay { get; set; } = true;
     public bool ClassicBilinear { get; set; }
@@ -195,6 +197,9 @@ public sealed class Settings
     public int NormalizedMouseSpeed =>
         Math.Clamp(MouseSpeed ?? DefaultMouseSpeed, MinMouseSpeed, MaxMouseSpeed);
 
+    public int NormalizedThingHighlightRange =>
+        Math.Max(0, ThingHighlightRange ?? DefaultThingHighlightRange);
+
     public int NormalizedAutoScrollSpeed =>
         Math.Clamp(AutoScrollSpeed ?? DefaultAutoScrollSpeed, MinAutoScrollSpeed, MaxAutoScrollSpeed);
 
@@ -262,6 +267,9 @@ public sealed class Settings
     public static int? AcceptMouseSpeedText(string? text)
         => int.TryParse(text, out int value) ? Math.Clamp(value, MinMouseSpeed, MaxMouseSpeed) : null;
 
+    public static int? AcceptThingHighlightRangeText(string? text)
+        => int.TryParse(text, out int value) ? Math.Max(0, value) : null;
+
     public static int? AcceptAutoScrollSpeedText(string? text)
         => int.TryParse(text, out int value) ? Math.Clamp(value, MinAutoScrollSpeed, MaxAutoScrollSpeed) : null;
 
@@ -309,6 +317,9 @@ public sealed class Settings
 
     public static string MouseSpeedText(Settings settings)
         => settings.NormalizedMouseSpeed.ToString(CultureInfo.InvariantCulture);
+
+    public static string ThingHighlightRangeText(Settings settings)
+        => settings.NormalizedThingHighlightRange.ToString(CultureInfo.InvariantCulture);
 
     public static string AutoScrollSpeedText(Settings settings)
         => settings.NormalizedAutoScrollSpeed == 0
