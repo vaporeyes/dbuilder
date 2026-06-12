@@ -187,6 +187,19 @@ public class SettingsTests
     }
 
     [Fact]
+    public void EventLineLabelSettingsDefaultLikeUdbBuilderModes()
+    {
+        var settings = new Settings();
+
+        Assert.Equal(3, settings.NormalizedEventLineLabelVisibility);
+        Assert.Equal(2, settings.NormalizedEventLineLabelStyle);
+        Assert.Equal(0, new Settings { EventLineLabelVisibility = -1 }.NormalizedEventLineLabelVisibility);
+        Assert.Equal(3, new Settings { EventLineLabelVisibility = 9 }.NormalizedEventLineLabelVisibility);
+        Assert.Equal(0, new Settings { EventLineLabelStyle = -1 }.NormalizedEventLineLabelStyle);
+        Assert.Equal(2, new Settings { EventLineLabelStyle = 9 }.NormalizedEventLineLabelStyle);
+    }
+
+    [Fact]
     public void ModelRenderModeDefaultsToAllLikeUdb()
     {
         Assert.Equal(ThingModelRenderMode.All, new Settings().NormalizedModelRenderMode);
@@ -508,6 +521,8 @@ public class SettingsTests
                 AdditiveSelect = true,
                 AdditivePaintSelect = false,
                 ChangeHeightBySidedef = 3,
+                EventLineLabelVisibility = 1,
+                EventLineLabelStyle = 0,
                 SwitchViewModes = true,
                 AlphaBasedTextureHighlighting = false,
                 SelectAdjacentVisualVertexSlopeHandles = true,
@@ -708,6 +723,10 @@ public class SettingsTests
             Assert.False(loaded.NormalizedAdditivePaintSelect);
             Assert.Equal(3, loaded.ChangeHeightBySidedef);
             Assert.Equal(3, loaded.NormalizedChangeHeightBySidedef);
+            Assert.Equal(1, loaded.EventLineLabelVisibility);
+            Assert.Equal(1, loaded.NormalizedEventLineLabelVisibility);
+            Assert.Equal(0, loaded.EventLineLabelStyle);
+            Assert.Equal(0, loaded.NormalizedEventLineLabelStyle);
             Assert.True(loaded.SwitchViewModes);
             Assert.False(loaded.AlphaBasedTextureHighlighting);
             Assert.True(loaded.SelectAdjacentVisualVertexSlopeHandles);

@@ -234,6 +234,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _drawFog;
     private bool _drawSky = true;
     private bool _showEventLines = true;
+    private int _eventLineLabelVisibility = Settings.DefaultEventLineLabelVisibility;
+    private int _eventLineLabelStyle = Settings.DefaultEventLineLabelStyle;
     private bool _showVisualVertices = true;
     private byte _doubleSidedAlphaByte = Settings.DefaultDoubleSidedAlphaByte;
     private int _visualFovDegrees = Settings.DefaultVisualFov;
@@ -299,6 +301,32 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     public bool DrawFog => _drawFog;
     public bool DrawSky => _drawSky;
     public bool ShowEventLines => _showEventLines;
+    public int EventLineLabelVisibility
+    {
+        get => _eventLineLabelVisibility;
+        set
+        {
+            int clamped = Math.Clamp(value, 0, 3);
+            if (_eventLineLabelVisibility == clamped) return;
+            _eventLineLabelVisibility = clamped;
+            _geometryDirty = true;
+            _geo3DDirty = true;
+            RequestNextFrameRendering();
+        }
+    }
+    public int EventLineLabelStyle
+    {
+        get => _eventLineLabelStyle;
+        set
+        {
+            int clamped = Math.Clamp(value, 0, 2);
+            if (_eventLineLabelStyle == clamped) return;
+            _eventLineLabelStyle = clamped;
+            _geometryDirty = true;
+            _geo3DDirty = true;
+            RequestNextFrameRendering();
+        }
+    }
     public bool ShowVisualVertices => _showVisualVertices;
     public byte DoubleSidedAlphaByte
     {

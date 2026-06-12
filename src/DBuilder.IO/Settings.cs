@@ -50,6 +50,8 @@ public sealed class Settings
     public const int MaxMouseSpeed = 2000;
     public const int DefaultMouseSelectionThreshold = 2;
     public const int DefaultChangeHeightBySidedef = 0;
+    public const int DefaultEventLineLabelVisibility = 3;
+    public const int DefaultEventLineLabelStyle = 2;
     public const int DefaultStitchRange = 20;
     public const int DefaultHighlightRange = 20;
     public const int DefaultThingHighlightRange = 10;
@@ -91,6 +93,8 @@ public sealed class Settings
     public bool AdditiveSelect { get; set; }
     public bool? AdditivePaintSelect { get; set; }
     public int? ChangeHeightBySidedef { get; set; }
+    public int? EventLineLabelVisibility { get; set; }
+    public int? EventLineLabelStyle { get; set; }
     public bool RenderGrid { get; set; } = true;
     public bool DynamicGridSize { get; set; } = true;
     public bool SwitchViewModes { get; set; }
@@ -218,6 +222,12 @@ public sealed class Settings
 
     public int NormalizedChangeHeightBySidedef =>
         Math.Clamp(ChangeHeightBySidedef ?? DefaultChangeHeightBySidedef, 0, 3);
+
+    public int NormalizedEventLineLabelVisibility =>
+        Math.Clamp(EventLineLabelVisibility ?? DefaultEventLineLabelVisibility, 0, 3);
+
+    public int NormalizedEventLineLabelStyle =>
+        Math.Clamp(EventLineLabelStyle ?? DefaultEventLineLabelStyle, 0, 2);
 
     public bool NormalizedAdditivePaintSelect =>
         AdditivePaintSelect ?? AdditiveSelect;

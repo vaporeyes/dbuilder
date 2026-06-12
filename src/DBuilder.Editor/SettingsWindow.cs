@@ -13,7 +13,7 @@ public sealed class SettingsWindow : PropertyDialog
     private const string ShortcutOverrideWatermark = "command.id=Shortcut; use None or Unassigned to clear; separate entries with semicolons, commas, or new lines";
 
     private readonly TextBox _configDir, _testPort, _testIwad, _testArgs, _testAdditionalParameters, _testSkill, _nodePath, _nodeArgs, _udbScriptExternalEditor, _maxRecentFiles, _autosaveCount, _autosaveInterval, _defaultSectorFloorHeight, _defaultSectorCeilingHeight, _defaultSectorBrightness, _imageBrightness, _doubleSidedAlpha, _visualFov, _viewDistance, _moveSpeed, _mouseSpeed, _mouseSelectionThreshold, _stitchRange, _highlightRange, _thingHighlightRange, _splitLinedefsRange, _autoScrollSpeed, _statusHistoryLimit, _toastDuration, _toastDisabledActions, _shortcutOverrides;
-    private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _changeHeightBySidedef, _mergeGeometryMode, _toastAnchor, _pasteTagMode;
+    private readonly ComboBox _defaultViewMode, _modelRenderMode, _lightRenderMode, _changeHeightBySidedef, _eventLineLabelVisibility, _eventLineLabelStyle, _mergeGeometryMode, _toastAnchor, _pasteTagMode;
     private readonly CheckBox _testMonsters, _autosave, _autoClearSidedefTextures, _autoMerge, _splitJoinedSectors, _autoClearSelection, _visualModeClearSelection, _editNewThing, _editNewSector, _additiveSelect, _additivePaintSelect, _dynamicGridSize, _switchViewModes, _drawLineContinuousDrawing, _drawLineAutoCloseDrawing, _drawRectangleContinuousDrawing, _drawRectangleRadialDrawing, _drawRectanglePlaceThingsAtVertices, _drawEllipseContinuousDrawing, _drawEllipseRadialDrawing, _drawEllipsePlaceThingsAtVertices, _drawCurveContinuousDrawing, _drawCurveAutoCloseDrawing, _drawCurvePlaceThingsAtVertices, _drawGridContinuousDrawing, _drawGridTriangulate, _useHighlight, _alphaBasedTextureHighlighting, _enhancedRenderingEffects, _classicRendering, _qualityDisplay, _classicBilinear, _visualBilinear, _blackBrowsers, _flatShadeVertices, _markExtraFloors, _drawFog, _drawSky, _showEventLines, _showVisualVertices, _showErrorsWindow, _fixedThingsScale, _alwaysShowVertices, _selectAdjacentVisualVertexSlopeHandles, _useOppositeSmartPivotHandle, _toastsEnabled, _pasteRemoveActions;
     private readonly bool _drawLineShowGuidelines;
     private readonly int _drawRectangleSubdivisions, _drawRectangleBevelWidth;
@@ -70,6 +70,8 @@ public sealed class SettingsWindow : PropertyDialog
     public bool DrawFog;
     public bool DrawSky;
     public bool ShowEventLines;
+    public int EventLineLabelVisibility;
+    public int EventLineLabelStyle;
     public bool ShowVisualVertices;
     public bool ShowErrorsWindow;
     public bool FixedThingsScale;
@@ -191,6 +193,8 @@ public sealed class SettingsWindow : PropertyDialog
         _drawFog = AddCheckBox("Draw fog", s.DrawFog);
         _drawSky = AddCheckBox("Draw sky", s.DrawSky);
         _showEventLines = AddCheckBox("Show event lines", s.ShowEventLines);
+        _eventLineLabelVisibility = AddCombo("Event line labels", EventLineLabelVisibilityItems(), s.NormalizedEventLineLabelVisibility);
+        _eventLineLabelStyle = AddCombo("Event line label text", EventLineLabelStyleItems(), s.NormalizedEventLineLabelStyle);
         _showVisualVertices = AddCheckBox("Show visual vertices", s.ShowVisualVertices);
         _showErrorsWindow = AddCheckBox("Show errors window", s.ShowErrorsWindow);
         _fixedThingsScale = AddCheckBox("Fixed things scale", s.FixedThingsScale);
@@ -262,6 +266,8 @@ public sealed class SettingsWindow : PropertyDialog
         DrawFog = _drawFog.IsChecked == true;
         DrawSky = _drawSky.IsChecked == true;
         ShowEventLines = _showEventLines.IsChecked == true;
+        EventLineLabelVisibility = ComboNumber(_eventLineLabelVisibility, Settings.DefaultEventLineLabelVisibility);
+        EventLineLabelStyle = ComboNumber(_eventLineLabelStyle, Settings.DefaultEventLineLabelStyle);
         ShowVisualVertices = _showVisualVertices.IsChecked == true;
         ShowErrorsWindow = _showErrorsWindow.IsChecked == true;
         FixedThingsScale = _fixedThingsScale.IsChecked == true;
@@ -364,6 +370,21 @@ public sealed class SettingsWindow : PropertyDialog
         yield return new CatalogItem(1, "Change the ceiling height");
         yield return new CatalogItem(2, "Change the floor height");
         yield return new CatalogItem(3, "Change both floor and ceiling height");
+    }
+
+    private static IEnumerable<CatalogItem> EventLineLabelVisibilityItems()
+    {
+        yield return new CatalogItem(0, "Never show");
+        yield return new CatalogItem(1, "Forward only");
+        yield return new CatalogItem(2, "Reverse only");
+        yield return new CatalogItem(3, "Forward + Reverse");
+    }
+
+    private static IEnumerable<CatalogItem> EventLineLabelStyleItems()
+    {
+        yield return new CatalogItem(0, "Action only");
+        yield return new CatalogItem(1, "Action + short arguments");
+        yield return new CatalogItem(2, "Action + full arguments");
     }
 
     private static IEnumerable<CatalogItem> MergeGeometryModeItems()
