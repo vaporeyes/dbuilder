@@ -92,6 +92,22 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void ClassicDragStartUsesConfiguredUdbMouseSelectionThreshold()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int pointerIndex = body.IndexOf("protected override void OnPointerMoved", StringComparison.Ordinal);
+        int panIndex = body.IndexOf("private void PanViewByPointerDelta", pointerIndex, StringComparison.Ordinal);
+        string method = body[pointerIndex..panIndex];
+
+        Assert.Contains("private int _mouseSelectionThreshold = Settings.DefaultMouseSelectionThreshold;", body, StringComparison.Ordinal);
+        Assert.Contains("public int MouseSelectionThreshold", body, StringComparison.Ordinal);
+        Assert.Contains("PointerMovedPastMouseSelectionThreshold(pos)", method, StringComparison.Ordinal);
+        Assert.Contains("private bool PointerMovedPastMouseSelectionThreshold(Point pos)", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("Math.Abs(pos.X - _dragStart.X) + Math.Abs(pos.Y - _dragStart.Y) < 4", method, StringComparison.Ordinal);
+        Assert.DoesNotContain("double moved = Math.Abs(pos.X - _dragStart.X) + Math.Abs(pos.Y - _dragStart.Y);", method, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ClassicViewModeDefaultsToUdbNormalSetting()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
@@ -133,6 +149,7 @@ public sealed class MapControlCommandTests
         Assert.Contains("public int ViewDistance", body, StringComparison.Ordinal);
         Assert.Contains("public int MoveSpeed", body, StringComparison.Ordinal);
         Assert.Contains("public int MouseSpeed", body, StringComparison.Ordinal);
+        Assert.Contains("public int MouseSelectionThreshold", body, StringComparison.Ordinal);
         Assert.Contains("public int StitchRange", body, StringComparison.Ordinal);
         Assert.Contains("public int HighlightRange", body, StringComparison.Ordinal);
         Assert.Contains("public int ThingHighlightRange", body, StringComparison.Ordinal);

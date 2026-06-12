@@ -252,6 +252,7 @@ public partial class MainWindow : Window
         MapView.ViewDistance = _settings.NormalizedViewDistance;
         MapView.MoveSpeed = _settings.NormalizedMoveSpeed;
         MapView.MouseSpeed = _settings.NormalizedMouseSpeed;
+        MapView.MouseSelectionThreshold = _settings.NormalizedMouseSelectionThreshold;
         MapView.StitchRange = _settings.NormalizedStitchRange;
         MapView.HighlightRange = _settings.NormalizedHighlightRange;
         MapView.ThingHighlightRange = _settings.NormalizedThingHighlightRange;
@@ -1441,6 +1442,7 @@ public partial class MainWindow : Window
         _settings.ViewDistance = dlg.ViewDistance;
         _settings.MoveSpeed = dlg.MoveSpeed;
         _settings.MouseSpeed = dlg.MouseSpeed;
+        _settings.MouseSelectionThreshold = dlg.MouseSelectionThreshold;
         _settings.StitchRange = dlg.StitchRange;
         _settings.HighlightRange = dlg.HighlightRange;
         _settings.ThingHighlightRange = dlg.ThingHighlightRange;
@@ -1502,6 +1504,7 @@ public partial class MainWindow : Window
         MapView.ViewDistance = _settings.NormalizedViewDistance;
         MapView.MoveSpeed = _settings.NormalizedMoveSpeed;
         MapView.MouseSpeed = _settings.NormalizedMouseSpeed;
+        MapView.MouseSelectionThreshold = _settings.NormalizedMouseSelectionThreshold;
         MapView.StitchRange = _settings.NormalizedStitchRange;
         MapView.HighlightRange = _settings.NormalizedHighlightRange;
         MapView.ThingHighlightRange = _settings.NormalizedThingHighlightRange;

@@ -48,6 +48,7 @@ public sealed class Settings
     public const int DefaultMouseSpeed = 100;
     public const int MinMouseSpeed = 100;
     public const int MaxMouseSpeed = 2000;
+    public const int DefaultMouseSelectionThreshold = 2;
     public const int DefaultStitchRange = 20;
     public const int DefaultHighlightRange = 20;
     public const int DefaultThingHighlightRange = 10;
@@ -98,6 +99,7 @@ public sealed class Settings
     public int? ViewDistance { get; set; }
     public int? MoveSpeed { get; set; }
     public int? MouseSpeed { get; set; }
+    public int? MouseSelectionThreshold { get; set; }
     public int? StitchRange { get; set; }
     public int? HighlightRange { get; set; }
     public int? ThingHighlightRange { get; set; }
@@ -203,6 +205,9 @@ public sealed class Settings
     public int NormalizedMouseSpeed =>
         Math.Clamp(MouseSpeed ?? DefaultMouseSpeed, MinMouseSpeed, MaxMouseSpeed);
 
+    public int NormalizedMouseSelectionThreshold =>
+        Math.Max(0, MouseSelectionThreshold ?? DefaultMouseSelectionThreshold);
+
     public int NormalizedStitchRange =>
         Math.Max(0, StitchRange ?? DefaultStitchRange);
 
@@ -282,6 +287,9 @@ public sealed class Settings
     public static int? AcceptMouseSpeedText(string? text)
         => int.TryParse(text, out int value) ? Math.Clamp(value, MinMouseSpeed, MaxMouseSpeed) : null;
 
+    public static int? AcceptMouseSelectionThresholdText(string? text)
+        => int.TryParse(text, out int value) ? Math.Max(0, value) : null;
+
     public static int? AcceptStitchRangeText(string? text)
         => int.TryParse(text, out int value) ? Math.Max(0, value) : null;
 
@@ -341,6 +349,9 @@ public sealed class Settings
 
     public static string MouseSpeedText(Settings settings)
         => settings.NormalizedMouseSpeed.ToString(CultureInfo.InvariantCulture);
+
+    public static string MouseSelectionThresholdText(Settings settings)
+        => settings.NormalizedMouseSelectionThreshold.ToString(CultureInfo.InvariantCulture);
 
     public static string StitchRangeText(Settings settings)
         => settings.NormalizedStitchRange.ToString(CultureInfo.InvariantCulture);

@@ -1218,6 +1218,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("MapView.ViewDistance = _settings.NormalizedViewDistance;", code, StringComparison.Ordinal);
         Assert.Contains("MapView.MoveSpeed = _settings.NormalizedMoveSpeed;", code, StringComparison.Ordinal);
         Assert.Contains("MapView.MouseSpeed = _settings.NormalizedMouseSpeed;", code, StringComparison.Ordinal);
+        Assert.Contains("MapView.MouseSelectionThreshold = _settings.NormalizedMouseSelectionThreshold;", code, StringComparison.Ordinal);
         Assert.Contains("MapView.StitchRange = _settings.NormalizedStitchRange;", code, StringComparison.Ordinal);
         Assert.Contains("MapView.HighlightRange = _settings.NormalizedHighlightRange;", code, StringComparison.Ordinal);
         Assert.Contains("MapView.ThingHighlightRange = _settings.NormalizedThingHighlightRange;", code, StringComparison.Ordinal);

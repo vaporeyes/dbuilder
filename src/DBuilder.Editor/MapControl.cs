@@ -234,6 +234,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private int _viewDistance = Settings.DefaultViewDistance;
     private int _moveSpeed = Settings.DefaultMoveSpeed;
     private int _mouseSpeed = Settings.DefaultMouseSpeed;
+    private int _mouseSelectionThreshold = Settings.DefaultMouseSelectionThreshold;
     private int _stitchRange = Settings.DefaultStitchRange;
     private int _highlightRange = Settings.DefaultHighlightRange;
     private int _thingHighlightRange = Settings.DefaultThingHighlightRange;
@@ -304,6 +305,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         get => _mouseSpeed;
         set => _mouseSpeed = Math.Clamp(value, Settings.MinMouseSpeed, Settings.MaxMouseSpeed);
+    }
+    public int MouseSelectionThreshold
+    {
+        get => _mouseSelectionThreshold;
+        set => _mouseSelectionThreshold = Math.Max(0, value);
     }
     public int StitchRange
     {
@@ -9716,7 +9722,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         // Right-drag pans the view (decided once the cursor moves past the click threshold).
         if (_rightPressed)
         {
-            if (!_rightDragging && Math.Abs(pos.X - _dragStart.X) + Math.Abs(pos.Y - _dragStart.Y) < 4) return;
+            if (!_rightDragging && !PointerMovedPastMouseSelectionThreshold(pos)) return;
             _rightDragging = true;
             PanViewByPointerDelta(pos);
             return;
@@ -9726,8 +9732,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         if (_drag == DragKind.None)
         {
-            double moved = Math.Abs(pos.X - _dragStart.X) + Math.Abs(pos.Y - _dragStart.Y);
-            if (moved < 4) return;
+            if (!PointerMovedPastMouseSelectionThreshold(pos)) return;
             // Draw mode pans; a press on a vertex/thing moves it; otherwise rubber-band box select.
             _drag = _shapeKind != ShapeKind.None ? DragKind.Box
                   : _drawMode ? DragKind.Pan
@@ -9960,6 +9965,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private double StitchRangeWorld()
         => _stitchRange * _zoom;
+
+    private bool PointerMovedPastMouseSelectionThreshold(Point pos)
+        => Math.Abs(pos.X - _dragStart.X) > _mouseSelectionThreshold
+            || Math.Abs(pos.Y - _dragStart.Y) > _mouseSelectionThreshold;
 
     private void Pick(Vec2D world, bool additive)
     {

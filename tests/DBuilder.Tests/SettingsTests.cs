@@ -201,6 +201,12 @@ public class SettingsTests
         Assert.Equal(100, Settings.AcceptMouseSpeedText("20"));
         Assert.Equal(2000, Settings.AcceptMouseSpeedText("90000"));
         Assert.Null(Settings.AcceptMouseSpeedText("bad"));
+        Assert.Equal(2, settings.NormalizedMouseSelectionThreshold);
+        Assert.Equal(0, new Settings { MouseSelectionThreshold = -5 }.NormalizedMouseSelectionThreshold);
+        Assert.Equal(25, new Settings { MouseSelectionThreshold = 25 }.NormalizedMouseSelectionThreshold);
+        Assert.Equal(0, Settings.AcceptMouseSelectionThresholdText("-5"));
+        Assert.Equal(25, Settings.AcceptMouseSelectionThresholdText("25"));
+        Assert.Null(Settings.AcceptMouseSelectionThresholdText("bad"));
         Assert.Equal(20, settings.NormalizedStitchRange);
         Assert.Equal(0, new Settings { StitchRange = -5 }.NormalizedStitchRange);
         Assert.Equal(25, new Settings { StitchRange = 25 }.NormalizedStitchRange);
@@ -467,6 +473,7 @@ public class SettingsTests
                 ViewDistance = 12000,
                 MoveSpeed = 500,
                 MouseSpeed = 300,
+                MouseSelectionThreshold = 6,
                 StitchRange = 28,
                 HighlightRange = 35,
                 ThingHighlightRange = 22,
@@ -666,6 +673,8 @@ public class SettingsTests
             Assert.Equal(500, loaded.NormalizedMoveSpeed);
             Assert.Equal(300, loaded.MouseSpeed);
             Assert.Equal(300, loaded.NormalizedMouseSpeed);
+            Assert.Equal(6, loaded.MouseSelectionThreshold);
+            Assert.Equal(6, loaded.NormalizedMouseSelectionThreshold);
             Assert.Equal(28, loaded.StitchRange);
             Assert.Equal(28, loaded.NormalizedStitchRange);
             Assert.Equal(35, loaded.HighlightRange);
