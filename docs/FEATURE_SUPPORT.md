@@ -59,7 +59,7 @@ This document summarizes what DBuilder can currently do and which Ultimate Doom 
 
 ### Packaging And Release
 
-- Unsigned macOS `.app` and Windows zip packaging exist. Linux package wrappers remain open.
+- Unsigned macOS `.app`, Windows zip, and Linux tar packaging exist.
 - Platform-specific signing and installers remain open, while default configuration asset bundling, app icons and metadata, release scripts, and packaged-output smoke checks are in place.
 - Automatic update checking is intentionally replaced by `docs/UPDATE_POLICY.md` until packaged release artifacts exist.
 

@@ -3080,7 +3080,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Define supported operating systems.
 - [x] Create app packaging for macOS.
 - [x] Create app packaging for Windows.
-- [ ] Create app packaging for Linux.
+- [x] Create app packaging for Linux.
 - [x] Bundle or locate default configuration assets.
 - [x] Bundle icons and app metadata.
 - [x] Define external dependency discovery for source ports, node builders, and compilers.

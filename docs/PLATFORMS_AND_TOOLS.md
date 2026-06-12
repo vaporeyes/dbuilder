@@ -70,6 +70,10 @@ The script does not sign, notarize, create installers, delete prior artifacts, o
 
 `bash scripts/package-windows-zip.sh win-x64` wraps a published Windows runtime directory in `artifacts/package/windows/win-x64/DBuilder.Editor-win-x64.zip`. The archive is unsigned and is not an installer, but it preserves the publish output layout for smoke validation and manual launch testing.
 
+## Linux Tar Package Script
+
+`bash scripts/package-linux-tar.sh linux-x64` wraps a published Linux runtime directory in `artifacts/package/linux/linux-x64/DBuilder.Editor-linux-x64.tar.gz`. The archive is not a distro-specific package, but it preserves the publish output layout and executable bit for smoke validation and manual launch testing.
+
 ## App Metadata And Icon
 
 The editor project defines the app title, product name, package description, Windows DPI manifest, and package icon metadata. The shared icon source is `assets/main.png`, which is linked into publish output as `main.png` and packed as the package icon.
