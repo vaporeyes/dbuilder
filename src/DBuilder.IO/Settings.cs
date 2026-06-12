@@ -88,6 +88,8 @@ public sealed class Settings
     public bool VisualModeClearSelection { get; set; }
     public bool EditNewThing { get; set; } = true;
     public bool EditNewSector { get; set; }
+    public bool AdditiveSelect { get; set; }
+    public bool? AdditivePaintSelect { get; set; }
     public int? ChangeHeightBySidedef { get; set; }
     public bool RenderGrid { get; set; } = true;
     public bool DynamicGridSize { get; set; } = true;
@@ -216,6 +218,9 @@ public sealed class Settings
 
     public int NormalizedChangeHeightBySidedef =>
         Math.Clamp(ChangeHeightBySidedef ?? DefaultChangeHeightBySidedef, 0, 3);
+
+    public bool NormalizedAdditivePaintSelect =>
+        AdditivePaintSelect ?? AdditiveSelect;
 
     public int NormalizedStitchRange =>
         Math.Max(0, StitchRange ?? DefaultStitchRange);

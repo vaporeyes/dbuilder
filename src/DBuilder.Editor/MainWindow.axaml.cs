@@ -238,6 +238,8 @@ public partial class MainWindow : Window
         MapView.VisualModeClearSelection = _settings.VisualModeClearSelection;
         MapView.EditNewThing = _settings.EditNewThing;
         MapView.EditNewSector = _settings.EditNewSector;
+        MapView.AdditiveSelect = _settings.AdditiveSelect;
+        MapView.AdditivePaintSelect = _settings.NormalizedAdditivePaintSelect;
         MapView.ChangeHeightBySidedef = _settings.NormalizedChangeHeightBySidedef;
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
         MapView.RenderGridEnabled = _settings.RenderGrid;
@@ -1439,6 +1441,8 @@ public partial class MainWindow : Window
         _settings.VisualModeClearSelection = dlg.VisualModeClearSelection;
         _settings.EditNewThing = dlg.EditNewThing;
         _settings.EditNewSector = dlg.EditNewSector;
+        _settings.AdditiveSelect = dlg.AdditiveSelect;
+        _settings.AdditivePaintSelect = dlg.AdditivePaintSelect;
         _settings.ChangeHeightBySidedef = dlg.ChangeHeightBySidedef;
         _settings.DynamicGridSize = dlg.DynamicGridSize;
         _settings.SwitchViewModes = dlg.SwitchViewModes;
@@ -1501,6 +1505,8 @@ public partial class MainWindow : Window
         MapView.VisualModeClearSelection = _settings.VisualModeClearSelection;
         MapView.EditNewThing = _settings.EditNewThing;
         MapView.EditNewSector = _settings.EditNewSector;
+        MapView.AdditiveSelect = _settings.AdditiveSelect;
+        MapView.AdditivePaintSelect = _settings.NormalizedAdditivePaintSelect;
         MapView.ChangeHeightBySidedef = _settings.NormalizedChangeHeightBySidedef;
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
         MapView.DynamicGridSizeEnabled = _settings.DynamicGridSize;

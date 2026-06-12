@@ -121,6 +121,25 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void AdditiveSelectionUsesUdbShiftXorPreference()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("private bool _additiveSelect;", body, StringComparison.Ordinal);
+        Assert.Contains("private bool _additivePaintSelect;", body, StringComparison.Ordinal);
+        Assert.Contains("public bool AdditiveSelect", body, StringComparison.Ordinal);
+        Assert.Contains("public bool AdditivePaintSelect", body, StringComparison.Ordinal);
+        Assert.Contains("private bool IsAdditiveSelection(KeyModifiers modifiers)", body, StringComparison.Ordinal);
+        Assert.Contains("=> modifiers.HasFlag(KeyModifiers.Shift) ^ _additiveSelect;", body, StringComparison.Ordinal);
+        Assert.Contains("private bool IsAdditivePaintSelection(KeyModifiers modifiers)", body, StringComparison.Ordinal);
+        Assert.Contains("=> modifiers.HasFlag(KeyModifiers.Shift) ^ _additivePaintSelect;", body, StringComparison.Ordinal);
+        Assert.Contains("bool additive = IsAdditiveSelection(modifiers);", body, StringComparison.Ordinal);
+        Assert.Contains("bool add = IsAdditivePaintSelection(modifiers);", body, StringComparison.Ordinal);
+        Assert.Contains("bool add = IsAdditivePaintSelection(_visualPaintSelectModifiers);", body, StringComparison.Ordinal);
+        Assert.Contains("Pick(world, additive: IsAdditiveSelection(e.KeyModifiers));", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void VisualTargetSelectionClearsExistingSelectionOnlyWhenUdbPreferenceIsEnabled()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));

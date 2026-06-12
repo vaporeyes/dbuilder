@@ -166,6 +166,17 @@ public class SettingsTests
     }
 
     [Fact]
+    public void AdditiveSelectionDefaultsDisabledAndPaintFallsBackLikeUdb()
+    {
+        var settings = new Settings();
+
+        Assert.False(settings.AdditiveSelect);
+        Assert.False(settings.NormalizedAdditivePaintSelect);
+        Assert.True(new Settings { AdditiveSelect = true }.NormalizedAdditivePaintSelect);
+        Assert.False(new Settings { AdditiveSelect = true, AdditivePaintSelect = false }.NormalizedAdditivePaintSelect);
+    }
+
+    [Fact]
     public void ChangeHeightBySidedefDefaultsToDoNothingLikeUdb()
     {
         var settings = new Settings();
@@ -494,6 +505,8 @@ public class SettingsTests
                 VisualModeClearSelection = true,
                 EditNewThing = false,
                 EditNewSector = true,
+                AdditiveSelect = true,
+                AdditivePaintSelect = false,
                 ChangeHeightBySidedef = 3,
                 SwitchViewModes = true,
                 AlphaBasedTextureHighlighting = false,
@@ -690,6 +703,9 @@ public class SettingsTests
             Assert.True(loaded.VisualModeClearSelection);
             Assert.False(loaded.EditNewThing);
             Assert.True(loaded.EditNewSector);
+            Assert.True(loaded.AdditiveSelect);
+            Assert.False(loaded.AdditivePaintSelect);
+            Assert.False(loaded.NormalizedAdditivePaintSelect);
             Assert.Equal(3, loaded.ChangeHeightBySidedef);
             Assert.Equal(3, loaded.NormalizedChangeHeightBySidedef);
             Assert.True(loaded.SwitchViewModes);

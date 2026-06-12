@@ -225,6 +225,8 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _visualModeClearSelection;
     private bool _editNewThing = true;
     private bool _editNewSector;
+    private bool _additiveSelect;
+    private bool _additivePaintSelect;
     private ThingModelRenderMode _modelRenderMode = ThingModelRenderMode.All;
     private ThingLightRenderMode _lightRenderMode = ThingLightRenderMode.All;
     private bool _enhancedRenderingEffects = true;
@@ -279,6 +281,16 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         get => _editNewSector;
         set => _editNewSector = value;
+    }
+    public bool AdditiveSelect
+    {
+        get => _additiveSelect;
+        set => _additiveSelect = value;
+    }
+    public bool AdditivePaintSelect
+    {
+        get => _additivePaintSelect;
+        set => _additivePaintSelect = value;
     }
     public ThingModelRenderMode ModelRenderMode => _modelRenderMode;
     public ThingLightRenderMode LightRenderMode => _lightRenderMode;
@@ -4076,7 +4088,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (_target3D is not { } target) return;
         if (_visualPaintSelectHighlight != null && SameSurface3D(_visualPaintSelectHighlight, target)) return;
 
-        bool add = _visualPaintSelectModifiers.HasFlag(KeyModifiers.Shift);
+        bool add = IsAdditivePaintSelection(_visualPaintSelectModifiers);
         bool remove = _visualPaintSelectModifiers.HasFlag(KeyModifiers.Control) || _visualPaintSelectModifiers.HasFlag(KeyModifiers.Meta);
         int index = _sel3D.FindIndex(hit => SameSurface3D(hit, target));
         if (add || (!remove && index < 0))
@@ -7897,10 +7909,10 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             if (!_selectionDoneOnPress)
             {
                 var world = ToWorld(pos);
-                if (_editMode == EditMode.Things && !e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+                if (_editMode == EditMode.Things && !IsAdditiveSelection(e.KeyModifiers))
                     InsertThingAt(world);
                 else
-                    Pick(world, additive: e.KeyModifiers.HasFlag(KeyModifiers.Shift));
+                    Pick(world, additive: IsAdditiveSelection(e.KeyModifiers));
             }
         }
         else if (_drag == DragKind.Move)
@@ -9703,7 +9715,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         if (ClassicPaintSelectionTarget(world) is not { } target) return;
         if (ReferenceEquals(target, _classicPaintSelectHighlight)) return;
 
-        bool add = modifiers.HasFlag(KeyModifiers.Shift);
+        bool add = IsAdditivePaintSelection(modifiers);
         bool remove = modifiers.HasFlag(KeyModifiers.Control) || modifiers.HasFlag(KeyModifiers.Meta);
         target.Selected = add || (!remove && !target.Selected);
         _classicPaintSelectHighlight = target;
@@ -10016,10 +10028,16 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private void SelectAtCursor(KeyModifiers modifiers)
     {
-        bool additive = modifiers.HasFlag(KeyModifiers.Shift);
+        bool additive = IsAdditiveSelection(modifiers);
         if (!SelectPointElementAt(_cursorWorld, additive))
             Pick(_cursorWorld, additive);
     }
+
+    private bool IsAdditiveSelection(KeyModifiers modifiers)
+        => modifiers.HasFlag(KeyModifiers.Shift) ^ _additiveSelect;
+
+    private bool IsAdditivePaintSelection(KeyModifiers modifiers)
+        => modifiers.HasFlag(KeyModifiers.Shift) ^ _additivePaintSelect;
 
     private Thing? NearestVisibleThing(Vec2D pos, double maxRange)
     {
