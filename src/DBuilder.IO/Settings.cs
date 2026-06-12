@@ -45,6 +45,9 @@ public sealed class Settings
     public const int DefaultMoveSpeed = 100;
     public const int MinMoveSpeed = 100;
     public const int MaxMoveSpeed = 2000;
+    public const int DefaultMouseSpeed = 100;
+    public const int MinMouseSpeed = 100;
+    public const int MaxMouseSpeed = 2000;
 
     public string? ConfigDir { get; set; }
     public string? LastUsedConfigName { get; set; }
@@ -85,6 +88,7 @@ public sealed class Settings
     public int? VisualFov { get; set; }
     public int? ViewDistance { get; set; }
     public int? MoveSpeed { get; set; }
+    public int? MouseSpeed { get; set; }
     public bool QualityDisplay { get; set; } = true;
     public bool ClassicBilinear { get; set; }
     public bool VisualBilinear { get; set; }
@@ -179,6 +183,9 @@ public sealed class Settings
     public int NormalizedMoveSpeed =>
         Math.Clamp(MoveSpeed ?? DefaultMoveSpeed, MinMoveSpeed, MaxMoveSpeed);
 
+    public int NormalizedMouseSpeed =>
+        Math.Clamp(MouseSpeed ?? DefaultMouseSpeed, MinMouseSpeed, MaxMouseSpeed);
+
     public ToastAnchor NormalizedToastAnchor =>
         ToastPreferences.NormalizeAnchor(ToastAnchor);
 
@@ -240,6 +247,9 @@ public sealed class Settings
     public static int? AcceptMoveSpeedText(string? text)
         => int.TryParse(text, out int value) ? Math.Clamp(value, MinMoveSpeed, MaxMoveSpeed) : null;
 
+    public static int? AcceptMouseSpeedText(string? text)
+        => int.TryParse(text, out int value) ? Math.Clamp(value, MinMouseSpeed, MaxMouseSpeed) : null;
+
     public static byte AlphaToByte(double alpha)
         => (byte)(Math.Clamp(alpha, 0.0, 1.0) * 255.0);
 
@@ -281,6 +291,9 @@ public sealed class Settings
 
     public static string MoveSpeedText(Settings settings)
         => settings.NormalizedMoveSpeed.ToString(CultureInfo.InvariantCulture);
+
+    public static string MouseSpeedText(Settings settings)
+        => settings.NormalizedMouseSpeed.ToString(CultureInfo.InvariantCulture);
 
     public int NormalizedDefaultViewMode =>
         Math.Clamp(DefaultViewMode ?? 0, 0, 3);

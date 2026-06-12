@@ -226,6 +226,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private int _visualFovDegrees = Settings.DefaultVisualFov;
     private int _viewDistance = Settings.DefaultViewDistance;
     private int _moveSpeed = Settings.DefaultMoveSpeed;
+    private int _mouseSpeed = Settings.DefaultMouseSpeed;
     private bool _alphaBasedTextureHighlighting = true;
     private bool _selectAdjacentVisualVertexSlopeHandles;
     private VisualSlopePickingMode _visualSlopePickingMode;
@@ -284,6 +285,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         get => _moveSpeed;
         set => _moveSpeed = Math.Clamp(value, Settings.MinMoveSpeed, Settings.MaxMoveSpeed);
+    }
+    public int MouseSpeed
+    {
+        get => _mouseSpeed;
+        set => _mouseSpeed = Math.Clamp(value, Settings.MinMouseSpeed, Settings.MaxMouseSpeed);
     }
     public bool AlphaBasedTextureHighlighting => _alphaBasedTextureHighlighting;
     public bool SelectAdjacentVisualVertexSlopeHandles => _selectAdjacentVisualVertexSlopeHandles;
@@ -9545,7 +9551,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             if (_look3D)
             {
                 if (Math.Abs(pos.X - _lastPointer.X) + Math.Abs(pos.Y - _lastPointer.Y) > 2) _lookMoved = true;
-                const double sens = 0.005;
+                double sens = 0.005 * _mouseSpeed / Settings.DefaultMouseSpeed;
                 double dx = pos.X - _lastPointer.X;
                 double dy = pos.Y - _lastPointer.Y;
                 if (_heldMapCommands.Contains("map3d.orbit") && TryOrbit3D(dx, dy))

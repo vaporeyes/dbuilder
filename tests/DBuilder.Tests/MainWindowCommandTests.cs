@@ -1199,6 +1199,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("MapView.VisualFovDegrees = _settings.NormalizedVisualFov;", code, StringComparison.Ordinal);
         Assert.Contains("MapView.ViewDistance = _settings.NormalizedViewDistance;", code, StringComparison.Ordinal);
         Assert.Contains("MapView.MoveSpeed = _settings.NormalizedMoveSpeed;", code, StringComparison.Ordinal);
+        Assert.Contains("MapView.MouseSpeed = _settings.NormalizedMouseSpeed;", code, StringComparison.Ordinal);
         Assert.Contains("_settings.FixedThingsScale = MapView.FixedThingsScale;", code, StringComparison.Ordinal);
         Assert.Contains("_settings.AlwaysShowVertices = MapView.AlwaysShowVertices;", code, StringComparison.Ordinal);
         Assert.Contains("SetChecked(ToggleFixedThingsScaleMenuItem, MapView.FixedThingsScale);", code, StringComparison.Ordinal);
