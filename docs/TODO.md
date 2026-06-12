@@ -3066,7 +3066,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add plugin lifecycle tests.
 - [x] Add source-port launch tests with mocked process execution.
 - [x] Add performance tests for large maps and large resource stacks.
-- [ ] Add compatibility tests against selected UDB behavior where exact parity matters.
+- [x] Add compatibility tests against selected UDB behavior where exact parity matters.
 
 ## Packaging And Distribution
 
