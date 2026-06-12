@@ -107,6 +107,31 @@ public static class TabbedDockerLayoutModel
             groups.ToDictionary(group => group.Area, group => group.ActiveTabKey ?? group.Tabs[0].Key));
     }
 
+    public static TabbedDockerLayoutState HideDocker(
+        IEnumerable<string> activeCommandIds,
+        IReadOnlyDictionary<TabbedDockerArea, string>? activeTabKeysByArea,
+        string commandId)
+    {
+        TabbedDockerDescriptor? target = FindByCommandId(commandId);
+        var activeKeys = activeCommandIds
+            .Select(FindByCommandId)
+            .Where(descriptor => descriptor is not null)
+            .Select(descriptor => descriptor!.Key)
+            .ToHashSet(StringComparer.Ordinal);
+
+        if (target is not null)
+            activeKeys.Remove(target.Key);
+
+        string[] activeCanonicalCommands = All
+            .Where(descriptor => activeKeys.Contains(descriptor.Key))
+            .Select(descriptor => descriptor.CommandId)
+            .ToArray();
+        IReadOnlyList<TabbedDockerGroup> groups = BuildGroups(activeCanonicalCommands, activeTabKeysByArea);
+        return new TabbedDockerLayoutState(
+            activeCanonicalCommands,
+            groups.ToDictionary(group => group.Area, group => group.ActiveTabKey ?? group.Tabs[0].Key));
+    }
+
     private static string? ActiveTabKey(
         TabbedDockerArea area,
         IReadOnlyList<TabbedDockerDescriptor> tabs,

@@ -165,6 +165,61 @@ public sealed class TabbedDockerLayoutModelTests
     }
 
     [Fact]
+    public void HideDockerRemovesTargetAndKeepsVisibleAreaActiveTab()
+    {
+        TabbedDockerLayoutState state = TabbedDockerLayoutModel.HideDocker(
+            new[] { "window.tag-explorer", "window.comments-panel", "window.reject-explorer" },
+            new Dictionary<TabbedDockerArea, string>
+            {
+                [TabbedDockerArea.Right] = "comments",
+                [TabbedDockerArea.Bottom] = "reject-explorer",
+            },
+            "window.comments-panel");
+
+        Assert.Equal(
+            new[]
+            {
+                "window.tag-explorer",
+                "window.reject-explorer",
+            },
+            state.ActiveCommandIds);
+        Assert.Equal("tag-explorer", state.ActiveTabKeysByArea[TabbedDockerArea.Right]);
+        Assert.Equal("reject-explorer", state.ActiveTabKeysByArea[TabbedDockerArea.Bottom]);
+    }
+
+    [Fact]
+    public void HideDockerCanonicalizesAliasTargets()
+    {
+        TabbedDockerLayoutState state = TabbedDockerLayoutModel.HideDocker(
+            new[] { "window.udbscripts", "window.show-errors" },
+            new Dictionary<TabbedDockerArea, string>
+            {
+                [TabbedDockerArea.Right] = "scripts",
+                [TabbedDockerArea.Bottom] = "error-log",
+            },
+            "window.openscripteditor");
+
+        Assert.Equal(new[] { "window.show-errors" }, state.ActiveCommandIds);
+        Assert.False(state.ActiveTabKeysByArea.ContainsKey(TabbedDockerArea.Right));
+        Assert.Equal("error-log", state.ActiveTabKeysByArea[TabbedDockerArea.Bottom]);
+    }
+
+    [Fact]
+    public void HideDockerIgnoresUnknownTargetAndCleansUnknownActiveCommands()
+    {
+        TabbedDockerLayoutState state = TabbedDockerLayoutModel.HideDocker(
+            new[] { "missing", "window.showerrors" },
+            new Dictionary<TabbedDockerArea, string>
+            {
+                [TabbedDockerArea.Bottom] = "missing",
+            },
+            "also-missing");
+
+        Assert.Equal(new[] { "window.show-errors" }, state.ActiveCommandIds);
+        Assert.Equal("error-log", state.ActiveTabKeysByArea[TabbedDockerArea.Bottom]);
+    }
+
+    [Fact]
     public void FindByCommandIdReturnsDescriptor()
     {
         TabbedDockerDescriptor? descriptor = TabbedDockerLayoutModel.FindByCommandId("window.openscripteditor");
