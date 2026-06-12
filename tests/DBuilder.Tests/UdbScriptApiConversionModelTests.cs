@@ -2,6 +2,7 @@
 // ABOUTME: Covers accepted input shapes and type mappings used by future script wrappers.
 
 using System.Dynamic;
+using System.Globalization;
 using System.IO;
 using System.Numerics;
 using DBuilder.Geometry;
@@ -3364,6 +3365,45 @@ localsidedeftextureoffsets = true;
         Assert.Contains("s.getTriangles().forEach", source, StringComparison.Ordinal);
         Assert.Contains("area += 0.5 * Math.abs", source, StringComparison.Ordinal);
         Assert.Contains("UDB.showMessage", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void CommonUdbScriptMapSquarenessWorkflowUsesMapWrappersTogether()
+    {
+        var map = new MapSet();
+        map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(100, 0)));
+        map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(0, 50)));
+        map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(30, 40)));
+        map.BuildIndexes();
+        var wrapper = new UdbScriptMapWrapper(map);
+        double totalLength = 0;
+        double orthogonalLength = 0;
+
+        foreach (UdbScriptLinedefWrapper line in wrapper.getLinedefs())
+        {
+            totalLength += line.length;
+
+            if (line.angle % 90 == 0)
+                orthogonalLength += line.length;
+        }
+
+        string orthogonalPercentage = (orthogonalLength / totalLength * 100).ToString("F2", CultureInfo.InvariantCulture);
+
+        Assert.Equal("75.00", orthogonalPercentage);
+    }
+
+    [Fact]
+    public void CommonUdbScriptMapSquarenessExampleUsesCoveredApisWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Assets", "Common", "UDBScript", "Scripts", "Examples", "Information", "mapsquareness.js"));
+
+        Assert.Contains("UDB.Map.getLinedefs().forEach", source, StringComparison.Ordinal);
+        Assert.Contains("totalLength += ld.length", source, StringComparison.Ordinal);
+        Assert.Contains("ld.angle % 90 == 0", source, StringComparison.Ordinal);
+        Assert.Contains("orthogonalPercentage", source, StringComparison.Ordinal);
     }
 
     private static Sector CreateSquareSector()

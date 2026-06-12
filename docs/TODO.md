@@ -2885,6 +2885,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript compatibility coverage for the bundled Select Connected Linedefs workflow.
   - [x] Add UDBScript compatibility coverage for the bundled Jitter Vertices workflow.
   - [x] Add UDBScript compatibility coverage for the bundled Sector Area workflow.
+  - [x] Add UDBScript compatibility coverage for the bundled Map Squareness workflow.
 
 ## Specialized Plugin Detail
 
