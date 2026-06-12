@@ -3328,6 +3328,44 @@ localsidedeftextureoffsets = true;
         Assert.Contains("UDB.ScriptOptions.max", source, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void CommonUdbScriptSectorAreaWorkflowUsesMapWrappersTogether()
+    {
+        (MapSet map, _, Sector sector, _, _) = CreateBlockMapFixture(64);
+        sector.Selected = true;
+        var wrapper = new UdbScriptMapWrapper(map);
+        UdbScriptSectorWrapper[] sectors = wrapper.getSelectedSectors();
+        double area = 0;
+
+        foreach (UdbScriptSectorWrapper selectedSector in sectors)
+        {
+            foreach (UdbScriptVector2DWrapper[] triangle in selectedSector.getTriangles())
+            {
+                area += 0.5 * System.Math.Abs(
+                    triangle[0].x * (triangle[1].y - triangle[2].y) +
+                    triangle[1].x * (triangle[2].y - triangle[0].y) +
+                    triangle[2].x * (triangle[0].y - triangle[1].y));
+            }
+        }
+
+        Assert.Single(sectors);
+        Assert.Equal(4096, area);
+    }
+
+    [Fact]
+    public void CommonUdbScriptSectorAreaExampleUsesCoveredApisWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Assets", "Common", "UDBScript", "Scripts", "Examples", "Information", "sectorarea.js"));
+
+        Assert.Contains("UDB.Map.getSelectedSectors()", source, StringComparison.Ordinal);
+        Assert.Contains("s.getTriangles().forEach", source, StringComparison.Ordinal);
+        Assert.Contains("area += 0.5 * Math.abs", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.showMessage", source, StringComparison.Ordinal);
+    }
+
     private static Sector CreateSquareSector()
     {
         var sector = new Sector();
