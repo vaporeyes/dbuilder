@@ -2875,7 +2875,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Port script exception handling.
 - [x] Port full QueryOptions runner UI integration.
 - [x] Port full UDBScript API wrappers for maps, vertices, linedefs, sidedefs, sectors, things, vectors, planes, blockmaps, images, data, and game config.
-- [ ] Add API compatibility tests for common UDBScript scripts.
+- [x] Add API compatibility tests for common UDBScript scripts.
   - [x] Compare UDBScript execute and slot action metadata against upstream Actions.cfg.
   - [x] Add UDBScript surface coverage for selection, grouping, movement, and flip helper APIs.
   - [x] Add UDBScript property-editing workflow coverage for fields, flags, args, and thing placement.
