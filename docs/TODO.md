@@ -1099,6 +1099,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Apply MAPINFO `SpawnNums` overrides to the `spawnthing` enum.
 - [ ] Add parser fixtures from real-world mod patterns.
   - [x] Add a ZScript and MAPINFO fixture for include, replacement, user field, DoomEdNum, and SpawnNum mod patterns.
+  - [x] Add a DECORATE fixture for include, game filter, replacement, user field, and SpawnID mod patterns.
 
 ## Dehacked
 

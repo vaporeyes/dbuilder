@@ -2538,6 +2538,101 @@ ACTOR IncludedBase
         Assert.Equal(31001, child.DoomEdNum);
     }
 
+    [Fact]
+    public void MergesModStyleDecorateFixtureWithIncludesAndGameMetadata()
+    {
+        const string root = @"
+#include ""actors/base.dec""
+#region Monsters/Bosses
+ACTOR DecorateFixtureReplacement : DoomImp replaces DoomImp 3001
+{
+    //$Title ""Decorate Fixture Baron""
+    //$Category ""Fixture Monsters""
+    Game Doom, Doom2
+    SpawnID 242
+    +SOLID
+    +BRIGHT
+    RenderStyle Translucent
+    Alpha 0.6
+    Radius 30
+    Height 72
+    States { Spawn: DFBF A -1 stop }
+}
+#endregion
+ACTOR HereticOnlyFixture 31060
+{
+    Game Heretic
+    Radius 16
+    States { Spawn: HFIX A -1 stop }
+}
+ACTOR DecorateFixtureChild : DecorateFixtureBase 31061
+{
+    //$Title ""Decorate Fixture Child""
+    var int user_score;
+    Radius 18
+}";
+        const string included = @"
+ACTOR DecorateFixtureBase
+{
+    //$Category ""Fixtures/Decorate""
+    Height 40
+    States { Spawn: DFBX A -1 stop }
+}";
+        const string cfg = @"
+decorategames = ""doom"";
+enums
+{
+    spawnthing
+    {
+        1 = ""Configured Spawn"";
+    }
+}
+thingtypes
+{
+    monsters
+    {
+        3001
+        {
+            title = ""Imp"";
+            sprite = ""TROOA1"";
+            class = ""DoomImp"";
+        }
+    }
+}";
+
+        var actors = DecorateParser.Parse(root, path => path == "actors/base.dec" ? included : null);
+        var gc = GameConfiguration.FromText(cfg);
+
+        gc.MergeActors(actors);
+
+        var replacement = gc.GetThing(3001);
+        Assert.NotNull(replacement);
+        Assert.Equal("Decorate Fixture Baron", replacement!.Title);
+        Assert.Equal("DecorateFixtureReplacement", replacement.ClassName);
+        Assert.Equal("Fixture Monsters", replacement.Category);
+        Assert.Equal("DFBFA0", replacement.Sprite);
+        Assert.Equal(30, replacement.Width);
+        Assert.Equal(72, replacement.Height);
+        Assert.True(replacement.Bright);
+        Assert.Equal(0.6, replacement.Alpha);
+
+        Assert.Null(gc.GetThing(31060));
+
+        var child = gc.GetThing(31061);
+        Assert.NotNull(child);
+        Assert.Equal("Decorate Fixture Child", child!.Title);
+        Assert.Equal("DFBXA0", child.Sprite);
+        Assert.Equal(18, child.Width);
+        Assert.Equal(40, child.Height);
+        Assert.True(child.HasAdditionalUniversalField("user_score"));
+        Assert.Equal((int)UniversalType.Integer, gc.UniversalFields["thing"]["user_score"].Type);
+
+        var spawnThing = gc.GetEnum("spawnthing");
+        Assert.NotNull(spawnThing);
+        Assert.Equal("Configured Spawn", spawnThing![1]);
+        Assert.Equal("Decorate Fixture Baron", spawnThing[242]);
+    }
+
     [Theory]
     [InlineData("../actors/base.dec")]
     [InlineData("./actors/base.dec")]
