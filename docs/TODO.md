@@ -2852,6 +2852,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [ ] Add API compatibility tests for common UDBScript scripts.
   - [x] Compare UDBScript execute and slot action metadata against upstream Actions.cfg.
   - [x] Add UDBScript surface coverage for selection, grouping, movement, and flip helper APIs.
+  - [x] Add UDBScript property-editing workflow coverage for fields, flags, args, and thing placement.
 
 ## Specialized Plugin Detail
 

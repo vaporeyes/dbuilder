@@ -2194,6 +2194,69 @@ localsidedeftextureoffsets = true;
     }
 
     [Fact]
+    public void CommonUdbScriptPropertyEditingSnippetUsesFieldsFlagsAndArgsTogether()
+    {
+        var config = GameConfiguration.FromText("""
+            linedefflags
+            {
+                1 = "blocking";
+            }
+            thingflags
+            {
+                skill1 = "Skill 1";
+            }
+            universalfields
+            {
+                sector
+                {
+                    user_label { type = 2; default = ""; }
+                }
+                thing
+                {
+                    user_score { type = 0; default = 0; }
+                }
+            }
+            """);
+        var map = new MapSet();
+        var wrapper = new UdbScriptMapWrapper(map, mapFormat: MapFormat.Udmf, config: config);
+
+        bool success = wrapper.drawLines(new object[]
+        {
+            new object[] { 0.0, 0.0 },
+            new object[] { 128.0, 0.0 },
+            new object[] { 128.0, 128.0 },
+            new object[] { 0.0, 128.0 },
+            new object[] { 0.0, 0.0 },
+        });
+        UdbScriptSectorWrapper sector = Assert.Single(wrapper.getMarkedSectors());
+        UdbScriptLinedefWrapper[] lines = wrapper.getMarkedLinedefs();
+        UdbScriptThingWrapper thing = wrapper.createThing(new object[] { 64.0, 64.0 }, type: 3001);
+
+        sector.fields["user_label"] = "arena";
+        foreach (UdbScriptLinedefWrapper line in lines)
+        {
+            line.action = 80;
+            line.args[0] = 7;
+            line.flags["blocking"] = true;
+        }
+        thing.flags["skill1"] = true;
+        thing.fields["user_score"] = 100.7;
+        thing.angle = 90;
+
+        Assert.True(success);
+        Assert.Equal("arena", sector.Sector.Fields["user_label"]);
+        Assert.All(lines, line =>
+        {
+            Assert.Equal(80, line.Linedef.Action);
+            Assert.Equal(7, line.Linedef.Args[0]);
+            Assert.True(line.Linedef.IsFlagSet("blocking"));
+        });
+        Assert.True(thing.Thing.IsFlagSet("skill1"));
+        Assert.Equal(101, thing.Thing.Fields["user_score"]);
+        Assert.Equal(90, thing.Thing.Angle);
+    }
+
+    [Fact]
     public void MapWrapperDrawLinesRejectsInvalidInput()
     {
         var wrapper = new UdbScriptMapWrapper(new MapSet());
