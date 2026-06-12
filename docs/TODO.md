@@ -554,6 +554,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Wire editor Curve Linedefs command to merge-mode post-processing.
   - [x] Add UDB-style Curve Linedefs option panel reset and flip state helpers.
   - [x] Match UDB Curve Linedefs option panel increment metadata.
+  - [x] Add UDB-style Draw Curve segment-length reset helper.
   - [x] Add UDB-style interpolation formula and color rounding compatibility coverage.
 - [ ] Port robust triangulation behavior for all known UDB map shapes.
   - [x] Keep fallback triangulation from reviving same-sector internal sidedefs.

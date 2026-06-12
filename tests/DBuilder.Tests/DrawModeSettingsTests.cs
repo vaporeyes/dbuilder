@@ -8,6 +8,17 @@ namespace DBuilder.Tests;
 
 public class DrawModeSettingsTests
 {
+    private static string? FindUdbRoot()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "."));
+        string sibling = Path.GetFullPath(Path.Combine(repositoryRoot, "..", "UltimateDoomBuilder"));
+        if (File.Exists(Path.Combine(sibling, "Source", "Plugins", "BuilderModes", "Interface", "DrawCurveOptionsPanel.cs"))) return sibling;
+
+        string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string root = Path.Combine(home, "dev", "repos", "UltimateDoomBuilder");
+        return File.Exists(Path.Combine(root, "Source", "Plugins", "BuilderModes", "Interface", "DrawCurveOptionsPanel.cs")) ? root : null;
+    }
+
     [Fact]
     public void DrawLineSettingsUseUdbKeysAndDefaults()
     {
@@ -198,6 +209,25 @@ public class DrawModeSettingsTests
         Assert.Equal(32, new DrawCurveModeSettings(SegmentLength: 64).DecreaseSegmentLength().SegmentLength);
         Assert.Equal(16, new DrawCurveModeSettings(SegmentLength: 17).DecreaseSegmentLength().SegmentLength);
         Assert.Equal(16, new DrawCurveModeSettings(SegmentLength: 16).DecreaseSegmentLength().SegmentLength);
+    }
+
+    [Fact]
+    public void DrawCurveSegmentLengthResetUsesUdbPanelMinimum()
+    {
+        DrawCurveModeSettings reset = new DrawCurveModeSettings(SegmentLength: 512).ResetSegmentLength();
+
+        Assert.Equal(DrawCurveModeSettings.MinSegmentLength, reset.SegmentLength);
+    }
+
+    [Fact]
+    public void DrawCurveSegmentLengthResetMatchesUdbOptionsPanelWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Source", "Plugins", "BuilderModes", "Interface", "DrawCurveOptionsPanel.cs"));
+
+        Assert.Contains("seglen.Value = seglen.Minimum;", source, StringComparison.Ordinal);
     }
 
     [Fact]

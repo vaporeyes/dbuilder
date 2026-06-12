@@ -200,6 +200,9 @@ public sealed record DrawCurveModeSettings(
     public static int SegmentLengthIncrement(int segmentLength)
         => Math.Max(MinSegmentLength, segmentLength / 32 * 16);
 
+    public DrawCurveModeSettings ResetSegmentLength()
+        => this with { SegmentLength = MinSegmentLength };
+
     public DrawCurveModeSettings Normalized()
         => this with { SegmentLength = Math.Clamp(SegmentLength, MinSegmentLength, MaxSegmentLength) };
 }
