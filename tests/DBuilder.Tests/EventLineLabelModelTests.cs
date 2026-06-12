@@ -26,6 +26,27 @@ public sealed class EventLineLabelModelTests
     }
 
     [Fact]
+    public void DistinctEventLinePaletteMatchesUdbAssociationColors()
+    {
+        Assert.Equal(19, EventLineLabelModel.DistinctColors.Length);
+        Assert.Equal(0xff84d5a4u, EventLineLabelModel.DistinctColors[0]);
+        Assert.Equal(0xffc059cbu, EventLineLabelModel.DistinctColors[1]);
+        Assert.Equal(0xff8dd3c7u, EventLineLabelModel.DistinctColors[^1]);
+    }
+
+    [Fact]
+    public void EventLineColorSelectionUsesDistinctColorsOnlyWhenEnabled()
+    {
+        Assert.Equal(0xff84d5a4u, EventLineLabelModel.ColorForGroupIndex(0, distinctColors: true));
+        Assert.Equal(0xffc059cbu, EventLineLabelModel.ColorForGroupIndex(1, distinctColors: true));
+        Assert.Equal(0xff84d5a4u, EventLineLabelModel.ColorForGroupIndex(
+            EventLineLabelModel.DistinctColors.Length,
+            distinctColors: true));
+        Assert.Equal(0xff84d5a4u, EventLineLabelModel.ColorForGroupIndex(7, distinctColors: false));
+        Assert.Throws<ArgumentOutOfRangeException>(() => EventLineLabelModel.ColorForGroupIndex(-1, distinctColors: true));
+    }
+
+    [Fact]
     public void LinedefActionDescriptionUsesConfiguredLabelStyle()
     {
         GameConfiguration config = Config(lineTagIndicatesSectors: false);

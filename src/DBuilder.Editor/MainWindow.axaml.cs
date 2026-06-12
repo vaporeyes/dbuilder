@@ -255,6 +255,7 @@ public partial class MainWindow : Window
         MapView.SetShowEventLines(_settings.ShowEventLines);
         MapView.EventLineLabelVisibility = _settings.NormalizedEventLineLabelVisibility;
         MapView.EventLineLabelStyle = _settings.NormalizedEventLineLabelStyle;
+        MapView.EventLineDistinctColors = _settings.EventLineDistinctColors;
         MapView.SetShowVisualVertices(_settings.ShowVisualVertices);
         MapView.DoubleSidedAlphaByte = _settings.NormalizedDoubleSidedAlphaByte;
         MapView.VisualFovDegrees = _settings.NormalizedVisualFov;
@@ -1475,6 +1476,7 @@ public partial class MainWindow : Window
         _settings.ShowEventLines = dlg.ShowEventLines;
         _settings.EventLineLabelVisibility = dlg.EventLineLabelVisibility;
         _settings.EventLineLabelStyle = dlg.EventLineLabelStyle;
+        _settings.EventLineDistinctColors = dlg.EventLineDistinctColors;
         _settings.ShowVisualVertices = dlg.ShowVisualVertices;
         _settings.ShowErrorsWindow = dlg.ShowErrorsWindow;
         _settings.FixedThingsScale = dlg.FixedThingsScale;
@@ -1525,6 +1527,7 @@ public partial class MainWindow : Window
         MapView.SetShowEventLines(_settings.ShowEventLines);
         MapView.EventLineLabelVisibility = _settings.NormalizedEventLineLabelVisibility;
         MapView.EventLineLabelStyle = _settings.NormalizedEventLineLabelStyle;
+        MapView.EventLineDistinctColors = _settings.EventLineDistinctColors;
         MapView.SetShowVisualVertices(_settings.ShowVisualVertices);
         MapView.DoubleSidedAlphaByte = _settings.NormalizedDoubleSidedAlphaByte;
         MapView.VisualFovDegrees = _settings.NormalizedVisualFov;

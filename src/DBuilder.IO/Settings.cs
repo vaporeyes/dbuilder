@@ -95,6 +95,7 @@ public sealed class Settings
     public int? ChangeHeightBySidedef { get; set; }
     public int? EventLineLabelVisibility { get; set; }
     public int? EventLineLabelStyle { get; set; }
+    public bool EventLineDistinctColors { get; set; } = true;
     public bool RenderGrid { get; set; } = true;
     public bool DynamicGridSize { get; set; } = true;
     public bool SwitchViewModes { get; set; }

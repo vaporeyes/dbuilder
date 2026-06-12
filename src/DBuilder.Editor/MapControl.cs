@@ -236,6 +236,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _showEventLines = true;
     private int _eventLineLabelVisibility = Settings.DefaultEventLineLabelVisibility;
     private int _eventLineLabelStyle = Settings.DefaultEventLineLabelStyle;
+    private bool _eventLineDistinctColors = true;
     private bool _showVisualVertices = true;
     private byte _doubleSidedAlphaByte = Settings.DefaultDoubleSidedAlphaByte;
     private int _visualFovDegrees = Settings.DefaultVisualFov;
@@ -322,6 +323,18 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             int clamped = Math.Clamp(value, 0, 2);
             if (_eventLineLabelStyle == clamped) return;
             _eventLineLabelStyle = clamped;
+            _geometryDirty = true;
+            _geo3DDirty = true;
+            RequestNextFrameRendering();
+        }
+    }
+    public bool EventLineDistinctColors
+    {
+        get => _eventLineDistinctColors;
+        set
+        {
+            if (_eventLineDistinctColors == value) return;
+            _eventLineDistinctColors = value;
             _geometryDirty = true;
             _geo3DDirty = true;
             RequestNextFrameRendering();

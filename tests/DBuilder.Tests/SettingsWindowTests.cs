@@ -280,18 +280,23 @@ public class SettingsWindowTests
         Assert.NotNull(type.GetField("ShowEventLines", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("EventLineLabelVisibility", BindingFlags.Instance | BindingFlags.Public));
         Assert.NotNull(type.GetField("EventLineLabelStyle", BindingFlags.Instance | BindingFlags.Public));
+        Assert.NotNull(type.GetField("EventLineDistinctColors", BindingFlags.Instance | BindingFlags.Public));
         Assert.Contains("AddCheckBox(\"Show event lines\", s.ShowEventLines)", body, StringComparison.Ordinal);
         Assert.Contains("AddCombo(\"Event line labels\", EventLineLabelVisibilityItems(), s.NormalizedEventLineLabelVisibility)", body, StringComparison.Ordinal);
         Assert.Contains("AddCombo(\"Event line label text\", EventLineLabelStyleItems(), s.NormalizedEventLineLabelStyle)", body, StringComparison.Ordinal);
+        Assert.Contains("AddCheckBox(\"Use distinct event line colors\", s.EventLineDistinctColors)", body, StringComparison.Ordinal);
         Assert.Contains("ShowEventLines = _showEventLines.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("EventLineLabelVisibility = ComboNumber(_eventLineLabelVisibility, Settings.DefaultEventLineLabelVisibility);", body, StringComparison.Ordinal);
         Assert.Contains("EventLineLabelStyle = ComboNumber(_eventLineLabelStyle, Settings.DefaultEventLineLabelStyle);", body, StringComparison.Ordinal);
+        Assert.Contains("EventLineDistinctColors = _eventLineDistinctColors.IsChecked == true;", body, StringComparison.Ordinal);
         Assert.Contains("_settings.ShowEventLines = dlg.ShowEventLines;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.EventLineLabelVisibility = dlg.EventLineLabelVisibility;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("_settings.EventLineLabelStyle = dlg.EventLineLabelStyle;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("_settings.EventLineDistinctColors = dlg.EventLineDistinctColors;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.SetShowEventLines(_settings.ShowEventLines);", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.EventLineLabelVisibility = _settings.NormalizedEventLineLabelVisibility;", mainWindow, StringComparison.Ordinal);
         Assert.Contains("MapView.EventLineLabelStyle = _settings.NormalizedEventLineLabelStyle;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.EventLineDistinctColors = _settings.EventLineDistinctColors;", mainWindow, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -193,6 +193,7 @@ public class SettingsTests
 
         Assert.Equal(3, settings.NormalizedEventLineLabelVisibility);
         Assert.Equal(2, settings.NormalizedEventLineLabelStyle);
+        Assert.True(settings.EventLineDistinctColors);
         Assert.Equal(0, new Settings { EventLineLabelVisibility = -1 }.NormalizedEventLineLabelVisibility);
         Assert.Equal(3, new Settings { EventLineLabelVisibility = 9 }.NormalizedEventLineLabelVisibility);
         Assert.Equal(0, new Settings { EventLineLabelStyle = -1 }.NormalizedEventLineLabelStyle);
@@ -523,6 +524,7 @@ public class SettingsTests
                 ChangeHeightBySidedef = 3,
                 EventLineLabelVisibility = 1,
                 EventLineLabelStyle = 0,
+                EventLineDistinctColors = false,
                 SwitchViewModes = true,
                 AlphaBasedTextureHighlighting = false,
                 SelectAdjacentVisualVertexSlopeHandles = true,
@@ -727,6 +729,7 @@ public class SettingsTests
             Assert.Equal(1, loaded.NormalizedEventLineLabelVisibility);
             Assert.Equal(0, loaded.EventLineLabelStyle);
             Assert.Equal(0, loaded.NormalizedEventLineLabelStyle);
+            Assert.False(loaded.EventLineDistinctColors);
             Assert.True(loaded.SwitchViewModes);
             Assert.False(loaded.AlphaBasedTextureHighlighting);
             Assert.True(loaded.SelectAdjacentVisualVertexSlopeHandles);
