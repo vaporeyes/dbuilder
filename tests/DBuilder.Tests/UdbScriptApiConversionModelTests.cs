@@ -3808,6 +3808,87 @@ localsidedeftextureoffsets = true;
         Assert.Contains("t.type = 64", source, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void CommonUdbScriptRandomizeTextureOffsetsWorkflowUsesMapDataAndConfigWrappersTogether()
+    {
+        string pk3 = TestArtifacts.BuildPk3(
+            ("textures/TALL.png", TestArtifacts.Png(8, 16, TestArtifacts.SolidRgba(8, 16, 10, 20, 30, 255))),
+            ("textures/WIDE.png", TestArtifacts.Png(32, 64, TestArtifacts.SolidRgba(32, 64, 40, 50, 60, 255))),
+            ("textures/LOW.png", TestArtifacts.Png(4, 12, TestArtifacts.SolidRgba(4, 12, 70, 80, 90, 255))));
+        try
+        {
+            using var resources = new ResourceManager();
+            resources.AddResource(pk3);
+            GameConfiguration config = GameConfiguration.FromText("""
+game = "Doom";
+engine = "GZDoom";
+localsidedeftextureoffsets = true;
+""");
+            var map = new MapSet();
+            Sector frontSector = map.AddSector();
+            Sector backSector = map.AddSector();
+            Linedef line = map.AddLinedef(map.AddVertex(new Vector2D(0, 0)), map.AddVertex(new Vector2D(64, 0)));
+            Sidedef front = map.AddSidedef(line, isFront: true, frontSector);
+            Sidedef back = map.AddSidedef(line, isFront: false, backSector);
+            front.SetTextureHigh("TALL");
+            front.SetTextureMid("WIDE");
+            front.SetTextureLow("LOW");
+            back.SetTextureHigh("-");
+            back.SetTextureMid("WIDE");
+            back.SetTextureLow("-");
+            line.Selected = true;
+            map.BuildIndexes();
+            var wrapper = new UdbScriptMapWrapper(map, config: config);
+            var data = new UdbScriptDataWrapper(resources);
+            var gameConfig = new UdbScriptGameConfigurationWrapper(config);
+
+            foreach (UdbScriptLinedefWrapper selectedLine in wrapper.getSelectedLinedefs())
+            {
+                if (selectedLine.front != null)
+                    ExecuteRandomizeTextureOffsetsWorkflow(selectedLine.front, data, gameConfig);
+
+                if (selectedLine.back != null)
+                    ExecuteRandomizeTextureOffsetsWorkflow(selectedLine.back, data, gameConfig);
+            }
+
+            Assert.Equal(31, front.OffsetX);
+            Assert.Equal(63, front.OffsetY);
+            Assert.Equal(15, front.Fields["offsetx_top"]);
+            Assert.Equal(63, front.Fields["offsetx_mid"]);
+            Assert.Equal(11, front.Fields["offsetx_bottom"]);
+            Assert.Equal(15, front.Fields["offsety_top"]);
+            Assert.Equal(63, front.Fields["offsety_mid"]);
+            Assert.Equal(11, front.Fields["offsety_bottom"]);
+            Assert.Equal(31, back.OffsetX);
+            Assert.Equal(63, back.OffsetY);
+            Assert.False(back.Fields.ContainsKey("offsetx_top"));
+            Assert.Equal(63, back.Fields["offsetx_mid"]);
+            Assert.False(back.Fields.ContainsKey("offsetx_bottom"));
+        }
+        finally
+        {
+            if (File.Exists(pk3))
+                File.Delete(pk3);
+        }
+    }
+
+    [Fact]
+    public void CommonUdbScriptRandomizeTextureOffsetsExampleUsesCoveredApisWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Assets", "Common", "UDBScript", "Scripts", "Examples", "randomizetextureoffsets.js"));
+
+        Assert.Contains("UDB.Data.textureExists(texture)", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Data.getTextureInfo(sd.upperTexture).width", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.GameConfiguration.hasLocalSidedefTextureOffsets", source, StringComparison.Ordinal);
+        Assert.Contains("sd.fields.offsetx_top", source, StringComparison.Ordinal);
+        Assert.Contains("UDB.Map.getSelectedLinedefs()", source, StringComparison.Ordinal);
+        Assert.Contains("randomizeSidedefOffsets(ld.front)", source, StringComparison.Ordinal);
+        Assert.Contains("randomizeSidedefOffsets(ld.back)", source, StringComparison.Ordinal);
+    }
+
     private static Sector CreateSquareSector()
     {
         var sector = new Sector();
@@ -3905,6 +3986,80 @@ localsidedeftextureoffsets = true;
             {
                 thing.type = 64;
             }
+        }
+    }
+
+    private static void ExecuteRandomizeTextureOffsetsWorkflow(
+        UdbScriptSidedefWrapper side,
+        UdbScriptDataWrapper data,
+        UdbScriptGameConfigurationWrapper gameConfig)
+    {
+        static int GetRandomOffset(int max)
+            => max - 1;
+
+        static bool IsValidTexture(UdbScriptDataWrapper data, string texture)
+            => texture != "-" && data.textureExists(texture);
+
+        if (IsValidTexture(data, side.upperTexture) ||
+            IsValidTexture(data, side.middleTexture) ||
+            IsValidTexture(data, side.lowerTexture))
+        {
+            var widths = new List<int>();
+
+            if (IsValidTexture(data, side.upperTexture))
+                widths.Add(data.getTextureInfo(side.upperTexture).width);
+
+            if (IsValidTexture(data, side.middleTexture))
+                widths.Add(data.getTextureInfo(side.middleTexture).width);
+
+            if (IsValidTexture(data, side.lowerTexture))
+                widths.Add(data.getTextureInfo(side.lowerTexture).width);
+
+            if (widths.Count > 0)
+                side.offsetX = GetRandomOffset(widths.Max());
+        }
+
+        if (IsValidTexture(data, side.upperTexture) ||
+            IsValidTexture(data, side.middleTexture) ||
+            IsValidTexture(data, side.lowerTexture))
+        {
+            var heights = new List<int>();
+
+            if (IsValidTexture(data, side.upperTexture))
+                heights.Add(data.getTextureInfo(side.upperTexture).height);
+
+            if (IsValidTexture(data, side.middleTexture))
+                heights.Add(data.getTextureInfo(side.middleTexture).height);
+
+            if (IsValidTexture(data, side.lowerTexture))
+                heights.Add(data.getTextureInfo(side.lowerTexture).height);
+
+            if (heights.Count > 0)
+                side.offsetY = GetRandomOffset(heights.Max());
+        }
+
+        if (gameConfig.hasLocalSidedefTextureOffsets)
+        {
+            if (IsValidTexture(data, side.upperTexture))
+                side.fields["offsetx_top"] = GetRandomOffset(data.getTextureInfo(side.upperTexture).height);
+
+            if (IsValidTexture(data, side.middleTexture))
+                side.fields["offsetx_mid"] = GetRandomOffset(data.getTextureInfo(side.middleTexture).height);
+
+            if (IsValidTexture(data, side.lowerTexture))
+                side.fields["offsetx_bottom"] = GetRandomOffset(data.getTextureInfo(side.lowerTexture).height);
+        }
+
+        if (gameConfig.hasLocalSidedefTextureOffsets)
+        {
+            if (IsValidTexture(data, side.upperTexture))
+                side.fields["offsety_top"] = GetRandomOffset(data.getTextureInfo(side.upperTexture).height);
+
+            if (IsValidTexture(data, side.middleTexture))
+                side.fields["offsety_mid"] = GetRandomOffset(data.getTextureInfo(side.middleTexture).height);
+
+            if (IsValidTexture(data, side.lowerTexture))
+                side.fields["offsety_bottom"] = GetRandomOffset(data.getTextureInfo(side.lowerTexture).height);
         }
     }
 
