@@ -66,6 +66,10 @@ The script does not sign, notarize, create installers, delete prior artifacts, o
 
 `bash scripts/package-macos-app.sh osx-arm64` wraps a published macOS runtime directory in `artifacts/package/macos/<rid>/DBuilder.Editor.app`. The bundle is unsigned and not notarized, but it contains the published editor files, `Info.plist`, `PkgInfo`, and resource icon copy needed for app-bundle layout validation.
 
+## Windows Zip Package Script
+
+`bash scripts/package-windows-zip.sh win-x64` wraps a published Windows runtime directory in `artifacts/package/windows/win-x64/DBuilder.Editor-win-x64.zip`. The archive is unsigned and is not an installer, but it preserves the publish output layout for smoke validation and manual launch testing.
+
 ## App Metadata And Icon
 
 The editor project defines the app title, product name, package description, Windows DPI manifest, and package icon metadata. The shared icon source is `assets/main.png`, which is linked into publish output as `main.png` and packed as the package icon.
