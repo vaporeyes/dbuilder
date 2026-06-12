@@ -219,6 +219,12 @@ public class SettingsTests
     }
 
     [Fact]
+    public void AutoAlignTextureOffsetsOnCreateDefaultsDisabledLikeUdb()
+    {
+        Assert.False(new Settings().AutoAlignTextureOffsetsOnCreate);
+    }
+
+    [Fact]
     public void ModelRenderModeDefaultsToAllLikeUdb()
     {
         Assert.Equal(ThingModelRenderMode.All, new Settings().NormalizedModelRenderMode);
@@ -539,6 +545,7 @@ public class SettingsTests
                 EditNewThing = false,
                 EditNewSector = true,
                 AutoDrawOnEdit = false,
+                AutoAlignTextureOffsetsOnCreate = true,
                 AdditiveSelect = true,
                 AdditivePaintSelect = false,
                 ChangeHeightBySidedef = 3,
@@ -742,6 +749,7 @@ public class SettingsTests
             Assert.False(loaded.EditNewThing);
             Assert.True(loaded.EditNewSector);
             Assert.False(loaded.AutoDrawOnEdit);
+            Assert.True(loaded.AutoAlignTextureOffsetsOnCreate);
             Assert.True(loaded.AdditiveSelect);
             Assert.False(loaded.AdditivePaintSelect);
             Assert.False(loaded.NormalizedAdditivePaintSelect);

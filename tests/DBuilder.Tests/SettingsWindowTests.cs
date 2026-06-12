@@ -184,6 +184,20 @@ public class SettingsWindowTests
     }
 
     [Fact]
+    public void SettingsWindowExposesAutoAlignTextureOffsetsOnCreatePreference()
+    {
+        Type type = typeof(SettingsWindow);
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/SettingsWindow.cs"));
+        string mainWindow = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MainWindow.axaml.cs"));
+
+        Assert.NotNull(type.GetField("AutoAlignTextureOffsetsOnCreate", BindingFlags.Instance | BindingFlags.Public));
+        Assert.Contains("AddCheckBox(\"Auto-align texture offsets on create\", s.AutoAlignTextureOffsetsOnCreate)", body, StringComparison.Ordinal);
+        Assert.Contains("AutoAlignTextureOffsetsOnCreate = _autoAlignTextureOffsetsOnCreate.IsChecked == true;", body, StringComparison.Ordinal);
+        Assert.Contains("_settings.AutoAlignTextureOffsetsOnCreate = dlg.AutoAlignTextureOffsetsOnCreate;", mainWindow, StringComparison.Ordinal);
+        Assert.Contains("MapView.AutoAlignTextureOffsetsOnCreate = _settings.AutoAlignTextureOffsetsOnCreate;", mainWindow, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SettingsWindowExposesDrawRectangleModePreferences()
     {
         Type type = typeof(SettingsWindow);

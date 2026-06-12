@@ -943,6 +943,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private int _defaultSectorFloorHeight = Settings.DefaultSectorFloorHeight;
     private int _defaultSectorCeilingHeight = Settings.DefaultSectorCeilingHeight;
     private int _defaultSectorBrightness = Settings.DefaultSectorBrightness;
+    private bool _autoAlignTextureOffsetsOnCreate;
     public ShapeKind CurrentShape => _shapeKind;
 
     public DrawLineModeSettings DrawLineSettings
@@ -985,6 +986,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         get => _drawGridSettings;
         set => _drawGridSettings = (value ?? new DrawGridModeSettings()).Normalized();
+    }
+
+    public bool AutoAlignTextureOffsetsOnCreate
+    {
+        get => _autoAlignTextureOffsetsOnCreate;
+        set => _autoAlignTextureOffsetsOnCreate = value;
     }
 
     public AutomapModeSettings AutomapSettings
@@ -8134,10 +8141,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         }
         if (verts.Count < 3) return;
         var nearbyLines = _map.Linedefs.Where(line => !LineTouchesOnlyDrawnVertices(line, verts)).ToList();
-        Tools.MakeSectorFromLoop(_map, verts, nearbyLines, useOverrides: false, options: CreateSectorCreationOptions());
+        Sector? sector = Tools.MakeSectorFromLoop(_map, verts, nearbyLines, useOverrides: false, options: CreateSectorCreationOptions());
         _map.MergeOverlappingVertices(0.01);
         _map.SplitLinedefsAtVertices(0.5);
         _map.BuildIndexes();
+        AutoAlignCreatedSectorTextures(sector);
         MarkGeometryDirty();
         Changed?.Invoke();
         if (!string.IsNullOrEmpty(plan.HintText)) Picked?.Invoke(plan.HintText);
@@ -8167,6 +8175,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         EditBegun?.Invoke("Draw grid");
         int sectorCount = 0;
         int lineCount = 0;
+        var createdSectors = new System.Collections.Generic.List<Sector>();
 
         foreach (var shape in plan.Shapes)
         {
@@ -8193,13 +8202,17 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
             if (verts.Count < 3) continue;
             var nearbyLines = _map.Linedefs.Where(line => !LineTouchesOnlyDrawnVertices(line, verts)).ToList();
-            if (Tools.MakeSectorFromLoop(_map, verts, nearbyLines, useOverrides: false, options: CreateSectorCreationOptions()) != null)
+            if (Tools.MakeSectorFromLoop(_map, verts, nearbyLines, useOverrides: false, options: CreateSectorCreationOptions()) is { } sector)
+            {
+                createdSectors.Add(sector);
                 sectorCount++;
+            }
         }
 
         _map.MergeOverlappingVertices(0.01);
         _map.SplitLinedefsAtVertices(0.5);
         _map.BuildIndexes();
+        AutoAlignCreatedSectorTextures(createdSectors);
         MarkGeometryDirty();
         Changed?.Invoke();
         Picked?.Invoke(DrawGridPlanner.CreatedStatus(plan, sectorCount, lineCount));
@@ -9744,6 +9757,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         _map.MergeOverlappingVertices(0.01);
         _map.SplitLinedefsAtVertices(0.5); // weld drawn vertices that landed on existing walls (T-junctions)
         _map.BuildIndexes();
+        AutoAlignCreatedSectorTextures(createdSector);
 
         MarkGeometryDirty();
         Changed?.Invoke();
@@ -9806,6 +9820,63 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
     private static bool LineTouchesOnlyDrawnVertices(Linedef line, IReadOnlyCollection<Vertex> vertices)
         => vertices.Contains(line.Start) && vertices.Contains(line.End);
+
+    private void AutoAlignCreatedSectorTextures(Sector? sector)
+    {
+        if (sector == null) return;
+        AutoAlignCreatedSectorTextures(new[] { sector });
+    }
+
+    private void AutoAlignCreatedSectorTextures(IEnumerable<Sector> sectors)
+    {
+        if (!_autoAlignTextureOffsetsOnCreate) return;
+
+        var seen = new System.Collections.Generic.HashSet<Sidedef>(ReferenceEqualityComparer.Instance);
+        foreach (Sector sector in sectors)
+        {
+            foreach (Sidedef side in sector.Sidedefs)
+            {
+                string texture = SidedefTextureAlignment.PrimaryTexture(side);
+                if (texture == "-" || seen.Contains(side)) continue;
+                var image = _resources?.GetWallTexture(texture);
+                SidedefTextureAlignment.AutoAlignX(side, image?.Width ?? 0);
+                SidedefTextureAlignment.AutoAlignY(side, image?.Height ?? 0);
+                MarkConnectedTextureSides(side, texture, seen);
+            }
+        }
+    }
+
+    private static void MarkConnectedTextureSides(Sidedef start, string texture, HashSet<Sidedef> seen)
+    {
+        var pending = new Queue<Sidedef>();
+        seen.Add(start);
+        pending.Enqueue(start);
+
+        while (pending.Count > 0)
+        {
+            Sidedef side = pending.Dequeue();
+            AddConnectedTextureSides(side.Line.Start, texture, seen, pending);
+            AddConnectedTextureSides(side.Line.End, texture, seen, pending);
+        }
+    }
+
+    private static void AddConnectedTextureSides(Vertex vertex, string texture, HashSet<Sidedef> seen, Queue<Sidedef> pending)
+    {
+        foreach (Linedef line in vertex.Linedefs)
+        {
+            AddConnectedTextureSide(line.Front, texture, seen, pending);
+            AddConnectedTextureSide(line.Back, texture, seen, pending);
+        }
+    }
+
+    private static void AddConnectedTextureSide(Sidedef? side, string texture, HashSet<Sidedef> seen, Queue<Sidedef> pending)
+    {
+        if (side == null || seen.Contains(side)) return;
+        if (!string.Equals(SidedefTextureAlignment.PrimaryTexture(side), texture, StringComparison.OrdinalIgnoreCase)) return;
+
+        seen.Add(side);
+        pending.Enqueue(side);
+    }
 
     // Builds the in-progress draw overlay: placed-point segments + a preview segment to the cursor.
     private void RebuildDrawPreview()

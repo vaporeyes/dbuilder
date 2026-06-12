@@ -214,6 +214,23 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void DrawnSectorsCanAutoAlignTextureOffsetsOnCreate()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+
+        Assert.Contains("public bool AutoAlignTextureOffsetsOnCreate", body, StringComparison.Ordinal);
+        Assert.Contains("private void AutoAlignCreatedSectorTextures(Sector? sector)", body, StringComparison.Ordinal);
+        Assert.Contains("private void AutoAlignCreatedSectorTextures(IEnumerable<Sector> sectors)", body, StringComparison.Ordinal);
+        Assert.Contains("SidedefTextureAlignment.AutoAlignX(side, image?.Width ?? 0);", body, StringComparison.Ordinal);
+        Assert.Contains("SidedefTextureAlignment.AutoAlignY(side, image?.Height ?? 0);", body, StringComparison.Ordinal);
+        Assert.Contains("MarkConnectedTextureSides(side, texture, seen);", body, StringComparison.Ordinal);
+        Assert.Contains("private static void MarkConnectedTextureSides(Sidedef start, string texture, HashSet<Sidedef> seen)", body, StringComparison.Ordinal);
+        Assert.Contains("AutoAlignCreatedSectorTextures(sector);", body, StringComparison.Ordinal);
+        Assert.Contains("AutoAlignCreatedSectorTextures(createdSector);", body, StringComparison.Ordinal);
+        Assert.Contains("AutoAlignCreatedSectorTextures(createdSectors);", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void LinedefRenderingUsesUdbColorPresetModel()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
