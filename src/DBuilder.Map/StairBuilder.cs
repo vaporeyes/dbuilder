@@ -11,6 +11,8 @@ public static class StairBuilder
 {
     public const int DefaultUpperUnpeggedBit = 8;
     public const int DefaultLowerUnpeggedBit = 16;
+    public const string EngageFailedTitle = "Failed to start Stair Sector Builder Mode";
+    public const string EngageFailedMessage = "You need to select at least one linedef or sector to enter Stair Sector Builder Mode";
 
     public static string ApplyStatusText(int sectorCount, int startFloor, int floorStep)
         => $"Built stairs across {CountLabel(sectorCount, "sector")} (start {startFloor}, step {floorStep}).";
@@ -19,6 +21,20 @@ public static class StairBuilder
         => lineCount == 0
             ? "No sector outline lines found."
             : $"Selected {CountLabel(lineCount, "sector outline line")}.";
+
+    public static StairBuilderEngagePlan PlanEngage(int selectedLinedefCount, int selectedSectorCount)
+    {
+        if (selectedLinedefCount < 0) throw new ArgumentOutOfRangeException(nameof(selectedLinedefCount));
+        if (selectedSectorCount < 0) throw new ArgumentOutOfRangeException(nameof(selectedSectorCount));
+
+        bool canEngage = selectedLinedefCount > 0 || selectedSectorCount > 0;
+        return new StairBuilderEngagePlan(
+            CanEngage: canEngage,
+            FailureTitle: canEngage ? null : EngageFailedTitle,
+            FailureMessage: canEngage ? null : EngageFailedMessage,
+            SingleStepsEnabled: true,
+            DistinctBaseHeights: selectedLinedefCount != 1);
+    }
 
     public static IReadOnlyList<Linedef> SelectSectorsOutline(MapSet map, IReadOnlyList<Sector>? sectors = null)
     {
@@ -762,6 +778,13 @@ public sealed record StairBuilderSectorPlan
     public IReadOnlyList<Vector2D> Vertices { get; init; }
     public IReadOnlyList<IReadOnlyList<Vector2D>> PostLines { get; init; }
 }
+
+public sealed record StairBuilderEngagePlan(
+    bool CanEngage,
+    string? FailureTitle,
+    string? FailureMessage,
+    bool SingleStepsEnabled,
+    bool DistinctBaseHeights);
 
 public sealed record StairBuilderStraightOptions
 {

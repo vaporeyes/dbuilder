@@ -26,6 +26,40 @@ public class StairBuilderTests
     public void SelectSectorsOutlineStatusTextFormatsSingularAndPluralLineCounts(int lineCount, string expected)
         => Assert.Equal(expected, StairBuilder.SelectSectorsOutlineStatusText(lineCount));
 
+    [Fact]
+    public void EngagePlanRejectsNoSelectedLinedefsOrSectorsLikeUdb()
+    {
+        StairBuilderEngagePlan plan = StairBuilder.PlanEngage(selectedLinedefCount: 0, selectedSectorCount: 0);
+
+        Assert.False(plan.CanEngage);
+        Assert.Equal(StairBuilder.EngageFailedTitle, plan.FailureTitle);
+        Assert.Equal(StairBuilder.EngageFailedMessage, plan.FailureMessage);
+        Assert.True(plan.SingleStepsEnabled);
+        Assert.True(plan.DistinctBaseHeights);
+    }
+
+    [Theory]
+    [InlineData(1, 0, false)]
+    [InlineData(2, 0, true)]
+    [InlineData(0, 1, true)]
+    public void EngagePlanMatchesUdbInitialFormFlags(int selectedLinedefCount, int selectedSectorCount, bool distinctBaseHeights)
+    {
+        StairBuilderEngagePlan plan = StairBuilder.PlanEngage(selectedLinedefCount, selectedSectorCount);
+
+        Assert.True(plan.CanEngage);
+        Assert.Null(plan.FailureTitle);
+        Assert.Null(plan.FailureMessage);
+        Assert.True(plan.SingleStepsEnabled);
+        Assert.Equal(distinctBaseHeights, plan.DistinctBaseHeights);
+    }
+
+    [Fact]
+    public void EngagePlanRejectsNegativeSelectionCounts()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => StairBuilder.PlanEngage(-1, 0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => StairBuilder.PlanEngage(0, -1));
+    }
+
     private static void AssertEqualVertices(IReadOnlyList<Vector2D> expected, IReadOnlyList<Vector2D> actual)
     {
         Assert.Equal(expected.Count, actual.Count);
