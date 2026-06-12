@@ -645,7 +645,8 @@ public static class VisualSlopeHandles
         VisualSlopeHandlePairResult pair = GetSlopeHandlePair(
             handles,
             highlightedHandle,
-            useOppositeSmartPivotHandle);
+            useOppositeSmartPivotHandle,
+            levels);
         if (pair.Handles.Count != 2)
             return new VisualSlopeBetweenHandlesApplyResult(
                 VisualSlopeBetweenHandlesResult.MissingHandlePair,
@@ -751,7 +752,8 @@ public static class VisualSlopeHandles
         VisualSlopeHandlePairResult pair = GetSlopeHandlePair(
             handles,
             highlightedHandle,
-            useOppositeSmartPivotHandle);
+            useOppositeSmartPivotHandle,
+            levels);
         if (pair.Handles.Count != 2)
             return new VisualSlopeBetweenHandlesApplyResult(
                 VisualSlopeBetweenHandlesResult.MissingHandlePair,

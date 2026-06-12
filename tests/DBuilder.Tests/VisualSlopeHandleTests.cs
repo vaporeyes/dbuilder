@@ -1042,17 +1042,48 @@ public class VisualSlopeHandleTests
             new Vector3D(0, 64, 16),
             true);
         var sourceLevel = new VisualSlopeLevel(source, VisualSlopeLevelType.Floor, sourcePlane);
+        VisualSlopeLevel targetLevel = VisualSlopeLevel.Floor(target);
         VisualSlopeHandle highlighted = VisualSlopeHandles.CreateSidedef(source.Sidedefs[2], sourceLevel, up: true);
         VisualSlopeHandle smartPivot = VisualSlopeHandles.CreateSidedef(source.Sidedefs[0], sourceLevel, up: true);
+        VisualSlopeHandle selectedLevelPivot = VisualSlopeHandles.CreateSidedef(target.Sidedefs[0], targetLevel, up: true);
 
         VisualSlopeBetweenHandlesApplyResult result = VisualSlopeHandles.ApplySlopeBetweenSelectedHandles(
-            [VisualSlopeLevel.Floor(target)],
-            [highlighted, smartPivot],
+            [targetLevel],
+            [highlighted, smartPivot, selectedLevelPivot],
             highlighted);
 
         Assert.Equal(VisualSlopeBetweenHandlesResult.Changed, result.Result);
         Assert.Equal(1, result.ChangedLevels);
         Assert.Equal("Sloped between slope handles.", result.StatusMessage);
+        Assert.True(target.HasFloorSlope);
+        Assert.Equal(16, target.GetFloorZ(new Vector2D(32, 64)), 1e-9);
+        Assert.Equal(0, target.GetFloorZ(new Vector2D(32, 0)), 1e-9);
+    }
+
+    [Fact]
+    public void ApplySlopeBetweenSelectedHandlesUsesSelectedLevelForSmartPivotLikeUdb()
+    {
+        var map = new MapSet();
+        Sector target = AddSquareSector(map, 0, 64);
+        Sector source = AddSquareSector(map, 0, 64);
+        var sourcePlane = new Plane(
+            new Vector3D(0, 64, 16),
+            new Vector3D(64, 64, 16),
+            new Vector3D(0, 0, 64),
+            true);
+        VisualSlopeLevel sourceLevel = new(source, VisualSlopeLevelType.Floor, sourcePlane);
+        VisualSlopeLevel targetLevel = VisualSlopeLevel.Floor(target);
+        VisualSlopeHandle highlighted = VisualSlopeHandles.CreateSidedef(source.Sidedefs[2], sourceLevel, up: true);
+        VisualSlopeHandle sameSectorPivot = VisualSlopeHandles.CreateSidedef(source.Sidedefs[0], sourceLevel, up: true);
+        VisualSlopeHandle selectedLevelPivot = VisualSlopeHandles.CreateSidedef(target.Sidedefs[0], targetLevel, up: true);
+
+        VisualSlopeBetweenHandlesApplyResult result = VisualSlopeHandles.ApplySlopeBetweenSelectedHandles(
+            [targetLevel],
+            [highlighted, sameSectorPivot, selectedLevelPivot],
+            highlighted);
+
+        Assert.Equal(VisualSlopeBetweenHandlesResult.Changed, result.Result);
+        Assert.Equal(1, result.ChangedLevels);
         Assert.True(target.HasFloorSlope);
         Assert.Equal(16, target.GetFloorZ(new Vector2D(32, 64)), 1e-9);
         Assert.Equal(0, target.GetFloorZ(new Vector2D(32, 0)), 1e-9);
