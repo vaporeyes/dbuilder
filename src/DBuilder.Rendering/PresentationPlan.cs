@@ -398,6 +398,13 @@ public sealed record PresentationSurfaceRedrawStep(
     PresentationSurfaceRedrawStepKind Kind,
     string? TargetName = null);
 
+public readonly record struct PresentationSurfaceDisplaySettings(
+    float TexelX,
+    float TexelY,
+    float FsaaFactor,
+    float Alpha,
+    bool UseClassicBilinear);
+
 public sealed record PresentationSurfaceRedrawPlan(
     RenderLayers PreviousLayer,
     RenderLayers RenderLayerAfter,
@@ -405,6 +412,7 @@ public sealed record PresentationSurfaceRedrawPlan(
     bool RecreateRenderTargets,
     ViewMode ViewMode,
     bool SkipHiddenSectors,
+    PresentationSurfaceDisplaySettings? DisplaySettings,
     IReadOnlyList<PresentationSurfaceRedrawStep> Steps);
 
 public readonly record struct PresentationMapCenterLine(
@@ -913,10 +921,12 @@ public sealed record PresentationRenderTargetPlan(
                 RecreateRenderTargets: false,
                 viewMode,
                 skipHiddenSectors,
+                DisplaySettings: null,
                 Array.Empty<PresentationSurfaceRedrawStep>());
         }
 
         var steps = new List<PresentationSurfaceRedrawStep>();
+        PresentationSurfaceDisplaySettings? displaySettings = null;
         if (windowSizeChanged)
             steps.Add(new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.RecreateRenderTargets));
 
@@ -933,6 +943,12 @@ public sealed record PresentationRenderTargetPlan(
             steps.Add(new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.ClearDesaturation));
             steps.Add(new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.SetWorldTransformation));
             steps.Add(new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.ApplyDisplaySettings));
+            displaySettings = new PresentationSurfaceDisplaySettings(
+                TexelX: 1.0f,
+                TexelY: 1.0f,
+                FsaaFactor: 0.0f,
+                Alpha: 1.0f,
+                UseClassicBilinear: true);
 
             PresentationSurfaceRedrawStepKind? renderStep = viewMode switch
             {
@@ -959,6 +975,7 @@ public sealed record PresentationRenderTargetPlan(
             RecreateRenderTargets: windowSizeChanged,
             ViewMode: viewMode,
             SkipHiddenSectors: skipHiddenSectors,
+            DisplaySettings: displaySettings,
             Steps: steps);
     }
 

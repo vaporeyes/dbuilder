@@ -391,6 +391,12 @@ public sealed class PresentationPlanTests
         Assert.Equal(RenderLayers.None, plan.RenderLayerAfter);
         Assert.Equal(ViewMode.Brightness, plan.ViewMode);
         Assert.True(plan.SkipHiddenSectors);
+        Assert.NotNull(plan.DisplaySettings);
+        Assert.Equal(1.0f, plan.DisplaySettings.Value.TexelX);
+        Assert.Equal(1.0f, plan.DisplaySettings.Value.TexelY);
+        Assert.Equal(0.0f, plan.DisplaySettings.Value.FsaaFactor);
+        Assert.Equal(1.0f, plan.DisplaySettings.Value.Alpha);
+        Assert.True(plan.DisplaySettings.Value.UseClassicBilinear);
         Assert.Equal(new[]
         {
             new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.RecreateRenderTargets),
@@ -458,6 +464,7 @@ public sealed class PresentationPlanTests
 
         Assert.True(plan.CanRedraw);
         Assert.Equal(RenderLayers.None, plan.RenderLayerAfter);
+        Assert.Null(plan.DisplaySettings);
         Assert.Equal(new[]
         {
             new PresentationSurfaceRedrawStep(PresentationSurfaceRedrawStepKind.SetRenderLayerSurface),
@@ -474,6 +481,22 @@ public sealed class PresentationPlanTests
             windowSizeChanged: false,
             viewMode: (ViewMode)99,
             skipHiddenSectors: false));
+    }
+
+    [Fact]
+    public void SurfaceRedrawExpressionsMatchUdbWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Source", "Core", "Rendering", "Renderer2D.cs"));
+
+        Assert.Contains("public void RedrawSurface()", source, StringComparison.Ordinal);
+        Assert.Contains("if(renderlayer != RenderLayers.None) return;", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.StartRendering(true, General.Colors.Background.WithAlpha(0).ToColorValue(), surfacetex, false);", source, StringComparison.Ordinal);
+        Assert.Contains("graphics.SetUniform(UniformName.desaturation, 0.0f);", source, StringComparison.Ordinal);
+        Assert.Contains("SetWorldTransformation(true);", source, StringComparison.Ordinal);
+        Assert.Contains("SetDisplay2DSettings(1f, 1f, 0f, 1f, General.Settings.ClassicBilinear);", source, StringComparison.Ordinal);
     }
 
     [Fact]
