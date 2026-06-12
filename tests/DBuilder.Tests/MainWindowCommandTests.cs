@@ -1215,6 +1215,7 @@ public sealed class MainWindowCommandTests
         Assert.Contains("MapView.SetUseOppositeSmartPivotHandle(_settings.UseOppositeSmartPivotHandle);", code, StringComparison.Ordinal);
         Assert.Contains("MapView.AutoClearSelection = _settings.AutoClearSelection;", code, StringComparison.Ordinal);
         Assert.Contains("MapView.EditNewThing = _settings.EditNewThing;", code, StringComparison.Ordinal);
+        Assert.Contains("MapView.EditNewSector = _settings.EditNewSector;", code, StringComparison.Ordinal);
         Assert.Contains("MapView.DoubleSidedAlphaByte = _settings.NormalizedDoubleSidedAlphaByte;", code, StringComparison.Ordinal);
         Assert.Contains("MapView.VisualFovDegrees = _settings.NormalizedVisualFov;", code, StringComparison.Ordinal);
         Assert.Contains("MapView.ViewDistance = _settings.NormalizedViewDistance;", code, StringComparison.Ordinal);

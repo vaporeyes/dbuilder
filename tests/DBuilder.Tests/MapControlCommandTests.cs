@@ -134,6 +134,23 @@ public sealed class MapControlCommandTests
     }
 
     [Fact]
+    public void DrawnSectorsRequestPropertyEditingWhenUdbPreferenceIsEnabled()
+    {
+        string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
+        int finishIndex = body.IndexOf("private void FinishDraw()", StringComparison.Ordinal);
+        int lifecycleIndex = body.IndexOf("private void CompletePolylineDraw()", finishIndex, StringComparison.Ordinal);
+        string method = body[finishIndex..lifecycleIndex];
+
+        Assert.Contains("private bool _editNewSector;", body, StringComparison.Ordinal);
+        Assert.Contains("public bool EditNewSector", body, StringComparison.Ordinal);
+        Assert.Contains("Sector? createdSector = null;", method, StringComparison.Ordinal);
+        Assert.Contains("createdSector = Tools.MakeSectorFromLoop", method, StringComparison.Ordinal);
+        Assert.Contains("if (_editNewSector && createdSector != null)", method, StringComparison.Ordinal);
+        Assert.Contains("createdSector.Selected = true;", method, StringComparison.Ordinal);
+        Assert.Contains("EditRequested?.Invoke();", method, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ClassicViewModeDefaultsToUdbNormalSetting()
     {
         string body = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../src/DBuilder.Editor/MapControl.cs"));
@@ -178,6 +195,7 @@ public sealed class MapControlCommandTests
         Assert.Contains("public int MouseSelectionThreshold", body, StringComparison.Ordinal);
         Assert.Contains("public bool AutoClearSelection", body, StringComparison.Ordinal);
         Assert.Contains("public bool EditNewThing", body, StringComparison.Ordinal);
+        Assert.Contains("public bool EditNewSector", body, StringComparison.Ordinal);
         Assert.Contains("public int StitchRange", body, StringComparison.Ordinal);
         Assert.Contains("public int HighlightRange", body, StringComparison.Ordinal);
         Assert.Contains("public int ThingHighlightRange", body, StringComparison.Ordinal);

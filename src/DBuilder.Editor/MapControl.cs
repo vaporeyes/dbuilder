@@ -223,6 +223,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     private bool _useHighlight = true;
     private bool _autoClearSelection;
     private bool _editNewThing = true;
+    private bool _editNewSector;
     private ThingModelRenderMode _modelRenderMode = ThingModelRenderMode.All;
     private ThingLightRenderMode _lightRenderMode = ThingLightRenderMode.All;
     private bool _enhancedRenderingEffects = true;
@@ -266,6 +267,11 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
     {
         get => _editNewThing;
         set => _editNewThing = value;
+    }
+    public bool EditNewSector
+    {
+        get => _editNewSector;
+        set => _editNewSector = value;
     }
     public ThingModelRenderMode ModelRenderMode => _modelRenderMode;
     public ThingLightRenderMode LightRenderMode => _lightRenderMode;
@@ -9471,6 +9477,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
             verts.Add(existing ?? _map.AddVertex(p));
         }
 
+        Sector? createdSector = null;
         if (_drawLinesOnly)
         {
             for (int i = 0; i < verts.Count - 1; i++) _map.AddLinedef(verts[i], verts[i + 1]);
@@ -9480,7 +9487,7 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
         else
         {
             var nearbyLines = _map.Linedefs.Where(line => !LineTouchesOnlyDrawnVertices(line, verts)).ToList();
-            Tools.MakeSectorFromLoop(_map, verts, nearbyLines, useOverrides: false, options: CreateSectorCreationOptions());
+            createdSector = Tools.MakeSectorFromLoop(_map, verts, nearbyLines, useOverrides: false, options: CreateSectorCreationOptions());
         }
 
         _map.MergeOverlappingVertices(0.01);
@@ -9489,6 +9496,12 @@ void main() { vec4 s = texture(tex0, v_uv); frag = mix(v_color, s * v_color, use
 
         MarkGeometryDirty();
         Changed?.Invoke();
+        if (_editNewSector && createdSector != null)
+        {
+            _map.ClearAllSelected();
+            createdSector.Selected = true;
+            EditRequested?.Invoke();
+        }
         CompletePolylineDraw();
     }
 

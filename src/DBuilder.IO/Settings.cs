@@ -85,6 +85,7 @@ public sealed class Settings
     public bool SplitJoinedSectors { get; set; } = true;
     public bool AutoClearSelection { get; set; }
     public bool EditNewThing { get; set; } = true;
+    public bool EditNewSector { get; set; }
     public bool RenderGrid { get; set; } = true;
     public bool DynamicGridSize { get; set; } = true;
     public bool SwitchViewModes { get; set; }

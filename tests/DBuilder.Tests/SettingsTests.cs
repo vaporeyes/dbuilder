@@ -154,6 +154,12 @@ public class SettingsTests
     }
 
     [Fact]
+    public void EditNewSectorDefaultsDisabledLikeUdb()
+    {
+        Assert.False(new Settings().EditNewSector);
+    }
+
+    [Fact]
     public void ModelRenderModeDefaultsToAllLikeUdb()
     {
         Assert.Equal(ThingModelRenderMode.All, new Settings().NormalizedModelRenderMode);
@@ -470,6 +476,7 @@ public class SettingsTests
                 SplitJoinedSectors = true,
                 AutoClearSelection = true,
                 EditNewThing = false,
+                EditNewSector = true,
                 SwitchViewModes = true,
                 AlphaBasedTextureHighlighting = false,
                 SelectAdjacentVisualVertexSlopeHandles = true,
@@ -663,6 +670,7 @@ public class SettingsTests
             Assert.True(loaded.SplitJoinedSectors);
             Assert.True(loaded.AutoClearSelection);
             Assert.False(loaded.EditNewThing);
+            Assert.True(loaded.EditNewSector);
             Assert.True(loaded.SwitchViewModes);
             Assert.False(loaded.AlphaBasedTextureHighlighting);
             Assert.True(loaded.SelectAdjacentVisualVertexSlopeHandles);

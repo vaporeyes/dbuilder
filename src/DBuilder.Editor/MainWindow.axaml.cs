@@ -236,6 +236,7 @@ public partial class MainWindow : Window
         MapView.LinedefColorPresets = _settings.NormalizedLinedefColorPresets;
         MapView.AutoClearSelection = _settings.AutoClearSelection;
         MapView.EditNewThing = _settings.EditNewThing;
+        MapView.EditNewSector = _settings.EditNewSector;
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
         MapView.RenderGridEnabled = _settings.RenderGrid;
         MapView.DynamicGridSizeEnabled = _settings.DynamicGridSize;
@@ -1434,6 +1435,7 @@ public partial class MainWindow : Window
         _settings.SplitJoinedSectors = dlg.SplitJoinedSectors;
         _settings.AutoClearSelection = dlg.AutoClearSelection;
         _settings.EditNewThing = dlg.EditNewThing;
+        _settings.EditNewSector = dlg.EditNewSector;
         _settings.DynamicGridSize = dlg.DynamicGridSize;
         _settings.SwitchViewModes = dlg.SwitchViewModes;
         _settings.UseHighlight = dlg.UseHighlight;
@@ -1493,6 +1495,7 @@ public partial class MainWindow : Window
         MapView.DrawGridSettings = _settings.NormalizedDrawGridSettings;
         MapView.AutoClearSelection = _settings.AutoClearSelection;
         MapView.EditNewThing = _settings.EditNewThing;
+        MapView.EditNewSector = _settings.EditNewSector;
         MapView.ThreeDFloorControlSectorAreaSettings = _settings.NormalizedThreeDFloorControlSectorAreaSettings;
         MapView.DynamicGridSizeEnabled = _settings.DynamicGridSize;
         MapView.SetUseHighlight(_settings.UseHighlight);
