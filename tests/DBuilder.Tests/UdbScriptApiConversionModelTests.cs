@@ -3289,6 +3289,79 @@ localsidedeftextureoffsets = true;
         Assert.Contains("UDB.Map.clearAllMarks()", source, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData(MapFormat.Doom)]
+    [InlineData(MapFormat.Hexen)]
+    [InlineData(MapFormat.Udmf)]
+    public void CommonUdbScriptMakeDoorWorkflowUsesSectorSideAndLineWrappersTogether(MapFormat mapFormat)
+    {
+        (MapSet map, Sector door, Linedef trackLine, Sidedef activationSide, Sidedef outsideSide) =
+            CreateMakeDoorFixture();
+        var wrapper = new UdbScriptMapWrapper(map, mapFormat: mapFormat);
+
+        ExecuteMakeDoorWorkflow(wrapper);
+
+        Assert.Equal(door.FloorHeight, door.CeilHeight);
+        Assert.Equal("FLAT20", door.CeilTexture);
+        Assert.Equal("DOORTRAK", trackLine.Front!.MidTexture);
+        if (mapFormat == MapFormat.Udmf)
+        {
+            Assert.True(trackLine.IsFlagSet("dontpegbottom"));
+        }
+        else
+        {
+            Assert.Equal(16, trackLine.Flags & 16);
+        }
+
+        Assert.False(activationSide.IsFront);
+        Assert.True(outsideSide.IsFront);
+        Assert.Equal("BIGDOOR2", outsideSide.HighTexture);
+        if (mapFormat == MapFormat.Doom)
+        {
+            Assert.Equal(1, activationSide.Line.Action);
+        }
+        else
+        {
+            Assert.Equal(12, activationSide.Line.Action);
+            Assert.Equal(0, activationSide.Line.Args[0]);
+            Assert.Equal(16, activationSide.Line.Args[1]);
+            Assert.Equal(150, activationSide.Line.Args[2]);
+            Assert.Equal(0, activationSide.Line.Args[3]);
+
+            if (mapFormat == MapFormat.Hexen)
+            {
+                Assert.Equal(1024, activationSide.Line.Activate);
+                Assert.Equal(512, activationSide.Line.Flags & 512);
+                Assert.Equal(8192, activationSide.Line.Flags & 8192);
+            }
+            else
+            {
+                Assert.True(activationSide.Line.IsFlagSet("repeatspecial"));
+                Assert.True(activationSide.Line.IsFlagSet("playeruse"));
+                Assert.True(activationSide.Line.IsFlagSet("monsteruse"));
+            }
+        }
+    }
+
+    [Fact]
+    public void CommonUdbScriptMakeDoorExampleUsesCoveredApisWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Assets", "Common", "UDBScript", "Scripts", "Examples", "Geometry", "makedoor.js"));
+
+        Assert.Contains("UDB.Map.getSelectedOrHighlightedSectors()", source, StringComparison.Ordinal);
+        Assert.Contains("s.ceilingHeight = s.floorHeight", source, StringComparison.Ordinal);
+        Assert.Contains("s.getSidedefs().forEach", source, StringComparison.Ordinal);
+        Assert.Contains("sd.line.flags.dontpegbottom = true", source, StringComparison.Ordinal);
+        Assert.Contains("sd.line.flags['16'] = true", source, StringComparison.Ordinal);
+        Assert.Contains("sd.line.flip()", source, StringComparison.Ordinal);
+        Assert.Contains("sd.other.upperTexture = UDB.ScriptOptions.doortexture", source, StringComparison.Ordinal);
+        Assert.Contains("sd.line.activate = 1024", source, StringComparison.Ordinal);
+        Assert.Contains("sd.line.flags.repeatspecial = true", source, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void CommonUdbScriptSelectConnectedLinedefsWorkflowUsesMapWrappersTogether()
     {
@@ -3998,6 +4071,88 @@ localsidedeftextureoffsets = true;
     {
         return (line.Start.Position == first && line.End.Position == second) ||
             (line.Start.Position == second && line.End.Position == first);
+    }
+
+    private static (MapSet Map, Sector Door, Linedef TrackLine, Sidedef ActivationSide, Sidedef OutsideSide) CreateMakeDoorFixture()
+    {
+        var map = new MapSet();
+        Sector door = map.AddSector();
+        door.FloorHeight = 24;
+        door.CeilHeight = 96;
+        door.SetCeilTexture("CEIL5_1");
+        door.Selected = true;
+        Sector outside = map.AddSector();
+        Vertex a = map.AddVertex(new Vector2D(0, 0));
+        Vertex b = map.AddVertex(new Vector2D(64, 0));
+        Vertex c = map.AddVertex(new Vector2D(64, 64));
+        Linedef trackLine = map.AddLinedef(a, b);
+        Sidedef trackSide = map.AddSidedef(trackLine, isFront: true, door);
+        trackSide.SetTextureMid("STARTAN3");
+        Linedef activationLine = map.AddLinedef(b, c);
+        Sidedef activationSide = map.AddSidedef(activationLine, isFront: true, door);
+        Sidedef outsideSide = map.AddSidedef(activationLine, isFront: false, outside);
+        outsideSide.SetTextureHigh("STARTAN2");
+        map.BuildIndexes();
+        return (map, door, trackLine, activationSide, outsideSide);
+    }
+
+    private static void ExecuteMakeDoorWorkflow(UdbScriptMapWrapper wrapper)
+    {
+        const string doorTexture = "BIGDOOR2";
+        const string doorTrack = "DOORTRAK";
+        const string ceilingTexture = "FLAT20";
+
+        foreach (UdbScriptSectorWrapper sector in wrapper.getSelectedOrHighlightedSectors())
+        {
+            sector.ceilingHeight = sector.floorHeight;
+            sector.ceilingTexture = ceilingTexture;
+
+            foreach (UdbScriptSidedefWrapper side in sector.getSidedefs())
+            {
+                if (side.other == null)
+                {
+                    side.middleTexture = doorTrack;
+
+                    if (wrapper.isUDMF)
+                        side.line.flags["dontpegbottom"] = true;
+                    else
+                        side.line.flags["16"] = true;
+                }
+                else
+                {
+                    if (side.isFront)
+                        side.line.flip();
+
+                    side.other.upperTexture = doorTexture;
+
+                    if (wrapper.isDoom)
+                    {
+                        side.line.action = 1;
+                    }
+                    else
+                    {
+                        side.line.action = 12;
+                        side.line.args[0] = 0;
+                        side.line.args[1] = 16;
+                        side.line.args[2] = 150;
+                        side.line.args[3] = 0;
+
+                        if (wrapper.isHexen)
+                        {
+                            side.line.activate = 1024;
+                            side.line.flags["512"] = true;
+                            side.line.flags["8192"] = true;
+                        }
+                        else
+                        {
+                            side.line.flags["repeatspecial"] = true;
+                            side.line.flags["playeruse"] = true;
+                            side.line.flags["monsteruse"] = true;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private static void ExecuteImpsToArchVilesWorkflow(UdbScriptMapWrapper wrapper)
