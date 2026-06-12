@@ -381,7 +381,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add reflection-based plugin callback execution with abort and error diagnostics.
   - [x] Add aggregate reflection runtime host planning with ready-host filtering.
   - [x] Add reflection-based plugin shutdown execution with dispose diagnostics.
-- [ ] Define plugin lifecycle hooks equivalent to UDB plugins.
+- [x] Define plugin lifecycle hooks equivalent to UDB plugins.
   - [x] Add plugin lifecycle hook ordering for load, initialize, contribution registration, map-open, engage, disengage, and dispose planning.
   - [x] Add plugin map-close lifecycle hook planning for map-scoped plugins.
   - [x] Add plugin map-save lifecycle hook planning for map-scoped plugins.
@@ -412,7 +412,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add plugin validation warnings that keep invalid or disabled descriptors out of lifecycle plans.
   - [x] Add plugin descriptor diagnostics for missing names, missing paths, duplicates, and disabled plugins.
   - [x] Add plugin callback execution result aggregation for per-plugin errors and abort decisions.
-- [ ] Add compatibility tests for plugin lifecycle behavior.
+- [x] Add compatibility tests for plugin lifecycle behavior.
   - [x] Add tests for plugin descriptor normalization, lifecycle hook ordering, and invalid descriptor isolation.
   - [x] Add UDB plugin callback catalog compatibility tests for lifecycle, edit, input, render, and highlight callbacks.
   - [x] Add plugin callback invocation planning with abortable callback metadata and unknown-callback diagnostics.
@@ -3063,7 +3063,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
 - [x] Add editor-model tests for undo and redo.
 - [ ] Add UI smoke tests for opening, editing, saving, and reopening maps.
 - [ ] Add rendering smoke tests for 2D and 3D views.
-- [ ] Add plugin lifecycle tests.
+- [x] Add plugin lifecycle tests.
 - [x] Add source-port launch tests with mocked process execution.
 - [ ] Add performance tests for large maps and large resource stacks.
 - [ ] Add compatibility tests against selected UDB behavior where exact parity matters.
