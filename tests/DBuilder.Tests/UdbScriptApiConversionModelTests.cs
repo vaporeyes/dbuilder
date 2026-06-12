@@ -3207,6 +3207,74 @@ localsidedeftextureoffsets = true;
         Assert.Contains("v.join(ld.", source, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void CommonUdbScriptSelectConnectedLinedefsWorkflowUsesMapWrappersTogether()
+    {
+        var map = new MapSet();
+        Vertex first = map.AddVertex(new Vector2D(0, 0));
+        Vertex second = map.AddVertex(new Vector2D(64, 0));
+        Vertex third = map.AddVertex(new Vector2D(128, 0));
+        Vertex fourth = map.AddVertex(new Vector2D(192, 0));
+        Vertex isolatedStart = map.AddVertex(new Vector2D(0, 128));
+        Vertex isolatedEnd = map.AddVertex(new Vector2D(64, 128));
+        Linedef seed = map.AddLinedef(first, second);
+        Linedef connectedMiddle = map.AddLinedef(second, third);
+        Linedef connectedEnd = map.AddLinedef(third, fourth);
+        Linedef isolated = map.AddLinedef(isolatedStart, isolatedEnd);
+        seed.Selected = true;
+        map.BuildIndexes();
+        var wrapper = new UdbScriptMapWrapper(map);
+        UdbScriptLinedefWrapper[] lines = wrapper.getSelectedOrHighlightedLinedefs();
+        var verticesToCheck = new List<UdbScriptVertexWrapper>();
+        var checkedVertices = new List<UdbScriptVertexWrapper>();
+
+        foreach (UdbScriptLinedefWrapper line in lines)
+        {
+            if (!verticesToCheck.Contains(line.start))
+                verticesToCheck.Add(line.start);
+
+            if (!verticesToCheck.Contains(line.end))
+                verticesToCheck.Add(line.end);
+        }
+
+        while (verticesToCheck.Count != 0)
+        {
+            UdbScriptVertexWrapper vertex = verticesToCheck[^1];
+            verticesToCheck.RemoveAt(verticesToCheck.Count - 1);
+            checkedVertices.Add(vertex);
+
+            foreach (UdbScriptLinedefWrapper line in vertex.getLinedefs())
+            {
+                line.selected = true;
+
+                if (!verticesToCheck.Contains(line.start) && !checkedVertices.Contains(line.start))
+                    verticesToCheck.Add(line.start);
+
+                if (!verticesToCheck.Contains(line.end) && !checkedVertices.Contains(line.end))
+                    verticesToCheck.Add(line.end);
+            }
+        }
+
+        Assert.True(seed.Selected);
+        Assert.True(connectedMiddle.Selected);
+        Assert.True(connectedEnd.Selected);
+        Assert.False(isolated.Selected);
+    }
+
+    [Fact]
+    public void CommonUdbScriptSelectConnectedLinedefsExampleUsesCoveredApisWhenCloneIsAvailable()
+    {
+        string? udbRoot = FindUdbRoot();
+        if (udbRoot == null) return;
+
+        string source = File.ReadAllText(Path.Combine(udbRoot, "Assets", "Common", "UDBScript", "Scripts", "Examples", "selectconnectedlines.js"));
+
+        Assert.Contains("UDB.Map.getSelectedOrHighlightedLinedefs()", source, StringComparison.Ordinal);
+        Assert.Contains("vertices_to_check.includes(ld.start)", source, StringComparison.Ordinal);
+        Assert.Contains("v.getLinedefs().forEach", source, StringComparison.Ordinal);
+        Assert.Contains("ld.selected = true", source, StringComparison.Ordinal);
+    }
+
     private static Sector CreateSquareSector()
     {
         var sector = new Sector();

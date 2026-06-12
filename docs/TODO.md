@@ -2882,6 +2882,7 @@ This document tracks the remaining work to bring DBuilder to feature parity with
   - [x] Add UDBScript QueryOptions compatibility coverage for upstream valid option types and polyobject options.
   - [x] Add UDBScript compatibility coverage for the bundled Triangulate Sectors workflow.
   - [x] Add UDBScript compatibility coverage for the bundled Bevel Linedefs workflow.
+  - [x] Add UDBScript compatibility coverage for the bundled Select Connected Linedefs workflow.
 
 ## Specialized Plugin Detail
 
